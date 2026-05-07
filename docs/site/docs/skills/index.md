@@ -77,7 +77,7 @@ maintenance.
 ([#114](https://github.com/wphillipmoore/standard-tooling-plugin/issues/114))
 with concrete per-category commands (Python deps via `uv lock`,
 CI action pins, runtime versions, doc toolchain, linters, build
-tools), `st-validate-local` as the canonical validation step,
+tools), `st-validate` as the canonical validation step,
 structured failure handling via anchored dependency records, and
 anchor review as a first-class section.
 

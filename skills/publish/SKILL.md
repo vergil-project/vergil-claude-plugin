@@ -96,9 +96,9 @@ caching.
 
 If you're unsure where a tool belongs: is it primarily a wrapper around a
 containerized language toolchain (→ container), or a thin Python/shell
-driver around git/gh/SSH-using operations (→ host)? `st-validate-local`
-itself is a host orchestrator that dispatches its inner validators into
-the container — host driver, container payloads.
+driver around git/gh/SSH-using operations (→ host)? `st-validate`
+runs inside the container via `st-docker-run -- uv run st-validate` —
+all validation payloads execute in-container.
 
 ### Examples
 

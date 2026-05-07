@@ -36,7 +36,7 @@ agent or human picks up an issue.
 | Phase | Purpose | Hand-off |
 |---|---|---|
 | B1. Set up workspace | Resolve issue → branch name → **worktree** on a feature branch tied to the issue. One worktree per issue, never on `develop`/`main`. | → B2 |
-| B2. Develop | Edit, validate (`st-validate-local`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
+| B2. Develop | Edit, validate (`st-docker-run -- uv run st-validate`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
 | B3. Submit | Push, create PR via `st-submit-pr`, link issue with `Fixes`/`Closes`/`Resolves`/`Ref`. Wait for CI green. **Human reviews and merges feature/bugfix PRs.** | → B4 (after merge) |
 | B4. Finalize | `st-finalize-repo`: pull develop, delete merged feature branch, prune worktrees and remotes. | → exit work cycle |
 
@@ -228,7 +228,7 @@ anchored records). Mostly references external docs.
 
 **What's changed since.** The host-vs-container split affects
 which validators the workflow invokes. The skill predates
-`st-validate-local` being canonical.
+`st-validate` being canonical.
 
 **Slash-command runnability.** No. The skill is too thin to drive a
 session — it doesn't say *how* to update Python deps vs. CI action
@@ -241,7 +241,7 @@ concrete commands.
 encodes concrete commands per dependency category (library deps
 via `uv lock --upgrade`, CI action pins, runtime versions, doc
 toolchain, linters, test frameworks, build tools). Validation
-uses `st-validate-local`. Failure handling structured around the
+uses `st-validate`. Failure handling structured around the
 anchored dependency record workflow. Anchor review is a
 first-class section: every sweep checks existing anchors for
 exit-criteria resolution. Submission hands off explicitly to
@@ -523,7 +523,7 @@ referenced the skill; now the skill references the hook.
 rewrite. The skill now encodes concrete commands per dependency
 category (Python direct deps and lockfile via `uv lock`, CI
 action pins, runtime version pins, doc toolchain, linters, test
-frameworks, build tools). Validation uses `st-validate-local` as
+frameworks, build tools). Validation uses `st-validate` as
 the canonical step. Failure handling is structured around the
 anchored dependency record workflow with explicit "never silently
 pin" policy. Submission hands off to `pr-workflow`. Added anchor

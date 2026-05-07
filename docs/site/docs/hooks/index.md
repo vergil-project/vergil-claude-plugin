@@ -140,9 +140,9 @@ split from
 - **Warns** (via `additionalContext`, not deny) when a
   container-only tool is invoked directly — whether bare
   (e.g., `ruff check .`) or wrapped in `st-docker-run --`.
-  Both bypass the `scripts/dev/*.sh` abstraction layer that
-  each repo maintains. The correct entry point is
-  `st-validate-local`, which delegates to those scripts.
+  Both bypass the canonical validation entry point. The correct
+  command is `st-docker-run -- uv run st-validate`, which handles
+  all tool routing internally.
 
 The canonical tool lists live in
 `hooks/scripts/lib/host-container-tools.sh` so the same source of
@@ -152,15 +152,15 @@ truth powers both the hook and any future docs/lint.
 wrapping host tools in the container — was caused by documentation
 being the only enforcement mechanism. Issue
 [#168](https://github.com/wphillipmoore/standard-tooling-plugin/issues/168)
-extended this to also catch agents bypassing the `scripts/dev`
-abstraction by calling linters directly (even correctly wrapped in
-`st-docker-run`). The agent should never invoke individual
-linters — `st-validate-local` handles tool routing internally.
+extended this to also catch agents bypassing the canonical
+validation entry point by calling linters directly (even correctly
+wrapped in `st-docker-run`). The agent should never invoke
+individual linters — `st-validate` handles tool routing internally.
 
 **Alternative.** For denied commands: invoke the host tool
 directly (drop the `st-docker-run --` prefix). For warned
-commands: use `st-validate-local` instead of invoking individual
-linters. See the
+commands: use `st-docker-run -- uv run st-validate` instead of invoking
+individual linters. See the
 [`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale.
 
@@ -264,13 +264,13 @@ work — five container starts for a single Python edit (`ruff check
 --fix`, `ruff format`, `ruff check`, `mypy`, `ty check`). Across a
 session with dozens of edits, that's minutes of wall-clock overhead
 per session, every session. The same checks already run in two
-cheaper places: `st-validate-local` covers them in a single
+cheaper places: `st-validate` covers them in a single
 container start before PR submission, and CI re-runs them on every
 PR. The per-edit layer was the third copy with the worst
 cost-per-value ratio.
 
 **What replaces it.** Nothing per-edit. Validation runs at PR time
-via [`st-validate-local`](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate-local.md),
+via [`st-validate`](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate.md),
 which is the documented "only validation command" per every
 consuming repo's CLAUDE.md. The
 [`block-raw-git-commit`](#block-raw-git-commit) PreToolUse hook
