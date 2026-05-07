@@ -44,7 +44,7 @@ for tool in "${CONTAINER_TOOLS[@]}"; do
     jq -n --arg tool "$tool" '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        additionalContext: ("WARNING: \($tool) should not be invoked directly. Use st-docker-run -- uv run st-validate for validation — it handles tool routing internally. See issue #168: https://github.com/wphillipmoore/standard-tooling-plugin/issues/168")
+        additionalContext: ("WARNING: \($tool) should not be invoked directly. Use st-docker-run -- st-validate for validation — it handles tool routing internally. See issue #168: https://github.com/wphillipmoore/standard-tooling-plugin/issues/168")
       }
     }'
     exit 0

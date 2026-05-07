@@ -141,7 +141,7 @@ split from
   container-only tool is invoked directly — whether bare
   (e.g., `ruff check .`) or wrapped in `st-docker-run --`.
   Both bypass the canonical validation entry point. The correct
-  command is `st-docker-run -- uv run st-validate`, which handles
+  command is `st-docker-run -- st-validate`, which handles
   all tool routing internally.
 
 The canonical tool lists live in
@@ -159,7 +159,7 @@ individual linters — `st-validate` handles tool routing internally.
 
 **Alternative.** For denied commands: invoke the host tool
 directly (drop the `st-docker-run --` prefix). For warned
-commands: use `st-docker-run -- uv run st-validate` instead of invoking
+commands: use `st-docker-run -- st-validate` instead of invoking
 individual linters. See the
 [`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale.

@@ -42,7 +42,7 @@ Most commands in this skill are **host commands** — invoke them directly
 without `st-docker-run` wrapping. This includes `uv`, `gh`, `st-commit`,
 `st-validate`, and all `st-*` workflow tools.
 
-Validation runs via `st-docker-run -- uv run st-validate`, which
+Validation runs via `st-docker-run -- st-validate`, which
 dispatches all checks inside the container. See the
 [`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale
@@ -159,11 +159,11 @@ records:
 After all updates in a category (or after all categories if batching):
 
 ```bash
-st-docker-run -- uv run st-validate
+st-docker-run -- st-validate
 ```
 
 `st-validate` runs inside the container. Invoke it via
-`st-docker-run -- uv run st-validate`. Fix any failures before proceeding to
+`st-docker-run -- st-validate`. Fix any failures before proceeding to
 the next category or to submission.
 
 ## Failure handling
