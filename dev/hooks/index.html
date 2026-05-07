@@ -1820,7 +1820,7 @@ split from
   container-only tool is invoked directly — whether bare
   (e.g., <code>ruff check .</code>) or wrapped in <code>st-docker-run --</code>.
   Both bypass the canonical validation entry point. The correct
-  command is <code>st-docker-run -- uv run st-validate</code>, which handles
+  command is <code>st-docker-run -- st-validate</code>, which handles
   all tool routing internally.</li>
 </ul>
 <p>The canonical tool lists live in
@@ -1836,7 +1836,7 @@ wrapped in <code>st-docker-run</code>). The agent should never invoke
 individual linters — <code>st-validate</code> handles tool routing internally.</p>
 <p><strong>Alternative.</strong> For denied commands: invoke the host tool
 directly (drop the <code>st-docker-run --</code> prefix). For warned
-commands: use <code>st-docker-run -- uv run st-validate</code> instead of invoking
+commands: use <code>st-docker-run -- st-validate</code> instead of invoking
 individual linters. See the
 <a href="https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
 for the canonical split and rationale.</p>
