@@ -97,7 +97,7 @@ caching.
 If you're unsure where a tool belongs: is it primarily a wrapper around a
 containerized language toolchain (→ container), or a thin Python/shell
 driver around git/gh/SSH-using operations (→ host)? `st-validate`
-runs inside the container via `st-docker-run -- uv run st-validate` —
+runs inside the container via `st-docker-run -- st-validate` —
 all validation payloads execute in-container.
 
 ### Examples

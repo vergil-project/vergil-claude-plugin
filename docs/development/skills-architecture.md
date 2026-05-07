@@ -36,7 +36,7 @@ agent or human picks up an issue.
 | Phase | Purpose | Hand-off |
 |---|---|---|
 | B1. Set up workspace | Resolve issue → branch name → **worktree** on a feature branch tied to the issue. One worktree per issue, never on `develop`/`main`. | → B2 |
-| B2. Develop | Edit, validate (`st-docker-run -- uv run st-validate`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
+| B2. Develop | Edit, validate (`st-docker-run -- st-validate`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
 | B3. Submit | Push, create PR via `st-submit-pr`, link issue with `Fixes`/`Closes`/`Resolves`/`Ref`. Wait for CI green. **Human reviews and merges feature/bugfix PRs.** | → B4 (after merge) |
 | B4. Finalize | `st-finalize-repo`: pull develop, delete merged feature branch, prune worktrees and remotes. | → exit work cycle |
 
