@@ -75,6 +75,15 @@ for the canonical split.
   materially ambiguous.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort**
   with the install pointer.
+- **GitHub config compliance check.** Run
+  `st-github-config audit --repo <owner/repo>`. If the command
+  exits zero, the repository's GitHub configuration is compliant —
+  proceed silently. If non-zero, the repository is non-compliant:
+  display the full audit output to the user, explain that
+  non-compliant configuration is a red flag, and ask for explicit
+  approval before continuing. The user may approve (e.g., a rule
+  is temporarily relaxed while fixing a tooling bug it depends on)
+  or abort. If the user does not approve, **abort the workflow**.
 - Locate the pull-request template at
   `.github/pull_request_template.md` if present; use its fields.
 - Ensure commit-message format and AI co-authorship requirements
