@@ -75,6 +75,7 @@ a seam that can break.
   `st-merge-when-green`, `st-wait-until-green` — release/PR lifecycle
   drivers
 - `st-docker-run` itself — the dispatcher that runs container commands
+- `st-github-config` — GitHub repository configuration auditing
 - `git-cliff` — changelog generation
 
 ### Container commands — run via `st-docker-run --`
@@ -124,6 +125,15 @@ st-docker-run -- markdownlint .
 - If the type is anything else, stop and inform the user that this skill does
   not apply.
 - Confirm you are on the `develop` branch with a clean working tree.
+- **GitHub config compliance check.** Run
+  `st-github-config audit --repo <owner/repo>`. If the command
+  exits zero, the repository's GitHub configuration is compliant —
+  proceed silently. If non-zero, the repository is non-compliant:
+  display the full audit output to the user, explain that
+  non-compliant configuration is a red flag, and ask for explicit
+  approval before continuing. The user may approve (e.g., a rule
+  is temporarily relaxed while fixing a tooling bug it depends on)
+  or abort. If the user does not approve, **abort the workflow**.
 - Identify the canonical validation command from the repository profile.
 - Run host commands directly from PATH. If any required command is missing,
   the command will fail and the agent follows the failure handling procedure.
