@@ -1819,9 +1819,9 @@ split from
 <li><strong>Warns</strong> (via <code>additionalContext</code>, not deny) when a
   container-only tool is invoked directly — whether bare
   (e.g., <code>ruff check .</code>) or wrapped in <code>st-docker-run --</code>.
-  Both bypass the <code>scripts/dev/*.sh</code> abstraction layer that
-  each repo maintains. The correct entry point is
-  <code>st-validate-local</code>, which delegates to those scripts.</li>
+  Both bypass the canonical validation entry point. The correct
+  command is <code>st-docker-run -- uv run st-validate</code>, which handles
+  all tool routing internally.</li>
 </ul>
 <p>The canonical tool lists live in
 <code>hooks/scripts/lib/host-container-tools.sh</code> so the same source of
@@ -1830,14 +1830,14 @@ truth powers both the hook and any future docs/lint.</p>
 wrapping host tools in the container — was caused by documentation
 being the only enforcement mechanism. Issue
 <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/168">#168</a>
-extended this to also catch agents bypassing the <code>scripts/dev</code>
-abstraction by calling linters directly (even correctly wrapped in
-<code>st-docker-run</code>). The agent should never invoke individual
-linters — <code>st-validate-local</code> handles tool routing internally.</p>
+extended this to also catch agents bypassing the canonical
+validation entry point by calling linters directly (even correctly
+wrapped in <code>st-docker-run</code>). The agent should never invoke
+individual linters — <code>st-validate</code> handles tool routing internally.</p>
 <p><strong>Alternative.</strong> For denied commands: invoke the host tool
 directly (drop the <code>st-docker-run --</code> prefix). For warned
-commands: use <code>st-validate-local</code> instead of invoking individual
-linters. See the
+commands: use <code>st-docker-run -- uv run st-validate</code> instead of invoking
+individual linters. See the
 <a href="https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
 for the canonical split and rationale.</p>
 <h3 id="block-autoclose-linkage">block-autoclose-linkage<a class="headerlink" href="#block-autoclose-linkage" title="Permanent link">&para;</a></h3>
@@ -1917,12 +1917,12 @@ work — five container starts for a single Python edit (<code>ruff check
 --fix</code>, <code>ruff format</code>, <code>ruff check</code>, <code>mypy</code>, <code>ty check</code>). Across a
 session with dozens of edits, that's minutes of wall-clock overhead
 per session, every session. The same checks already run in two
-cheaper places: <code>st-validate-local</code> covers them in a single
+cheaper places: <code>st-validate</code> covers them in a single
 container start before PR submission, and CI re-runs them on every
 PR. The per-edit layer was the third copy with the worst
 cost-per-value ratio.</p>
 <p><strong>What replaces it.</strong> Nothing per-edit. Validation runs at PR time
-via <a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate-local.md"><code>st-validate-local</code></a>,
+via <a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate.md"><code>st-validate</code></a>,
 which is the documented "only validation command" per every
 consuming repo's CLAUDE.md. The
 <a href="#block-raw-git-commit"><code>block-raw-git-commit</code></a> PreToolUse hook
