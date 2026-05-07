@@ -96,7 +96,7 @@ for the canonical split.
 ## Pre-submission
 
 1. Run the repository's canonical validation command if documented
-   (typically `st-validate-local`).
+   (typically `st-docker-run -- uv run st-validate`).
 2. If no canonical command exists, ask the user for the required
    validation steps.
 3. If any check fails, **do not submit** the PR. Fix the failures
