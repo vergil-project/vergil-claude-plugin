@@ -36,7 +36,7 @@ agent or human picks up an issue.
 | Phase | Purpose | Hand-off |
 |---|---|---|
 | B1. Set up workspace | Resolve issue → branch name → **worktree** on a feature branch tied to the issue. One worktree per issue, never on `develop`/`main`. | → B2 |
-| B2. Develop | Edit, validate (`st-validate-local`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
+| B2. Develop | Edit, validate (`st-docker-run -- st-validate`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
 | B3. Submit | Push, create PR via `st-submit-pr`, link issue with `Fixes`/`Closes`/`Resolves`/`Ref`. Wait for CI green. **Human reviews and merges feature/bugfix PRs.** | → B4 (after merge) |
 | B4. Finalize | `st-finalize-repo`: pull develop, delete merged feature branch, prune worktrees and remotes. | → exit work cycle |
 
@@ -65,9 +65,9 @@ Always available, not lifecycle-bound:
 
 The seams between phases are where skills fail today:
 
-1. **A1 → B1**: When `project-issue` creates an issue, the natural
-   next step is `branch-workflow`. Today the user invokes them
-   separately.
+1. **A1 → B1**: When an issue is created (via `gh issue create`),
+   the natural next step is to start work on it. Today the user
+   invokes them separately.
 2. **B3 → B4**: After merge, `st-finalize-repo` runs. PR-workflow
    says this; agents sometimes forget.
 3. **B4 → A1 (cross-repo)**: Sub-issues created by `branch-workflow`
@@ -228,7 +228,7 @@ anchored records). Mostly references external docs.
 
 **What's changed since.** The host-vs-container split affects
 which validators the workflow invokes. The skill predates
-`st-validate-local` being canonical.
+`st-validate` being canonical.
 
 **Slash-command runnability.** No. The skill is too thin to drive a
 session — it doesn't say *how* to update Python deps vs. CI action
@@ -241,7 +241,7 @@ concrete commands.
 encodes concrete commands per dependency category (library deps
 via `uv lock --upgrade`, CI action pins, runtime versions, doc
 toolchain, linters, test frameworks, build tools). Validation
-uses `st-validate-local`. Failure handling structured around the
+uses `st-validate`. Failure handling structured around the
 anchored dependency record workflow. Anchor review is a
 first-class section: every sweep checks existing anchors for
 exit-criteria resolution. Submission hands off explicitly to
@@ -274,24 +274,12 @@ directly for warnings outside the hook's scope.
 
 ### project-issue
 
-**What it does today.** Walks the user through structured issue
-creation (repo, type, summary, problem/goal, acceptance,
-validation), then files via `gh issue create` with a label.
-
-**What's changed since.** GitHub Projects integration stripped
-(step 5 of the attack order). Project selection,
-`st-list-project-repos`, `st-set-project-field`, Priority and
-Work Type project fields all removed. `add-to-project.yml`
-workflow deleted. Host/container framing updated in PR #121.
-
-**Slash-command runnability.** Yes.
-
-**Status (audit): FRAMING PATCH.**
-
-**Status (post-audit): COMPLETE.** Framing patch landed in
-PR #121. Full Projects removal landed in this PR (step 5).
-
-**Folds in:** none currently filed.
+**Status: ELIMINATED.** The skill was a thin wrapper around
+`gh issue create` with guided questions. After GitHub Projects
+integration was stripped (step 5), the remaining value did not
+justify a dedicated skill — agents already create well-structured
+issues without it. The skill directory was removed; issue creation
+is now handled directly via `gh issue create`.
 
 ### summarize
 
@@ -350,15 +338,10 @@ cadence that some changes don't need). The PAAD `vibe` and
 
 ### Gap 2 — A1→B1 chaining
 
-`project-issue` ends with "the issue exists." Starting work on
-that issue now requires the user to follow
-[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md)
-(the doc that replaced the former `branch-workflow` skill). There's
-no automatic hand-off.
-
-**Recommendation:** add an explicit "next step" pointer in
-`project-issue` that links to that doc. Don't auto-chain; the user
-might be filing for the backlog, not for immediate work.
+**Resolved.** `project-issue` was eliminated (#275). Issue
+creation is now direct (`gh issue create`); starting work follows
+[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md).
+No skill-to-skill chaining needed.
 
 ### Gap 3 — Pre-flight DRY
 
@@ -373,14 +356,10 @@ grounds that each skill should self-document. **Defer the call.**
 
 ### Gap 4 — Release tracking issue creation
 
-Phase 1 of `publish` creates a tracking issue ad-hoc (not via
-`project-issue`). The two issue-creation paths drift.
-
-**Recommendation:** decide whether release tracking issues should
-go through `project-issue` (consistent UX, structured fields) or
-stay separate (lightweight, no project assignment needed).
-**Probably keep separate** — release tracking issues have their
-own lifecycle and shouldn't pollute the project board.
+**Resolved.** `project-issue` was eliminated (#275). Release
+tracking issues are created directly via `gh issue create` in
+the `publish` skill's Phase 1 — there is now only one
+issue-creation path.
 
 ### Gap 5 — General incoming-signal triage
 
@@ -493,21 +472,16 @@ to fix the stale references in that repo (CLAUDE.md, AGENTS.md,
 skills/article-workflow/SKILL.md). That work happens in a
 separate agent session per the user's instruction.
 
-### 5. `project-issue` — strip GitHub Projects integration — DONE
+### 5. `project-issue` — strip GitHub Projects, then eliminate — DONE
 
-**Status update (post-audit, 2026-04-28): completed.** User
-decided to remove all GitHub Projects integration. Projects
-haven't been load-bearing for months — day-to-day issue work
-is per-repo with browser tabs. The overhead makes more sense
-for a team; for a solo practitioner the value doesn't justify
-the complexity.
+**Status update (post-audit, 2026-04-28): Projects stripped.**
+User decided to remove all GitHub Projects integration.
 
-Changes: removed project selection, `st-list-project-repos`,
-`st-set-project-field`, Priority/Work Type project fields from
-the skill. Removed `add-to-project.yml` workflow. The skill now
-files issues directly in a repo with a label. Follow-up issues
-filed to remove `add-to-project.yml` from other fleet repos and
-to remove dead CLI tools from `standard-tooling`.
+**Status update (2026-05-08): skill eliminated (#275).** After
+Projects removal, the skill was a thin wrapper around
+`gh issue create` with guided questions. Agents already create
+well-structured issues without it. Skill directory removed;
+issue creation handled directly.
 
 ### 6. `deprecation-triage` polish — DONE
 
@@ -523,7 +497,7 @@ referenced the skill; now the skill references the hook.
 rewrite. The skill now encodes concrete commands per dependency
 category (Python direct deps and lockfile via `uv lock`, CI
 action pins, runtime version pins, doc toolchain, linters, test
-frameworks, build tools). Validation uses `st-validate-local` as
+frameworks, build tools). Validation uses `st-validate` as
 the canonical step. Failure handling is structured around the
 anchored dependency record workflow with explicit "never silently
 pin" policy. Submission hands off to `pr-workflow`. Added anchor

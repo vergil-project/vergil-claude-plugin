@@ -96,7 +96,7 @@ for the canonical split.
 ## Pre-submission
 
 1. Run the repository's canonical validation command if documented
-   (typically `st-validate-local`).
+   (typically `st-docker-run -- st-validate`).
 2. If no canonical command exists, ask the user for the required
    validation steps.
 3. If any check fails, **do not submit** the PR. Fix the failures
@@ -108,8 +108,11 @@ for the canonical split.
      *timing* of closure, not the *responsibility*: if this PR
      resolves the issue, the agent must close it explicitly after
      finalization (see [Close the issue](#close-the-issue)).
-     The `block-autoclose-linkage` hook enforces the keyword ban
-     mechanically.
+     Enforcement is mechanical: `st-commit` rejects auto-close
+     keywords in commit bodies, and the `st-pr-issue-linkage` CI
+     check rejects them in PR bodies. The plugin's
+     `block-autoclose-linkage` PreToolUse hook adds a further
+     guard at the agent tool-call layer.
 
 ## Submission
 
@@ -204,11 +207,24 @@ st-finalize-repo
 branch, fast-forward pulls origin, deletes the merged feature
 branch and its worktree, and prunes stale remote-tracking refs.
 
-If the script raises a non-fatal error on a sibling worktree
-(e.g., another agent's in-flight work with uncommitted files),
-verify the develop pull and merged-branch deletion succeeded
-manually with `git log --oneline -3` and `git worktree list`. Do
-not force-remove sibling worktrees.
+### Handling errors and warnings
+
+**Every error and warning from `st-finalize-repo` is serious.**
+There is no such thing as a "pre-existing" or "not my problem"
+error in this ecosystem — any failure that slips through
+represents a bug in the tooling. Do not silently dismiss,
+downplay, or skip past any output that indicates a problem.
+
+If `st-finalize-repo` produces errors or warnings:
+
+1. **Triage** — read the full output and identify what failed
+   and why.
+2. **Report to the user** — surface the triage to the human
+   with the exact error output and your assessment. Do not
+   proceed past finalization until the user has reviewed the
+   errors.
+3. **Do not force-remove sibling worktrees** or use destructive
+   workarounds to make the errors disappear.
 
 ### Verify post-merge async workflows
 

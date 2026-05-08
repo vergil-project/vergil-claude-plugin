@@ -40,10 +40,10 @@ with exit criteria — never silently pinned.
 
 Most commands in this skill are **host commands** — invoke them directly
 without `st-docker-run` wrapping. This includes `uv`, `gh`, `st-commit`,
-`st-validate-local`, and all `st-*` workflow tools.
+`st-validate`, and all `st-*` workflow tools.
 
-The only container-dispatched work happens inside `st-validate-local`,
-which handles that routing internally. See the
+Validation runs via `st-docker-run -- st-validate`, which
+dispatches all checks inside the container. See the
 [`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale
 ([#96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)).
@@ -159,12 +159,11 @@ records:
 After all updates in a category (or after all categories if batching):
 
 ```bash
-st-validate-local
+st-docker-run -- st-validate
 ```
 
-`st-validate-local` is a host orchestrator that dispatches its inner
-validators into the container via `st-docker-run`. Invoke it directly —
-do not wrap it in `st-docker-run`. Fix any failures before proceeding to
+`st-validate` runs inside the container. Invoke it via
+`st-docker-run -- st-validate`. Fix any failures before proceeding to
 the next category or to submission.
 
 ## Failure handling

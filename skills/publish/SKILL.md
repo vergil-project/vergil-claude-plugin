@@ -50,6 +50,14 @@ This skill is not applicable to application repositories.
 - `/publish minor` — Bump to the next minor version before publishing.
 - `/publish major` — Bump to the next major version before publishing.
 
+## Commit conventions
+
+All commits produced by this skill use the `chore(release):` scope
+convention. The `--scope release` flag is required when invoking
+`st-commit` for any release-workflow commit (version bumps, changelog
+updates, dependency sweeps). This keeps release-workflow commits
+identifiable in `git log` and in changelog generation via git-cliff.
+
 ## Host vs container commands
 
 Tools fall into two families with different runtime locations. Honor the
@@ -96,9 +104,9 @@ caching.
 
 If you're unsure where a tool belongs: is it primarily a wrapper around a
 containerized language toolchain (→ container), or a thin Python/shell
-driver around git/gh/SSH-using operations (→ host)? `st-validate-local`
-itself is a host orchestrator that dispatches its inner validators into
-the container — host driver, container payloads.
+driver around git/gh/SSH-using operations (→ host)? `st-validate`
+runs inside the container via `st-docker-run -- st-validate` —
+all validation payloads execute in-container.
 
 ### Examples
 
@@ -165,7 +173,7 @@ prepared.
    (resetting lower components to zero).
 3. Update the version at the source of truth in the project manifest.
 4. Commit the version bump to `develop` with a message following the
-   commit standards (e.g., `chore: bump version to <target>`).
+   commit standards (e.g., `chore(release): bump version to <target>`).
 5. Proceed to Phase 1 with the updated version.
 
 ## Failure handling
@@ -378,6 +386,14 @@ the bookkeeping is still done.
    branch. The script updates local `develop`, deletes merged
    branches, and prunes stale remotes. Run final validation to
    confirm a clean state.
+
+   **Every error and warning from `st-finalize-repo` is
+   serious.** There is no such thing as a "pre-existing" or
+   "not my problem" error — any failure represents a bug in the
+   tooling. If `st-finalize-repo` produces errors or warnings,
+   triage the full output, then surface your assessment to the
+   user before proceeding. Do not silently dismiss any output
+   that indicates a problem.
 
 3. **Continue to Phase 7.** Phase 6 alone does not conclude the
    cycle; the producer-side hand-off in Phase 7 is the actual
