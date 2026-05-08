@@ -50,6 +50,14 @@ This skill is not applicable to application repositories.
 - `/publish minor` — Bump to the next minor version before publishing.
 - `/publish major` — Bump to the next major version before publishing.
 
+## Commit conventions
+
+All commits produced by this skill use the `chore(release):` scope
+convention. The `--scope release` flag is required when invoking
+`st-commit` for any release-workflow commit (version bumps, changelog
+updates, dependency sweeps). This keeps release-workflow commits
+identifiable in `git log` and in changelog generation via git-cliff.
+
 ## Host vs container commands
 
 Tools fall into two families with different runtime locations. Honor the
@@ -165,7 +173,7 @@ prepared.
    (resetting lower components to zero).
 3. Update the version at the source of truth in the project manifest.
 4. Commit the version bump to `develop` with a message following the
-   commit standards (e.g., `chore: bump version to <target>`).
+   commit standards (e.g., `chore(release): bump version to <target>`).
 5. Proceed to Phase 1 with the updated version.
 
 ## Failure handling
