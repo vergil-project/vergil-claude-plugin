@@ -59,8 +59,8 @@ jobs:
     with:
       language: claude-plugin
       run-codeql: false
-      run-standards: ${{ inputs.run-release || true }}
-      run-security: ${{ inputs.run-security || true }}
+      run-standards: ${{ inputs.run-release != 'false' }}
+      run-security: ${{ inputs.run-security != 'false' }}
     permissions:
       contents: read
       security-events: write
