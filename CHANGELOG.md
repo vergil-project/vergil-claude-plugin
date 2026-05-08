@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.22] - 2026-05-08
+
+### Bug fixes
+
+- remove unnecessary uv run prefix from st-docker-run invocations
+- correct enforcement attribution for auto-close keyword ban
+
+### Features
+
+- require full triage of all st-finalize-repo errors and warnings
+
 ## [1.4.21] - 2026-05-07
 
 ### Features
