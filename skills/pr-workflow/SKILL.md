@@ -108,8 +108,11 @@ for the canonical split.
      *timing* of closure, not the *responsibility*: if this PR
      resolves the issue, the agent must close it explicitly after
      finalization (see [Close the issue](#close-the-issue)).
-     The `block-autoclose-linkage` hook enforces the keyword ban
-     mechanically.
+     Enforcement is mechanical: `st-commit` rejects auto-close
+     keywords in commit bodies, and the `st-pr-issue-linkage` CI
+     check rejects them in PR bodies. The plugin's
+     `block-autoclose-linkage` PreToolUse hook adds a further
+     guard at the agent tool-call layer.
 
 ## Submission
 
