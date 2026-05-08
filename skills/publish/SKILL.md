@@ -379,6 +379,14 @@ the bookkeeping is still done.
    branches, and prunes stale remotes. Run final validation to
    confirm a clean state.
 
+   **Every error and warning from `st-finalize-repo` is
+   serious.** There is no such thing as a "pre-existing" or
+   "not my problem" error — any failure represents a bug in the
+   tooling. If `st-finalize-repo` produces errors or warnings,
+   triage the full output, then surface your assessment to the
+   user before proceeding. Do not silently dismiss any output
+   that indicates a problem.
+
 3. **Continue to Phase 7.** Phase 6 alone does not conclude the
    cycle; the producer-side hand-off in Phase 7 is the actual
    release boundary for consumers.

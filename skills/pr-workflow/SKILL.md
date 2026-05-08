@@ -207,11 +207,24 @@ st-finalize-repo
 branch, fast-forward pulls origin, deletes the merged feature
 branch and its worktree, and prunes stale remote-tracking refs.
 
-If the script raises a non-fatal error on a sibling worktree
-(e.g., another agent's in-flight work with uncommitted files),
-verify the develop pull and merged-branch deletion succeeded
-manually with `git log --oneline -3` and `git worktree list`. Do
-not force-remove sibling worktrees.
+### Handling errors and warnings
+
+**Every error and warning from `st-finalize-repo` is serious.**
+There is no such thing as a "pre-existing" or "not my problem"
+error in this ecosystem — any failure that slips through
+represents a bug in the tooling. Do not silently dismiss,
+downplay, or skip past any output that indicates a problem.
+
+If `st-finalize-repo` produces errors or warnings:
+
+1. **Triage** — read the full output and identify what failed
+   and why.
+2. **Report to the user** — surface the triage to the human
+   with the exact error output and your assessment. Do not
+   proceed past finalization until the user has reviewed the
+   errors.
+3. **Do not force-remove sibling worktrees** or use destructive
+   workarounds to make the errors disappear.
 
 ### Verify post-merge async workflows
 
