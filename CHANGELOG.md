@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.23] - 2026-05-09
+
+### Bug fixes
+
+- pass boolean to ci-security reusable workflow inputs
+
+### Chores
+
+- prepare release 1.4.22
+- bump version to 1.4.23
+- fleet-wide config and workflow cleanup
+- shorten issue template header comments to fit yamllint line-length
+- migrate to reusable publish/docs workflows
+- trigger CI re-run
+
+### Features
+
+- block Write/Edit to main worktree and GitHub Contents API writes
+- adopt CI/CD workflow convention (#383)
+
 ## [1.4.22] - 2026-05-08
 
 ### Bug fixes
@@ -12,11 +32,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - remove unnecessary uv run prefix from st-docker-run invocations
 - correct enforcement attribution for auto-close keyword ban
 
+### Chores
+
+- prepare release 1.4.21
+- bump version to 1.4.22
+- decommission st-validate-local remnants
+- remove deprecated project-issue skill references
+- adopt chore(release) convention and document required --scope
+
 ### Features
 
 - require full triage of all st-finalize-repo errors and warnings
 
 ## [1.4.21] - 2026-05-07
+
+### Chores
+
+- prepare release 1.4.20
+- bump version to 1.4.21
 
 ### Features
 
@@ -29,13 +62,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - set primary-language to claude-plugin and use reusable ci-release workflow
 - use claude-plugin as language consistently across all workflow calls
 
+### Chores
+
+- prepare release 1.4.19
+- bump version to 1.4.20
+
 ## [1.4.19] - 2026-05-06
 
 ### Bug fixes
 
 - add container-suffix to ci-quality workflow call
 
+### Chores
+
+- prepare release 1.4.18
+- bump version to 1.4.19
+
 ## [1.4.18] - 2026-05-05
+
+### Chores
+
+- prepare release 1.4.17
+- bump version to 1.4.18
+- remove project-issue skill
+- upgrade to standard-actions v1.5 and add ci config for enforcement
 
 ### Documentation
 
@@ -54,6 +104,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - update error messages to reference standard-tooling.toml
 - update skill and agent instructions to read standard-tooling.toml
 - remove st-validate-local from HOST_TOOLS
+
+### Chores
+
+- prepare release 1.4.16
+- bump version to 1.4.17
+- remove phantom block-memory-writes hook references
+- update gating comments to reference standard-tooling.toml
 
 ### Documentation
 
@@ -75,6 +132,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - remove 'Locating standard-tooling host commands' section — just run commands from PATH
 
+### Chores
+
+- prepare release 1.4.15
+- bump version to 1.4.16
+- remove command -v st-docker-run tool-presence guard
+
 ## [1.4.15] - 2026-05-01
 
 ### Bug fixes
@@ -82,7 +145,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - block gh api equivalents of blocked gh subcommands (pr create, pr merge, pr review) (#217)
 - change 'stop and fix' to 'stop and report' in failure handling (#222)
 
+### Chores
+
+- prepare release 1.4.14
+- bump version to 1.4.15
+- remove legacy st-config.toml (#215)
+
 ## [1.4.14] - 2026-04-30
+
+### Chores
+
+- prepare release 1.4.13
+- bump version to 1.4.14
 
 ### Features
 
@@ -96,11 +170,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - read consumer-refresh sequence from standard-tooling.toml instead of hardcoding
 - update consumer-refresh to note reload-plugins bug and require session restart
 
+### Chores
+
+- prepare release 1.4.12
+- bump version to 1.4.13
+- remove stale cross-repo docker rebuild verification from publish skill
+
 ## [1.4.12] - 2026-04-30
 
 ### Bug fixes
 
 - remove uv from HOST_TOOLS to unblock st-docker-run -- uv run
+
+### Chores
+
+- prepare release 1.4.11
+- bump version to 1.4.12
+- seed standard-tooling.toml
+- strip config sections from repository-standards.md
 
 ### Documentation
 
@@ -121,11 +208,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - make Phase 7 hand-off display-only, fix stale three-step reference
 - fix line-length violations in block-agent-merge plan
 
+### Chores
+
+- prepare release 1.4.10
+- bump version to 1.4.11
+
 ## [1.4.10] - 2026-04-29
 
 ### Bug fixes
 
 - redirect container-tool warning to st-validate-local abstraction layer
+
+### Chores
+
+- prepare release 1.4.9
+- bump version to 1.4.10
+- bootstrap st-config.toml for cache-first docker workflow
+- remove duplicate ci: markdownlint job
 
 ### Documentation
 
@@ -145,6 +244,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - strengthen issue-closure step in pr-workflow so agents stop skipping it
 
+### Chores
+
+- prepare release 1.4.8
+- bump version to 1.4.9
+
 ## [1.4.8] - 2026-04-28
 
 ### Bug fixes
@@ -152,7 +256,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - remove non-existent /plugin update command from consumer-refresh sequence
 - require explicit version extraction from publish.yml in preflight
 
+### Chores
+
+- prepare release 1.4.7
+- bump version to 1.4.8
+
 ## [1.4.7] - 2026-04-28
+
+### Chores
+
+- prepare release 1.4.6
+- bump version to 1.4.7
 
 ### Documentation
 
@@ -169,11 +283,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - shorten mkdocs.yml site_description and drop stale commands reference
 
+### Chores
+
+- prepare release 1.4.5
+- bump version to 1.4.6
+- bump CI action pins for next cycle
+- upgrade standard-actions from @v1.3 to @v1.4
+
 ### Documentation
 
 - align docs tree with post-audit codebase state
 
 ## [1.4.5] - 2026-04-28
+
+### Chores
+
+- prepare release 1.4.4
+- bump version to 1.4.5
+- migrate standard-actions refs from @develop to @v1.3
+- remove st-list-project-repos and st-set-project-field from host tools list
 
 ### Documentation
 
@@ -196,6 +324,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [1.4.4] - 2026-04-27
 
+### Chores
+
+- prepare release 1.4.3
+- bump version to 1.4.4
+- delete ci-push.yml (Tier 2 redundant with validate-local)
+
 ### Documentation
 
 - document plugin update sequence in README and CLAUDE.md
@@ -210,6 +344,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - resolve session cwd and main repo root for worktree commits
 
+### Chores
+
+- prepare release 1.4.2
+- bump version to 1.4.3
+- vendor .githooks gate + .yamllint (#89)
+
 ### Documentation
 
 - split tool routing: release/git tools on host, validators in container
@@ -218,11 +358,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - remove per-edit validate-* hooks; rely on st-validate-local at PR time
 
+## [1.4.2] - 2026-04-24
+
+### Chores
+
+- prepare release 1.4.1
+
 ## [1.4.1] - 2026-04-24
 
 ### Bug fixes
 
 - pass version-replacement to version-bump-pr composite; bump 1.4.1
+
+### Chores
+
+- merge main into release/1.4.0
+- prepare release 1.4.0
 
 ### Documentation
 
@@ -259,6 +410,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### CI
 
 - use dev-docs container for docs CI (#27)
+
+### Chores
+
+- bootstrap repository scaffold
+- add .markdownlintignore for auto-generated files (#190) (#9)
+- install standard-tooling-plugin in its own repo (#22)
+- ban MEMORY.md usage in CLAUDE.md (#23)
+- use st-markdown-standards instead of legacy bare wrapper (#25)
+- remove taplo TOML validation from hooks (#34)
+- rename dev-docs container reference to dev-base (#39)
+- remove block-memory-writes.sh (anachronism from polyglot era) (#44)
+- plugin cleanup and docs refresh for v1.3.0 release prep (#60)
 
 ### Documentation
 
