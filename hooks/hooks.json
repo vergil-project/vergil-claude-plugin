@@ -44,6 +44,21 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-agent-merge.sh",
             "statusMessage": "Checking for unauthorized PR merge..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-github-contents-api.sh",
+            "statusMessage": "Checking for GitHub Contents API write..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-worktree-bypass-write.sh",
+            "statusMessage": "Checking worktree write target..."
           }
         ]
       }
