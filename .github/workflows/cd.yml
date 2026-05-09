@@ -1,0 +1,24 @@
+# https://github.com/wphillipmoore/standard-actions/blob/develop/.github/workflows/README.md
+name: CD
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  attestations: write
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  docs:
+    uses: wphillipmoore/standard-actions/.github/workflows/cd-docs.yml@v1.5
+    permissions:
+      contents: write
+
+  release:
+    if: github.ref == 'refs/heads/main'
+    uses: wphillipmoore/standard-actions/.github/workflows/cd-release.yml@v1.5
+    secrets: inherit
