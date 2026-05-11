@@ -84,8 +84,6 @@ for the canonical split.
   approval before continuing. The user may approve (e.g., a rule
   is temporarily relaxed while fixing a tooling bug it depends on)
   or abort. If the user does not approve, **abort the workflow**.
-- Locate the pull-request template at
-  `.github/pull_request_template.md` if present; use its fields.
 - Ensure commit-message format and AI co-authorship requirements
   are met per the commit standards (handled by `st-commit`; this
   skill does not commit).
@@ -101,18 +99,24 @@ for the canonical split.
    validation steps.
 3. If any check fails, **do not submit** the PR. Fix the failures
    and re-run validation. Loop until clean.
-4. Populate the PR template fields. Required:
-   - Issue linkage using `Ref #N`. **Do not use `Fixes`, `Closes`,
-     or `Resolves`** — those keywords auto-close the issue on
-     merge, bypassing finalization. Using `Ref` instead defers the
-     *timing* of closure, not the *responsibility*: if this PR
-     resolves the issue, the agent must close it explicitly after
-     finalization (see [Close the issue](#close-the-issue)).
-     Enforcement is mechanical: `st-commit` rejects auto-close
-     keywords in commit bodies, and the `st-pr-issue-linkage` CI
-     check rejects them in PR bodies. The plugin's
+4. Prepare `st-submit-pr` arguments. The tool constructs the
+   entire PR body — there is no template to populate. Required:
+   - `--issue <N>` — the issue this PR addresses.
+   - `--summary "<one-line>"` — what this PR does.
+   - `--title "<conventional-commit-style title>"` — the PR title.
+   - `--linkage Ref` — **always `Ref`**. Do not use `Fixes`,
+     `Closes`, or `Resolves` — those keywords auto-close the
+     issue on merge, bypassing finalization. Using `Ref` instead
+     defers the *timing* of closure, not the *responsibility*:
+     if this PR resolves the issue, the agent must close it
+     explicitly after finalization (see
+     [Close the issue](#close-the-issue)). Enforcement is
+     mechanical: `st-commit` rejects auto-close keywords in
+     commit bodies, and the `st-pr-issue-linkage` CI check
+     rejects them in PR bodies. The plugin's
      `block-autoclose-linkage` PreToolUse hook adds a further
      guard at the agent tool-call layer.
+   - `--notes "<text>"` (optional) — additional context.
 
 ## Submission
 
