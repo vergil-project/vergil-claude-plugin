@@ -41,7 +41,7 @@ under the memory directory) without explicit human approval.
      codebase (e.g., a quirk of this repo's test setup).
    - **Global CLAUDE.md** — a cross-repo behavioral preference or
      convention (e.g., preferred error-handling style). This file.
-   - **Plugin/skill issue** — about how the standard-tooling suite
+   - **Plugin/skill issue** — about how the vergil-tooling suite
      should behave (e.g., a skill needs updating). Create an issue
      in the appropriate repository.
 3. Wait for the human to confirm or redirect before taking any action.
@@ -145,7 +145,7 @@ Expected: No errors.
 
 ```bash
 git add skills/memory-init/SKILL.md
-st-commit --type feat --scope memory --message "add memory-init skill" --agent claude
+vrg-commit --type feat --scope memory --message "add memory-init skill" --agent claude
 ```
 
 ---
@@ -214,7 +214,7 @@ accurate?
 | **Keep** | Still accurate, correctly scoped to this repo. |
 | **Update** | Substance is right, content needs refreshing. |
 | **Relocate → global CLAUDE.md** | Cross-repo preference, not repo-specific. |
-| **Relocate → plugin/skill issue** | About standard-tooling suite behavior. |
+| **Relocate → plugin/skill issue** | About vergil-tooling suite behavior. |
 | **Delete** | Stale, redundant, or no longer relevant. |
 
 ### 3. Human decides
@@ -261,7 +261,7 @@ Expected: No errors.
 
 ```bash
 git add skills/memory-audit/SKILL.md
-st-commit --type feat --scope memory --message "add memory-audit skill" --agent claude
+vrg-commit --type feat --scope memory --message "add memory-audit skill" --agent claude
 ```
 
 ---
@@ -301,9 +301,9 @@ plugin/skill issue) before writing. See that file for the full
 workflow.
 
 Available skills:
-- `/standard-tooling:memory-init` — set up or update the policy header
+- `/vergil-tooling:memory-init` — set up or update the policy header
   in a project's `MEMORY.md`.
-- `/standard-tooling:memory-audit` — structured collaborative review
+- `/vergil-tooling:memory-audit` — structured collaborative review
   of memory files.
 ```
 
@@ -316,7 +316,7 @@ Expected: No errors.
 
 ```bash
 git add CLAUDE.md
-st-commit --type docs --scope memory --message "replace memory ban with managed-memory policy" --agent claude
+vrg-commit --type docs --scope memory --message "replace memory ban with managed-memory policy" --agent claude
 ```
 
 ---
@@ -351,7 +351,7 @@ Expected: No errors.
 
 ```bash
 git add skills/handoff/SKILL.md
-st-commit --type docs --scope handoff --message "add memory policy exemption note" --agent claude
+vrg-commit --type docs --scope handoff --message "add memory policy exemption note" --agent claude
 ```
 
 ---
@@ -466,7 +466,7 @@ Expected: No errors.
 
 ```bash
 git add CHANGELOG.md releases/v1.3.0.md releases/v1.3.1.md releases/v1.4.2.md docs/site/docs/hooks/index.md
-st-commit --type chore --scope hooks --message "remove phantom block-memory-writes hook references" --agent claude
+vrg-commit --type chore --scope hooks --message "remove phantom block-memory-writes hook references" --agent claude
 ```
 
 ---
@@ -480,7 +480,7 @@ st-commit --type chore --scope hooks --message "remove phantom block-memory-writ
 
 Run: `gh repo list wphillipmoore --json name --jq '.[].name' --limit 100`
 
-Identify all consuming repos that are part of the standard-tooling fleet. Exclude `standard-tooling-plugin` itself (the changes ship with this branch).
+Identify all consuming repos that are part of the vergil-tooling fleet. Exclude `vergil-claude-plugin` itself (the changes ship with this branch).
 
 - [ ] **Step 2: Check which repos have existing memory files**
 
@@ -502,18 +502,18 @@ Create a temp file with the issue body template. Two variants:
 ```markdown
 ## Memory management rollout
 
-Follow-up from wphillipmoore/standard-tooling-plugin#219.
+Follow-up from vergil-project/vergil-claude-plugin#219.
 
 ### Steps
 
-1. Run `/standard-tooling:memory-init` to plant the policy header in MEMORY.md.
-2. Run `/standard-tooling:memory-audit` to review existing memory files.
+1. Run `/vergil-tooling:memory-init` to plant the policy header in MEMORY.md.
+2. Run `/vergil-tooling:memory-audit` to review existing memory files.
 3. Update this repo's CLAUDE.md — replace any "ban memory" or "auto-memory" policy text with the new managed approach, or remove it if the global policy and MEMORY.md header provide sufficient coverage.
 4. Grep for `block-memory-writes` in this repo and remove any references.
 
 ### Context
 
-Agents now require human approval before writing to memory. When proposing a memory write, the agent suggests a destination: repo memory, global CLAUDE.md, or a plugin/skill issue. The human confirms or redirects. See the design spec for full rationale: wphillipmoore/standard-tooling-plugin@docs/specs/2026-05-01-memory-management-design.md
+Agents now require human approval before writing to memory. When proposing a memory write, the agent suggests a destination: repo memory, global CLAUDE.md, or a plugin/skill issue. The human confirms or redirects. See the design spec for full rationale: vergil-project/vergil-claude-plugin@docs/specs/2026-05-01-memory-management-design.md
 ```
 
 **Variant B — no existing memory files:**
@@ -529,7 +529,7 @@ gh issue create --repo wphillipmoore/<repo-name> --title "chore: memory manageme
 
 Capture the issue URL for each.
 
-- [ ] **Step 5: Create the fleet tracking issue in standard-tooling-plugin**
+- [ ] **Step 5: Create the fleet tracking issue in vergil-claude-plugin**
 
 Write a temp file with the tracking issue body — a checklist of all consuming repos with links to their per-repo issues:
 
@@ -545,7 +545,7 @@ Per-repo issues created from #219.
 ```
 
 ```bash
-gh issue create --repo wphillipmoore/standard-tooling-plugin --title "chore: fleet rollout tracker for memory management (#219)" --body-file <tempfile>
+gh issue create --repo vergil-project/vergil-claude-plugin --title "chore: fleet rollout tracker for memory management (#219)" --body-file <tempfile>
 ```
 
 - [ ] **Step 6: Link the tracking issue to #219**

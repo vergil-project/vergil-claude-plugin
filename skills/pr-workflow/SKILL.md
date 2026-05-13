@@ -24,13 +24,13 @@ This skill covers the agent-side of the work cycle from "branch is
 ready for review" through "PR is merged and local state is clean."
 The flow is:
 
-1. **Submit** the PR via `st-submit-pr`.
+1. **Submit** the PR via `vrg-submit-pr`.
 2. **Wait** for CI to go green. Fix red checks if fixable; surface
    to the user otherwise.
 3. **Hand off** to the user — they review and merge. The agent
    does not enable auto-merge and does not merge the PR itself.
 4. **Finalize** after the user reports the merge, by running
-   `st-finalize-repo`.
+   `vrg-finalize-repo`.
 5. **Close the issue** if this PR resolves it. Using `Ref`
    instead of `Fixes` defers the *timing* of closure, not the
    *responsibility*. The agent must close the issue explicitly
@@ -44,7 +44,7 @@ manually after review.
 
 The single documented exception is release-workflow PRs (the
 `release/<version>` PR and the `chore/bump-version-<next>` PR),
-which the agent merges via `st-merge-when-green` from the
+which the agent merges via `vrg-merge-when-green` from the
 [`publish` skill](../publish/SKILL.md). That exception applies
 only there; do not generalize it.
 
@@ -55,9 +55,9 @@ issue's worktree at `.worktrees/issue-<N>-<slug>/`. Per the
 worktree convention, the main checkout is read-only and PR work
 flows through the worktree.
 
-The release/git tools used here (`st-submit-pr`, `st-finalize-repo`,
+The release/git tools used here (`vrg-submit-pr`, `vrg-finalize-repo`,
 `gh`, `git`) are **host commands** — invoke them directly without
-`st-docker-run --` wrapping. See the
+`vrg-docker-run --` wrapping. See the
 [`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
 for the canonical split.
 
@@ -76,7 +76,7 @@ for the canonical split.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort**
   with the install pointer.
 - **GitHub config compliance check.** Run
-  `st-github-config audit --repo <owner/repo>`. If the command
+  `vrg-github-config audit --repo <owner/repo>`. If the command
   exits zero, the repository's GitHub configuration is compliant —
   proceed silently. If non-zero, the repository is non-compliant:
   display the full audit output to the user, explain that
@@ -85,21 +85,21 @@ for the canonical split.
   is temporarily relaxed while fixing a tooling bug it depends on)
   or abort. If the user does not approve, **abort the workflow**.
 - Ensure commit-message format and AI co-authorship requirements
-  are met per the commit standards (handled by `st-commit`; this
+  are met per the commit standards (handled by `vrg-commit`; this
   skill does not commit).
-- If `st-docker-cache` is available, run `st-docker-cache build`
+- If `vrg-docker-cache` is available, run `vrg-docker-cache build`
   to ensure the cached dev container image is warm for validation.
   This is a no-op if the cache is already current.
 
 ## Pre-submission
 
 1. Run the repository's canonical validation command if documented
-   (typically `st-docker-run -- st-validate`).
+   (typically `vrg-docker-run -- vrg-validate`).
 2. If no canonical command exists, ask the user for the required
    validation steps.
 3. If any check fails, **do not submit** the PR. Fix the failures
    and re-run validation. Loop until clean.
-4. Prepare `st-submit-pr` arguments. The tool constructs the
+4. Prepare `vrg-submit-pr` arguments. The tool constructs the
    entire PR body — there is no template to populate. Required:
    - `--issue <N>` — the issue this PR addresses.
    - `--summary "<one-line>"` — what this PR does.
@@ -111,8 +111,8 @@ for the canonical split.
      if this PR resolves the issue, the agent must close it
      explicitly after finalization (see
      [Close the issue](#close-the-issue)). Enforcement is
-     mechanical: `st-commit` rejects auto-close keywords in
-     commit bodies, and the `st-pr-issue-linkage` CI check
+     mechanical: `vrg-commit` rejects auto-close keywords in
+     commit bodies, and the `vrg-pr-issue-linkage` CI check
      rejects them in PR bodies. The plugin's
      `block-autoclose-linkage` PreToolUse hook adds a further
      guard at the agent tool-call layer.
@@ -120,12 +120,12 @@ for the canonical split.
 
 ## Submission
 
-Submit via `st-submit-pr` from inside the worktree. The tool
+Submit via `vrg-submit-pr` from inside the worktree. The tool
 constructs a standards-compliant PR body, pushes the branch, and
 opens the PR. Example invocation shape:
 
 ```bash
-st-submit-pr \
+vrg-submit-pr \
   --issue <N> \
   --summary "<one-line summary>" \
   --linkage Ref \
@@ -133,7 +133,7 @@ st-submit-pr \
            shell command policy in CLAUDE.md>"
 ```
 
-After `st-submit-pr` returns the PR URL, **do not enable
+After `vrg-submit-pr` returns the PR URL, **do not enable
 auto-merge** and **do not attempt to merge**.
 
 If a CI check fails due to PR metadata (e.g., missing issue
@@ -151,10 +151,10 @@ of latency for nothing.
 Poll the PR's required checks:
 
 ```bash
-st-wait-until-green <pr-url>
+vrg-wait-until-green <pr-url>
 ```
 
-`st-wait-until-green` blocks until all required checks complete
+`vrg-wait-until-green` blocks until all required checks complete
 and exits non-zero if any required check failed.
 
 ### If checks pass
@@ -174,7 +174,7 @@ Then decide whether the failure is agent-fixable:
 
 - **Agent-fixable** (lint regression, missing format, simple test
   break, etc.): fix the issue locally, commit the fix via
-  `st-commit`, push, and re-poll. Loop until the checks go green
+  `vrg-commit`, push, and re-poll. Loop until the checks go green
   or the failure surfaces as not-fixable.
 - **Not agent-fixable** (genuine ambiguity, missing context,
   unclear requirement, infrastructure failure): hand off to the
@@ -200,26 +200,26 @@ the merge confirmation).
 
 When the user reports the merge — usually a short message like
 "merged," "104 merged," or a paste of the merge confirmation —
-run `st-finalize-repo` from inside the worktree:
+run `vrg-finalize-repo` from inside the worktree:
 
 ```bash
 cd <absolute-worktree-path>
-st-finalize-repo
+vrg-finalize-repo
 ```
 
-`st-finalize-repo` is worktree-aware: it switches to the target
+`vrg-finalize-repo` is worktree-aware: it switches to the target
 branch, fast-forward pulls origin, deletes the merged feature
 branch and its worktree, and prunes stale remote-tracking refs.
 
 ### Handling errors and warnings
 
-**Every error and warning from `st-finalize-repo` is serious.**
+**Every error and warning from `vrg-finalize-repo` is serious.**
 There is no such thing as a "pre-existing" or "not my problem"
 error in this ecosystem — any failure that slips through
 represents a bug in the tooling. Do not silently dismiss,
 downplay, or skip past any output that indicates a problem.
 
-If `st-finalize-repo` produces errors or warnings:
+If `vrg-finalize-repo` produces errors or warnings:
 
 1. **Triage** — read the full output and identify what failed
    and why.
@@ -233,7 +233,7 @@ If `st-finalize-repo` produces errors or warnings:
 ### Verify post-merge async workflows
 
 A PR is not "done" until every async workflow triggered by the
-merge has succeeded. The repository's `standard-tooling.toml`
+merge has succeeded. The repository's `vergil.toml`
 lists the post-merge async workflows in its `[workflows.post-merge]`
 section. Verify each one.
 
@@ -281,7 +281,7 @@ gh issue close <N> --comment "Closed after finalization. PR: <pr-url>"
 ```
 
 Issue closure happens here — not at merge time — because the work
-cycle is not complete until `st-finalize-repo` has reconciled
+cycle is not complete until `vrg-finalize-repo` has reconciled
 local state and post-merge workflows have succeeded. Since
 auto-close keywords are banned, this explicit step is the **only
 path to closure**. Skipping it leaves the issue open indefinitely.
@@ -319,7 +319,7 @@ Structure the report as a step-by-step checklist:
    is not green, note what was surfaced to the user and why.
 5. **Hand-off** — whether CI was green at hand-off.
 6. **Finalization** — pass/fail, any non-fatal errors from
-   `st-finalize-repo`.
+   `vrg-finalize-repo`.
 7. **Post-merge workflows** — pass/fail for each workflow checked.
 8. **Issue closure** — completed or skipped (with reason if
    skipped).
@@ -342,6 +342,6 @@ and whether the change was mechanical or substantive.
   — issue resolution + worktree+branch creation (the predecessor
   to invoking this skill)
 - [`publish` skill](../publish/SKILL.md) — covers release-PR
-  workflow including the `st-merge-when-green` exception
+  workflow including the `vrg-merge-when-green` exception
 - `docs/code-management/pull-request-workflow.md`
 - `docs/code-management/commit-messages-and-authorship.md`

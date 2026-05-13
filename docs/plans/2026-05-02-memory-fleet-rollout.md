@@ -36,9 +36,9 @@ plugin/skill issue) before writing. See that file for the full
 workflow.
 
 Available skills:
-- `/standard-tooling:memory-init` — set up or update the policy header
+- `/vergil-tooling:memory-init` — set up or update the policy header
   in a project's `MEMORY.md`.
-- `/standard-tooling:memory-audit` — structured collaborative review
+- `/vergil-tooling:memory-audit` — structured collaborative review
   of memory files.
 ```
 
@@ -55,15 +55,15 @@ This repo has **{FILE_COUNT}** existing memory files that need interactive revie
 
 ### Next step
 
-Run `/standard-tooling:memory-audit` in a Claude Code session in this repo.
+Run `/vergil-tooling:memory-audit` in a Claude Code session in this repo.
 The audit walks through each memory file, verifies claims against the
 codebase, assesses staleness, and routes each file to keep/update/relocate/delete
 with human approval.
 
 ### Context
 
-- Design decision: [standard-tooling-plugin#219](https://github.com/wphillipmoore/standard-tooling-plugin/issues/219)
-- Fleet rollout: [standard-tooling-plugin#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233)
+- Design decision: [vergil-claude-plugin#219](https://github.com/vergil-project/vergil-claude-plugin/issues/219)
+- Fleet rollout: [vergil-claude-plugin#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233)
 ```
 
 ### PR Body Template
@@ -72,7 +72,7 @@ with human approval.
 ## Summary
 
 Plant the memory management policy across the fleet per
-[standard-tooling-plugin#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233).
+[vergil-claude-plugin#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233).
 
 Changes:
 - Added/updated MEMORY.md with the canonical policy header
@@ -88,7 +88,7 @@ Each subagent needs: repo name, default branch, CLAUDE.md action, MEMORY.md acti
 
 | Repo | Default Branch | CLAUDE.md Action | MEMORY.md Action | Audit Issue | Memory Count |
 |---|---|---|---|---|---|
-| `standard-tooling` | `develop` | Add snippet (has content, no memory section) | Prepend header (has index) | Yes | 20 |
+| `vergil-tooling` | `develop` | Add snippet (has content, no memory section) | Prepend header (has index) | Yes | 20 |
 | `ai-research-methodology` | `develop` | Replace memory policy section | Prepend header (has index) | Yes | 21 |
 | `career-strategy` | `main` | Add snippet (has content, no memory section) | Prepend header (has index) | Yes | 13 |
 | `the-infrastructure-mindset` | `develop` | Add snippet (has content, no memory section) | Prepend header (has index) | Yes | 13 |
@@ -100,7 +100,7 @@ Each subagent needs: repo name, default branch, CLAUDE.md action, MEMORY.md acti
 | `standards-and-conventions` | `develop` | Replace ban-memory section | Replace BANNED header (preserve index if any) | Yes | 1 |
 | `mq-rest-admin-common` | `develop` | Replace ban-memory section | Replace BANNED header (preserve index if any) | Yes | 1 |
 | `mq-rest-admin-dev-environment` | `develop` | Replace ban-memory section | Replace BANNED header (preserve index if any) | Yes | 1 |
-| `standard-tooling-docker` | `develop` | Replace ban-memory section | Create MEMORY.md in existing dir | No | 0 |
+| `vergil-docker` | `develop` | Replace ban-memory section | Create MEMORY.md in existing dir | No | 0 |
 | `renegade-dotfiles` | `main` | Create new CLAUDE.md | Create dir + MEMORY.md | No | 0 |
 | `mq-rest-admin-rust` | `develop` | Replace ban-memory section | Create dir + MEMORY.md | No | 0 |
 | `mq-rest-admin-ruby` | `develop` | Replace ban-memory section | Create dir + MEMORY.md | No | 0 |
@@ -121,7 +121,7 @@ You are rolling out the memory management policy to the repo `{REPO_NAME}`.
 
 ## Context
 
-This is part of a fleet-wide rollout (standard-tooling-plugin#233) that
+This is part of a fleet-wide rollout (vergil-claude-plugin#233) that
 plants the three-layer memory management defense across all consuming repos.
 You are handling one repo.
 
@@ -186,9 +186,9 @@ plugin/skill issue) before writing. See that file for the full
 workflow.
 
 Available skills:
-- `/standard-tooling:memory-init` — set up or update the policy header
+- `/vergil-tooling:memory-init` — set up or update the policy header
   in a project's `MEMORY.md`.
-- `/standard-tooling:memory-audit` — structured collaborative review
+- `/vergil-tooling:memory-audit` — structured collaborative review
   of memory files.
 
 ## Step 4: Verify no block-memory-writes references
@@ -211,7 +211,7 @@ Write the PR body to a temp file and pass it via --body-file:
 ## Summary
 
 Plant the memory management policy across the fleet per
-[standard-tooling-plugin#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233).
+[vergil-claude-plugin#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233).
 
 Changes:
 - Added/updated MEMORY.md with the canonical policy header
@@ -240,15 +240,15 @@ This repo has **{MEMORY_COUNT}** existing memory files that need interactive rev
 
 ### Next step
 
-Run `/standard-tooling:memory-audit` in a Claude Code session in this repo.
+Run `/vergil-tooling:memory-audit` in a Claude Code session in this repo.
 The audit walks through each memory file, verifies claims against the
 codebase, assesses staleness, and routes each file to keep/update/relocate/delete
 with human approval.
 
 ### Context
 
-- Design decision: [standard-tooling-plugin#219](https://github.com/wphillipmoore/standard-tooling-plugin/issues/219)
-- Fleet rollout: [standard-tooling-plugin#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233)
+- Design decision: [vergil-claude-plugin#219](https://github.com/vergil-project/vergil-claude-plugin/issues/219)
+- Fleet rollout: [vergil-claude-plugin#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233)
 
 ## Deliverables
 
@@ -273,7 +273,7 @@ template above, filling in values from the reference table.
 | Repo | Default Branch | CLAUDE.md Action | MEMORY.md Action | Audit | Count |
 |---|---|---|---|---|---|
 | `ai-research-methodology` | `develop` | Replace memory policy | Prepend header | Yes | 21 |
-| `standard-tooling` | `develop` | Add snippet | Prepend header | Yes | 20 |
+| `vergil-tooling` | `develop` | Add snippet | Prepend header | Yes | 20 |
 | `career-strategy` | `main` | Add snippet | Prepend header | Yes | 13 |
 | `the-infrastructure-mindset` | `develop` | Add snippet | Prepend header | Yes | 13 |
 | `laptop-upgrade` | `feature/initial-plan` | Create new | Create dir + file | Yes | 5 |
@@ -308,7 +308,7 @@ template above, filling in values from the reference table.
 |---|---|---|---|---|---|
 | `mq-rest-admin-common` | `develop` | Replace ban | Replace BANNED header | Yes | 1 |
 | `mq-rest-admin-dev-environment` | `develop` | Replace ban | Replace BANNED header | Yes | 1 |
-| `standard-tooling-docker` | `develop` | Replace ban | Create MEMORY.md in existing dir | No | 0 |
+| `vergil-docker` | `develop` | Replace ban | Create MEMORY.md in existing dir | No | 0 |
 | `renegade-dotfiles` | `main` | Create new | Create dir + file | No | 0 |
 | `mq-rest-admin-rust` | `develop` | Replace ban | Create dir + file | No | 0 |
 

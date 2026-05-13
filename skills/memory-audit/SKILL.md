@@ -49,7 +49,7 @@ accurate?
 | **Keep** | Still accurate, correctly scoped to this repo. |
 | **Update** | Substance is right, content needs refreshing. |
 | **Relocate → global CLAUDE.md** | Cross-repo preference, not repo-specific. |
-| **Relocate → plugin/skill issue** | About standard-tooling suite behavior. |
+| **Relocate → plugin/skill issue** | About vergil-tooling suite behavior. |
 | **Delete** | Stale, redundant, or no longer relevant. |
 
 ### 3. Human decides

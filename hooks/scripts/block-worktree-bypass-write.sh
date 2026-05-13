@@ -6,7 +6,7 @@
 # .worktrees/<name>/ subdirectory instead.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
+# vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 input=$(cat)
@@ -79,7 +79,7 @@ case "$resolved" in
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: ("File writes must target a worktree under .worktrees/<name>/ per the worktree convention. You are attempting to write to \($path), which is in the main worktree. Use the absolute path to your assigned worktree instead.\n\nSee docs/specs/worktree-convention.md in standard-tooling for the full convention.")
+        permissionDecisionReason: ("File writes must target a worktree under .worktrees/<name>/ per the worktree convention. You are attempting to write to \($path), which is in the main worktree. Use the absolute path to your assigned worktree instead.\n\nSee docs/specs/worktree-convention.md in vergil-tooling for the full convention.")
       }
     }'
     exit 0

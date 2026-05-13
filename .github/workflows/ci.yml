@@ -1,4 +1,4 @@
-# https://github.com/wphillipmoore/standard-actions/blob/develop/.github/workflows/README.md
+# https://github.com/vergil-project/vergil-actions/blob/develop/.github/workflows/README.md
 name: CI
 
 on:
@@ -40,14 +40,14 @@ jobs:
         working-directory: docs/site
 
   quality:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-quality.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/ci-quality.yml@v1.5
     with:
       language: claude-plugin
       versions: '["latest"]'
       container-suffix: base
 
   security:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/ci-security.yml@v1.5
     with:
       language: claude-plugin
       run-codeql: false
@@ -58,7 +58,7 @@ jobs:
       security-events: write
 
   version:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-version-bump.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/ci-version-bump.yml@v1.5
     with:
       language: claude-plugin
       run-release: ${{ inputs.run-release != 'false' }}

@@ -1,7 +1,7 @@
 # Memory Management Fleet Rollout
 
-**Issue:** [#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233)
-**Parent:** [#219](https://github.com/wphillipmoore/standard-tooling-plugin/issues/219) — memory management design
+**Issue:** [#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233)
+**Parent:** [#219](https://github.com/vergil-project/vergil-claude-plugin/issues/219) — memory management design
 **Date:** 2026-05-02
 
 ## Context
@@ -21,13 +21,13 @@ existing memory files.
 20 repos. Each gets three mechanical changes. 12 repos with existing memory
 files also get an audit issue for later interactive review.
 
-`standard-tooling-plugin` is excluded — its changes shipped with #219.
+`vergil-claude-plugin` is excluded — its changes shipped with #219.
 
 ### Repos with existing memory files (3 changes + audit issue)
 
 | Repo | Memory file count |
 |---|---|
-| `standard-tooling` | 20 |
+| `vergil-tooling` | 20 |
 | `ai-research-methodology` | 21 |
 | `career-strategy` | 13 |
 | `the-infrastructure-mindset` | 13 |
@@ -42,7 +42,7 @@ files also get an audit issue for later interactive review.
 
 ### Repos with no memory files (3 changes only)
 
-- `standard-tooling-docker`
+- `vergil-docker`
 - `renegade-dotfiles`
 - `mq-rest-admin-rust`
 - `mq-rest-admin-ruby`
@@ -101,9 +101,9 @@ plugin/skill issue) before writing. See that file for the full
 workflow.
 
 Available skills:
-- `/standard-tooling:memory-init` — set up or update the policy header
+- `/vergil-tooling:memory-init` — set up or update the policy header
   in a project's `MEMORY.md`.
-- `/standard-tooling:memory-audit` — structured collaborative review
+- `/vergil-tooling:memory-audit` — structured collaborative review
   of memory files.
 ```
 
@@ -124,9 +124,9 @@ Create a GitHub issue in each of the 12 repos with existing memory files.
 **Title:** `chore: memory management audit`
 
 **Body contents:**
-- Context linking to [#219](https://github.com/wphillipmoore/standard-tooling-plugin/issues/219) (design decision) and [#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233) (fleet rollout) — full URLs required since these issues live in `standard-tooling-plugin`, not the consuming repo
+- Context linking to [#219](https://github.com/vergil-project/vergil-claude-plugin/issues/219) (design decision) and [#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233) (fleet rollout) — full URLs required since these issues live in `vergil-claude-plugin`, not the consuming repo
 - States that the MEMORY.md header and CLAUDE.md snippet are already in place
-- Instructs to run `/standard-tooling:memory-audit` interactively
+- Instructs to run `/vergil-tooling:memory-audit` interactively
 - Lists the number of existing memory files in that repo
 
 No assignee, no milestone.
@@ -148,10 +148,10 @@ manage context.
 
 **PR convention:**
 - Title: `chore: add memory management policy`
-- Body: links to [#233](https://github.com/wphillipmoore/standard-tooling-plugin/issues/233) (full URL — cross-repo reference), lists what changed and why
+- Body: links to [#233](https://github.com/vergil-project/vergil-claude-plugin/issues/233) (full URL — cross-repo reference), lists what changed and why
 
 ## What This Does Not Cover
 
 - **Interactive memory audits** — deferred to per-repo audit issues
 - **Changelog or release note edits** — historical records are not touched
-- **`standard-tooling-plugin` itself** — changes already shipped with #219
+- **`vergil-claude-plugin` itself** — changes already shipped with #219

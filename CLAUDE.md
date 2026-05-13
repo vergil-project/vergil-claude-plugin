@@ -11,9 +11,9 @@ plugin/skill issue) before writing. See that file for the full
 workflow.
 
 Available skills:
-- `/standard-tooling:memory-init` — set up or update the policy header
+- `/vergil-tooling:memory-init` — set up or update the policy header
   in a project's `MEMORY.md`.
-- `/standard-tooling:memory-audit` — structured collaborative review
+- `/vergil-tooling:memory-audit` — structured collaborative review
   of memory files.
 
 ## Parallel AI agent development
@@ -24,15 +24,15 @@ while preserving shared project memory (which Claude Code derives from the
 session's starting CWD).
 
 **Canonical spec:**
-[`standard-tooling/docs/specs/worktree-convention.md`](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md)
+[`vergil-tooling/docs/specs/worktree-convention.md`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md)
 — full rationale, trust model, failure modes, and memory-path implications.
-The canonical text lives in `standard-tooling`; this section is the local
+The canonical text lives in `vergil-tooling`; this section is the local
 on-ramp.
 
 ### Structure
 
 ```text
-~/dev/github/standard-tooling-plugin/     ← sessions ALWAYS start here
+~/dev/github/vergil-claude-plugin/     ← sessions ALWAYS start here
   .git/
   CLAUDE.md, hooks/, skills/, …           ← main worktree (usually `develop`)
   .worktrees/                             ← container for parallel worktrees
@@ -43,7 +43,7 @@ on-ramp.
 ### Rules
 
 1. **Sessions always start at the project root.**
-   `cd ~/dev/github/standard-tooling-plugin && claude` — never from inside
+   `cd ~/dev/github/vergil-claude-plugin && claude` — never from inside
    `.worktrees/<name>/`. This keeps the memory-path slug stable and shared.
 2. **Each parallel agent is assigned exactly one worktree.** The session
    prompt names the worktree (see Agent prompt contract below).
@@ -66,7 +66,7 @@ placeholders):
 ```text
 You are working on issue #<N>: <issue title>.
 
-Your worktree is: /Users/pmoore/dev/github/standard-tooling-plugin/.worktrees/issue-<N>-<slug>/
+Your worktree is: /Users/pmoore/dev/github/vergil-claude-plugin/.worktrees/issue-<N>-<slug>/
 Your branch is:   feature/<N>-<slug>
 
 Rules for this session:
@@ -107,14 +107,14 @@ to a temporary file and pass it via `--body-file` or `--file` instead.
 ## Project Overview
 
 This is a Claude Code plugin that delivers shared hooks, skills, agents, and
-commands to all managed repositories in the standard-tooling ecosystem. It is
-the behavioral counterpart to the `standard-tooling` Python package (which
+commands to all managed repositories in the vergil-tooling ecosystem. It is
+the behavioral counterpart to the `vergil-tooling` Python package (which
 delivers runtime CLI tools via PATH).
 
-**Project name**: standard-tooling-plugin
+**Project name**: vergil-claude-plugin
 
-**Plugin namespace**: `standard-tooling` (skills invoked as
-`/standard-tooling:<skill-name>`)
+**Plugin namespace**: `vergil-tooling` (skills invoked as
+`/vergil-tooling:<skill-name>`)
 
 **Status**: Pre-release (0.x)
 
@@ -123,7 +123,7 @@ delivers runtime CLI tools via PATH).
 ### Plugin Manifest (`.claude-plugin/plugin.json`)
 
 Defines the plugin identity, version, and metadata. The `name` field
-(`standard-tooling`) determines the skill namespace prefix.
+(`vergil-tooling`) determines the skill namespace prefix.
 
 ### Hooks (`hooks/hooks.json`)
 
@@ -149,8 +149,8 @@ User-invokable slash commands (Markdown files).
 
 | Repo                       | Delivers                  | Via    |
 | -------------------------- | ------------------------- | ------ |
-| `standard-tooling`         | Python CLIs, bash, hooks  | PATH   |
-| `standard-tooling-plugin`  | Skills, agents, commands  | Plugin |
+| `vergil-tooling`         | Python CLIs, bash, hooks  | PATH   |
+| `vergil-claude-plugin`  | Skills, agents, commands  | Plugin |
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the
 tools available to run.
@@ -173,8 +173,8 @@ markdownlint .
 
 ## Commit and PR Scripts
 
-**NEVER use raw `git commit`** — always use `st-commit`.
-**NEVER use raw `gh pr create`** — always use `st-submit-pr`.
+**NEVER use raw `git commit`** — always use `vrg-commit`.
+**NEVER use raw `gh pr create`** — always use `vrg-submit-pr`.
 
 ## Refreshing the plugin locally
 
@@ -198,4 +198,4 @@ at release time.
 When you complete a publish, **the cycle is not done until you
 have shown the user the two-step refresh sequence.** Listing
 artifacts and stopping is a regression on
-[#105](https://github.com/wphillipmoore/standard-tooling-plugin/issues/105).
+[#105](https://github.com/vergil-project/vergil-claude-plugin/issues/105).

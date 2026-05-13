@@ -32,32 +32,32 @@ with exit criteria — never silently pinned.
 - **Post-publish (Phase 5):** The `publish` skill's Phase 5 hands off to this
   skill after a release ships. Develop is the safest place to absorb updates
   because it has the widest validation window before the next release.
-- **Standalone:** Invoked directly via `/standard-tooling:dependency-update`
+- **Standalone:** Invoked directly via `/vergil-tooling:dependency-update`
   when a dependency update is needed outside a release cycle (security alert,
   deprecation, planned upgrade).
 
 ## Host vs container commands
 
 Most commands in this skill are **host commands** — invoke them directly
-without `st-docker-run` wrapping. This includes `uv`, `gh`, `st-commit`,
-`st-validate`, and all `st-*` workflow tools.
+without `vrg-docker-run` wrapping. This includes `uv`, `gh`, `vrg-commit`,
+`vrg-validate`, and all `st-*` workflow tools.
 
-Validation runs via `st-docker-run -- st-validate`, which
+Validation runs via `vrg-docker-run -- vrg-validate`, which
 dispatches all checks inside the container. See the
 [`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale
-([#96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)).
+([#96](https://github.com/vergil-project/vergil-claude-plugin/issues/96)).
 
 ## Preflight
 
 1. Confirm you are on a `chore/` branch off `develop` (e.g.,
    `chore/next-cycle-deps-<version>` for post-publish, or
    `chore/dep-update-<date>` for standalone).
-2. Read `standard-tooling.toml` to identify:
+2. Read `vergil.toml` to identify:
    - `repository_type` — determines which categories apply.
    - The canonical validation command.
 3. Verify `GH_TOKEN` is set.
-4. Locate `st-docker-run` using the standard search algorithm (see the
+4. Locate `vrg-docker-run` using the standard search algorithm (see the
    `publish` skill's preflight for the lookup order) — needed only for
    validation steps that dispatch into the container.
 
@@ -159,11 +159,11 @@ records:
 After all updates in a category (or after all categories if batching):
 
 ```bash
-st-docker-run -- st-validate
+vrg-docker-run -- vrg-validate
 ```
 
-`st-validate` runs inside the container. Invoke it via
-`st-docker-run -- st-validate`. Fix any failures before proceeding to
+`vrg-validate` runs inside the container. Invoke it via
+`vrg-docker-run -- vrg-validate`. Fix any failures before proceeding to
 the next category or to submission.
 
 ## Failure handling
@@ -191,17 +191,17 @@ When a dependency update breaks validation:
 
 Once all applicable categories are updated and validation passes:
 
-1. Commit via `st-commit` with a message summarizing what was updated
+1. Commit via `vrg-commit` with a message summarizing what was updated
    (e.g., `chore(deps): sweep post-1.4.5 dependency updates`).
 2. Submit via the `pr-workflow` skill. The PR description should list
    each category updated and any anchors created or resolved.
 
 ## Resources
 
-- `docs/repository/dependency-update-workflow.md` (in `standard-tooling`)
-- `docs/repository/overview.md` (in `standard-tooling`)
-- `docs/development/python/dependency-management.md` (in `standard-tooling`)
-- `docs/development/runtime-version-support-policy.md` (in `standard-tooling`)
-- `docs/development/documentation-toolchain.md` (in `standard-tooling`)
+- `docs/repository/dependency-update-workflow.md` (in `vergil-tooling`)
+- `docs/repository/overview.md` (in `vergil-tooling`)
+- `docs/development/python/dependency-management.md` (in `vergil-tooling`)
+- `docs/development/runtime-version-support-policy.md` (in `vergil-tooling`)
+- `docs/development/documentation-toolchain.md` (in `vergil-tooling`)
 - `skills/publish/SKILL.md` — Phase 5 and Dependency update categories
 - `skills/pr-workflow/SKILL.md` — for the submission step

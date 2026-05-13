@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # managed-repo-check.sh — shared helper for plugin enforcement hooks.
 #
-# A "managed" repo is one configured to use standard-tooling. The signal
+# A "managed" repo is one configured to use vergil-tooling. The signal
 # is the presence of the marker file at the repo root:
 #
-#   standard-tooling.toml
+#   vergil.toml
 #
 # When the marker is not present, the plugin's enforcement hooks
 # short-circuit to a no-op so the plugin does not interfere with
@@ -44,7 +44,7 @@ is_managed_repo() {
 	esac
 
 	while [ "$dir" != "/" ] && [ -n "$dir" ]; do
-		if [ -f "$dir/standard-tooling.toml" ]; then
+		if [ -f "$dir/vergil.toml" ]; then
 			return 0
 		fi
 		if [ -e "$dir/.git" ]; then

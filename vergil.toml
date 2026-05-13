@@ -6,14 +6,13 @@ release-model = "tagged-release"
 primary-language = "claude-plugin"
 
 [project.co-authors]
-claude = "Co-Authored-By: wphillipmoore-claude <255925739+wphillipmoore-claude@users.noreply.github.com>"
-codex = "Co-Authored-By: wphillipmoore-codex <255923655+wphillipmoore-codex@users.noreply.github.com>"
+agent = "Co-Authored-By: wphillipmoore-agent <284101533+wphillipmoore-agent@users.noreply.github.com>"
 
 [publish]
 release = true
 docs = true
 consumer-refresh = """\
-/plugin marketplace update standard-tooling-marketplace
+/plugin marketplace update vergil-tooling-marketplace
 
 Note: /reload-plugins is currently buggy — it reloads skills but \
 does not reliably pick up hook changes. To fully apply the update, \
@@ -25,4 +24,4 @@ versions = ["latest"]
 integration-tests = false
 
 [dependencies]
-standard-tooling = "v1.4"
+vergil = "v2.0"

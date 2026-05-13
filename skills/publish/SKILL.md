@@ -54,7 +54,7 @@ This skill is not applicable to application repositories.
 
 All commits produced by this skill use the `chore(release):` scope
 convention. The `--scope release` flag is required when invoking
-`st-commit` for any release-workflow commit (version bumps, changelog
+`vrg-commit` for any release-workflow commit (version bumps, changelog
 updates, dependency sweeps). This keeps release-workflow commits
 identifiable in `git log` and in changelog generation via git-cliff.
 
@@ -63,7 +63,7 @@ identifiable in `git log` and in changelog generation via git-cliff.
 Tools fall into two families with different runtime locations. Honor the
 split — silently bypassing it (or silently containerizing tools that
 belong on the host) is what produced
-[issue #96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96):
+[issue #96](https://github.com/vergil-project/vergil-claude-plugin/issues/96):
 47 days of agents short-circuiting "container-first" guidance for release
 tools, hiding three layered infrastructure failures until the first
 agent followed the rule verbatim.
@@ -79,17 +79,17 @@ a seam that can break.
 
 - `git` — local git operations (checkout, branch, fetch, pull, push)
 - `gh` — all GitHub CLI operations (issue/PR/release management)
-- `st-prepare-release`, `st-commit`, `st-submit-pr`, `st-finalize-repo`,
-  `st-merge-when-green`, `st-wait-until-green` — release/PR lifecycle
+- `vrg-prepare-release`, `vrg-commit`, `vrg-submit-pr`, `vrg-finalize-repo`,
+  `vrg-merge-when-green`, `vrg-wait-until-green` — release/PR lifecycle
   drivers
-- `st-docker-run` itself — the dispatcher that runs container commands
-- `st-github-config` — GitHub repository configuration auditing
+- `vrg-docker-run` itself — the dispatcher that runs container commands
+- `vrg-github-config` — GitHub repository configuration auditing
 - `git-cliff` — changelog generation
 
-### Container commands — run via `st-docker-run --`
+### Container commands — run via `vrg-docker-run --`
 
 The language toolchain validators. These are the heavyweight per-language
-tools whose maintenance burden on macOS is exactly what `st-docker-run`
+tools whose maintenance burden on macOS is exactly what `vrg-docker-run`
 exists to eliminate, and whose per-edit invocation amortizes container
 caching.
 
@@ -104,8 +104,8 @@ caching.
 
 If you're unsure where a tool belongs: is it primarily a wrapper around a
 containerized language toolchain (→ container), or a thin Python/shell
-driver around git/gh/SSH-using operations (→ host)? `st-validate`
-runs inside the container via `st-docker-run -- st-validate` —
+driver around git/gh/SSH-using operations (→ host)? `vrg-validate`
+runs inside the container via `vrg-docker-run -- vrg-validate` —
 all validation payloads execute in-container.
 
 ### Examples
@@ -113,20 +113,20 @@ all validation payloads execute in-container.
 Host (no wrapping):
 
 ```bash
-st-prepare-release --issue <N>
+vrg-prepare-release --issue <N>
 gh issue create --title "..." --body-file /tmp/release-notes.md
 ```
 
-Container (always via `st-docker-run --`):
+Container (always via `vrg-docker-run --`):
 
 ```bash
-st-docker-run -- ruff check .
-st-docker-run -- markdownlint .
+vrg-docker-run -- ruff check .
+vrg-docker-run -- markdownlint .
 ```
 
 ## Preflight
 
-- Read `standard-tooling.toml` and locate the `[project]` section.
+- Read `vergil.toml` and locate the `[project]` section.
 - Read `repository_type` from the profile.
 - If the type is `library` or `tooling`, follow **library-release mode**.
 - If the type is `documentation`, follow **docs-only mode**.
@@ -134,7 +134,7 @@ st-docker-run -- markdownlint .
   not apply.
 - Confirm you are on the `develop` branch with a clean working tree.
 - **GitHub config compliance check.** Run
-  `st-github-config audit --repo <owner/repo>`. If the command
+  `vrg-github-config audit --repo <owner/repo>`. If the command
   exits zero, the repository's GitHub configuration is compliant —
   proceed silently. If non-zero, the repository is non-compliant:
   display the full audit output to the user, explain that
@@ -204,7 +204,7 @@ Org-wide auto-merge is disabled. The normal convention is
 "humans merge human PRs." The release workflow is the explicit
 exception: **the agent is both author and reviewer** of release-
 and-bump PRs, so the agent also merges them via
-`st-merge-when-green`. This applies to three PRs per release
+`vrg-merge-when-green`. This applies to three PRs per release
 cycle:
 
 - The `release/<version>` PR (Phase 2 below).
@@ -230,7 +230,7 @@ for the next cycle and are part of this skill's responsibility.
    standards-compliance gate. Log all subsequent phase completions,
    issues encountered, and resolutions as comments on this issue to
    maintain a complete record of the publish operation.
-3. Run `st-prepare-release --issue <N>` from the
+3. Run `vrg-prepare-release --issue <N>` from the
    repository root on `develop`, passing the tracking issue number.
 4. The script creates a `release/<version>` branch, generates the
    changelog, pushes the branch, creates a PR to `main` (with
@@ -243,10 +243,10 @@ for the next cycle and are part of this skill's responsibility.
 
 ### Phase 2 — Merge release PR
 
-1. Run `st-merge-when-green <release-pr-url>`.
+1. Run `vrg-merge-when-green <release-pr-url>`.
    The tool polls CI and merges once all required checks pass
    (merge-commit strategy, delete branch on merge).
-2. If any CI check fails, `st-merge-when-green` exits non-zero.
+2. If any CI check fails, `vrg-merge-when-green` exits non-zero.
    Follow the failure-handling procedure — do not retry or merge
    manually.
 3. Comment on the tracking issue with Phase 2 results (CI outcome,
@@ -288,7 +288,7 @@ behind external async work.
       (editing the PR body alone does not retrigger workflows —
       the `pr-issue-linkage` check evaluates the event payload
       from the push, not the live PR body).
-3. Run `st-merge-when-green <bump-pr-url>`.
+3. Run `vrg-merge-when-green <bump-pr-url>`.
 4. If CI fails, follow the failure-handling procedure — do not
    retry or merge manually.
 5. Comment on the tracking issue with Phase 3 results (bump PR URL,
@@ -348,8 +348,8 @@ URLs, list of artifacts confirmed).
 2. Update all applicable dependency categories (see
    [Dependency update categories](#dependency-update-categories)).
 3. Run full validation.
-4. Submit the PR via `st-submit-pr`.
-5. Run `st-merge-when-green <dep-update-pr-url>`. This PR is an
+4. Submit the PR via `vrg-submit-pr`.
+5. Run `vrg-merge-when-green <dep-update-pr-url>`. This PR is an
    agent-authored, agent-reviewed release-workflow artifact — the
    same posture as the release and bump PRs.
 6. Comment on the tracking issue with Phase 5 results (dependency
@@ -365,7 +365,7 @@ can tell. Skipping this step is a failure to complete, not a
 nice-to-have.
 
 Order matters here. Close the tracking issue **before**
-`st-finalize-repo` so the historical record is sealed first; if
+`vrg-finalize-repo` so the historical record is sealed first; if
 finalize errors out (e.g., a sibling worktree blocks cleanup),
 the bookkeeping is still done.
 
@@ -382,15 +382,15 @@ the bookkeeping is still done.
    (not short `#N` references) so they are clickable in the
    terminal.
 
-2. **Run `st-finalize-repo`** to return to a clean `develop`
+2. **Run `vrg-finalize-repo`** to return to a clean `develop`
    branch. The script updates local `develop`, deletes merged
    branches, and prunes stale remotes. Run final validation to
    confirm a clean state.
 
-   **Every error and warning from `st-finalize-repo` is
+   **Every error and warning from `vrg-finalize-repo` is
    serious.** There is no such thing as a "pre-existing" or
    "not my problem" error — any failure represents a bug in the
-   tooling. If `st-finalize-repo` produces errors or warnings,
+   tooling. If `vrg-finalize-repo` produces errors or warnings,
    triage the full output, then surface your assessment to the
    user before proceeding. Do not silently dismiss any output
    that indicates a problem.
@@ -414,7 +414,7 @@ inconsistently (sometimes executing, sometimes displaying) is
 the behavior this rule exists to prevent.
 
 Read the consumer-refresh sequence from the repository's
-`standard-tooling.toml` under `[publish] consumer-refresh`.
+`vergil.toml` under `[publish] consumer-refresh`.
 Display the value verbatim as the hand-off message.
 
 If `[publish] consumer-refresh` is not set, tell the user
@@ -442,7 +442,7 @@ part of the producer's hand-off.
    [Dependency update categories](#dependency-update-categories)).
 3. Run full validation.
 4. Submit via `pr-workflow`.
-5. Run `st-finalize-repo` to return to a clean `develop`
+5. Run `vrg-finalize-repo` to return to a clean `develop`
    branch. The script updates local `develop`, deletes merged branches, and
    prunes stale remotes. Run final validation to confirm a clean state.
 
