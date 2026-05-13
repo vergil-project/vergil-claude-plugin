@@ -40,14 +40,14 @@ jobs:
         working-directory: docs/site
 
   quality:
-    uses: vergil-project/vergil-actions/.github/workflows/ci-quality.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/ci-quality.yml@v2.0
     with:
       language: claude-plugin
       versions: '["latest"]'
       container-suffix: base
 
   security:
-    uses: vergil-project/vergil-actions/.github/workflows/ci-security.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/ci-security.yml@v2.0
     with:
       language: claude-plugin
       run-codeql: false
@@ -58,7 +58,7 @@ jobs:
       security-events: write
 
   version:
-    uses: vergil-project/vergil-actions/.github/workflows/ci-version-bump.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/ci-version-bump.yml@v2.0
     with:
       language: claude-plugin
       run-release: ${{ inputs.run-release != 'false' }}
