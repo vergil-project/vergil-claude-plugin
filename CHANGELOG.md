@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] - 2026-05-13
+
+### Bug fixes
+
+- add vergil-tooling key to vergil.toml dependencies (#308)
+
+### CI
+
+- update vergil-actions refs from v1.5 to v2.0
+
+### Chores
+
+- bump version to 1.4.26
+- update plugin identity to vergil-marketplace
+
+### Features
+
+- rename to vergil-claude-plugin under vergil-project org (#305)
+
 ## [1.4.24] - 2026-05-11
 
 ### Chores
