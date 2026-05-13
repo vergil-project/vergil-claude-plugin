@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the standard-tooling ecosystem">
+        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the vergil-tooling ecosystem">
       
       
       
@@ -192,13 +192,13 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/wphillipmoore/standard-tooling-plugin" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/vergil-project/vergil-claude-plugin" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    wphillipmoore/standard-tooling-plugin
+    vergil-project/vergil-claude-plugin
   </div>
 </a>
       </div>
@@ -349,13 +349,13 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/wphillipmoore/standard-tooling-plugin" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/vergil-project/vergil-claude-plugin" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    wphillipmoore/standard-tooling-plugin
+    vergil-project/vergil-claude-plugin
   </div>
 </a>
     </div>
@@ -1518,13 +1518,13 @@
 
 
 <h1 id="standard-tooling-plugin">Standard Tooling Plugin<a class="headerlink" href="#standard-tooling-plugin" title="Permanent link">&para;</a></h1>
-<p>Claude Code plugin for the standard-tooling ecosystem. Delivers shared hooks,
+<p>Claude Code plugin for the vergil-tooling ecosystem. Delivers shared hooks,
 skills, and agents to all managed repositories.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>This plugin is the behavioral counterpart to the
-<a href="https://github.com/wphillipmoore/standard-tooling">standard-tooling</a> Python
-package. While standard-tooling provides runtime CLI tools (<code>st-commit</code>,
-<code>st-submit-pr</code>, etc.) via PATH, this plugin provides Claude Code configuration
+<a href="https://github.com/vergil-project/vergil-tooling">vergil-tooling</a> Python
+package. While vergil-tooling provides runtime CLI tools (<code>vrg-commit</code>,
+<code>vrg-submit-pr</code>, etc.) via PATH, this plugin provides Claude Code configuration
 that enforces workflow compliance mechanically.</p>
 <h2 id="whats-included">What's Included<a class="headerlink" href="#whats-included" title="Permanent link">&para;</a></h2>
 <table>
@@ -1560,12 +1560,12 @@ that enforces workflow compliance mechanically.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>standard-tooling</code></td>
+<td><code>vergil-tooling</code></td>
 <td>Python CLIs (<code>st-*</code>), validators</td>
 <td>PATH</td>
 </tr>
 <tr>
-<td><code>standard-tooling-plugin</code></td>
+<td><code>vergil-claude-plugin</code></td>
 <td>Hooks, skills, agents</td>
 <td>Claude Code plugin</td>
 </tr>
@@ -1577,15 +1577,15 @@ tools available to run.</p>
 <h3 id="from-marketplace">From marketplace<a class="headerlink" href="#from-marketplace" title="Permanent link">&para;</a></h3>
 <p>Configure in your project's <code>.claude/settings.json</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;plugins&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;standard-tooling&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;plugins&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;vergil-tooling&quot;</span><span class="p">]</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">}</span>
 </code></pre></div>
 <h3 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w"> </span>--plugin-dir<span class="w"> </span>/path/to/standard-tooling-plugin
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w"> </span>--plugin-dir<span class="w"> </span>/path/to/vergil-claude-plugin
 </code></pre></div>
 <h2 id="plugin-namespace">Plugin Namespace<a class="headerlink" href="#plugin-namespace" title="Permanent link">&para;</a></h2>
-<p>All skills are namespaced under <code>standard-tooling</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/standard-tooling:&lt;skill-name&gt;
+<p>All skills are namespaced under <code>vergil-tooling</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>/vergil-tooling:&lt;skill-name&gt;
 </code></pre></div>
 
 

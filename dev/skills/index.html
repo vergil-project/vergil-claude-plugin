@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the standard-tooling ecosystem">
+        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the vergil-tooling ecosystem">
       
       
       
@@ -194,13 +194,13 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/wphillipmoore/standard-tooling-plugin" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/vergil-project/vergil-claude-plugin" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    wphillipmoore/standard-tooling-plugin
+    vergil-project/vergil-claude-plugin
   </div>
 </a>
       </div>
@@ -351,13 +351,13 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/wphillipmoore/standard-tooling-plugin" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/vergil-project/vergil-claude-plugin" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    wphillipmoore/standard-tooling-plugin
+    vergil-project/vergil-claude-plugin
   </div>
 </a>
     </div>
@@ -1511,8 +1511,8 @@
 <p>Skills are shared workflow definitions that Claude Code loads from
 the plugin. Each skill is a directory under <code>skills/</code> containing a
 <code>SKILL.md</code> file with frontmatter and structured instructions. All
-skills are namespaced under <code>standard-tooling</code> and invoked as
-<code>/standard-tooling:&lt;skill-name&gt;</code>.</p>
+skills are namespaced under <code>vergil-tooling</code> and invoked as
+<code>/vergil-tooling:&lt;skill-name&gt;</code>.</p>
 <p>Each entry below covers what the skill does, when to use it, and
 its current status — including any tracked work that will
 substantially change it.</p>
@@ -1554,10 +1554,10 @@ substantially change it.</p>
 </tbody>
 </table>
 <h2 id="pr-workflow">pr-workflow<a class="headerlink" href="#pr-workflow" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Submits a PR via <code>st-submit-pr</code> from inside the
+<p><strong>What it does.</strong> Submits a PR via <code>vrg-submit-pr</code> from inside the
 issue's worktree, waits for CI to go green, fixes any agent-fixable
 red checks, and hands off to the user for review and merge. After
-the user reports the merge, runs <code>st-finalize-repo</code> from the
+the user reports the merge, runs <code>vrg-finalize-repo</code> from the
 worktree to clean up local state.</p>
 <p><strong>When to use.</strong> When work on a branch is complete and ready for
 review. Covers "open a PR for this branch" through "PR merged,
@@ -1566,7 +1566,7 @@ and merge; humans review and merge feature/bugfix PRs.</p>
 <p><strong>Status.</strong> Current. Reflects the worktree convention and the
 fleet-wide "humans review human PRs" posture as of 2026-04-22.
 The release-workflow exception (agent merges release PRs via
-<code>st-merge-when-green</code>) lives in the
+<code>vrg-merge-when-green</code>) lives in the
 <a href="#publish"><code>publish</code> skill</a>, not here.</p>
 <h2 id="publish">publish<a class="headerlink" href="#publish" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Drives end-to-end release publishing for
@@ -1596,10 +1596,10 @@ below the latest acceptable range.</p>
 response to a CVE, a scheduled cycle, or as part of normal
 maintenance.</p>
 <p><strong>Status.</strong> Current. Rewritten as part of the skills audit
-(<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/114">#114</a>)
+(<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/114">#114</a>)
 with concrete per-category commands (Python deps via <code>uv lock</code>,
 CI action pins, runtime versions, doc toolchain, linters, build
-tools), <code>st-validate</code> as the canonical validation step,
+tools), <code>vrg-validate</code> as the canonical validation step,
 structured failure handling via anchored dependency records, and
 anchor review as a first-class section.</p>
 <h2 id="deprecation-triage">deprecation-triage<a class="headerlink" href="#deprecation-triage" title="Permanent link">&para;</a></h2>
@@ -1613,7 +1613,7 @@ the <code>detect-deprecation-warnings</code> PostToolUse hook.</p>
 output, CI, or regular work. The partner hook triggers this
 flow automatically when it catches warnings.</p>
 <p><strong>Status.</strong> Current. Reviewed for currency on 2026-04-23 as part
-of <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/59">plugin#59</a>;
+of <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/59">plugin#59</a>;
 no changes needed.</p>
 <h2 id="summarize">summarize<a class="headerlink" href="#summarize" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Produces a concise, structured summary in one of
@@ -1630,7 +1630,7 @@ three modes:</p>
 summary, invokes SOC capture, or the skill is invoked via
 handoff protocols.</p>
 <p><strong>Status.</strong> Current. Decision A from
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/58">plugin#58</a>:
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/58">plugin#58</a>:
 this skill's SOC mode is the canonical SOC capture mechanism for
 the fleet. Repo-local references to <code>soc-capture</code> or
 <code>summarize-soc</code> as skill names are stale pointers — splitting
@@ -1650,9 +1650,9 @@ tracked for cleanup in
 </ul>
 <p>The plugin's <code>skills/</code> directory is loaded on session start. The
 skill <code>name</code> in the frontmatter plus the plugin's namespace
-(<code>standard-tooling</code>) determines the invocation: a skill named
+(<code>vergil-tooling</code>) determines the invocation: a skill named
 <code>pr-workflow</code> in this plugin is invoked as
-<code>/standard-tooling:pr-workflow</code>.</p>
+<code>/vergil-tooling:pr-workflow</code>.</p>
 <p>Skills are documentation-as-config, not executable scripts. They
 tell Claude Code <em>how</em> to run a workflow; Claude Code executes
 the flow using whatever tools the user has granted.</p>

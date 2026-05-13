@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the standard-tooling ecosystem">
+        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the vergil-tooling ecosystem">
       
       
       
@@ -194,13 +194,13 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/wphillipmoore/standard-tooling-plugin" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/vergil-project/vergil-claude-plugin" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    wphillipmoore/standard-tooling-plugin
+    vergil-project/vergil-claude-plugin
   </div>
 </a>
       </div>
@@ -351,13 +351,13 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/wphillipmoore/standard-tooling-plugin" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/vergil-project/vergil-claude-plugin" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    wphillipmoore/standard-tooling-plugin
+    vergil-project/vergil-claude-plugin
   </div>
 </a>
     </div>
@@ -1814,18 +1814,18 @@ rules across all consuming repos — rules that humans and agents
 alike routinely drift from when enforcement is prose-only.</p>
 <blockquote>
 <p><strong>Looking for the overall workflow?</strong> See
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/guides/git-workflow.md"><code>standard-tooling</code> → Git Workflow</a>
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/git-workflow.md"><code>vergil-tooling</code> → Git Workflow</a>
 for the big-picture guide covering branching, commit/PR/finalize
 cycle, worktrees, and how these plugin hooks compose with the
 pre-commit git hook. This page is the reference for the plugin's
 hooks specifically; the pre-commit git hook is documented in
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md"><code>standard-tooling</code> → Git Hooks and Validation</a>.</p>
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md"><code>vergil-tooling</code> → Git Hooks and Validation</a>.</p>
 </blockquote>
 <p>Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.</p>
 <h2 id="managed-repo-gating">Managed-repo gating<a class="headerlink" href="#managed-repo-gating" title="Permanent link">&para;</a></h2>
 <p>Every hook below <strong>except <code>block-heredoc</code></strong> is gated on a
-managed-repo check. A repo is "managed" when <code>standard-tooling.toml</code>
+managed-repo check. A repo is "managed" when <code>vergil.toml</code>
 exists at the repo root.</p>
 <p>When the marker is not present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
@@ -1836,37 +1836,37 @@ gate's overhead is a handful of <code>stat()</code> calls.</p>
 <p><code>block-heredoc</code> is intentionally <strong>not</strong> gated — heredoc syntax in
 CLI invocations breaks unpredictably regardless of which repo
 you're in, so the rule is universal.</p>
-<p>See <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/87">issue #87</a>
+<p>See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/87">issue #87</a>
 for the rationale.</p>
 <h2 id="pretooluse-hooks-bash">PreToolUse Hooks — Bash<a class="headerlink" href="#pretooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="block-raw-git-commit">block-raw-git-commit<a class="headerlink" href="#block-raw-git-commit" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that call <code>git commit</code> (or
 pipe-chained equivalents).</p>
-<p><strong>Why.</strong> <code>st-commit</code> constructs standards-compliant conventional
+<p><strong>Why.</strong> <code>vrg-commit</code> constructs standards-compliant conventional
 commit messages with the co-author trailer resolved from
-<code>standard-tooling.toml</code>. Hand-written <code>git commit -m</code>
+<code>vergil.toml</code>. Hand-written <code>git commit -m</code>
 invocations drift from the commit-message standard over time; raw
 commits also bypass the co-author resolution entirely.</p>
 <p><strong>Alternative.</strong> Use
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/commit.md"><code>st-commit</code></a>
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/commit.md"><code>vrg-commit</code></a>
 with the appropriate <code>--type</code>, <code>--scope</code>, <code>--message</code>, <code>--body</code>, and
 <code>--agent</code> flags.</p>
 <h3 id="block-raw-gh-pr-create">block-raw-gh-pr-create<a class="headerlink" href="#block-raw-gh-pr-create" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that call <code>gh pr create</code>.</p>
-<p><strong>Why.</strong> <code>st-submit-pr</code> builds standards-compliant PR bodies with
+<p><strong>Why.</strong> <code>vrg-submit-pr</code> builds standards-compliant PR bodies with
 proper issue linkage keywords (<code>Fixes</code>, <code>Closes</code>, <code>Resolves</code>, <code>Ref</code>)
 that the <code>pr-issue-linkage</code> CI validator requires. Manual <code>gh pr
 create</code> commands routinely ship without linkage and fail CI on the
 first try.</p>
 <p><strong>Alternative.</strong> Use
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/submit-pr.md"><code>st-submit-pr</code></a>
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/submit-pr.md"><code>vrg-submit-pr</code></a>
 with <code>--issue</code>, <code>--summary</code>, <code>--linkage</code>, and <code>--notes</code> flags.</p>
 <h3 id="block-protected-branch-work">block-protected-branch-work<a class="headerlink" href="#block-protected-branch-work" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that run <code>git commit</code> or
-<code>st-commit</code> when the effective working directory falls outside the
+<code>vrg-commit</code> when the effective working directory falls outside the
 worktree convention's allowed locations.</p>
 <p><strong>Why.</strong> Behavior depends on whether the target repo has adopted the
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md">worktree convention</a>.
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md">worktree convention</a>.
 The hook detects adoption by looking for a <code>.worktrees/</code> line in the
 repo's <code>.gitignore</code>. On adopted repos, commits must originate from
 inside <code>.worktrees/&lt;name&gt;/</code>; the main tree is read-only. On
@@ -1878,7 +1878,7 @@ origin/develop</code> and run all edits + commits from inside that
 directory. On non-adopted repos: create and check out a feature
 branch with a name matching the repo's <code>branching_model</code> prefixes.</p>
 <p>This hook complements the pre-commit git hook's
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit">protected-branch check</a>
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit">protected-branch check</a>
 — this one catches the agent-tool invocation early; the pre-commit
 hook catches every <code>git commit</code> regardless of how it was invoked.</p>
 <h3 id="block-heredoc">block-heredoc<a class="headerlink" href="#block-heredoc" title="Permanent link">&para;</a></h3>
@@ -1897,7 +1897,7 @@ reference it: <code>--body-file /tmp/body.txt</code> or
 <h3 id="block-associative-arrays">block-associative-arrays<a class="headerlink" href="#block-associative-arrays" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that use bash 4+ associative
 arrays (<code>declare -A</code>, <code>typeset -A</code>).</p>
-<p><strong>Why.</strong> The hook scripts and <code>st-docker-run</code> dispatcher themselves
+<p><strong>Why.</strong> The hook scripts and <code>vrg-docker-run</code> dispatcher themselves
 run on the host shell, which on macOS is bash 3.2 (Apple has not
 shipped a newer bash since the GPL license change). Associative
 arrays silently fail on macOS bash 3.2, producing hard-to-debug
@@ -1910,17 +1910,17 @@ the code belongs inside the container, not in host scripts.</p>
 <p><strong>What.</strong> Checks the routing of every <code>st-*</code>, <code>gh</code>, <code>git</code>, and
 language-toolchain command against the canonical host-vs-container
 split from
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/96">#96</a>.</p>
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/96">#96</a>.</p>
 <ul>
-<li><strong>Denies</strong> wrapping a host-only tool in <code>st-docker-run --</code>
-  (e.g., <code>st-docker-run -- gh issue list</code>). The host tool needs
+<li><strong>Denies</strong> wrapping a host-only tool in <code>vrg-docker-run --</code>
+  (e.g., <code>vrg-docker-run -- gh issue list</code>). The host tool needs
   SSH-agent, host git config, or host <code>gh</code> auth — the container
   can't satisfy those.</li>
 <li><strong>Warns</strong> (via <code>additionalContext</code>, not deny) when a
   container-only tool is invoked directly — whether bare
-  (e.g., <code>ruff check .</code>) or wrapped in <code>st-docker-run --</code>.
+  (e.g., <code>ruff check .</code>) or wrapped in <code>vrg-docker-run --</code>.
   Both bypass the canonical validation entry point. The correct
-  command is <code>st-docker-run -- st-validate</code>, which handles
+  command is <code>vrg-docker-run -- vrg-validate</code>, which handles
   all tool routing internally.</li>
 </ul>
 <p>The canonical tool lists live in
@@ -1929,30 +1929,30 @@ truth powers both the hook and any future docs/lint.</p>
 <p><strong>Why.</strong> The drift that produced #96 — 47 days of agents silently
 wrapping host tools in the container — was caused by documentation
 being the only enforcement mechanism. Issue
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/168">#168</a>
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/168">#168</a>
 extended this to also catch agents bypassing the canonical
 validation entry point by calling linters directly (even correctly
-wrapped in <code>st-docker-run</code>). The agent should never invoke
-individual linters — <code>st-validate</code> handles tool routing internally.</p>
+wrapped in <code>vrg-docker-run</code>). The agent should never invoke
+individual linters — <code>vrg-validate</code> handles tool routing internally.</p>
 <p><strong>Alternative.</strong> For denied commands: invoke the host tool
-directly (drop the <code>st-docker-run --</code> prefix). For warned
-commands: use <code>st-docker-run -- st-validate</code> instead of invoking
+directly (drop the <code>vrg-docker-run --</code> prefix). For warned
+commands: use <code>vrg-docker-run -- vrg-validate</code> instead of invoking
 individual linters. See the
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
 for the canonical split and rationale.</p>
 <h3 id="block-autoclose-linkage">block-autoclose-linkage<a class="headerlink" href="#block-autoclose-linkage" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Denies <code>st-submit-pr</code> invocations that pass <code>--linkage
+<p><strong>What.</strong> Denies <code>vrg-submit-pr</code> invocations that pass <code>--linkage
 Fixes</code>, <code>--linkage Closes</code>, or <code>--linkage Resolves</code>.</p>
 <p><strong>Why.</strong> These keywords auto-close the linked issue when the PR
 merges. Our workflow has a mandatory post-merge finalization phase
-(<code>st-finalize-repo</code>) that reconciles local state — an issue closed
+(<code>vrg-finalize-repo</code>) that reconciles local state — an issue closed
 at merge time signals "done" while the local environment is stale.
 Using <code>Ref</code> linkage keeps the issue open until finalization
 confirms the work cycle is complete, at which point the agent
 closes the issue explicitly.</p>
 <p><strong>Alternative.</strong> Use <code>--linkage Ref</code> (or omit <code>--linkage</code> — <code>Ref</code>
-is the intended default once <code>st-submit-pr</code> is updated in
-<code>standard-tooling</code>). After <code>st-finalize-repo</code> succeeds, close the
+is the intended default once <code>vrg-submit-pr</code> is updated in
+<code>vergil-tooling</code>). After <code>vrg-finalize-repo</code> succeeds, close the
 issue with <code>gh issue close &lt;N&gt;</code>. The
 <a href="../skills/#pr-workflow"><code>pr-workflow</code> skill</a>'s "Close the
 issue" step documents this flow.</p>
@@ -1963,35 +1963,35 @@ or <code>gh pr review --approve</code> on non-release PRs.</p>
 review and merge is required. Skill prose saying "do not merge"
 is advisory; agents rationalize past it. This hook makes the
 rule mechanical. See
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/162">#162</a>
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/162">#162</a>
 for the incident that motivated this.</p>
 <p><strong>How it works.</strong> The hook delegates branch verification to
-<code>st-check-pr-merge</code>, which resolves the PR's head branch via the
+<code>vrg-check-pr-merge</code>, which resolves the PR's head branch via the
 GitHub API and checks it against the release-workflow allow-list
 (<code>release/*</code>, <code>chore/bump-version-*</code>, and
 <code>chore/*-next-cycle-deps-*</code>). Exit codes follow the
 three-state convention
-(<a href="https://github.com/wphillipmoore/standard-tooling/issues/373">standard-tooling#373</a>):
+(<a href="https://github.com/vergil-project/vergil-tooling/issues/373">vergil-tooling#373</a>):
 0 = allowed, 1 = denied, 2 = unknown. The unknown case still
 blocks the merge, but the reason message distinguishes "denied by
 policy" from "tool failed" so the user knows whether to investigate
 a policy question or a tooling failure.</p>
 <p><strong>Alternative.</strong> Hand off the PR URL to the user for review and
 merge. For release-workflow PRs (<code>release/*</code> and
-<code>chore/bump-version-*</code>), use <code>st-merge-when-green</code> from the
+<code>chore/bump-version-*</code>), use <code>vrg-merge-when-green</code> from the
 <a href="../skills/#publish"><code>publish</code> skill</a>.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
 <p>No hooks currently active in this category.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="remind-finalize">remind-finalize<a class="headerlink" href="#remind-finalize" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> After a successful <code>st-submit-pr</code> run, injects a reminder
-to run <code>st-finalize-repo</code> once the PR merges.</p>
+<p><strong>What.</strong> After a successful <code>vrg-submit-pr</code> run, injects a reminder
+to run <code>vrg-finalize-repo</code> once the PR merges.</p>
 <p><strong>Why.</strong> Finalization is easy to forget — the PR is created and
-attention moves elsewhere. <code>st-finalize-repo</code> pulls the merged
+attention moves elsewhere. <code>vrg-finalize-repo</code> pulls the merged
 change into local develop, deletes the merged feature branch, and
 prunes remote refs. Without it, local state diverges from remote
 and future PRs get confused.</p>
-<p><strong>Alternative.</strong> Do run <code>st-finalize-repo</code> once the PR merges.
+<p><strong>Alternative.</strong> Do run <code>vrg-finalize-repo</code> once the PR merges.
 There's no intent this hook blocks — it's a reminder, not a denial.</p>
 <h3 id="detect-deprecation-warnings">detect-deprecation-warnings<a class="headerlink" href="#detect-deprecation-warnings" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Scans test output and command output for deprecation
@@ -2010,23 +2010,23 @@ clear resolution criteria.</p>
 runs ruff / mypy / yamllint / markdownlint / shellcheck on each
 edited file. An earlier version did (<code>validate-on-edit.sh</code> plus
 per-language <code>validate-*.sh</code> scripts); it was removed in
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/91">#91</a>.</p>
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/91">#91</a>.</p>
 <p><strong>Why removed.</strong> Each per-edit invocation paid the dev-container
 startup cost (1–3 s on typical hardware) for one file's worth of
 work — five container starts for a single Python edit (<code>ruff check
 --fix</code>, <code>ruff format</code>, <code>ruff check</code>, <code>mypy</code>, <code>ty check</code>). Across a
 session with dozens of edits, that's minutes of wall-clock overhead
 per session, every session. The same checks already run in two
-cheaper places: <code>st-validate</code> covers them in a single
+cheaper places: <code>vrg-validate</code> covers them in a single
 container start before PR submission, and CI re-runs them on every
 PR. The per-edit layer was the third copy with the worst
 cost-per-value ratio.</p>
 <p><strong>What replaces it.</strong> Nothing per-edit. Validation runs at PR time
-via <a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate.md"><code>st-validate</code></a>,
+via <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/validate.md"><code>vrg-validate</code></a>,
 which is the documented "only validation command" per every
 consuming repo's CLAUDE.md. The
 <a href="#block-raw-git-commit"><code>block-raw-git-commit</code></a> PreToolUse hook
-already enforces commits going through <code>st-commit</code>, and <code>st-commit</code>
+already enforces commits going through <code>vrg-commit</code>, and <code>vrg-commit</code>
 runs the pre-commit git hook — so there's a hard gate between
 "edits land" and "edits ship."</p>
 <p><strong>Don't re-add this.</strong> A future contributor noticing the absence
@@ -2035,9 +2035,9 @@ should resist the impulse to re-add per-edit validation as a
 is intentional.</p>
 <h3 id="stop-hook-for-finalization">Stop hook for finalization<a class="headerlink" href="#stop-hook-for-finalization" title="Permanent link">&para;</a></h3>
 <p>The plugin no longer ships a Stop hook that blocks session exit
-on "PR submitted but <code>st-finalize-repo</code> not run." That hook
+on "PR submitted but <code>vrg-finalize-repo</code> not run." That hook
 (<code>stop-guard-finalization.sh</code>) was removed in
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/56">#56</a>.</p>
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/56">#56</a>.</p>
 <p><strong>Why removed.</strong> Under the current "humans review and merge
 feature/bugfix PRs" posture, the agent submits a PR, waits for
 CI green, hands off to the user, and <strong>stops</strong> — that's the
@@ -2049,8 +2049,8 @@ fired on every correct exit, blocking the desired behavior.</p>
 "After the merge" section documents the user-prompted finalize
 flow. The
 <a href="#remind-finalize"><code>remind-finalize</code></a> PostToolUse hook still
-emits a reminder after <code>st-submit-pr</code> so the agent knows to run
-<code>st-finalize-repo</code> once the merge is reported.</p>
+emits a reminder after <code>vrg-submit-pr</code> so the agent knows to run
+<code>vrg-finalize-repo</code> once the merge is reported.</p>
 <p><strong>Don't re-add this.</strong> Re-adding a session-end finalize gate
 would block the standard PR submission workflow and force agents
 into broken cleanup behavior just to satisfy the hook.</p>
