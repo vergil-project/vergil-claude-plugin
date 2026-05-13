@@ -12,7 +12,7 @@ agent = "Co-Authored-By: wphillipmoore-agent <284101533+wphillipmoore-agent@user
 release = true
 docs = true
 consumer-refresh = """\
-/plugin marketplace update vergil-tooling-marketplace
+/plugin marketplace update vergil-marketplace
 
 Note: /reload-plugins is currently buggy — it reloads skills but \
 does not reliably pick up hook changes. To fully apply the update, \
@@ -24,5 +24,5 @@ versions = ["latest"]
 integration-tests = false
 
 [dependencies]
-vergil = "v2.0"
-vergil-tooling = "v2.0"
+vergil = "v2.0.5"
+vergil-tooling = "v2.0.5"
