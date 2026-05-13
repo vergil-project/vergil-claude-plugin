@@ -1,6 +1,6 @@
 {
   "extraKnownMarketplaces": {
-    "vergil-tooling-marketplace": {
+    "vergil-marketplace": {
       "source": {
         "source": "github",
         "repo": "vergil-project/vergil-claude-plugin"
@@ -8,6 +8,6 @@
     }
   },
   "enabledPlugins": {
-    "vergil-tooling@vergil-tooling-marketplace": true
+    "vergil@vergil-marketplace": true
   }
 }
