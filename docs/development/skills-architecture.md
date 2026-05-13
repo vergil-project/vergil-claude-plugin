@@ -10,7 +10,7 @@ worktree convention, plugin-update sequence).
 
 The audit is deliberate: define the actual development+deployment
 process first, then map it to skills. Tracking issue:
-[#114](https://github.com/wphillipmoore/standard-tooling-plugin/issues/114).
+[#114](https://github.com/vergil-project/vergil-claude-plugin/issues/114).
 
 ## Part 1 — Process map
 
@@ -36,9 +36,9 @@ agent or human picks up an issue.
 | Phase | Purpose | Hand-off |
 |---|---|---|
 | B1. Set up workspace | Resolve issue → branch name → **worktree** on a feature branch tied to the issue. One worktree per issue, never on `develop`/`main`. | → B2 |
-| B2. Develop | Edit, validate (`st-docker-run -- st-validate`), iterate, commit (`st-commit`). Multiple commits OK. | → B3 |
-| B3. Submit | Push, create PR via `st-submit-pr`, link issue with `Fixes`/`Closes`/`Resolves`/`Ref`. Wait for CI green. **Human reviews and merges feature/bugfix PRs.** | → B4 (after merge) |
-| B4. Finalize | `st-finalize-repo`: pull develop, delete merged feature branch, prune worktrees and remotes. | → exit work cycle |
+| B2. Develop | Edit, validate (`vrg-docker-run -- vrg-validate`), iterate, commit (`vrg-commit`). Multiple commits OK. | → B3 |
+| B3. Submit | Push, create PR via `vrg-submit-pr`, link issue with `Fixes`/`Closes`/`Resolves`/`Ref`. Wait for CI green. **Human reviews and merges feature/bugfix PRs.** | → B4 (after merge) |
+| B4. Finalize | `vrg-finalize-repo`: pull develop, delete merged feature branch, prune worktrees and remotes. | → exit work cycle |
 
 ### Lifecycle C: Release cycle
 
@@ -47,12 +47,12 @@ work on `develop` to justify a release.
 
 | Phase | Purpose | Hand-off |
 |---|---|---|
-| C1. Prepare release | Open release tracking issue. Run `st-prepare-release` (host-direct). Creates release branch + PR to `main` + changelog. | → C2 |
-| C2. Merge release PR | `st-merge-when-green` polls CI and merges (the release-workflow exception to "humans merge human PRs"). | → C3 |
-| C3. Merge bump PR | `publish.yml` opens a `chore/bump-version-<next>` PR. `st-merge-when-green` it. | → C4 (parallel with publish.yml's slow async work) |
+| C1. Prepare release | Open release tracking issue. Run `vrg-prepare-release` (host-direct). Creates release branch + PR to `main` + changelog. | → C2 |
+| C2. Merge release PR | `vrg-merge-when-green` polls CI and merges (the release-workflow exception to "humans merge human PRs"). | → C3 |
+| C3. Merge bump PR | `publish.yml` opens a `chore/bump-version-<next>` PR. `vrg-merge-when-green` it. | → C4 (parallel with publish.yml's slow async work) |
 | C4. Confirm publish | Wait for `publish.yml` on `main` to succeed. Verify tag, develop tag, GitHub Release, package artifact, **`docs.yml`** completion (#84). | → C5 |
 | C5. Dependency refresh | Optional: Branch off develop, sweep dependencies, validate, submit via B-cycle (bare or via `dependency-update`). | → C6 |
-| C6. Close & finalize | Close the tracking issue with summary (#83). `st-finalize-repo`. **Tell user to run `/plugin marketplace update` → `/plugin update` → `/reload-plugins`** (#105). | → exit release cycle |
+| C6. Close & finalize | Close the tracking issue with summary (#83). `vrg-finalize-repo`. **Tell user to run `/plugin marketplace update` → `/plugin update` → `/reload-plugins`** (#105). | → exit release cycle |
 
 ### Lifecycle D: Cross-cutting
 
@@ -68,7 +68,7 @@ The seams between phases are where skills fail today:
 1. **A1 → B1**: When an issue is created (via `gh issue create`),
    the natural next step is to start work on it. Today the user
    invokes them separately.
-2. **B3 → B4**: After merge, `st-finalize-repo` runs. PR-workflow
+2. **B3 → B4**: After merge, `vrg-finalize-repo` runs. PR-workflow
    says this; agents sometimes forget.
 3. **B4 → A1 (cross-repo)**: Sub-issues created by `branch-workflow`
    tie back to the parent issue's project. Hand-off only happens
@@ -112,7 +112,7 @@ named `<type>/<N>-<slug>`, pushes it.
   works correctly.
 
 **Slash-command runnability.** Partial. A user can type
-`/standard-tooling:branch-workflow` with an issue reference, but
+`/vergil-tooling:branch-workflow` with an issue reference, but
 the result is a non-worktree branch — incompatible with how
 parallel work has to flow under the worktree convention. Cold-call
 needs the worktree-aware flow before this is fully runnable.
@@ -130,18 +130,18 @@ gets one smaller; the agent reference lives where it's
 consulted.
 
 **Resolved:**
-[#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55).
+[#55](https://github.com/vergil-project/vergil-claude-plugin/issues/55).
 
 ### pr-workflow
 
 **What it does today.** Pre-submission validation, push, create PR,
-**enable auto-merge**, finalize via `st-finalize-repo`.
+**enable auto-merge**, finalize via `vrg-finalize-repo`.
 
 **What's changed since.**
 
 - Auto-merge was disabled fleet-wide. Current policy: humans review
   and merge feature/bugfix PRs; only release-workflow PRs get
-  agent-merged via `st-merge-when-green`. **The skill's
+  agent-merged via `vrg-merge-when-green`. **The skill's
   "Enable auto-merge immediately" step is wrong.**
 - No worktree-convention awareness: doesn't acknowledge that the
   branch lives in `.worktrees/<...>/`, doesn't drive PR creation
@@ -149,12 +149,12 @@ consulted.
 - No CI-green-wait notification gating (#85): skill returns control
   to the user after submission without indicating CI status.
 - Submission step says "Push and create the PR" without naming
-  `st-submit-pr`. Indirection that opens the door to bypass.
+  `vrg-submit-pr`. Indirection that opens the door to bypass.
 - Host-vs-container framing intro outdated (same as
   `branch-workflow`).
 - Finalization step was patched in
-  [PR #97](https://github.com/wphillipmoore/standard-tooling-plugin/pull/97)
-  to drop the `st-docker-run --` prefix; the rest is stale.
+  [PR #97](https://github.com/vergil-project/vergil-claude-plugin/pull/97)
+  to drop the `vrg-docker-run --` prefix; the rest is stale.
 
 **Slash-command runnability.** No. The skill's current text would
 have an agent enable auto-merge — directly violating the current
@@ -173,8 +173,8 @@ deleted as part of the same change. The catalog still contains
 `pr-workflow`; only its scope shifted.
 
 **Resolved:**
-[#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56),
-[#85](https://github.com/wphillipmoore/standard-tooling-plugin/issues/85).
+[#56](https://github.com/vergil-project/vergil-claude-plugin/issues/56),
+[#85](https://github.com/vergil-project/vergil-claude-plugin/issues/85).
 
 ### publish
 
@@ -184,7 +184,7 @@ repos. Includes preflight, version override, failure handling,
 and dependency-update hand-off.
 
 **What's changed since.** The host-vs-container split landed in
-[PR #97](https://github.com/wphillipmoore/standard-tooling-plugin/pull/97);
+[PR #97](https://github.com/vergil-project/vergil-claude-plugin/pull/97);
 that section is current. Outstanding issues:
 
 - **Phase 6 doesn't auto-close the tracking issue** with a phase
@@ -211,14 +211,14 @@ gaps above are tracked patches, not blocking.
 **Status (post-audit): COMPLETE.** All three patches landed in
 the step-3 PR. Phase 4 now blocks on both `publish.yml` and
 `docs.yml`; Phase 6 closes the tracking issue with summary
-before `st-finalize-repo`; new Phase 7 surfaces the
+before `vrg-finalize-repo`; new Phase 7 surfaces the
 consumer-refresh sequence explicitly. `pr-workflow` got a
 matching post-merge docs-deploy verification step.
 
 **Resolved:**
-[#83](https://github.com/wphillipmoore/standard-tooling-plugin/issues/83),
-[#84](https://github.com/wphillipmoore/standard-tooling-plugin/issues/84),
-[#105](https://github.com/wphillipmoore/standard-tooling-plugin/issues/105).
+[#83](https://github.com/vergil-project/vergil-claude-plugin/issues/83),
+[#84](https://github.com/vergil-project/vergil-claude-plugin/issues/84),
+[#105](https://github.com/vergil-project/vergil-claude-plugin/issues/105).
 
 ### dependency-update
 
@@ -228,7 +228,7 @@ anchored records). Mostly references external docs.
 
 **What's changed since.** The host-vs-container split affects
 which validators the workflow invokes. The skill predates
-`st-validate` being canonical.
+`vrg-validate` being canonical.
 
 **Slash-command runnability.** No. The skill is too thin to drive a
 session — it doesn't say *how* to update Python deps vs. CI action
@@ -241,7 +241,7 @@ concrete commands.
 encodes concrete commands per dependency category (library deps
 via `uv lock --upgrade`, CI action pins, runtime versions, doc
 toolchain, linters, test frameworks, build tools). Validation
-uses `st-validate`. Failure handling structured around the
+uses `vrg-validate`. Failure handling structured around the
 anchored dependency record workflow. Anchor review is a
 first-class section: every sweep checks existing anchors for
 exit-criteria resolution. Submission hands off explicitly to
@@ -287,7 +287,7 @@ is now handled directly via `gh issue create`.
 `soc`. Each has a structured output template.
 
 **What's changed since.**
-[#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58):
+[#58](https://github.com/vergil-project/vergil-claude-plugin/issues/58):
 unclear relationship with a project-local `soc-capture` skill in
 `the-infrastructure-mindset`. Per the issue body, the user's
 primary use case is the SOC voice→text→article pipeline; decisions
@@ -318,7 +318,7 @@ to fix the stale references in that repo. Out of scope for this
 plugin PR.
 
 **Resolved:**
-[#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58).
+[#58](https://github.com/vergil-project/vergil-claude-plugin/issues/58).
 
 ## Part 3 — Coverage gaps
 
@@ -345,7 +345,7 @@ No skill-to-skill chaining needed.
 
 ### Gap 3 — Pre-flight DRY
 
-Every skill duplicates a similar preflight: locate `st-docker-run`
+Every skill duplicates a similar preflight: locate `vrg-docker-run`
 (or host venv), check `GH_TOKEN`, etc. Different skills check
 slightly different things; some are out of date.
 
@@ -403,10 +403,10 @@ This unblocks step 2 — `pr-workflow` no longer waits on a
 ### 2. `pr-workflow` rewrite (closes #56, #85) — DONE
 
 **Status update (post-audit, 2026-04-28): completed.** Skill
-rewritten end-to-end. New scope: submit via `st-submit-pr` from
+rewritten end-to-end. New scope: submit via `vrg-submit-pr` from
 inside the worktree, wait for CI green via `gh pr checks --watch`,
 fix agent-fixable failures and re-poll, hand off to the user when
-green, finalize via `st-finalize-repo` only after the user
+green, finalize via `vrg-finalize-repo` only after the user
 reports the merge.
 
 The obsolete `stop-guard-finalization.sh` Stop hook was deleted
@@ -429,7 +429,7 @@ CI-green-wait per #85, worktree-aware finalization, pointer to
 - Phase 6 prose tightened: the release cycle is **not complete**
   until the tracking issue is closed with a full summary
   comment. Step order changed so the tracking issue closes
-  *before* `st-finalize-repo` (the historical record gets
+  *before* `vrg-finalize-repo` (the historical record gets
   sealed even if finalize errors on a sibling worktree). #83.
 - New **Phase 7** added: producer-side consumer-refresh hand-off
   (#105). The agent is responsible for surfacing the
@@ -447,8 +447,8 @@ CI-green-wait per #85, worktree-aware finalization, pointer to
 **Out of scope (deferred follow-ups):** the cross-repo
 `docs.yml`-trigger audit document mentioned in #84's
 acceptance, and the cross-ecosystem follow-up issues (per-repo
-deploy docs for `standard-tooling`,
-`standard-tooling-docker`, `standard-actions`) mentioned in
+deploy docs for `vergil-tooling`,
+`vergil-docker`, `vergil-actions`) mentioned in
 issue 105's acceptance. Both are bigger than the audit's step 3
 scope and tracked separately.
 
@@ -497,7 +497,7 @@ referenced the skill; now the skill references the hook.
 rewrite. The skill now encodes concrete commands per dependency
 category (Python direct deps and lockfile via `uv lock`, CI
 action pins, runtime version pins, doc toolchain, linters, test
-frameworks, build tools). Validation uses `st-validate` as
+frameworks, build tools). Validation uses `vrg-validate` as
 the canonical step. Failure handling is structured around the
 anchored dependency record workflow with explicit "never silently
 pin" policy. Submission hands off to `pr-workflow`. Added anchor

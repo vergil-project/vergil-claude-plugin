@@ -78,7 +78,7 @@ repo in the fleet that uses voice→text→article workflows
 (notably `the-infrastructure-mindset`). Repo-local references
 to `soc-capture` or `summarize-soc` as skill names are stale
 pointers — the real skill is this one, in SOC mode. See
-[`#58`](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58)
+[`#58`](https://github.com/vergil-project/vergil-claude-plugin/issues/58)
 for the rationale: capture and summary are intertwined here
 (`End SOC` triggers the structured summary), so splitting SOC
 into its own skill adds no semantic gain.

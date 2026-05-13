@@ -1,4 +1,4 @@
-# https://github.com/wphillipmoore/standard-actions/blob/develop/.github/workflows/README.md
+# https://github.com/vergil-project/vergil-actions/blob/develop/.github/workflows/README.md
 name: CD
 
 on:
@@ -14,11 +14,11 @@ permissions:
 
 jobs:
   docs:
-    uses: wphillipmoore/standard-actions/.github/workflows/cd-docs.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/cd-docs.yml@v1.5
     permissions:
       contents: write
 
   release:
     if: github.ref == 'refs/heads/main'
-    uses: wphillipmoore/standard-actions/.github/workflows/cd-release.yml@v1.5
+    uses: vergil-project/vergil-actions/.github/workflows/cd-release.yml@v1.5
     secrets: inherit

@@ -1,31 +1,31 @@
 # Implementation Plan: Block agent merge of non-release PRs
 
 **Spec:** [`docs/specs/block-agent-merge.md`](../specs/block-agent-merge.md)
-**Issue:** [#162](https://github.com/wphillipmoore/standard-tooling-plugin/issues/162)
+**Issue:** [#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
 
 ## Overview
 
 Three deliverables across two repos, with a dependency ordering
 that determines the implementation sequence:
 
-1. **`st-check-pr-merge`** (standard-tooling) — new host command
-2. **`st-merge-when-green` branch check** (standard-tooling) —
+1. **`vrg-check-pr-merge`** (vergil-tooling) — new host command
+2. **`vrg-merge-when-green` branch check** (vergil-tooling) —
    defense-in-depth modification
-3. **`block-agent-merge.sh` hook** (standard-tooling-plugin) —
+3. **`block-agent-merge.sh` hook** (vergil-claude-plugin) —
    PreToolUse hook + registration + docs
 
-The hook depends on `st-check-pr-merge` being available on PATH,
-so standard-tooling ships first.
+The hook depends on `vrg-check-pr-merge` being available on PATH,
+so vergil-tooling ships first.
 
 ## Sequence
 
-### Phase 1: standard-tooling — `st-check-pr-merge`
+### Phase 1: vergil-tooling — `vrg-check-pr-merge`
 
-**Repo:** `standard-tooling`
+**Repo:** `vergil-tooling`
 **Branch:** `feature/<N>-check-pr-merge` (issue TBD — file in
-standard-tooling)
+vergil-tooling)
 
-#### 1a. New module: `src/standard_tooling/bin/check_pr_merge.py`
+#### 1a. New module: `src/vergil_tooling/bin/check_pr_merge.py`
 
 Entry point that takes a raw Bash command string and determines
 whether the merge/approval should be allowed.
@@ -59,7 +59,7 @@ argument.
    - `chore/bump-version-*` — match
    - Anything else — deny
 6. Exit codes follow the three-state convention
-   ([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
+   ([vergil-tooling#373](https://github.com/vergil-project/vergil-tooling/issues/373)):
    - **Exit 0** — allowed (release-workflow branch)
    - **Exit 1** — denied (tool ran, branch does not match
      allow-list; deny message on stderr)
@@ -82,7 +82,7 @@ policy requires human review and merge for feature/bugfix PRs.
 Hand off the PR URL to the user and stop the work cycle.
 
 Only release-workflow PRs (release/* and chore/bump-version-*)
-may be agent-merged, and only via st-merge-when-green from the
+may be agent-merged, and only via vrg-merge-when-green from the
 publish skill. See issue #162.
 ```
 
@@ -91,10 +91,10 @@ publish skill. See issue #162.
 Add to `pyproject.toml` `[project.scripts]`:
 
 ```toml
-st-check-pr-merge = "standard_tooling.bin.check_pr_merge:main"
+vrg-check-pr-merge = "vergil_tooling.bin.check_pr_merge:main"
 ```
 
-#### 1c. Tests: `tests/standard_tooling/test_check_pr_merge.py`
+#### 1c. Tests: `tests/vergil_tooling/test_check_pr_merge.py`
 
 Mock `subprocess.run` (the `gh pr view` call) to control the
 returned branch name. Test cases from the spec:
@@ -116,11 +116,11 @@ returned branch name. Test cases from the spec:
 | 13 | `--repo` with allowed branch | `gh pr merge --repo o/r 42` | `release/1.0.0` | exit 0 |
 | 14 | No match (defensive) | `gh issue list` | — | exit 0 |
 
-### Phase 2: standard-tooling — `st-merge-when-green` branch check
+### Phase 2: vergil-tooling — `vrg-merge-when-green` branch check
 
 **Same repo, can be same branch/PR as Phase 1.**
 
-#### 2a. Modify `src/standard_tooling/bin/merge_when_green.py`
+#### 2a. Modify `src/vergil_tooling/bin/merge_when_green.py`
 
 Add a branch-name verification step between argument parsing and
 the `wait_for_checks` call. The check resolves the PR's head
@@ -137,7 +137,7 @@ branch = github.read_output(
 )
 if not _is_release_branch(branch):
     print(
-        f"Error: st-merge-when-green is only for release-workflow PRs. "
+        f"Error: vrg-merge-when-green is only for release-workflow PRs. "
         f"Branch '{branch}' does not match release/* or chore/bump-version-*.",
         file=sys.stderr,
     )
@@ -156,12 +156,12 @@ def _is_release_branch(branch: str) -> bool:
 ```
 
 This `_is_release_branch` helper can also be used by
-`st-check-pr-merge` — consider putting it in
-`standard_tooling/lib/github.py` or a new
-`standard_tooling/lib/release.py` shared module if both commands
+`vrg-check-pr-merge` — consider putting it in
+`vergil_tooling/lib/github.py` or a new
+`vergil_tooling/lib/release.py` shared module if both commands
 need it.
 
-#### 2b. Tests: update `tests/standard_tooling/test_merge_when_green.py`
+#### 2b. Tests: update `tests/vergil_tooling/test_merge_when_green.py`
 
 Add three test cases:
 
@@ -176,13 +176,13 @@ call that resolves the branch name. Each existing test that
 calls `main()` will need an additional mock returning a
 release-branch name so they don't fail on the new gate.
 
-### Phase 3: standard-tooling-plugin — hook and registration
+### Phase 3: vergil-claude-plugin — hook and registration
 
-**Repo:** `standard-tooling-plugin`
+**Repo:** `vergil-claude-plugin`
 **Branch:** `feature/<N>-block-agent-merge` (can reuse #162 or
 file a new issue)
 **Depends on:** Phase 1 shipped and available on PATH (the hook
-calls `st-check-pr-merge`)
+calls `vrg-check-pr-merge`)
 
 #### 3a. New file: `hooks/scripts/block-agent-merge.sh`
 
@@ -192,7 +192,7 @@ Follow the established pattern from `block-autoclose-linkage.sh`:
 #!/usr/bin/env bash
 # block-agent-merge.sh — PreToolUse hook for Bash.
 # Blocks gh pr merge and gh pr review --approve on non-release PRs.
-# Delegates branch verification to st-check-pr-merge.
+# Delegates branch verification to vrg-check-pr-merge.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -214,23 +214,23 @@ if ! echo "$command" \
   exit 0
 fi
 
-# Delegate to st-check-pr-merge for branch verification.
-# Three-state exit codes (standard-tooling#373):
+# Delegate to vrg-check-pr-merge for branch verification.
+# Three-state exit codes (vergil-tooling#373):
 #   0 → allowed (release-workflow PR)
 #   1 → denied (tool ran, definitive no)
 #   2 → unknown (tool failed, cannot determine)
 rc=0
-stderr=$(st-check-pr-merge "$command" 2>&1 1>/dev/null) || rc=$?
+stderr=$(vrg-check-pr-merge "$command" 2>&1 1>/dev/null) || rc=$?
 if [ "$rc" -eq 0 ]; then
   exit 0
 fi
 
 if [ "$rc" -eq 1 ]; then
-  reason="${stderr:-Denied by st-check-pr-merge (no details provided).}"
+  reason="${stderr:-Denied by vrg-check-pr-merge (no details provided).}"
 elif [ "$rc" -eq 2 ]; then
-  reason="st-check-pr-merge could not determine whether this merge is allowed (exit 2). Error: ${stderr:-no details}. Resolve the tool failure before retrying."
+  reason="vrg-check-pr-merge could not determine whether this merge is allowed (exit 2). Error: ${stderr:-no details}. Resolve the tool failure before retrying."
 else
-  reason="st-check-pr-merge exited with unexpected code $rc. Error: ${stderr:-no details}. Cannot determine whether this merge is allowed."
+  reason="vrg-check-pr-merge exited with unexpected code $rc. Error: ${stderr:-no details}. Cannot determine whether this merge is allowed."
 fi
 
 jq -n --arg reason "$reason" '{
@@ -244,9 +244,9 @@ jq -n --arg reason "$reason" '{
 
 **Key design points:**
 
-- **Three-state logic.** The hook branches on `st-check-pr-merge`'s
+- **Three-state logic.** The hook branches on `vrg-check-pr-merge`'s
   exit code per the three-state convention
-  ([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
+  ([vergil-tooling#373](https://github.com/vergil-project/vergil-tooling/issues/373)):
   exit 0 = allowed, exit 1 = denied, exit 2 = unknown. All three
   produce different messages. The unknown case still blocks the
   merge (a merge we can't verify is not safe to allow), but the
@@ -257,9 +257,9 @@ jq -n --arg reason "$reason" '{
   trailing args) and `gh pr review` with `--approve` anywhere
   in the review args. It handles command chains via the
   `(^|[;&|]\s*)` prefix.
-- All parsing and API calls happen inside `st-check-pr-merge`.
+- All parsing and API calls happen inside `vrg-check-pr-merge`.
   The hook is thin: detect pattern, delegate, emit result.
-- If `st-check-pr-merge` is not on PATH, `set -euo pipefail`
+- If `vrg-check-pr-merge` is not on PATH, `set -euo pipefail`
   causes the hook to exit with a non-1, non-2 code (127 from
   bash), which hits the "unexpected code" branch. The user sees
   that the tool couldn't run — not a false denial reason.
@@ -292,15 +292,15 @@ or `gh pr review --approve` on non-release PRs.
 review and merge is required. Skill prose saying "do not merge"
 is advisory; agents rationalize past it. This hook makes the
 rule mechanical. See
-[#162](https://github.com/wphillipmoore/standard-tooling-plugin/issues/162)
+[#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
 for the incident that motivated this.
 
 **Alternative.** Hand off the PR URL to the user for review and
 merge. For release-workflow PRs (`release/*` and
-`chore/bump-version-*`), use `st-merge-when-green` from the
+`chore/bump-version-*`), use `vrg-merge-when-green` from the
 [`publish` skill](../skills/index.md#publish). The hook
-delegates branch verification to `st-check-pr-merge` — see
-[`standard-tooling` reference](https://github.com/wphillipmoore/standard-tooling)
+delegates branch verification to `vrg-check-pr-merge` — see
+[`vergil-tooling` reference](https://github.com/vergil-project/vergil-tooling)
 for that command's documentation.
 ```
 
@@ -314,24 +314,24 @@ No automated test framework for hook scripts in this repo.
 Manual verification per the spec's test plan:
 
 1. **Block case:** Pipe a JSON payload containing `gh pr merge 42`
-   to the script with `st-check-pr-merge` returning non-zero.
+   to the script with `vrg-check-pr-merge` returning non-zero.
    Expect deny JSON.
-2. **Allow case:** Same input with `st-check-pr-merge` returning
+2. **Allow case:** Same input with `vrg-check-pr-merge` returning
    0. Expect exit 0, no output.
 3. **Non-managed repo:** Input with a cwd lacking marker files.
    Expect exit 0.
 4. **No match:** Input with `gh issue list`. Expect exit 0.
 5. **`gh pr review --approve`:** Input with review command,
-   `st-check-pr-merge` returning non-zero. Expect deny JSON.
+   `vrg-check-pr-merge` returning non-zero. Expect deny JSON.
 
 ## Cross-repo coordination
 
 ### Issue tracking
 
-File two sub-issues in standard-tooling (linked from #162):
+File two sub-issues in vergil-tooling (linked from #162):
 
-1. "Add `st-check-pr-merge` command" — covers Phase 1
-2. "Add branch-name check to `st-merge-when-green`" — covers
+1. "Add `vrg-check-pr-merge` command" — covers Phase 1
+2. "Add branch-name check to `vrg-merge-when-green`" — covers
    Phase 2
 
 These can be a single issue if the changes are small enough to
@@ -339,21 +339,21 @@ ship in one PR. The implementation agent should make the call.
 
 ### Shipping order
 
-1. **standard-tooling PR** (Phases 1 + 2) → merge, release,
-   rebuild dev container image so the new `st-check-pr-merge`
+1. **vergil-tooling PR** (Phases 1 + 2) → merge, release,
+   rebuild dev container image so the new `vrg-check-pr-merge`
    command is on PATH everywhere.
-2. **standard-tooling-plugin PR** (Phase 3) → merge. The hook
-   script calls `st-check-pr-merge`, which must already be
+2. **vergil-claude-plugin PR** (Phase 3) → merge. The hook
+   script calls `vrg-check-pr-merge`, which must already be
    installed.
-3. **standard-tooling-plugin release** → ships the hook to all
+3. **vergil-claude-plugin release** → ships the hook to all
    consuming repos.
 
 ### Shared helper: `_is_release_branch`
 
-Both `st-check-pr-merge` and the `st-merge-when-green` branch
+Both `vrg-check-pr-merge` and the `vrg-merge-when-green` branch
 check need the same allow-list match. Factor this into a shared
-location — either `standard_tooling/lib/github.py` or a new
-`standard_tooling/lib/release.py`:
+location — either `vergil_tooling/lib/github.py` or a new
+`vergil_tooling/lib/release.py`:
 
 ```python
 import fnmatch
@@ -380,7 +380,7 @@ so it is excluded — it uses manual verification per §3d.
 
 #### RED
 
-- Write tests in `tests/standard_tooling/test_release.py` (or
+- Write tests in `tests/vergil_tooling/test_release.py` (or
   wherever the helper lands) asserting:
   - `is_release_branch("release/1.4.9")` returns True
   - `is_release_branch("chore/bump-version-1.4.10")` returns True
@@ -401,7 +401,7 @@ so it is excluded — it uses manual verification per §3d.
 - Confirm the function is importable from both `check_pr_merge`
   and `merge_when_green` without circular imports.
 
-### Task 2: `st-check-pr-merge` — command parsing
+### Task 2: `vrg-check-pr-merge` — command parsing
 
 **Requirement:** Spec §Architecture — extract PR ref from arbitrary
 `gh pr merge` / `gh pr review --approve` command strings.
@@ -436,7 +436,7 @@ so it is excluded — it uses manual verification per §3d.
   constants, duplicated chain-splitting logic that could be a
   helper, shlex error handling that could be consolidated.
 
-### Task 3: `st-check-pr-merge` — main entry point
+### Task 3: `vrg-check-pr-merge` — main entry point
 
 **Requirement:** Spec §Architecture — full pipeline: parse → API
 → allow-list check → exit code.
@@ -466,26 +466,26 @@ so it is excluded — it uses manual verification per §3d.
 - Check that `--repo` forwarding doesn't duplicate the argument
   construction logic.
 
-### Task 4: `st-check-pr-merge` — entry point registration
+### Task 4: `vrg-check-pr-merge` — entry point registration
 
 **Requirement:** Spec §Implementation — command available on PATH.
 
 #### RED
 
-- Confirm `st-check-pr-merge --help` fails (command not found).
+- Confirm `vrg-check-pr-merge --help` fails (command not found).
 
 #### GREEN
 
 - Add entry point to `pyproject.toml`.
 - Reinstall package (`pip install -e .`).
-- `st-check-pr-merge --help` succeeds.
+- `vrg-check-pr-merge --help` succeeds.
 
 #### REFACTOR
 
 - Verify entry point ordering in `pyproject.toml` is alphabetical
   or grouped consistently with existing entries.
 
-### Task 5: `st-merge-when-green` — branch check
+### Task 5: `vrg-merge-when-green` — branch check
 
 **Requirement:** Spec §Defense in depth — refuse to merge
 non-release branches.
@@ -516,8 +516,8 @@ non-release branches.
 
 ## Risk notes
 
-- **`st-check-pr-merge` not on PATH:** If the plugin is updated
-  before standard-tooling, the hook will fail with a command-not-found
+- **`vrg-check-pr-merge` not on PATH:** If the plugin is updated
+  before vergil-tooling, the hook will fail with a command-not-found
   error. This surfaces as a hook error (visible to user), not a
   silent pass. The shipping order above prevents this, but document
   the failure mode.

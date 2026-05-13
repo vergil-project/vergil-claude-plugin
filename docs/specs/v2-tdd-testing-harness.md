@@ -1,7 +1,7 @@
 # TDD Testing Harness for Plugin Skills — Design Spec
 
 **Date:** 2026-04-29
-**Issue:** [#187](https://github.com/wphillipmoore/standard-tooling-plugin/issues/187)
+**Issue:** [#187](https://github.com/vergil-project/vergil-claude-plugin/issues/187)
 **Scope:** Testing methodology, harness architecture, and pilot
 implementation for skill TDD
 
@@ -15,7 +15,7 @@ proves the full RED-GREEN pipeline end-to-end.
 
 ## Context
 
-The standard-tooling ecosystem holds code to 100% coverage and
+The vergil-tooling ecosystem holds code to 100% coverage and
 rigorous integration testing across Python, Ruby, Java, Go, and
 Rust. The plugin's six skills have zero testing infrastructure —
 only markdownlint CI. This spec designs the machinery that brings
@@ -33,7 +33,7 @@ DeepEval is the implementation framework for the entire testing
 harness. It was chosen over TypeScript alternatives (such as
 promptfoo) for three reasons:
 
-1. **Python ecosystem.** The standard-tooling suite is Python-based.
+1. **Python ecosystem.** The vergil-tooling suite is Python-based.
    Using a Python evaluation framework means the test harness shares
    the same language, CI infrastructure, virtual environment
    conventions, and developer tooling as the rest of the fleet.
@@ -120,9 +120,9 @@ This repo has no Python infrastructure today. Adding the test
 harness makes this a hybrid repo: plugin content (Markdown skills,
 JSON hooks, shell scripts) plus a Python test suite.
 
-Python infrastructure follows `standard-tooling` conventions:
+Python infrastructure follows `vergil-tooling` conventions:
 
-- **Python version:** Matches `standard-tooling` (currently 3.14+)
+- **Python version:** Matches `vergil-tooling` (currently 3.14+)
 - **Virtual environment:** `.venv/` at repo root, gitignored
 - **Project definition:** `pyproject.toml` with test dependencies
   (`deepeval`, `pyyaml`, `pytest`)
@@ -131,7 +131,7 @@ Python infrastructure follows `standard-tooling` conventions:
   caching, and API key secrets (deferred to post-pilot)
 
 The implementing agent should clone the Python project structure
-from `standard-tooling`'s `pyproject.toml`, Makefile, and CI
+from `vergil-tooling`'s `pyproject.toml`, Makefile, and CI
 workflow as the starting template.
 
 ## Test Types
@@ -548,7 +548,7 @@ stopping rationale in the scenario's baseline section.
 ### What gets built
 
 - `pyproject.toml` — project definition with test dependencies
-  (deepeval, pyyaml, pytest), following `standard-tooling`
+  (deepeval, pyyaml, pytest), following `vergil-tooling`
   conventions
 - `Makefile` — `make test` target for the skill test suite
 - `tests/conftest.py` — provider fixture, pytest options

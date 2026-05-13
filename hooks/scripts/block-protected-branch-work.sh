@@ -13,11 +13,11 @@
 #
 # Does NOT block branch operations (checkout, merge, push, pull, etc.).
 #
-# See wphillipmoore/standard-tooling/docs/specs/worktree-convention.md
+# See vergil-project/vergil-tooling/docs/specs/worktree-convention.md
 # for the adopted-convention rules.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
+# vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 input=$(cat)
@@ -34,7 +34,7 @@ command=$(echo "$input" | jq -r '.tool_input.command')
 
 # Only check commands that could create commits on the current branch.
 # Allow git operations that don't create commits (checkout, push, pull, etc.).
-if ! echo "$command" | grep -qE '(^|[;&|]\s*)(git\s+commit|st-commit)(\s|$)'; then
+if ! echo "$command" | grep -qE '(^|[;&|]\s*)(git\s+commit|vrg-commit)(\s|$)'; then
   exit 0
 fi
 
@@ -100,7 +100,7 @@ if [ -f "$main_root/.gitignore" ] && grep -qxF '.worktrees/' "$main_root/.gitign
         hookSpecificOutput: {
           hookEventName: "PreToolUse",
           permissionDecision: "deny",
-          permissionDecisionReason: ("Commits must originate from inside .worktrees/<name>/ per the worktree convention. You appear to be committing from \($dir). Create a worktree for your work:\n  git worktree add .worktrees/issue-<N>-<slug> -b feature/<N>-<slug> origin/develop\n\nSee docs/specs/worktree-convention.md in standard-tooling for the full convention.")
+          permissionDecisionReason: ("Commits must originate from inside .worktrees/<name>/ per the worktree convention. You appear to be committing from \($dir). Create a worktree for your work:\n  git worktree add .worktrees/issue-<N>-<slug> -b feature/<N>-<slug> origin/develop\n\nSee docs/specs/worktree-convention.md in vergil-tooling for the full convention.")
         }
       }'
       exit 0

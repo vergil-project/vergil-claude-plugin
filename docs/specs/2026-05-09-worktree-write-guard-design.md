@@ -1,6 +1,6 @@
 # Worktree Write Guard and Contents API Block
 
-**Issue:** [#286](https://github.com/wphillipmoore/standard-tooling-plugin/issues/286)
+**Issue:** [#286](https://github.com/vergil-project/vergil-claude-plugin/issues/286)
 **Date:** 2026-05-09
 
 ## Problem
@@ -11,13 +11,13 @@ Agents routinely bypass the worktree convention in two ways:
    tools to create and modify files directly in the `develop` checkout
    instead of their assigned `.worktrees/<name>/` directory. This
    pollutes `git status`, causes rebase conflicts, and breaks
-   `st-finalize-repo`. Documentation and CLAUDE.md instructions have
+   `vrg-finalize-repo`. Documentation and CLAUDE.md instructions have
    proven insufficient — agents need mechanical enforcement.
 
 2. **GitHub Contents API writes.** Agents use
    `gh api repos/.../contents/...` with PUT/POST/DELETE to push files
    directly to remote branches, bypassing all local controls (hooks,
-   st-commit, PR process, code review, CI).
+   vrg-commit, PR process, code review, CI).
 
 The existing hook system has no coverage for either vector. All
 PreToolUse hooks match only `Bash`, and none inspect GitHub API
@@ -27,7 +27,7 @@ calls for Contents API writes.
 
 Two new PreToolUse hook scripts, following the existing
 one-hook-one-concern pattern. Both gated on managed-repo detection
-(`standard-tooling.toml`).
+(`vergil.toml`).
 
 ## Hook 1: `block-worktree-bypass-write.sh`
 
@@ -87,7 +87,7 @@ worktree convention. You are attempting to write to <file_path>,
 which is in the main worktree. Use the absolute path to your
 assigned worktree instead.
 
-See docs/specs/worktree-convention.md in standard-tooling for the
+See docs/specs/worktree-convention.md in vergil-tooling for the
 full convention.
 ```
 
@@ -152,9 +152,9 @@ Added to the existing `Bash` PreToolUse hook list in `hooks.json`:
 ```text
 Direct writes to the GitHub Contents API are blocked. File changes
 must go through the local workflow: edit files in your worktree,
-commit with st-commit, and submit with st-submit-pr.
+commit with vrg-commit, and submit with vrg-submit-pr.
 
-See docs/specs/worktree-convention.md in standard-tooling for the
+See docs/specs/worktree-convention.md in vergil-tooling for the
 full convention.
 ```
 
