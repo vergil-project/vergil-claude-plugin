@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # block-raw-gh-pr-create.sh — PreToolUse hook for Bash.
-# Blocks raw 'gh pr create' commands. Use st-submit-pr instead.
+# Blocks raw 'gh pr create' commands. Use vrg-submit-pr instead.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
+# vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,10 +30,10 @@ deny() {
 }
 
 if echo "$command" | grep -qE '(^|[;&|]\s*)gh\s+pr\s+create(\s|$)'; then
-  deny "Raw gh pr create is blocked. Use st-submit-pr instead. See standard-tooling.toml for usage."
+  deny "Raw gh pr create is blocked. Use vrg-submit-pr instead. See vergil.toml for usage."
 elif echo "$command" | grep -qE 'gh\s+api\s+.*(/pulls)(\s|$)' \
   && echo "$command" | grep -qiE '(-X\s+POST|--method\s+POST|-XPOST)'; then
-  deny "gh api POST to /pulls is equivalent to gh pr create and is blocked. Use st-submit-pr instead."
+  deny "gh api POST to /pulls is equivalent to gh pr create and is blocked. Use vrg-submit-pr instead."
 else
   exit 0
 fi

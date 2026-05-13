@@ -10,11 +10,11 @@ briefly and continue.
 
 <https://github.com/wphillipmoore/standards-and-conventions> —
 historical reference; active standards documentation lives in the
-standard-tooling repository under `docs/`.
+vergil-tooling repository under `docs/`.
 
 ## Shared Skills
 
-Skills are delivered by the `standard-tooling` plugin (this repo) via
+Skills are delivered by the `vergil-tooling` plugin (this repo) via
 the Claude Code plugin system. Do **not** load skills from
 `standards-and-conventions` — that repo's `skills/` directory contains
 pre-migration copies that are stale or eliminated.

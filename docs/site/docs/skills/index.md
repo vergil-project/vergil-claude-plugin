@@ -3,8 +3,8 @@
 Skills are shared workflow definitions that Claude Code loads from
 the plugin. Each skill is a directory under `skills/` containing a
 `SKILL.md` file with frontmatter and structured instructions. All
-skills are namespaced under `standard-tooling` and invoked as
-`/standard-tooling:<skill-name>`.
+skills are namespaced under `vergil-tooling` and invoked as
+`/vergil-tooling:<skill-name>`.
 
 Each entry below covers what the skill does, when to use it, and
 its current status — including any tracked work that will
@@ -22,10 +22,10 @@ substantially change it.
 
 ## pr-workflow
 
-**What it does.** Submits a PR via `st-submit-pr` from inside the
+**What it does.** Submits a PR via `vrg-submit-pr` from inside the
 issue's worktree, waits for CI to go green, fixes any agent-fixable
 red checks, and hands off to the user for review and merge. After
-the user reports the merge, runs `st-finalize-repo` from the
+the user reports the merge, runs `vrg-finalize-repo` from the
 worktree to clean up local state.
 
 **When to use.** When work on a branch is complete and ready for
@@ -36,7 +36,7 @@ and merge; humans review and merge feature/bugfix PRs.
 **Status.** Current. Reflects the worktree convention and the
 fleet-wide "humans review human PRs" posture as of 2026-04-22.
 The release-workflow exception (agent merges release PRs via
-`st-merge-when-green`) lives in the
+`vrg-merge-when-green`) lives in the
 [`publish` skill](#publish), not here.
 
 ## publish
@@ -74,10 +74,10 @@ response to a CVE, a scheduled cycle, or as part of normal
 maintenance.
 
 **Status.** Current. Rewritten as part of the skills audit
-([#114](https://github.com/wphillipmoore/standard-tooling-plugin/issues/114))
+([#114](https://github.com/vergil-project/vergil-claude-plugin/issues/114))
 with concrete per-category commands (Python deps via `uv lock`,
 CI action pins, runtime versions, doc toolchain, linters, build
-tools), `st-validate` as the canonical validation step,
+tools), `vrg-validate` as the canonical validation step,
 structured failure handling via anchored dependency records, and
 anchor review as a first-class section.
 
@@ -95,7 +95,7 @@ output, CI, or regular work. The partner hook triggers this
 flow automatically when it catches warnings.
 
 **Status.** Current. Reviewed for currency on 2026-04-23 as part
-of [plugin#59](https://github.com/wphillipmoore/standard-tooling-plugin/issues/59);
+of [plugin#59](https://github.com/vergil-project/vergil-claude-plugin/issues/59);
 no changes needed.
 
 ## summarize
@@ -115,7 +115,7 @@ summary, invokes SOC capture, or the skill is invoked via
 handoff protocols.
 
 **Status.** Current. Decision A from
-[plugin#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58):
+[plugin#58](https://github.com/vergil-project/vergil-claude-plugin/issues/58):
 this skill's SOC mode is the canonical SOC capture mechanism for
 the fleet. Repo-local references to `soc-capture` or
 `summarize-soc` as skill names are stale pointers — splitting
@@ -137,9 +137,9 @@ Each skill is a directory under `skills/` containing:
 
 The plugin's `skills/` directory is loaded on session start. The
 skill `name` in the frontmatter plus the plugin's namespace
-(`standard-tooling`) determines the invocation: a skill named
+(`vergil-tooling`) determines the invocation: a skill named
 `pr-workflow` in this plugin is invoked as
-`/standard-tooling:pr-workflow`.
+`/vergil-tooling:pr-workflow`.
 
 Skills are documentation-as-config, not executable scripts. They
 tell Claude Code *how* to run a workflow; Claude Code executes

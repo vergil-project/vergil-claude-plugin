@@ -14,14 +14,14 @@ code changes are made.
 
 ### Checks Performed
 
-1. **Repository Profile** — reads `standard-tooling.toml` and extracts
+1. **Repository Profile** — reads `vergil.toml` and extracts
    `repository_type`, `branching_model`, `primary_language`, and
    `canonical_local_validation_command`
 
 2. **Branch State** — reports the current branch and warns if on a protected
    branch (`main` or `develop`)
 
-3. **Host Dispatcher** — verifies `st-docker-run` is available on PATH
+3. **Host Dispatcher** — verifies `vrg-docker-run` is available on PATH
    (the host-side dispatcher for container-routed validation)
 
 4. **Standards and Conventions** — checks if the standards repo is available
@@ -39,7 +39,7 @@ Repository:    <repo name>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <validation command or "not configured">
-st-docker-run: <available or "NOT FOUND">
+vrg-docker-run: <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================

@@ -1,6 +1,6 @@
 # Spec: Hard gate to prevent agent from merging non-release PRs
 
-**Issue:** [#162](https://github.com/wphillipmoore/standard-tooling-plugin/issues/162)
+**Issue:** [#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
 
 ## Problem
 
@@ -27,34 +27,34 @@ command, keeping all mechanical parsing out of shell.
 ### What to allow
 
 Release-workflow PRs that the agent is expected to merge via
-`st-merge-when-green` from the publish skill. These are identified
+`vrg-merge-when-green` from the publish skill. These are identified
 by branch name:
 
 - `release/*` — the release PR to main
 - `chore/bump-version-*` — the post-publish version bump PR to develop
 
-**Important:** `st-merge-when-green` does NOT need a hook exemption.
+**Important:** `vrg-merge-when-green` does NOT need a hook exemption.
 It calls `gh pr merge` internally via Python's subprocess module,
 not through Claude Code's Bash tool. The hook only intercepts
 commands that pass through the Bash tool boundary. This means:
 
-- `st-merge-when-green <url>` — **not intercepted** (the `gh pr
+- `vrg-merge-when-green <url>` — **not intercepted** (the `gh pr
   merge` happens inside the Python process, never visible to the
   hook)
 - `gh pr merge <url>` typed directly — **intercepted and checked**
 
 The allow-list for direct `gh pr merge` exists as a safety net
 for cases where an agent calls `gh pr merge` directly on a
-release PR instead of using `st-merge-when-green`. This should
+release PR instead of using `vrg-merge-when-green`. This should
 not happen in normal operation but the hook should not create a
 false-positive block if it does.
 
-### Architecture: delegate parsing to `st-check-pr-merge`
+### Architecture: delegate parsing to `vrg-check-pr-merge`
 
 The hook script does NOT parse PR references or query GitHub
 itself. Instead, it detects `gh pr merge` or `gh pr review
 --approve` in the command string and delegates to a new
-`st-check-pr-merge` host command in standard-tooling.
+`vrg-check-pr-merge` host command in vergil-tooling.
 
 This follows the foundational architectural decision: mechanical
 tasks belong in Python scripts (`st-*`), not in shell hooks where
@@ -62,7 +62,7 @@ agents or contributors might get creative with parsing. The less
 we leave to ad-hoc shell logic, the fewer failure scenarios we
 create.
 
-**`st-check-pr-merge`** (new command in standard-tooling):
+**`vrg-check-pr-merge`** (new command in vergil-tooling):
 
 - Takes the raw Bash command string as input
 - Extracts the PR reference (number or URL), handling all flag
@@ -71,7 +71,7 @@ create.
 - Checks the branch against the allow-list (`release/*`,
   `chore/bump-version-*`)
 - Exit codes follow the three-state convention
-  ([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
+  ([vergil-tooling#373](https://github.com/vergil-project/vergil-tooling/issues/373)):
   - **Exit 0** — allowed (release-workflow branch)
   - **Exit 1** — denied (tool ran, branch does not match
     allow-list; deny message on stderr)
@@ -88,12 +88,12 @@ create.
    managed.
 3. Check if the command contains `gh pr merge` or
    `gh pr review --approve`. Exit 0 if neither.
-4. Pass the command string to `st-check-pr-merge`.
-5. If `st-check-pr-merge` exits 0, exit 0 (allow).
-6. If `st-check-pr-merge` exits 1, emit a deny decision using
-   the stderr from `st-check-pr-merge` as the reason (definitive
+4. Pass the command string to `vrg-check-pr-merge`.
+5. If `vrg-check-pr-merge` exits 0, exit 0 (allow).
+6. If `vrg-check-pr-merge` exits 1, emit a deny decision using
+   the stderr from `vrg-check-pr-merge` as the reason (definitive
    denial).
-7. If `st-check-pr-merge` exits 2 or any other non-zero code,
+7. If `vrg-check-pr-merge` exits 2 or any other non-zero code,
    emit a deny decision with a message indicating the tool could
    not determine whether the merge is allowed, including the
    stderr output for diagnosis. The merge is still blocked — a
@@ -108,35 +108,35 @@ policy requires human review and merge for feature/bugfix PRs.
 Hand off the PR URL to the user and stop the work cycle.
 
 Only release-workflow PRs (release/* and chore/bump-version-*)
-may be agent-merged, and only via st-merge-when-green from the
+may be agent-merged, and only via vrg-merge-when-green from the
 publish skill. See issue #162.
 ```
 
-### Defense in depth: `st-merge-when-green` branch check
+### Defense in depth: `vrg-merge-when-green` branch check
 
-`st-merge-when-green` itself should also verify the target branch
-name before merging. This is a separate change in standard-tooling
+`vrg-merge-when-green` itself should also verify the target branch
+name before merging. This is a separate change in vergil-tooling
 that adds a sanity check: if the branch does not match `release/*`
 or `chore/bump-version-*`, the script refuses to merge and exits
 non-zero. This closes the bypass where an agent calls
-`st-merge-when-green` on a feature PR — the Python subprocess
+`vrg-merge-when-green` on a feature PR — the Python subprocess
 path that the hook cannot intercept.
 
 ## Implementation: two-repo split
 
-### standard-tooling (cross-repo)
+### vergil-tooling (cross-repo)
 
-1. **New command: `st-check-pr-merge`** — Python script that
+1. **New command: `vrg-check-pr-merge`** — Python script that
    takes a raw Bash command string, extracts the PR ref, resolves
    the branch name via GitHub API, and checks against the
    allow-list. Exits 0 (allowed) or non-zero (denied, with
    error message on stderr).
 
-2. **Modified: `st-merge-when-green`** — Add branch-name
+2. **Modified: `vrg-merge-when-green`** — Add branch-name
    verification before merging. Refuse to merge if the branch
    does not match `release/*` or `chore/bump-version-*`.
 
-### standard-tooling-plugin (this repo)
+### vergil-claude-plugin (this repo)
 
 1. **New file: `hooks/scripts/block-agent-merge.sh`** —
    PreToolUse hook script following the same structure as
@@ -146,8 +146,8 @@ path that the hook cannot intercept.
    - Source `lib/managed-repo-check.sh`
    - Read stdin, extract cwd, gate on `is_managed_repo`
    - Match `gh pr merge` or `gh pr review --approve`
-   - Delegate to `st-check-pr-merge` with the command string
-   - Emit deny decision with stderr from `st-check-pr-merge`
+   - Delegate to `vrg-check-pr-merge` with the command string
+   - Emit deny decision with stderr from `vrg-check-pr-merge`
      if it exits non-zero
 
 2. **Modified: `hooks/hooks.json`** — Add the new hook to the
@@ -171,13 +171,13 @@ path that the hook cannot intercept.
      review is required. Skill prose alone is not reliable — see
      incident in #162.
    - **Alternative:** Hand off the PR URL to the user. For release
-     PRs, use `st-merge-when-green` from the publish skill.
+     PRs, use `vrg-merge-when-green` from the publish skill.
 
 ## Edge cases
 
 ### Agent passes PR number vs URL
 
-`st-check-pr-merge` handles both `gh pr merge 364` and
+`vrg-check-pr-merge` handles both `gh pr merge 364` and
 `gh pr merge https://github.com/owner/repo/pull/364`. The GitHub
 API accepts either form.
 
@@ -190,13 +190,13 @@ like `(^|[;&|]\s*)gh\s+pr\s+merge` for this.
 ### gh pr merge with flags before the PR ref
 
 The agent might write `gh pr merge --squash 364` or
-`gh pr merge --merge --delete-branch <url>`. `st-check-pr-merge`
+`gh pr merge --merge --delete-branch <url>`. `vrg-check-pr-merge`
 handles all flag ordering variations in Python, not shell.
 
 ### GitHub API failure
 
 If the GitHub API call fails (bad PR ref, network error, auth
-issue), `st-check-pr-merge` exits 2 (unknown) and surfaces the
+issue), `vrg-check-pr-merge` exits 2 (unknown) and surfaces the
 full error message on stderr. The hook still blocks the merge — a
 merge the tool cannot verify is not safe to allow — but the deny
 message distinguishes "tool failure" from "policy denied."
@@ -204,12 +204,12 @@ message distinguishes "tool failure" from "policy denied."
 ### Cross-repo PRs
 
 The agent might merge a PR in a different repo:
-`gh pr merge --repo owner/other-repo 42`. `st-check-pr-merge`
+`gh pr merge --repo owner/other-repo 42`. `vrg-check-pr-merge`
 extracts and forwards the `--repo` argument to the API call.
 
 ## Testing
 
-### `st-check-pr-merge` (unit tests in standard-tooling)
+### `vrg-check-pr-merge` (unit tests in vergil-tooling)
 
 1. **Allowed branch:** PR on `release/1.4.9` — exits 0.
 2. **Allowed branch:** PR on `chore/bump-version-1.4.10` — exits 0.
@@ -222,21 +222,21 @@ extracts and forwards the `--repo` argument to the API call.
 ### `block-agent-merge.sh` (manual hook testing)
 
 1. **Denied (exit 1):** Input containing `gh pr merge 42` where
-   `st-check-pr-merge` exits 1. Expect deny with policy message.
+   `vrg-check-pr-merge` exits 1. Expect deny with policy message.
 2. **Unknown (exit 2):** Input containing `gh pr merge 42` where
-   `st-check-pr-merge` exits 2. Expect deny with tool-failure
+   `vrg-check-pr-merge` exits 2. Expect deny with tool-failure
    message (distinct from policy denial).
 3. **Allow case:** Input containing `gh pr merge <url>` where
-   `st-check-pr-merge` returns 0. Expect allow (exit 0).
+   `vrg-check-pr-merge` returns 0. Expect allow (exit 0).
 4. **Non-managed repo:** Input with a cwd that has no
-   `standard-tooling.toml`. Expect allow (exit 0).
+   `vergil.toml`. Expect allow (exit 0).
 5. **No match:** Input containing `gh issue list`. Expect allow
    (exit 0).
 6. **gh pr review --approve block:** Input containing
-   `gh pr review --approve 42` where `st-check-pr-merge` exits 1.
+   `gh pr review --approve 42` where `vrg-check-pr-merge` exits 1.
    Expect deny.
 
-### `st-merge-when-green` (updated tests in standard-tooling)
+### `vrg-merge-when-green` (updated tests in vergil-tooling)
 
 1. **Release branch:** `release/1.4.9` — proceeds to merge.
 2. **Bump branch:** `chore/bump-version-1.4.10` — proceeds.

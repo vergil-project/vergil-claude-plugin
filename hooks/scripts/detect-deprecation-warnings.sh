@@ -4,7 +4,7 @@
 # reminds Claude to triage them using the deprecation-triage skill.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
+# vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 input=$(cat)
@@ -43,6 +43,6 @@ fi
 jq -n '{
   hookSpecificOutput: {
     hookEventName: "PostToolUse",
-    additionalContext: "WARNING: Deprecation warnings detected in test output. After completing your current task, triage these warnings using the deprecation-triage skill (/standard-tooling:deprecation-triage). Do not suppress warnings without tracking them in an issue."
+    additionalContext: "WARNING: Deprecation warnings detected in test output. After completing your current task, triage these warnings using the deprecation-triage skill (/vergil-tooling:deprecation-triage). Do not suppress warnings without tracking them in an issue."
   }
 }'

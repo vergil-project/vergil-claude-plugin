@@ -1,6 +1,6 @@
 # Memory Management — Human-Routed Writes
 
-**Issue:** [#219](https://github.com/wphillipmoore/standard-tooling-plugin/issues/219)
+**Issue:** [#219](https://github.com/vergil-project/vergil-claude-plugin/issues/219)
 **Date:** 2026-05-01
 **Status:** Design approved
 
@@ -45,7 +45,7 @@ any file under the memory directory) without explicit human approval.
      codebase (e.g., a quirk of this repo's test setup).
    - **Global CLAUDE.md** — a cross-repo behavioral preference or
      convention (e.g., preferred error-handling style).
-   - **Plugin/skill issue** — about how the standard-tooling suite
+   - **Plugin/skill issue** — about how the vergil-tooling suite
      should behave (e.g., a skill needs updating). Create an issue in
      the appropriate repository.
 3. Wait for the human to confirm or redirect before taking any action.
@@ -77,11 +77,11 @@ Placement: First lines of the file, before any index entries.
 
 ### Layer 3: Skills
 
-Two new skills in the `standard-tooling` plugin namespace.
+Two new skills in the `vergil-tooling` plugin namespace.
 
 #### `memory-init`
 
-**Invocation:** `/standard-tooling:memory-init`
+**Invocation:** `/vergil-tooling:memory-init`
 
 **Behavior:**
 
@@ -108,7 +108,7 @@ Two new skills in the `standard-tooling` plugin namespace.
 
 #### `memory-audit`
 
-**Invocation:** `/standard-tooling:memory-audit`
+**Invocation:** `/vergil-tooling:memory-audit`
 
 **Workflow:**
 
@@ -130,7 +130,7 @@ Two new skills in the `standard-tooling` plugin namespace.
      - **Update** — substance is right, content needs refreshing.
      - **Relocate to global CLAUDE.md** — cross-repo preference, not
        repo-specific.
-     - **Relocate to plugin/skill issue** — about standard-tooling
+     - **Relocate to plugin/skill issue** — about vergil-tooling
        suite behavior.
      - **Delete** — stale, redundant, or no longer relevant.
 
@@ -206,7 +206,7 @@ existing memory files), references #219 as the upstream decision, and
 provides enough context for a future session to execute without
 re-deriving the rationale.
 
-**Tracking:** Create a fleet tracking issue in `standard-tooling-plugin`
+**Tracking:** Create a fleet tracking issue in `vergil-claude-plugin`
 with a checklist of all consuming repos. Each checklist line links to
 the per-repo rollout issue. This provides a single place to monitor
 rollout progress.

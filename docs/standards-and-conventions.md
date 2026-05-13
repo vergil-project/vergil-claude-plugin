@@ -36,5 +36,5 @@ Conventions repository:
 
 ## Project-specific overlay
 
-Project-specific content lives in `standard-tooling.toml` and is
+Project-specific content lives in `vergil.toml` and is
 included from `AGENTS.md` only.

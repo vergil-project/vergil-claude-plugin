@@ -19,7 +19,7 @@ workflow has reached `conclusion: success` for the merge commit.
 | `docs.yml`  | push to `develop`| Rebuild MkDocs site, deploy dev alias |
 
 Repos with additional async post-merge workflows (e.g.,
-`docker-publish.yml` in `standard-tooling`) add them to this
+`docker-publish.yml` in `vergil-tooling`) add them to this
 table. The `pr-workflow` skill reads this section to determine
 which workflows to verify.
 
@@ -50,7 +50,7 @@ Do not construct commit messages or PR bodies manually.
 ### Committing
 
 ```bash
-st-commit \
+vrg-commit \
   --type TYPE --message MESSAGE --agent AGENT \
   [--scope SCOPE] [--body BODY]
 ```
@@ -62,12 +62,12 @@ st-commit \
 - `--body` (optional): detailed commit body
 
 The script resolves the correct `Co-Authored-By` identity from
-`standard-tooling.toml` and the git hooks validate the result.
+`vergil.toml` and the git hooks validate the result.
 
 ### Submitting PRs
 
 ```bash
-st-submit-pr \
+vrg-submit-pr \
   --issue NUMBER --summary TEXT \
   [--linkage KEYWORD] [--title TEXT] \
   [--notes TEXT] [--dry-run]
@@ -78,7 +78,7 @@ st-submit-pr \
 - `--linkage` (optional, default: `Ref`): **always use `Ref`**.
   `Fixes`, `Closes`, and `Resolves` are forbidden — they auto-close
   the issue at merge time, bypassing finalization. Issues are closed
-  explicitly after `st-finalize-repo` succeeds.
+  explicitly after `vrg-finalize-repo` succeeds.
 - `--title` (optional): PR title (default: most recent commit subject)
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing

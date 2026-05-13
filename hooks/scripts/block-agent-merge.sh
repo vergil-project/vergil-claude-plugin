@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # block-agent-merge.sh — PreToolUse hook for Bash.
 # Blocks gh pr merge and gh pr review --approve on non-release PRs.
-# Delegates branch verification to st-check-pr-merge.
+# Delegates branch verification to vrg-check-pr-merge.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# standard-tooling.toml.
+# vergil.toml.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,17 +42,17 @@ if [ "$is_merge_command" = false ]; then
 fi
 
 rc=0
-stderr=$(st-check-pr-merge "$command" 2>&1 1>/dev/null) || rc=$?
+stderr=$(vrg-check-pr-merge "$command" 2>&1 1>/dev/null) || rc=$?
 if [ "$rc" -eq 0 ]; then
   exit 0
 fi
 
 if [ "$rc" -eq 1 ]; then
-  reason="${stderr:-Denied by st-check-pr-merge (no details provided).}"
+  reason="${stderr:-Denied by vrg-check-pr-merge (no details provided).}"
 elif [ "$rc" -eq 2 ]; then
-  reason="st-check-pr-merge could not determine whether this merge is allowed (exit 2). Error: ${stderr:-no details}. Resolve the tool failure before retrying."
+  reason="vrg-check-pr-merge could not determine whether this merge is allowed (exit 2). Error: ${stderr:-no details}. Resolve the tool failure before retrying."
 else
-  reason="st-check-pr-merge exited with unexpected code $rc. Error: ${stderr:-no details}. Cannot determine whether this merge is allowed."
+  reason="vrg-check-pr-merge exited with unexpected code $rc. Error: ${stderr:-no details}. Cannot determine whether this merge is allowed."
 fi
 
 jq -n --arg reason "$reason" '{

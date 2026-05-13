@@ -29,13 +29,13 @@ PyYAML, anthropic SDK, openai SDK
 This plan executes in the worktree at:
 
 ```text
-/Users/pmoore/dev/github/standard-tooling-plugin/.worktrees/issue-187-tdd-harness/
+/Users/pmoore/dev/github/vergil-claude-plugin/.worktrees/issue-187-tdd-harness/
 ```
 
 Branch: `feature/187-tdd-harness`
 
 All file paths in this plan are relative to the worktree root. All
-shell commands run from the worktree root. Use `st-commit` for
+shell commands run from the worktree root. Use `vrg-commit` for
 commits (never raw `git commit`).
 
 ## Environment prerequisites
@@ -77,16 +77,16 @@ tests/
 
 - [ ] **Step 1: Write pyproject.toml**
 
-Reference `standard-tooling`'s `pyproject.toml` as the template
+Reference `vergil-tooling`'s `pyproject.toml` as the template
 for project metadata conventions, tooling config sections, and
 Python version. The content below is a starting point — cross-check
 against the source of truth to avoid convention drift.
 
 ```toml
 [project]
-name = "standard-tooling-plugin-tests"
+name = "vergil-claude-plugin-tests"
 version = "0.0.0"
-description = "Test harness for standard-tooling-plugin skills"
+description = "Test harness for vergil-claude-plugin skills"
 requires-python = ">=3.14"
 
 [dependency-groups]
@@ -143,7 +143,7 @@ Expected: four `OK` lines, no import errors.
 - [ ] **Step 4: Commit**
 
 ```bash
-st-commit --type feat --message "add pyproject.toml and Python gitignore entries for skill test harness" --agent claude
+vrg-commit --type feat --message "add pyproject.toml and Python gitignore entries for skill test harness" --agent claude
 ```
 
 ---
@@ -182,7 +182,7 @@ executing them. No errors.
 - [ ] **Step 3: Commit**
 
 ```bash
-st-commit --type feat --message "add Makefile with test and test-no-skill targets" --agent claude
+vrg-commit --type feat --message "add Makefile with test and test-no-skill targets" --agent claude
 ```
 
 ---
@@ -304,7 +304,7 @@ YAML OK
 - [ ] **Step 5: Commit**
 
 ```bash
-st-commit --type feat --message "add pilot pressure scenario for deprecation-triage and results directory" --agent claude
+vrg-commit --type feat --message "add pilot pressure scenario for deprecation-triage and results directory" --agent claude
 ```
 
 ---
@@ -443,7 +443,7 @@ Expected: both options appear in help output with their descriptions.
 - [ ] **Step 3: Commit**
 
 ```bash
-st-commit --type feat --message "add root conftest with LLM provider abstraction and pytest options" --agent claude
+vrg-commit --type feat --message "add root conftest with LLM provider abstraction and pytest options" --agent claude
 ```
 
 ---
@@ -570,7 +570,7 @@ OK
 - [ ] **Step 3: Commit**
 
 ```bash
-st-commit --type feat --message "add skills conftest with scenario loader, skill loader, and DeepEval evaluation runner" --agent claude
+vrg-commit --type feat --message "add skills conftest with scenario loader, skill loader, and DeepEval evaluation runner" --agent claude
 ```
 
 ---
@@ -623,7 +623,7 @@ Expected:
 - [ ] **Step 3: Commit**
 
 ```bash
-st-commit --type feat --message "add test module for deprecation-triage skill" --agent claude
+vrg-commit --type feat --message "add test module for deprecation-triage skill" --agent claude
 ```
 
 ---
@@ -710,7 +710,7 @@ a real gap in the skill.
 - [ ] **Step 5: Commit results**
 
 ```bash
-st-commit --type feat --message "complete pilot validation: end-to-end scenario passes with skill loaded" --agent claude
+vrg-commit --type feat --message "complete pilot validation: end-to-end scenario passes with skill loaded" --agent claude
 ```
 
 ---

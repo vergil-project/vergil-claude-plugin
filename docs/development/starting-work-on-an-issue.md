@@ -4,7 +4,7 @@ This doc describes how to set up a worktree and branch for work on
 a GitHub issue, including resolution of project-board issues and
 cross-repo sub-issues. It replaces the former `branch-workflow`
 skill (eliminated in
-[#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55))
+[#55](https://github.com/vergil-project/vergil-claude-plugin/issues/55))
 — the substance is the same; the format is now a guideline that
 the consuming skills (`pr-workflow`, etc.) and `CLAUDE.md` reference
 directly.
@@ -56,10 +56,10 @@ git worktree add ".worktrees/issue-${N}-${SLUG}" \
 ```
 
 Pre-warm the dev container cache for the new branch so the first
-`st-docker-run` invocation is fast:
+`vrg-docker-run` invocation is fast:
 
 ```bash
-cd ".worktrees/issue-${N}-${SLUG}" && st-docker-cache build
+cd ".worktrees/issue-${N}-${SLUG}" && vrg-docker-cache build
 ```
 
 Then either:
@@ -256,6 +256,6 @@ After the procedure completes, surface:
   any work that happens after the worktree is set up. Those are
   the responsibility of the
   [`pr-workflow` skill](../../skills/pr-workflow/SKILL.md) and the
-  underlying `st-commit` / `st-submit-pr` tools.
-- Worktree teardown after merge. That is `st-finalize-repo`'s job;
+  underlying `vrg-commit` / `vrg-submit-pr` tools.
+- Worktree teardown after merge. That is `vrg-finalize-repo`'s job;
   see [`pr-workflow` → Finalization](../../skills/pr-workflow/SKILL.md#finalization).

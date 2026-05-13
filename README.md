@@ -1,6 +1,6 @@
-# standard-tooling-plugin
+# vergil-claude-plugin
 
-Claude Code plugin for the standard-tooling ecosystem. Delivers
+Claude Code plugin for the vergil-tooling ecosystem. Delivers
 hooks, skills, and agents that enforce the fleet workflow mechanically
 in every Claude Code session.
 
@@ -20,39 +20,39 @@ This plugin is the behavioral half of a two-repo system:
 
 | Repo | Delivers | Via |
 |---|---|---|
-| [`standard-tooling`](https://github.com/wphillipmoore/standard-tooling) | Python CLIs (`st-commit`, `st-submit-pr`, `st-docker-run`, …) and bash git hooks | PATH + `core.hooksPath` |
-| **`standard-tooling-plugin`** (this repo) | Claude Code hooks, skills, agents, commands | Claude Code plugin system |
+| [`vergil-tooling`](https://github.com/vergil-project/vergil-tooling) | Python CLIs (`vrg-commit`, `vrg-submit-pr`, `vrg-docker-run`, …) and bash git hooks | PATH + `core.hooksPath` |
+| **`vergil-claude-plugin`** (this repo) | Claude Code hooks, skills, agents, commands | Claude Code plugin system |
 
-The two are complementary: `standard-tooling` makes the tools
+The two are complementary: `vergil-tooling` makes the tools
 available; this plugin ensures Claude Code uses them correctly —
-blocking raw `git commit` in favor of `st-commit`, blocking raw
-`gh pr create` in favor of `st-submit-pr`, routing per-file
+blocking raw `git commit` in favor of `vrg-commit`, blocking raw
+`gh pr create` in favor of `vrg-submit-pr`, routing per-file
 validation through the dev container, and so on.
 
 ## Install
 
 **Recommended install path** for consuming repositories is the full
-walkthrough documented in standard-tooling:
+walkthrough documented in vergil-tooling:
 
 - Quickstart:
-  <https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md>
+  <https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/getting-started.md>
 - Detailed walkthrough with rationale:
-  <https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md>
+  <https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md>
 
 The short version: add this to your repo's `.claude/settings.json`:
 
 ```json
 {
   "extraKnownMarketplaces": {
-    "standard-tooling-marketplace": {
+    "vergil-tooling-marketplace": {
       "source": {
         "source": "github",
-        "repo": "wphillipmoore/standard-tooling-plugin"
+        "repo": "vergil-project/vergil-claude-plugin"
       }
     }
   },
   "enabledPlugins": {
-    "standard-tooling@standard-tooling-marketplace": true
+    "vergil-tooling@vergil-tooling-marketplace": true
   }
 }
 ```
@@ -61,8 +61,8 @@ Commit that file. Claude Code discovers and enables the plugin on
 session start.
 
 **Prerequisite:** this plugin's commands and skills shell out to
-`st-commit`, `st-submit-pr`, `st-finalize-repo`, and friends from
-the standard-tooling Python package. Install those on your host
+`vrg-commit`, `vrg-submit-pr`, `vrg-finalize-repo`, and friends from
+the vergil-tooling Python package. Install those on your host
 PATH first — see the Getting Started guide above.
 
 ## Update
@@ -71,7 +71,7 @@ After a new release ships, refresh the local install with this
 two-step sequence:
 
 ```text
-/plugin marketplace update standard-tooling-marketplace
+/plugin marketplace update vergil-tooling-marketplace
 /reload-plugins
 ```
 
@@ -90,12 +90,12 @@ What each step does:
 ### Verify the update
 
 ```bash
-ls -1 ~/.claude/plugins/cache/standard-tooling-marketplace/standard-tooling/
+ls -1 ~/.claude/plugins/cache/vergil-tooling-marketplace/vergil-tooling/
 ```
 
 You should see one directory per cached version. The newest
 version should match the latest tag on
-[GitHub Releases](https://github.com/wphillipmoore/standard-tooling-plugin/releases).
+[GitHub Releases](https://github.com/vergil-project/vergil-claude-plugin/releases).
 
 ### References
 
@@ -111,31 +111,31 @@ Sourced from the official Claude Code documentation:
 PreToolUse, PostToolUse, and Stop hooks that enforce guardrails
 mechanically. Every hook below **except `block-heredoc`** is
 gated on a managed-repo check: a repo must contain
-`standard-tooling.toml` at its root for the hook to fire. In repos
+`vergil.toml` at its root for the hook to fire. In repos
 without this marker, the gated hooks
 short-circuit to a no-op so the plugin doesn't interfere with
 ad-hoc git work in unrelated repositories. See the
-[hooks reference](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
+[hooks reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
 for the rationale.
 
 | Hook | Matcher | Purpose |
 |---|---|---|
-| `block-raw-git-commit` | PreToolUse/Bash | Redirects raw `git commit` to `st-commit` |
-| `block-raw-gh-pr-create` | PreToolUse/Bash | Redirects raw `gh pr create` to `st-submit-pr` |
+| `block-raw-git-commit` | PreToolUse/Bash | Redirects raw `git commit` to `vrg-commit` |
+| `block-raw-gh-pr-create` | PreToolUse/Bash | Redirects raw `gh pr create` to `vrg-submit-pr` |
 | `block-protected-branch-work` | PreToolUse/Bash | Blocks commits from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks commits on `develop`/`main` |
 | `block-heredoc` | PreToolUse/Bash | Blocks `<<EOF` in CLI args (use `--body-file` or `$(cat <file>)`) |
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
-| `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `st-docker-run`; warns on bare container-only tools |
-| `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `st-submit-pr` — use `Ref` instead |
-| `remind-finalize` | PostToolUse/Bash | After `st-submit-pr`, reminds to run `st-finalize-repo` |
+| `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-docker-run`; warns on bare container-only tools |
+| `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
+| `remind-finalize` | PostToolUse/Bash | After `vrg-submit-pr`, reminds to run `vrg-finalize-repo` |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
 Full reference:
-<https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md>.
+<https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md>.
 
 ### Skills
 
-Shared workflow skills, invoked as `/standard-tooling:<name>`.
+Shared workflow skills, invoked as `/vergil-tooling:<name>`.
 
 | Skill | Purpose |
 |---|---|
@@ -146,7 +146,7 @@ Shared workflow skills, invoked as `/standard-tooling:<name>`.
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
 
 Full reference:
-<https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/skills/index.md>.
+<https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md>.
 
 ### Agents
 
@@ -156,22 +156,22 @@ Full reference:
 
 ## Plugin namespace
 
-All skills are namespaced under `standard-tooling`:
+All skills are namespaced under `vergil-tooling`:
 
 ```text
-/standard-tooling:<skill-name>
+/vergil-tooling:<skill-name>
 ```
 
-Example: `/standard-tooling:pr-workflow`.
+Example: `/vergil-tooling:pr-workflow`.
 
 ## Related repositories
 
-- [`standard-tooling`](https://github.com/wphillipmoore/standard-tooling)
+- [`vergil-tooling`](https://github.com/vergil-project/vergil-tooling)
   — Python CLIs, bash validators, git hooks (consumed via PATH).
-- [`standard-tooling-docker`](https://github.com/wphillipmoore/standard-tooling-docker)
-  — Dev container images (`ghcr.io/wphillipmoore/dev-python`, `dev-go`,
-  etc.) that `st-docker-run` dispatches into.
-- [`standard-actions`](https://github.com/wphillipmoore/standard-actions)
+- [`vergil-docker`](https://github.com/vergil-project/vergil-docker)
+  — Dev container images (`ghcr.io/vergil-project/dev-python`, `dev-go`,
+  etc.) that `vrg-docker-run` dispatches into.
+- [`vergil-actions`](https://github.com/vergil-project/vergil-actions)
   — Shared GitHub Actions composite actions consumed by CI.
 
 ## Development and deployment
@@ -185,7 +185,7 @@ plugin uses it. The two roles have different obligations.
 ### Set up a worktree
 
 Sessions on this repo always start at the project root
-(`~/dev/github/standard-tooling-plugin/`), never inside a
+(`~/dev/github/vergil-claude-plugin/`), never inside a
 worktree. Each in-flight issue gets its own worktree under
 `.worktrees/issue-<N>-<slug>/` on a `feature/<N>-<slug>` branch.
 The full procedure (issue resolution, sub-issue creation,
@@ -202,25 +202,25 @@ Use the [`pr-workflow` skill](skills/pr-workflow/SKILL.md) to
 submit, wait for CI green, and hand off:
 
 ```text
-/standard-tooling:pr-workflow
+/vergil-tooling:pr-workflow
 ```
 
-The agent submits via `st-submit-pr`, waits for CI to go green,
+The agent submits via `vrg-submit-pr`, waits for CI to go green,
 fixes agent-fixable failures, and hands off to you for review and
 merge. Auto-merge is disabled fleet-wide; you review and merge
 feature/bugfix PRs manually. After you report the merge, the
-agent runs `st-finalize-repo` from inside the worktree.
+agent runs `vrg-finalize-repo` from inside the worktree.
 
 ### Cut a release
 
 Use the [`publish` skill](skills/publish/SKILL.md):
 
 ```text
-/standard-tooling:publish
+/vergil-tooling:publish
 ```
 
 The skill drives Phases 1–7: prepare release, merge release PR
-via `st-merge-when-green` (the documented exception to the
+via `vrg-merge-when-green` (the documented exception to the
 "humans review human PRs" policy — release PRs are
 agent-authored and agent-merged), merge the post-publish bump
 PR, confirm both `publish.yml` and `docs.yml` succeeded on
@@ -235,8 +235,8 @@ After `publish.yml` and `docs.yml` succeed, every Claude Code
 session that has this plugin installed needs to run:
 
 ```text
-/plugin marketplace update standard-tooling-marketplace
-/plugin update standard-tooling@standard-tooling-marketplace
+/plugin marketplace update vergil-tooling-marketplace
+/plugin update vergil-tooling@vergil-tooling-marketplace
 /reload-plugins
 ```
 
@@ -257,7 +257,7 @@ directly from the source tree to avoid the marketplace
 round-trip:
 
 ```bash
-claude --plugin-dir /path/to/standard-tooling-plugin
+claude --plugin-dir /path/to/vergil-claude-plugin
 ```
 
 This bypasses `~/.claude/plugins/cache/` and mounts the working
@@ -266,4 +266,4 @@ tree as the plugin source.
 ### Reporting issues
 
 Open an issue at
-<https://github.com/wphillipmoore/standard-tooling-plugin/issues>.
+<https://github.com/vergil-project/vergil-claude-plugin/issues>.

@@ -1,7 +1,7 @@
 # v2.0 Skill Rearchitecture — Architectural Review
 
 **Date:** 2026-04-29
-**Issue:** [#187](https://github.com/wphillipmoore/standard-tooling-plugin/issues/187)
+**Issue:** [#187](https://github.com/vergil-project/vergil-claude-plugin/issues/187)
 **Scope:** All six plugin skills reviewed against `superpowers:writing-skills` methodology
 
 ## Context
@@ -52,7 +52,7 @@ conditions. Examples:
 The `pr-workflow` case is the most dangerous. Its description is a three-step
 recipe. An agent under time pressure will follow "submit, wait, hand off" and
 skip the 275-line skill — missing the `Ref`-only linkage rule,
-`st-finalize-repo`, post-merge workflow verification, and explicit issue
+`vrg-finalize-repo`, post-merge workflow verification, and explicit issue
 closure.
 
 ## Finding 2: No Evidence of TDD Testing
@@ -117,7 +117,7 @@ Several policies are explained in multiple places:
 - **`Ref` vs `Fixes` linkage**: Explained in detail in `pr-workflow` and
   referenced in `publish`. Rationale given twice.
 - **GH_TOKEN check**: Four skills independently check for it.
-- **`st-finalize-repo` behavior**: Described in both `pr-workflow` and
+- **`vrg-finalize-repo` behavior**: Described in both `pr-workflow` and
   `publish`.
 - **"Humans merge feature PRs" policy**: Stated in `pr-workflow` and restated
   in `publish`.

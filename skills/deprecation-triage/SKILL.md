@@ -28,7 +28,7 @@ deprecation-warning patterns. When it finds one, it injects context telling the
 agent to invoke this skill after completing the current task.
 
 The skill can also be invoked directly via
-`/standard-tooling:deprecation-triage` when a deprecation warning surfaces
+`/vergil-tooling:deprecation-triage` when a deprecation warning surfaces
 outside the hook's scope (manual testing, log review, dependency changelog
 reading, etc.).
 

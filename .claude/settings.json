@@ -1,13 +1,13 @@
 {
   "extraKnownMarketplaces": {
-    "standard-tooling-marketplace": {
+    "vergil-tooling-marketplace": {
       "source": {
         "source": "github",
-        "repo": "wphillipmoore/standard-tooling-plugin"
+        "repo": "vergil-project/vergil-claude-plugin"
       }
     }
   },
   "enabledPlugins": {
-    "standard-tooling@standard-tooling-marketplace": true
+    "vergil-tooling@vergil-tooling-marketplace": true
   }
 }
