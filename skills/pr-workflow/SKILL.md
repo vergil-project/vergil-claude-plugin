@@ -73,8 +73,10 @@ for the canonical split.
   best-effort assumptions and note them in the issue body. Do not
   ask for an issue number unless acceptance criteria are
   materially ambiguous.
-- Verify `GH_TOKEN` is set in the environment. If not, **abort**
-  with the install pointer.
+- If `GH_TOKEN` is not set in the environment, acquire it dynamically by
+  running `gh auth token`. If that also fails (non-zero exit), **abort** —
+  GitHub CLI is not authenticated. Otherwise, export the result as `GH_TOKEN`
+  for the remainder of the session and proceed.
 - **GitHub config compliance check.** Run
   `vrg-github-config audit --repo <owner/repo>`. If the command
   exits zero, the repository's GitHub configuration is compliant —
