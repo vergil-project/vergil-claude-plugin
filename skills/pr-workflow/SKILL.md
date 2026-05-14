@@ -43,7 +43,7 @@ not merge the PR. Wait for a human reviewer, who will merge it
 manually after review.
 
 The single documented exception is release-workflow PRs (the
-`release/<version>` PR and the `chore/bump-version-<next>` PR),
+`release/<version>` PR and the `release/bump-version-<next>` PR),
 which the agent merges via `vrg-merge-when-green` from the
 [`publish` skill](../publish/SKILL.md). That exception applies
 only there; do not generalize it.

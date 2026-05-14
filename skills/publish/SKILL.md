@@ -210,7 +210,7 @@ and-bump PRs, so the agent also merges them via
 cycle:
 
 - The `release/<version>` PR (Phase 2 below).
-- The `chore/bump-version-<next>` PR (Phase 3 below).
+- The `release/bump-version-<next>` PR (Phase 3 below).
 - The `chore/<issue>-next-cycle-deps-<version>` PR (Phase 5
   below).
 
@@ -258,7 +258,7 @@ for the next cycle and are part of this skill's responsibility.
 
 Merging the release PR in Phase 2 triggered `publish.yml` on
 `main` asynchronously. Early in that workflow, the
-`version-bump-pr` composite creates a `chore/bump-version-<next>`
+`version-bump-pr` composite creates a `release/bump-version-<next>`
 PR to `develop` but does not merge it. This phase drives that
 merge in parallel with the slower async publish work (registry
 publication, docs deploy, etc.) handled in Phase 4.
@@ -269,7 +269,7 @@ Handling the fast artifact first keeps the skill from serializing
 behind external async work.
 
 1. Poll for the bump PR URL. Run
-   `gh pr list --head chore/bump-version-<next> --json url --jq '.[0].url'`
+   `gh pr list --head release/bump-version-<next> --json url --jq '.[0].url'`
    and retry at ~10-second intervals until it returns a non-empty
    value (typically within ~60 seconds of Phase 2 completing).
    **Do not invent shell polling scripts** — use your environment's
