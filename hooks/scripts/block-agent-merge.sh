@@ -2,6 +2,7 @@
 # block-agent-merge.sh — PreToolUse hook for Bash.
 # Blocks gh pr merge and gh pr review --approve on non-release PRs.
 # Delegates branch verification to vrg-check-pr-merge.
+# Note: vrg-gh also rejects pr merge for non-escalated contexts.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml.

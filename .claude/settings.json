@@ -1,4 +1,9 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(vrg-*)"
+    ]
+  },
   "extraKnownMarketplaces": {
     "vergil-marketplace": {
       "source": {
