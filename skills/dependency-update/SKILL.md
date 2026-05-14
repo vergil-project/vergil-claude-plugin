@@ -56,7 +56,10 @@ for the canonical split and rationale
 2. Read `vergil.toml` to identify:
    - `repository_type` — determines which categories apply.
    - The canonical validation command.
-3. Verify `GH_TOKEN` is set.
+3. If `GH_TOKEN` is not set in the environment, acquire it dynamically by
+   running `gh auth token`. If that also fails (non-zero exit), **abort** —
+   GitHub CLI is not authenticated. Otherwise, export the result as `GH_TOKEN`
+   for the remainder of the session and proceed.
 4. Locate `vrg-docker-run` using the standard search algorithm (see the
    `publish` skill's preflight for the lookup order) — needed only for
    validation steps that dispatch into the container.

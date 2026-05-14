@@ -145,8 +145,10 @@ vrg-docker-run -- markdownlint .
 - Identify the canonical validation command from the repository profile.
 - Run host commands directly from PATH. If any required command is missing,
   the command will fail and the agent follows the failure handling procedure.
-- Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
-  message directing the user to set it.
+- If `GH_TOKEN` is not set in the environment, acquire it dynamically by
+  running `gh auth token`. If that also fails (non-zero exit), **abort** —
+  GitHub CLI is not authenticated. Otherwise, export the result as `GH_TOKEN`
+  for the remainder of the session and proceed.
 - **Library-release only**: Determine the current version by running the
   version extraction command from the repository's `publish.yml` workflow
   (the `Extract version` step). Execute the command and capture the output —
