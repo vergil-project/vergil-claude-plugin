@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.3] - 2026-05-14
+
+### Chores
+
+- bump version to 2.0.3
+- remove redundant vergil-tooling key from vergil.toml
+- pin vergil to minor version and drop redundant vergil-tooling key
+
+### Reverts
+
+- restore vergil-tooling key pending vergil-tooling#755
+
 ## [2.0.2] - 2026-05-13
 
 ### Bug fixes
