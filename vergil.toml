@@ -25,4 +25,3 @@ integration-tests = false
 
 [dependencies]
 vergil = "v2.0.6"
-vergil-tooling = "v2.0.6"
