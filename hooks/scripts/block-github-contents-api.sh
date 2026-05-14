@@ -58,7 +58,7 @@ if [ "$has_contents_url" = true ] && [ "$has_write_method" = true ]; then
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Direct writes to the GitHub Contents API are blocked. File changes must go through the local workflow: edit files in your worktree, commit with vrg-commit, and submit with vrg-submit-pr.\n\nSee docs/specs/worktree-convention.md in vergil-tooling for the full convention."
+      permissionDecisionReason: "Direct writes to the GitHub Contents API are blocked. File changes must go through the local workflow: edit files in your worktree, commit with vrg-commit, and submit with vrg-submit-pr. Note: vrg-gh denies gh api entirely.\n\nSee docs/specs/worktree-convention.md in vergil-tooling for the full convention."
     }
   }'
 else

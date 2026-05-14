@@ -26,7 +26,7 @@ if echo "$command" | grep -qE '(^|[;&|]\s*)git\s+commit(\s|$)'; then
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Raw git commit is blocked. Use vrg-commit instead. See vergil.toml for usage."
+      permissionDecisionReason: "Raw git commit is blocked. Use vrg-commit instead. All git operations should use vrg-git, which enforces subcommand allowlists and audit logging."
     }
   }'
 else
