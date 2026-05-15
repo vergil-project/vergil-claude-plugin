@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code when working in this repository.
 
+<!-- Integration test marker for #340 — safe to remove after validation -->
+
 ## Memory management
 
 Memory is allowed with human approval. The authoritative policy is in
