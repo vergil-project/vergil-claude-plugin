@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code when working in this repository.
 
+<!-- Integration test marker for #340 — safe to remove after validation -->
+
 ## Memory management
 
 Memory is allowed with human approval. The authoritative policy is in
@@ -99,6 +101,15 @@ than a slash-command, since the procedure was rarely invoked
 cold and is most useful as a reference at the moment work begins.
 
 ## Shell command policy
+
+Use `vrg-git` instead of `git` for all git operations. Use `vrg-gh`
+instead of `gh` for all GitHub CLI operations. These wrappers enforce
+subcommand allowlists, flag deny lists, credential selection, and
+audit logging.
+
+Raw `git` and `gh` are denied by the permission model. If a command
+is not available through the wrappers, explain the situation to the
+human who can run it directly via `! <command>` in the prompt.
 
 **Do NOT use heredocs** (`<<EOF` / `<<'EOF'`) for multi-line arguments to CLI
 tools such as `gh`, `git commit`, or `curl`. Always write multi-line content

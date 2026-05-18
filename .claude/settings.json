@@ -1,4 +1,15 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(vrg-*)"
+    ],
+    "deny": [
+      "Bash(git *)",
+      "Bash(*/git *)",
+      "Bash(gh *)",
+      "Bash(*/gh *)"
+    ]
+  },
   "extraKnownMarketplaces": {
     "vergil-marketplace": {
       "source": {

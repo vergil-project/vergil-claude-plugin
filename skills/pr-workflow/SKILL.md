@@ -78,7 +78,7 @@ for the canonical split.
   GitHub CLI is not authenticated. Otherwise, export the result as `GH_TOKEN`
   for the remainder of the session and proceed.
 - **GitHub config compliance check.** Run
-  `vrg-github-config audit --repo <owner/repo>`. If the command
+  `vrg-github-repo-config audit --repo <owner/repo>`. If the command
   exits zero, the repository's GitHub configuration is compliant —
   proceed silently. If non-zero, the repository is non-compliant:
   display the full audit output to the user, explain that
