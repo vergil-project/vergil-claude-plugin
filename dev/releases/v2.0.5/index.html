@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.10/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.8/">
+        <link rel="next" href="../v2.0.4/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>v1.4.9 - Standard Tooling Plugin</title>
+        <title>v2.0.5 - Standard Tooling Plugin</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-149-2026-04-28" class="md-skip">
+        <a href="#release-205-2026-05-18" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              v1.4.9
+              v2.0.5
             
           </span>
         </div>
@@ -626,10 +626,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.0.5/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v2.0.5
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -645,6 +672,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#chores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chores
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1214,37 +1283,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v1.4.9
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.9/" class="md-nav__link">
         
   
   
@@ -1260,37 +1302,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1727,10 +1738,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
+  <a href="#chores" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bug fixes
+        Chores
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
       
     </span>
   </a>
@@ -1754,11 +1776,28 @@
 
 
 
-<h1 id="release-149-2026-04-28">Release 1.4.9 (2026-04-28)<a class="headerlink" href="#release-149-2026-04-28" title="Permanent link">&para;</a></h1>
-<h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h1 id="release-205-2026-05-18">Release 2.0.5 (2026-05-18)<a class="headerlink" href="#release-205-2026-05-18" title="Permanent link">&para;</a></h1>
+<h2 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>strengthen issue-closure step in pr-workflow so agents stop skipping it</strong>
-Issue closure was a subsection under After the merge that agents could overlook. Promoted to top-level section, added to the overview flow as step 5, and reinforced the key message throughout: using Ref instead of Fixes defers the timing of closure, not the responsibility. If the PR resolves the issue, the agent must close it explicitly after finalization.</li>
+<li><strong>bump version to 2.0.5</strong></li>
+<li>
+<p><strong>add GPL-3 LICENSE file</strong>
+GitHub does not inherit LICENSE files from the org-level .github repo. Each repo must have its own for the license badge to display and for CONTRIBUTING.md to reference a unified license.</p>
+</li>
+<li>
+<p><strong>remove per-repo templates in favor of org defaults</strong>
+Issue templates and PR template are now inherited from vergil-project/.github. Per-repo copies were byte-identical and are no longer needed.</p>
+</li>
+<li>
+<p><strong>add integration test marker for #340</strong></p>
+</li>
+<li><strong>rename vrg-github-config to vrg-github-repo-config</strong>
+Align pr-workflow and publish skills with the script rename in vergil-tooling PR #824. Ref #342</li>
+</ul>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>deploy permission model and update hook messages</strong></li>
+<li><strong>deploy deny rules to project-level settings</strong></li>
 </ul>
 
 
