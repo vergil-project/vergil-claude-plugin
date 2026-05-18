@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.5] - 2026-05-18
+
+### Chores
+
+- bump version to 2.0.5
+- add GPL-3 LICENSE file
+- remove per-repo templates in favor of org defaults
+- add integration test marker for #340
+- rename vrg-github-config to vrg-github-repo-config
+
+### Features
+
+- deploy permission model and update hook messages
+- deploy deny rules to project-level settings
+
 ## [2.0.4] - 2026-05-14
 
 ### Bug fixes
