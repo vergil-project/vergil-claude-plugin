@@ -5,9 +5,6 @@ branching-model = "library-release"
 release-model = "tagged-release"
 primary-language = "claude-plugin"
 
-[project.co-authors]
-agent = "Co-Authored-By: wphillipmoore-agent <284101533+wphillipmoore-agent@users.noreply.github.com>"
-
 [publish]
 release = true
 docs = true
