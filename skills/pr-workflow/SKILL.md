@@ -73,10 +73,14 @@ for the canonical split.
   best-effort assumptions and note them in the issue body. Do not
   ask for an issue number unless acceptance criteria are
   materially ambiguous.
-- If `GH_TOKEN` is not set in the environment, acquire it dynamically by
-  running `gh auth token`. If that also fails (non-zero exit), **abort** —
-  GitHub CLI is not authenticated. Otherwise, export the result as `GH_TOKEN`
-  for the remainder of the session and proceed.
+- **GitHub authentication.** `vrg-gh` resolves credentials internally
+  (it calls `gh auth status` / `gh auth token` behind the scenes and
+  injects `GH_TOKEN` into each invocation). The agent does not need to
+  acquire or export `GH_TOKEN` manually. To verify that authentication
+  is working, run a lightweight `vrg-gh` command (e.g.,
+  `vrg-gh repo view --json name -q .name`). If it fails, **abort** —
+  GitHub CLI is not authenticated and the agent cannot resolve this
+  (raw `gh auth` and `gh api` are denied by the wrapper).
 - **GitHub config compliance check.** Run
   `vrg-github-repo-config audit --repo <owner/repo>`. If the command
   exits zero, the repository's GitHub configuration is compliant —
