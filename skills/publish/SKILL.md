@@ -83,7 +83,7 @@ a seam that can break.
   `vrg-merge-when-green`, `vrg-wait-until-green` — release/PR lifecycle
   drivers
 - `vrg-docker-run` itself — the dispatcher that runs container commands
-- `vrg-github-config` — GitHub repository configuration auditing
+- `vrg-github-repo-config` — GitHub repository configuration auditing
 - `git-cliff` — changelog generation
 
 ### Container commands — run via `vrg-docker-run --`
@@ -134,7 +134,7 @@ vrg-docker-run -- markdownlint .
   not apply.
 - Confirm you are on the `develop` branch with a clean working tree.
 - **GitHub config compliance check.** Run
-  `vrg-github-config audit --repo <owner/repo>`. If the command
+  `vrg-github-repo-config audit --repo <owner/repo>`. If the command
   exits zero, the repository's GitHub configuration is compliant —
   proceed silently. If non-zero, the repository is non-compliant:
   display the full audit output to the user, explain that
