@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.6] - 2026-05-19
+
+### Bug fixes
+
+- replace stale gh auth token preflight with vrg-gh credential model
+
+### Chores
+
+- bump version to 2.0.6
+- remove co-authors section, normalize vergil dep to v2.0
+
 ## [2.0.5] - 2026-05-18
 
 ### Chores
