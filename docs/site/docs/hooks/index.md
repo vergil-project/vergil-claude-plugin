@@ -160,9 +160,7 @@ individual linters — `vrg-validate` handles tool routing internally.
 **Alternative.** For denied commands: invoke the host tool
 directly (drop the `vrg-docker-run --` prefix). For warned
 commands: use `vrg-docker-run -- vrg-validate` instead of invoking
-individual linters. See the
-[`publish` skill's host-vs-container section](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
-for the canonical split and rationale.
+individual linters.
 
 ### block-autoclose-linkage
 
@@ -211,7 +209,7 @@ a policy question or a tooling failure.
 **Alternative.** Hand off the PR URL to the user for review and
 merge. For release-workflow PRs (`release/*` and
 `chore/bump-version-*`), use `vrg-merge-when-green` from the
-[`publish` skill](../skills/index.md#publish).
+`vrg-publish` CLI in vergil-tooling.
 
 ## PreToolUse Hooks — Write|Edit
 

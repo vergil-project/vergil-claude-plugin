@@ -200,13 +200,6 @@ and both are required.
 Working on the plugin itself (vs. consuming it) has its own
 canonical procedure. See
 [`README.md` → Development and deployment](README.md#development-and-deployment)
-for: worktree setup, the `pr-workflow` skill for shipping a
-change, the `publish` skill for cutting a release, and the
-**post-publish Phase 7 hand-off** which is the producer-side
-obligation to surface the consumer-refresh sequence to the user
-at release time.
-
-When you complete a publish, **the cycle is not done until you
-have shown the user the two-step refresh sequence.** Listing
-artifacts and stopping is a regression on
-[#105](https://github.com/vergil-project/vergil-claude-plugin/issues/105).
+for: worktree setup and the `pr-workflow` skill for shipping a
+change. Releases are cut via `vrg-publish` (a standalone CLI in
+vergil-tooling).

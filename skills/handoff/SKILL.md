@@ -61,8 +61,7 @@ effect, known failures, blocked items, environment state.>
 
 ## Restart command
 
-<The exact slash command or instruction to resume, e.g. "/publish" or
-"continue with Phase 5 of the publish workflow".>
+<The exact slash command or instruction to resume.>
 ```
 
 ### Behavior
