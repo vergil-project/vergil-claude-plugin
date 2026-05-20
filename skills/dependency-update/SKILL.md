@@ -29,9 +29,9 @@ with exit criteria — never silently pinned.
 
 ## When to use
 
-- **Post-publish (Phase 5):** The `publish` skill's Phase 5 hands off to this
-  skill after a release ships. Develop is the safest place to absorb updates
-  because it has the widest validation window before the next release.
+- **Post-release:** After a release ships (via `vrg-publish`), run dependency
+  updates on develop. Develop is the safest place to absorb updates because it
+  has the widest validation window before the next release.
 - **Standalone:** Invoked directly via `/vergil-tooling:dependency-update`
   when a dependency update is needed outside a release cycle (security alert,
   deprecation, planned upgrade).
@@ -43,15 +43,12 @@ without `vrg-docker-run` wrapping. This includes `uv`, `gh`, `vrg-commit`,
 `vrg-validate`, and all `st-*` workflow tools.
 
 Validation runs via `vrg-docker-run -- vrg-validate`, which
-dispatches all checks inside the container. See the
-[`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
-for the canonical split and rationale
-([#96](https://github.com/vergil-project/vergil-claude-plugin/issues/96)).
+dispatches all checks inside the container.
 
 ## Preflight
 
 1. Confirm you are on a `chore/` branch off `develop` (e.g.,
-   `chore/next-cycle-deps-<version>` for post-publish, or
+   `chore/next-cycle-deps-<version>` for post-release, or
    `chore/dep-update-<date>` for standalone).
 2. Read `vergil.toml` to identify:
    - `repository_type` — determines which categories apply.
@@ -61,7 +58,7 @@ for the canonical split and rationale
    GitHub CLI is not authenticated. Otherwise, export the result as `GH_TOKEN`
    for the remainder of the session and proceed.
 4. Locate `vrg-docker-run` using the standard search algorithm (see the
-   `publish` skill's preflight for the lookup order) — needed only for
+   standard PATH discovery) — needed only for
    validation steps that dispatch into the container.
 
 ## Library dependencies
@@ -206,5 +203,4 @@ Once all applicable categories are updated and validation passes:
 - `docs/development/python/dependency-management.md` (in `vergil-tooling`)
 - `docs/development/runtime-version-support-policy.md` (in `vergil-tooling`)
 - `docs/development/documentation-toolchain.md` (in `vergil-tooling`)
-- `skills/publish/SKILL.md` — Phase 5 and Dependency update categories
 - `skills/pr-workflow/SKILL.md` — for the submission step

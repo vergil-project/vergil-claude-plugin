@@ -5,17 +5,6 @@ branching-model = "library-release"
 release-model = "tagged-release"
 primary-language = "claude-plugin"
 
-[publish]
-release = true
-docs = true
-consumer-refresh = """\
-/plugin marketplace update vergil-marketplace
-
-Note: /reload-plugins is currently buggy — it reloads skills but \
-does not reliably pick up hook changes. To fully apply the update, \
-restart any active Claude Code sessions.
-"""
-
 [ci]
 versions = ["latest"]
 integration-tests = false

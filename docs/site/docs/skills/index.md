@@ -15,7 +15,6 @@ substantially change it.
 | Skill | Purpose | Status |
 |---|---|---|
 | [pr-workflow](#pr-workflow) | Submit a PR, wait for CI green, hand off to user; finalize after merge | Current |
-| [publish](#publish) | Drive library / tooling / documentation release flow (Phases 1–7) | Current |
 | [dependency-update](#dependency-update) | Run the dependency-update workflow | Current |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
@@ -36,28 +35,8 @@ and merge; humans review and merge feature/bugfix PRs.
 **Status.** Current. Reflects the worktree convention and the
 fleet-wide "humans review human PRs" posture as of 2026-04-22.
 The release-workflow exception (agent merges release PRs via
-`vrg-merge-when-green`) lives in the
-[`publish` skill](#publish), not here.
-
-## publish
-
-**What it does.** Drives end-to-end release publishing for
-library / tooling / documentation repositories. Covers the
-multi-phase flow: prepare release branch, review + merge, confirm
-publish, post-publish version bump, dependency-consumer updates,
-and local finalization. Includes failure handling with issue
-tracking.
-
-**When to use.** When preparing and executing a versioned release
-of a repository that uses the `library-release` or
-`tagged-release` model.
-
-**Status.** Current. Reflects the seven-phase release flow as of
-v1.4.5: Phase 4 verifies both `publish.yml` and `docs.yml`
-(#84); Phase 6 closes the tracking issue with a summary (#83);
-Phase 7 surfaces the consumer-refresh sequence (#105). The
-host-vs-container split is documented in the skill's own
-reference section.
+`vrg-merge-when-green`) is handled by the `vrg-publish` CLI in
+vergil-tooling, not here.
 
 ## dependency-update
 

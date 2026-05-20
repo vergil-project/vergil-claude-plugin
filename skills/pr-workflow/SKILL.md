@@ -44,9 +44,8 @@ manually after review.
 
 The single documented exception is release-workflow PRs (the
 `release/<version>` PR and the `release/bump-version-<next>` PR),
-which the agent merges via `vrg-merge-when-green` from the
-[`publish` skill](../publish/SKILL.md). That exception applies
-only there; do not generalize it.
+which are merged via `vrg-merge-when-green` by the `vrg-publish`
+CLI. That exception applies only there; do not generalize it.
 
 ### Where this runs
 
@@ -57,9 +56,7 @@ flows through the worktree.
 
 The release/git tools used here (`vrg-submit-pr`, `vrg-finalize-repo`,
 `gh`, `git`) are **host commands** — invoke them directly without
-`vrg-docker-run --` wrapping. See the
-[`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
-for the canonical split.
+`vrg-docker-run --` wrapping.
 
 ## Preflight
 
@@ -347,7 +344,5 @@ and whether the change was mechanical or substantive.
 - [`docs/development/starting-work-on-an-issue.md`](../../docs/development/starting-work-on-an-issue.md)
   — issue resolution + worktree+branch creation (the predecessor
   to invoking this skill)
-- [`publish` skill](../publish/SKILL.md) — covers release-PR
-  workflow including the `vrg-merge-when-green` exception
 - `docs/code-management/pull-request-workflow.md`
 - `docs/code-management/commit-messages-and-authorship.md`

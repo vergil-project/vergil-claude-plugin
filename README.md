@@ -140,7 +140,6 @@ Shared workflow skills, invoked as `/vergil-tooling:<name>`.
 | Skill | Purpose |
 |---|---|
 | `pr-workflow` | Guide PR creation, submission, and finalization |
-| `publish` | Drive library/tooling/documentation release flow |
 | `dependency-update` | Run the dependency-update workflow |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
@@ -177,10 +176,9 @@ Example: `/vergil-tooling:pr-workflow`.
 ## Development and deployment
 
 This section covers contributing to the plugin itself — how to set
-up a working environment, ship a change, and complete the
-post-publish hand-off. Distinct from the [Install](#install) and
-[Update](#update) sections, which cover how a *consumer* of the
-plugin uses it. The two roles have different obligations.
+up a working environment and ship a change. Distinct from the
+[Install](#install) and [Update](#update) sections, which cover
+how a *consumer* of the plugin uses it.
 
 ### Set up a worktree
 
@@ -213,42 +211,10 @@ agent runs `vrg-finalize-repo` from inside the worktree.
 
 ### Cut a release
 
-Use the [`publish` skill](skills/publish/SKILL.md):
-
-```text
-/vergil-tooling:publish
-```
-
-The skill drives Phases 1–7: prepare release, merge release PR
-via `vrg-merge-when-green` (the documented exception to the
-"humans review human PRs" policy — release PRs are
-agent-authored and agent-merged), merge the post-publish bump
-PR, confirm both `publish.yml` and `docs.yml` succeeded on
-`main`, optionally do dependency updates, close the tracking
-issue with a summary, finalize, and surface the consumer-refresh
-sequence.
-
-### Post-publish hand-off (Phase 7)
-
-**A release is not concluded until consumers have refreshed.**
-After `publish.yml` and `docs.yml` succeed, every Claude Code
-session that has this plugin installed needs to run:
-
-```text
-/plugin marketplace update vergil-tooling-marketplace
-/plugin update vergil-tooling@vergil-tooling-marketplace
-/reload-plugins
-```
-
-The agent producing the release surfaces this sequence in its
-hand-off message. The user runs it (in this session, or in any
-new session that wants the new plugin behavior). Without the
-refresh, hooks and skills stay on the previously-cached version
-and the release is invisible to running sessions.
-
-This is the user-facing
-[Update](#update) sequence, surfaced from the producer side at
-the moment of release rather than left to the user to remember.
+Releases are cut via `vrg-publish`, a standalone CLI in
+vergil-tooling. See the
+[vergil-tooling documentation](https://github.com/vergil-project/vergil-tooling)
+for usage.
 
 ### Develop against the source tree
 
