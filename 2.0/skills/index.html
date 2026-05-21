@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -560,6 +562,8 @@
       
         
       
+        
+      
     
     
     
@@ -612,6 +616,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.0.8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v2.0.8
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1697,17 +1729,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#publish" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        publish
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#dependency-update" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1835,17 +1856,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#publish" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        publish
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#dependency-update" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1931,11 +1941,6 @@ substantially change it.</p>
 <td>Current</td>
 </tr>
 <tr>
-<td><a href="#publish">publish</a></td>
-<td>Drive library / tooling / documentation release flow (Phases 1–7)</td>
-<td>Current</td>
-</tr>
-<tr>
 <td><a href="#dependency-update">dependency-update</a></td>
 <td>Run the dependency-update workflow</td>
 <td>Current</td>
@@ -1965,24 +1970,8 @@ and merge; humans review and merge feature/bugfix PRs.</p>
 <p><strong>Status.</strong> Current. Reflects the worktree convention and the
 fleet-wide "humans review human PRs" posture as of 2026-04-22.
 The release-workflow exception (agent merges release PRs via
-<code>vrg-merge-when-green</code>) lives in the
-<a href="#publish"><code>publish</code> skill</a>, not here.</p>
-<h2 id="publish">publish<a class="headerlink" href="#publish" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Drives end-to-end release publishing for
-library / tooling / documentation repositories. Covers the
-multi-phase flow: prepare release branch, review + merge, confirm
-publish, post-publish version bump, dependency-consumer updates,
-and local finalization. Includes failure handling with issue
-tracking.</p>
-<p><strong>When to use.</strong> When preparing and executing a versioned release
-of a repository that uses the <code>library-release</code> or
-<code>tagged-release</code> model.</p>
-<p><strong>Status.</strong> Current. Reflects the seven-phase release flow as of
-v1.4.5: Phase 4 verifies both <code>publish.yml</code> and <code>docs.yml</code>
-(#84); Phase 6 closes the tracking issue with a summary (#83);
-Phase 7 surfaces the consumer-refresh sequence (#105). The
-host-vs-container split is documented in the skill's own
-reference section.</p>
+<code>vrg-merge-when-green</code>) is handled by the <code>vrg-publish</code> CLI in
+vergil-tooling, not here.</p>
 <h2 id="dependency-update">dependency-update<a class="headerlink" href="#dependency-update" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Repeatable dependency-update workflow covering
 signal collection (security alerts, audits, planned upgrades),
