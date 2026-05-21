@@ -2,8 +2,6 @@
 
 This file provides guidance to Claude Code when working in this repository.
 
-<!-- Integration test marker for #340 — safe to remove after validation -->
-
 ## Memory management
 
 Memory is allowed with human approval. The authoritative policy is in
@@ -13,9 +11,9 @@ plugin/skill issue) before writing. See that file for the full
 workflow.
 
 Available skills:
-- `/vergil-tooling:memory-init` — set up or update the policy header
+- `/vergil:memory-init` — set up or update the policy header
   in a project's `MEMORY.md`.
-- `/vergil-tooling:memory-audit` — structured collaborative review
+- `/vergil:memory-audit` — structured collaborative review
   of memory files.
 
 ## Parallel AI agent development
@@ -34,19 +32,19 @@ on-ramp.
 ### Structure
 
 ```text
-~/dev/github/vergil-claude-plugin/     ← sessions ALWAYS start here
+<project-root>/                              ← sessions ALWAYS start here
   .git/
-  CLAUDE.md, hooks/, skills/, …           ← main worktree (usually `develop`)
-  .worktrees/                             ← container for parallel worktrees
-    issue-42-adopt-worktree-convention/   ← worktree on feature/42-...
+  CLAUDE.md, …                               ← main worktree (usually `develop`)
+  .worktrees/                                ← container for parallel worktrees
+    issue-<N>-<short-slug>/                  ← worktree on feature/<N>-<short-slug>
     …
 ```
 
 ### Rules
 
 1. **Sessions always start at the project root.**
-   `cd ~/dev/github/vergil-claude-plugin && claude` — never from inside
-   `.worktrees/<name>/`. This keeps the memory-path slug stable and shared.
+   Never start Claude from inside `.worktrees/<name>/`. This keeps the
+   memory-path slug stable and shared.
 2. **Each parallel agent is assigned exactly one worktree.** The session
    prompt names the worktree (see Agent prompt contract below).
    - For Read / Edit / Write tools: use the worktree's absolute path.
@@ -68,21 +66,43 @@ placeholders):
 ```text
 You are working on issue #<N>: <issue title>.
 
-Your worktree is: /Users/pmoore/dev/github/vergil-claude-plugin/.worktrees/issue-<N>-<slug>/
+Your worktree is: <project-root>/.worktrees/issue-<N>-<slug>/
 Your branch is:   feature/<N>-<slug>
 
 Rules for this session:
 - Do all git operations from inside your worktree:
-    cd <absolute-worktree-path> && git <command>
+    cd <absolute-worktree-path> && vrg-git <command>
 - For Read / Edit / Write tools, use the absolute worktree path.
 - For Bash commands that touch files, cd into the worktree first
   or use absolute paths.
 - Do not edit files at the project root. The main worktree is
   read-only — all changes flow through your worktree on your
   feature branch.
+- When you need to run validation, run it from inside your worktree
+  (vrg-docker-run mounts the current directory).
 ```
 
 All fields are required.
+
+## Shell command policy
+
+Use `vrg-git` instead of `git` for all git operations. Use `vrg-gh`
+instead of `gh` for all GitHub CLI operations. These wrappers enforce
+subcommand allowlists, flag deny lists, and credential selection.
+
+Raw `git` and `gh` are denied by the permission model. If a command
+is not available through the wrappers, explain the situation to the
+human who can run it directly via `! <command>` in the prompt.
+
+## Validation
+
+```bash
+vrg-docker-run -- vrg-validate
+```
+
+This is the **only** validation command. Do not run individual linters,
+formatters, or other tools outside of `vrg-validate`. If a tool is not
+invoked by `vrg-validate`, it is not part of the validation pipeline.
 
 ## Starting work on an issue
 
@@ -100,16 +120,7 @@ the same; the format is now agent-instruction documentation rather
 than a slash-command, since the procedure was rarely invoked
 cold and is most useful as a reference at the moment work begins.
 
-## Shell command policy
-
-Use `vrg-git` instead of `git` for all git operations. Use `vrg-gh`
-instead of `gh` for all GitHub CLI operations. These wrappers enforce
-subcommand allowlists, flag deny lists, credential selection, and
-audit logging.
-
-Raw `git` and `gh` are denied by the permission model. If a command
-is not available through the wrappers, explain the situation to the
-human who can run it directly via `! <command>` in the prompt.
+## Shell command policy — additional rules
 
 **Do NOT use heredocs** (`<<EOF` / `<<'EOF'`) for multi-line arguments to CLI
 tools such as `gh`, `git commit`, or `curl`. Always write multi-line content
@@ -165,14 +176,6 @@ User-invokable slash commands (Markdown files).
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the
 tools available to run.
-
-## Development Commands
-
-### Validation
-
-```bash
-markdownlint .
-```
 
 ## Branching and PR Workflow
 
