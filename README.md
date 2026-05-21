@@ -44,7 +44,7 @@ The short version: add this to your repo's `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "vergil-tooling-marketplace": {
+    "vergil-marketplace": {
       "source": {
         "source": "github",
         "repo": "vergil-project/vergil-claude-plugin"
@@ -52,7 +52,7 @@ The short version: add this to your repo's `.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "vergil-tooling@vergil-tooling-marketplace": true
+    "vergil@vergil-marketplace": true
   }
 }
 ```
@@ -71,7 +71,7 @@ After a new release ships, refresh the local install with this
 two-step sequence:
 
 ```text
-/plugin marketplace update vergil-tooling-marketplace
+/plugin marketplace update vergil-marketplace
 /reload-plugins
 ```
 
@@ -90,7 +90,7 @@ What each step does:
 ### Verify the update
 
 ```bash
-ls -1 ~/.claude/plugins/cache/vergil-tooling-marketplace/vergil-tooling/
+ls -1 ~/.claude/plugins/cache/vergil-marketplace/vergil/
 ```
 
 You should see one directory per cached version. The newest
