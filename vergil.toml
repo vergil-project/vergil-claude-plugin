@@ -7,7 +7,7 @@ primary-language = "claude-plugin"
 
 [publish]
 consumer-refresh = """\
-/plugin marketplace update vergil-tooling-marketplace
+/plugin marketplace update vergil-marketplace
 /reload-plugins
 """
 
