@@ -5,6 +5,12 @@ branching-model = "library-release"
 release-model = "tagged-release"
 primary-language = "claude-plugin"
 
+[publish]
+consumer-refresh = """\
+/plugin marketplace update vergil-tooling-marketplace
+/reload-plugins
+"""
+
 [ci]
 versions = ["latest"]
 integration-tests = false
