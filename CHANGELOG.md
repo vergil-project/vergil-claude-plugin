@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.0.6] - 2026-05-19
+## [2.0.8] - 2026-05-21
+
+### Bug fixes
+
+- align CLAUDE.md with consumer template for repo-config audit compliance
+- replace stale pre-commit hook (ST_COMMIT_CONTEXT → VRG_COMMIT_CONTEXT)
+- sync VERSION file with plugin.json (2.0.0 → 2.0.7)
+
+### Chores
+
+- bump version to 2.0.7
+- remove publish skill — workflow moved to vrg-publish CLI
+- add label to version selector in site header
+- bump version to 2.0.8
+
+## [2.0.6] - 2026-05-18
 
 ### Bug fixes
 
