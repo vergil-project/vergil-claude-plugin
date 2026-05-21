@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.9] - 2026-05-21
+
+### Chores
+
+- bump version to 2.0.9
+- add consumer-refresh config to vergil.toml
+
 ## [2.0.8] - 2026-05-21
 
 ### Bug fixes
