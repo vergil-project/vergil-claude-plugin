@@ -51,14 +51,13 @@ Do not construct commit messages or PR bodies manually.
 
 ```bash
 vrg-commit \
-  --type TYPE --message MESSAGE --agent AGENT \
-  [--scope SCOPE] [--body BODY]
+  --type TYPE --scope SCOPE --message MESSAGE \
+  [--body BODY]
 ```
 
-- `--type` (required): `feat|fix|docs|style|refactor|test|chore|ci|build`
+- `--type` (required): `feat|fix|docs|style|refactor|test|chore|ci|build|revert`
+- `--scope` (required): conventional commit scope
 - `--message` (required): commit description
-- `--agent` (required): `claude` or `codex`
-- `--scope` (optional): conventional commit scope
 - `--body` (optional): detailed commit body
 
 The script resolves the correct `Co-Authored-By` identity from
@@ -68,18 +67,17 @@ The script resolves the correct `Co-Authored-By` identity from
 
 ```bash
 vrg-submit-pr \
-  --issue NUMBER --summary TEXT \
-  [--linkage KEYWORD] [--title TEXT] \
-  [--notes TEXT] [--dry-run]
+  --issue NUMBER --title TEXT --summary TEXT \
+  [--linkage KEYWORD] [--notes TEXT] [--dry-run]
 ```
 
 - `--issue` (required): GitHub issue number (just the number)
+- `--title` (required): PR title
 - `--summary` (required): one-line PR summary
 - `--linkage` (optional, default: `Ref`): **always use `Ref`**.
   `Fixes`, `Closes`, and `Resolves` are forbidden — they auto-close
   the issue at merge time, bypassing finalization. Issues are closed
   explicitly after `vrg-finalize-repo` succeeds.
-- `--title` (optional): PR title (default: most recent commit subject)
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing
 
