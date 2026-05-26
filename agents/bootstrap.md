@@ -47,14 +47,13 @@ If found, report: **Standards repo: resolved locally.**
 If not found, report:
 **WARNING: Standards repo not found locally. Using web source as fallback.**
 
-## 4. Git Hooks
+## 4. Hook Guard
 
-Run `git config core.hooksPath` and report the result.
+Check if `vrg-hook-guard` is available on PATH and report the result.
 
-If not set or empty, report:
-**WARNING: Git hooks not configured.** The hooks path should be set by the
-dev container. If running outside the container, git hooks may not be
-available.
+If not found, report:
+**WARNING: vrg-hook-guard not found.** The Claude Code PreToolUse hook
+guard requires vergil-tooling to be installed.
 
 ## Status Report Format
 

@@ -20,7 +20,7 @@ This plugin is the behavioral half of a two-repo system:
 
 | Repo | Delivers | Via |
 |---|---|---|
-| [`vergil-tooling`](https://github.com/vergil-project/vergil-tooling) | Python CLIs (`vrg-commit`, `vrg-submit-pr`, `vrg-docker-run`, …) and bash git hooks | PATH + `core.hooksPath` |
+| [`vergil-tooling`](https://github.com/vergil-project/vergil-tooling) | Python CLIs (`vrg-commit`, `vrg-submit-pr`, `vrg-container-run`, …) and Claude Code hook guard | PATH + PreToolUse hook |
 | **`vergil-claude-plugin`** (this repo) | Claude Code hooks, skills, agents, commands | Claude Code plugin system |
 
 The two are complementary: `vergil-tooling` makes the tools
