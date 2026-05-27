@@ -3,7 +3,6 @@ repository-type = "library"
 versioning-scheme = "semver"
 branching-model = "library-release"
 release-model = "tagged-release"
-primary-language = "claude-plugin"
 
 [publish]
 consumer-refresh = """\
