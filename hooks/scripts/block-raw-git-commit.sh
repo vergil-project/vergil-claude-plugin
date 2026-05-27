@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # block-raw-git-commit.sh — PreToolUse hook for Bash.
-# Blocks raw 'git commit' commands. Use vrg-commit instead.
+# Delegates to vrg-hook-guard for comprehensive git/gh blocking.
+# Falls back to a regex check for git commit if vrg-hook-guard
+# is not installed.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
@@ -17,10 +19,12 @@ if ! is_managed_repo "$cwd"; then
   exit 0
 fi
 
+if command -v vrg-hook-guard &>/dev/null; then
+  printf '%s' "$input" | exec vrg-hook-guard
+fi
+
 command=$(echo "$input" | jq -r '.tool_input.command')
 
-# Match git commit but not vrg-commit or git commit-related subcommands
-# that aren't actual commits (e.g., git commit-tree, git commit-graph).
 if echo "$command" | grep -qE '(^|[;&|]\s*)git\s+commit(\s|$)'; then
   jq -n '{
     hookSpecificOutput: {
