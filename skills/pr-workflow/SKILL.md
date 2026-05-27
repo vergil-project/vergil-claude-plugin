@@ -233,39 +233,46 @@ If `vrg-finalize-repo` produces errors or warnings:
 3. **Do not force-remove sibling worktrees** or use destructive
    workarounds to make the errors disappear.
 
-### Verify post-merge async workflows
+### Verify post-merge CD workflow
 
-A PR is not "done" until every async workflow triggered by the
-merge has succeeded. The repository's `vergil.toml`
-lists the post-merge async workflows in its `[workflows.post-merge]`
-section. Verify each one.
+A PR is not "done" until the CD workflow triggered by the merge
+has succeeded. All vergil-tooling repos use `cd.yml` as the
+continuous-deployment workflow. On pushes to develop, `cd.yml`
+runs a **docs** job. This matches the monitoring pattern in
+`vrg-release`'s `confirm.py`.
 
-For each workflow in the table:
-
-1. **Identify the run.** Poll until a run for the merge commit
-   appears (typically under 60 seconds):
-
-   ```bash
-   gh run list --workflow <workflow>.yml --branch develop \
-     --limit 1 --json conclusion,status,url --jq '.[0]'
-   ```
-
-2. **Wait for completion.** If still in progress:
+1. **Find the run.** Poll until a `cd.yml` run for the merge
+   commit appears on develop (typically under 60 seconds):
 
    ```bash
-   gh run watch --exit-status <run-id>
+   MERGE_SHA=$(vrg-git -C <worktree> rev-parse origin/develop)
+   vrg-gh run list --workflow cd.yml --branch develop \
+     --limit 5 --json databaseId,headSha,status,conclusion,url \
+     --jq ".[] | select(.headSha == \"${MERGE_SHA}\")"
    ```
 
-3. **Evaluate the result.**
-   - `conclusion == "success"`: pass. Move to the next workflow.
-   - `conclusion == "failure"`: **surface to the user immediately.**
-     Report the workflow name, run URL, and failing step. Do not
-     auto-recover or retry — a failed post-merge workflow means
-     the downstream artifact (docs site, container image, etc.)
-     is stale until the failure is resolved.
+   Retry every 10 seconds for up to 30 attempts if no matching
+   run appears yet.
 
-If the repository profile lists no post-merge async workflows,
-skip this step.
+2. **Wait for completion.**
+
+   ```bash
+   vrg-gh run watch <run-id> --exit-status
+   ```
+
+3. **Verify the docs job.** After the run completes, confirm the
+   docs job succeeded:
+
+   ```bash
+   vrg-gh run view <run-id> --json jobs \
+     --jq '.jobs[] | select(.name == "docs") | {name, conclusion}'
+   ```
+
+   - `conclusion == "success"`: pass.
+   - `conclusion == "failure"` or job missing: **surface to the
+     user immediately.** Report the run URL and failing job. Do
+     not auto-recover or retry — a failed CD workflow means the
+     docs site is stale until the failure is resolved.
 
 ## Close the issue
 
@@ -285,7 +292,7 @@ gh issue close <N> --comment "Closed after finalization. PR: <pr-url>"
 
 Issue closure happens here — not at merge time — because the work
 cycle is not complete until `vrg-finalize-repo` has reconciled
-local state and post-merge workflows have succeeded. Since
+local state and the post-merge CD workflow has succeeded. Since
 auto-close keywords are banned, this explicit step is the **only
 path to closure**. Skipping it leaves the issue open indefinitely.
 
@@ -323,7 +330,7 @@ Structure the report as a step-by-step checklist:
 5. **Hand-off** — whether CI was green at hand-off.
 6. **Finalization** — pass/fail, any non-fatal errors from
    `vrg-finalize-repo`.
-7. **Post-merge workflows** — pass/fail for each workflow checked.
+7. **Post-merge CD** — pass/fail for cd.yml docs job.
 8. **Issue closure** — completed or skipped (with reason if
    skipped).
 
