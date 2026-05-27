@@ -5,7 +5,8 @@
 # and special characters. Write to a temp file and use --body-file instead.
 set -euo pipefail
 
-command=$(jq -r '.tool_input.command' < /dev/stdin)
+input=$(cat)
+command=$(echo "$input" | jq -r '.tool_input.command')
 
 # Match heredoc operators: <<EOF, <<'EOF', <<"EOF", <<-EOF, etc.
 # But not << used in other contexts (e.g., bitshift in Python/etc.).

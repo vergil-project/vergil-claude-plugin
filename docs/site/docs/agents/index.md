@@ -27,7 +27,7 @@ code changes are made.
 4. **Standards and Conventions** — checks if the standards repo is available
    locally at `../standards-and-conventions`
 
-5. **Git Hooks** — verifies `core.hooksPath` is configured
+5. **Hook Guard** — verifies `vrg-hook-guard` is available
 
 ### Status Report
 
