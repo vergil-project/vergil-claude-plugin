@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.10/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.8/">
+        <link rel="next" href="../v2.0.10/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.9 - Standard Tooling Plugin</title>
+        <title>2.0.11 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-149-2026-04-28" class="md-skip">
+        <a href="#release-2011-2026-05-27" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.9
+              2.0.11
             
           </span>
         </div>
@@ -638,10 +638,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.0.11/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.0.11
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -657,6 +684,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug fixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chores
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1366,37 +1435,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.9
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.9/" class="md-nav__link">
         
   
   
@@ -1412,37 +1454,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1889,6 +1900,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#chores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chores
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1906,11 +1928,29 @@
 
 
 
-<h1 id="release-149-2026-04-28">Release 1.4.9 (2026-04-28)<a class="headerlink" href="#release-149-2026-04-28" title="Permanent link">&para;</a></h1>
+<h1 id="release-2011-2026-05-27">Release 2.0.11 (2026-05-27)<a class="headerlink" href="#release-2011-2026-05-27" title="Permanent link">&para;</a></h1>
 <h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>strengthen issue-closure step in pr-workflow so agents stop skipping it</strong>
-Issue closure was a subsection under After the merge that agents could overlook. Promoted to top-level section, added to the overview flow as step 5, and reinforced the key message throughout: using Ref instead of Fixes defers the timing of closure, not the responsibility. If the PR resolves the issue, the agent must close it explicitly after finalization.</li>
+<li><strong>replace /dev/stdin with cat in block-heredoc hook</strong></li>
+<li>
+<p><strong>replace vestigial post-merge config with hardcoded cd.yml monitoring</strong>
+Remove the generic [workflows.post-merge] vergil.toml lookup that was never implemented. Replace with hardcoded cd.yml monitoring on develop that polls by merge SHA, watches the run, and verifies the docs job — matching the pattern vrg-release uses in confirm.py.</p>
+</li>
+<li>
+<p><strong>align template section with vrg-container-run rename</strong></p>
+</li>
+</ul>
+<h2 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>bump version to 2.0.11</strong></li>
+<li><strong>remove legacy .githooks and invalid primary-language</strong></li>
+<li>
+<p><strong>replace .githooks with Claude Code hook guard</strong>
+Add .claude/hooks/guard.sh PreToolUse hook, remove .githooks/pre-commit, remove permission deny rules, update block-raw-git-commit.sh to delegate to vrg-hook-guard, update docs.</p>
+</li>
+<li>
+<p><strong>add missing container parameters and fix stale standards doc</strong></p>
+</li>
 </ul>
 
 
