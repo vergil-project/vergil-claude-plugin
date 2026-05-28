@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - bump to 2.0.12, skip failed 2.0.11
 - switch CI/CD container prefix from prod to dev
 
+
 ## [2.0.11] - 2026-05-27
 
 ### Bug fixes
