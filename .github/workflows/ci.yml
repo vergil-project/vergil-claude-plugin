@@ -44,7 +44,6 @@ jobs:
     with:
       language: claude-plugin
       versions: '["latest"]'
-      container-prefix: dev
       container-suffix: base
       container-tag: 'latest'
 
@@ -55,7 +54,6 @@ jobs:
       run-codeql: false
       run-standards: ${{ inputs.run-release != 'false' }}
       run-security: ${{ inputs.run-security != 'false' }}
-      container-prefix: dev
       container-suffix: base
       container-tag: 'latest'
     permissions:
@@ -67,6 +65,5 @@ jobs:
     with:
       language: claude-plugin
       run-release: ${{ inputs.run-release != 'false' }}
-      container-prefix: dev
       container-suffix: base
       container-tag: 'latest'
