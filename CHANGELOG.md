@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.12] - 2026-05-28
+
+### Chores
+
+- bump to 2.0.12, skip failed 2.0.11
+- switch CI/CD container prefix from prod to dev
+
 ## [2.0.11] - 2026-05-27
 
 ### Bug fixes
