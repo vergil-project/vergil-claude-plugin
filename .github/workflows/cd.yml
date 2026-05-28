@@ -15,14 +15,10 @@ permissions:
 jobs:
   docs:
     uses: vergil-project/vergil-actions/.github/workflows/cd-docs.yml@v2.0
-    with:
-      container-prefix: dev
     permissions:
       contents: write
 
   release:
     if: github.ref == 'refs/heads/main'
     uses: vergil-project/vergil-actions/.github/workflows/cd-release.yml@v2.0
-    with:
-      container-prefix: dev
     secrets: inherit
