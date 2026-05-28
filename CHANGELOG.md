@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.12] - 2026-05-28
+
+### Chores
+
+- bump to 2.0.12, skip failed 2.0.11
+- switch CI/CD container prefix from prod to dev
+
+## [2.0.11] - 2026-05-27
+
+### Bug fixes
+
+- replace /dev/stdin with cat in block-heredoc hook
+- replace vestigial post-merge config with hardcoded cd.yml monitoring
+- align template section with vrg-container-run rename
+
+### Chores
+
+- bump version to 2.0.11
+- remove legacy .githooks and invalid primary-language
+- replace .githooks with Claude Code hook guard
+- add missing container parameters and fix stale standards doc
+
 ## [2.0.10] - 2026-05-21
 
 ### Bug fixes
