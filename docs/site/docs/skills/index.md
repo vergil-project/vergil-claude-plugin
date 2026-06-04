@@ -17,7 +17,6 @@ substantially change it.
 | [implement](#implement) | USER agent: implement an issue, validate to green, hand off to the audit pair | Current (2.1) |
 | [audit](#audit) | AUDIT agent: review the change delta read-only, write the verdict | Current (2.1) |
 | [pr-watch](#pr-watch) | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) | Current (2.1) |
-| [dependency-update](#dependency-update) | Run the dependency-update workflow | Current |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
@@ -59,27 +58,9 @@ sessions after the human opens the PR.
 
 **Status.** Current (Vergil 2.1).
 
-## dependency-update
+<!-- dependency-update retired (#427): dependency updates are now a
+deterministic vergil-tooling utility, not a skill. -->
 
-**What it does.** Repeatable dependency-update workflow covering
-signal collection (security alerts, audits, planned upgrades),
-updating at sources of truth, regenerating lockfiles / exports /
-generated manifests, running validation, and progressing through
-the standard PR workflow. Includes failure handling with anchored-
-dependency records for cases where a dependency must be pinned
-below the latest acceptable range.
-
-**When to use.** When updating project dependencies — whether in
-response to a CVE, a scheduled cycle, or as part of normal
-maintenance.
-
-**Status.** Current. Rewritten as part of the skills audit
-([#114](https://github.com/vergil-project/vergil-claude-plugin/issues/114))
-with concrete per-category commands (Python deps via `uv lock`,
-CI action pins, runtime versions, doc toolchain, linters, build
-tools), `vrg-validate` as the canonical validation step,
-structured failure handling via anchored dependency records, and
-anchor review as a first-class section.
 
 ## deprecation-triage
 
