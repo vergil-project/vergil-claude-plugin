@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vergil 2.1 Workflow v4 — real .vergil channel</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --ci:#3fb37f; --warn:#f5734e; --share:#56d4c4;
+    --ok:#3fb37f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 20px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 16px;font-size:13px}
+  .legend{display:flex;gap:15px;flex-wrap:wrap;margin:0 0 14px;font-size:12px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .phase{text-align:center;color:var(--muted);font-size:11px;text-transform:uppercase;
+    letter-spacing:.14em;margin:20px 0 8px;position:relative}
+  .phase::before,.phase::after{content:"";position:absolute;top:50%;width:30%;height:1px;background:var(--line)}
+  .phase::before{left:0}.phase::after{right:0}
+  .row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;align-items:start;margin:10px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-top-width:3px;border-radius:9px;
+    padding:10px 12px;font-size:12.5px;position:relative}
+  .card .n{position:absolute;top:-9px;left:10px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;
+    background:var(--bg);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:var(--muted)}
+  .card h3{margin:5px 0 3px;font-size:13px}.card p{margin:0;color:var(--muted);font-size:12px}
+  .c-human{border-top-color:var(--human)}.c-user{border-top-color:var(--user)}
+  .c-audit{border-top-color:var(--audit)}.c-ci{border-top-color:var(--ci)}
+  .flow-to{display:inline-block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+  .gate{display:inline-block;font-size:9px;font-weight:800;color:var(--bg);background:var(--audit);
+    padding:1px 6px;border-radius:10px;margin-left:5px;vertical-align:middle}
+  .pair{border:1.5px solid var(--line);border-radius:12px;padding:6px 14px 16px;margin:8px 0;
+    background:linear-gradient(180deg,rgba(86,212,196,.04),transparent 120px)}
+  .pair-title{text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.12em;
+    color:var(--share);margin:8px 0 4px;font-weight:700}
+  .fanout{display:grid;grid-template-columns:1fr;justify-items:center;margin:6px 0}
+  .handshake{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:12px;align-items:stretch;margin-top:8px}
+  .shared{border:1.5px dashed var(--share);border-radius:10px;padding:10px 12px;background:rgba(86,212,196,.06)}
+  .shared h4{margin:0 0 6px;font-size:11px;color:var(--share);text-transform:uppercase;letter-spacing:.05em}
+  .file{background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:6px 0;font-size:11.5px}
+  .file code{color:#cdd9e5}
+  .badge{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.04em;padding:1px 5px;border-radius:9px;margin-left:6px;vertical-align:middle}
+  .b-ok{background:rgba(63,179,127,.18);color:var(--ok)}
+  .b-new{background:rgba(245,115,78,.18);color:var(--warn)}
+  .arrow{font-size:10px;font-weight:700}.a-uw{color:var(--user)}.a-ar{color:var(--audit)}
+  .innerloop{font-size:11px;color:var(--ci);font-style:italic;margin-top:6px}
+  .loop{text-align:center;color:var(--ci);font-size:11.5px;margin:8px 0 0;font-style:italic}
+  .full{grid-column:1/-1}
+  .note{border-left:3px solid var(--warn);background:rgba(245,115,78,.07);border-radius:0 8px 8px 0;
+    padding:8px 12px;font-size:12px;color:var(--muted);margin:6px 0}
+  .note b{color:var(--warn)}
+  .ident{border-left:3px solid var(--audit);background:rgba(176,110,245,.06);border-radius:0 8px 8px 0;
+    padding:8px 12px;font-size:11.5px;color:var(--muted);margin:8px 0}
+  .ident b{color:var(--audit)}
+  .footer{margin-top:24px;background:rgba(78,161,245,.06);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .footer h4{margin:0 0 8px;font-size:11px;color:var(--user);text-transform:uppercase;letter-spacing:.07em}
+  .footer ul{margin:0;padding-left:18px;color:var(--muted);font-size:12px}.footer li{margin:4px 0}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+  .reserved{text-align:center;color:var(--muted);font-size:11px;margin:6px 0 0;opacity:.7}
+</style>
+</head>
+<body>
+  <h1>Vergil 2.1 v4 — grounded in the real <code>.vergil/</code> channel</h1>
+  <p class="sub">Handoff path is now the actual coded contract. Green = already built in tooling 2.1.2. Orange = still to design.</p>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--human)"></i> Human · mode HUMAN</span>
+    <span><i class="dot" style="background:var(--user)"></i> User agent · USER · Opus</span>
+    <span><i class="dot" style="background:var(--audit)"></i> Audit agent · AUDIT · Sonnet · read-only</span>
+    <span><i class="dot" style="background:var(--ci)"></i> Automated gates</span>
+    <span><i class="dot" style="background:var(--share)"></i> <code>.vergil/</code> shared channel</span>
+  </div>
+
+  <div class="ident"><b>Identity boundary.</b> Each agent runs in its own VM holding a distinct <b>GitHub App credential</b> (the real boundary — <code>VRG_IDENTITY_MODE</code> is just ergonomics). That's why the AUDIT identity structurally has the least access and cannot open a PR or push.</div>
+
+  <div class="phase">Phase 1 · Design</div>
+  <div class="row">
+    <div class="card c-human" style="grid-column:1"><span class="n">1</span><h3>Brainstorm → spec</h3><p>Big work gets a spec + plan; small work gets a quick issue. Either way ↓</p></div>
+    <div class="card c-human" style="grid-column:1"><span class="n">2</span><h3>Produce an issue</h3><p><b>Nothing bypasses the pipeline</b> — even a trivial bump-PR runs the full flow.</p></div>
+  </div>
+
+  <div class="phase">Phases 2 + 3 · Implement &amp; local audit  (ONE parallel pair · one human round-trip)</div>
+  <div class="pair">
+    <div class="fanout">
+      <div class="card c-human" style="max-width:360px"><span class="n">3</span><span class="flow-to">Human → BOTH agents ▶▶</span><h3>"Implement issue #N"</h3><p>Same issue to the pair at once. Human then waits.</p></div>
+    </div>
+
+    <div class="pair-title">↓ concurrent · hand off through the shared worktree ↓</div>
+
+    <div class="handshake">
+      <div class="card c-user"><span class="n">4</span><h3>Implement the issue</h3>
+        <p>Write code on the branch.</p>
+        <div class="innerloop">↻ run all local validation until green</div>
+        <p style="margin-top:6px">Then <code>write_template()</code> ⇒ the handoff file (carries <b>issue #</b>) = the <b>"done" signal</b>.</p>
+      </div>
+
+      <div class="shared">
+        <h4>📁 <code>.vergil/</code> · at worktree root</h4>
+        <div class="file"><code>.vergil/pr-template.yml</code><span class="badge b-ok">CODED 2.1.2</span><br>
+          <span style="color:var(--muted);font-size:10.5px">req: issue · title · summary · (linkage, notes). Ephemeral — <code>vrg-submit-pr</code> deletes it after the PR.</span><br>
+          <span class="arrow a-uw">user writes ▸ audit reads · = done-signal</span></div>
+        <div class="file"><code>.vergil/audit-feedback.yml</code><span class="badge b-new">TO DESIGN</span><br>
+          <span style="color:var(--muted);font-size:10.5px">sibling file · name/format TBD · NOT inside pr-template.yml</span><br>
+          <span class="arrow a-ar">audit writes ▸ user reads · = verdict</span></div>
+        <p style="font-size:11px;color:var(--share);margin:4px 0 0"><b>TBD #1 location: RESOLVED</b> → <code>.vergil/</code>. Only the feedback file remains to design.</p>
+      </div>
+
+      <div class="card c-audit"><span class="n">5</span><h3>Audit the delta<span class="gate">GATE</span></h3>
+        <p><b>Waits</b> for <code>pr-template.yml</code> to appear, then reviews <b>only the changed commits</b> in the shared worktree.</p>
+        <p style="margin-top:6px"><b>Read-only — no edits.</b> Writes verdict to its sibling file: <code>approve</code> / <code>fix: …</code></p>
+      </div>
+    </div>
+
+    <div class="loop">↺ user reads feedback → if <code>fix</code>, patch &amp; re-validate &amp; rewrite template → audit re-checks · until <code>approve</code></div>
+    <div class="fanout" style="margin-top:10px">
+      <div class="card c-user" style="max-width:360px"><span class="n">6</span><span class="flow-to">◀ User agent → human</span><h3>"Finished — template ready"</h3><p>Pair ends. Template sits in <code>.vergil/</code> awaiting submit.</p></div>
+    </div>
+  </div>
+
+  <div class="phase">Phase 4 · Open PR</div>
+  <div class="row">
+    <div class="card c-human" style="grid-column:1"><span class="n">7</span><h3>Run <code>vrg-submit-pr</code> (template mode)</h3><p>Reads <code>.vergil/pr-template.yml</code>, pushes, opens PR, then deletes the template.</p></div>
+  </div>
+
+  <div class="phase">Phase 5 · Post-PR gates</div>
+  <div class="note full"><b>Detailed in figures 05–07.</b> Opening the PR auto-triggers CI; the human hands the PR URL to both agents; both run <code>vrg-pr-await</code> loops; the user agent reconciles CI + audit + human comments; the audit posts the required <code>vergil-audit/approved</code> check that blocks merge.</div>
+
+  <div class="phase">Phase 6 · Merge</div>
+  <div class="row">
+    <div class="card c-human" style="grid-column:1"><span class="n">8</span><h3>Human merges</h3><p>Merge authority stays with you.</p></div>
+  </div>
+  <div class="reserved">admin role — reserved, not in the runtime IdentityMode enum · highest privilege ⇒ most oversight · not delegated</div>
+
+  <div class="footer">
+    <h4>Principles + grounded facts</h4>
+    <ul>
+      <li><b>Shared channel is real:</b> <code>.vergil/</code> at worktree root. <code>pr-template.yml</code> already coded; audit-feedback sibling is ours to add.</li>
+      <li><b>Installed tooling here is 2.0.80</b> (no template mode) — template flow needs a refresh to 2.1.x to actually run.</li>
+      <li><b>AI audit = delta-only.</b> Whole-tree scanning is the mechanized gates' job. Start audit simple (standards); maybe piggyback <code>agentic-review</code>.</li>
+      <li><b>Check-and-balance pairs:</b> brainstorm↔pushback · writing-plans↔alignment · <b>implement↔audit</b>.</li>
+      <li><b>Single issue is the unit</b> (executing-plans = deferred wrapper) · subscription not API · skills ~1–2 pages · local-LLM endgame.</li>
+    </ul>
+  </div>
+</body>
+</html>

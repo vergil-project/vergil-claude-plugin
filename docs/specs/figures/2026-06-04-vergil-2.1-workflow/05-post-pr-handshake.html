@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 5 — the same handshake, on the PR</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --bus:#56d4c4; --tool:#3fb37f; --warn:#f5b942; --err:#f5734e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 16px;font-size:13px;max-width:840px}
+  .handoff{border:1.5px solid var(--human);background:rgba(245,185,66,.07);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--muted)}
+  .handoff b{color:var(--human)}
+  .handoff code{background:#0b0f14;padding:1px 6px;border-radius:4px;color:#cdd9e5}
+  .seq{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .col-h{padding:9px 12px;font-weight:700;font-size:12.5px;text-align:center;border-bottom:1px solid var(--line);background:var(--panel)}
+  .ch-user{color:var(--user)}.ch-bus{color:var(--bus)}.ch-audit{color:var(--audit)}
+  .cell{padding:9px 12px;border-bottom:1px solid var(--line);font-size:12px;min-height:46px}
+  .cell.bus{background:rgba(86,212,196,.05);border-left:1px solid var(--line);border-right:1px solid var(--line);text-align:center}
+  .n{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:var(--bg);border:1px solid var(--line);
+    font-size:10px;font-weight:700;color:var(--muted);text-align:center;line-height:17px;margin-right:5px}
+  .await{color:var(--tool);font-weight:700}.write{font-weight:600}.muted{color:var(--muted);font-size:11.5px}
+  .ex{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .ex code{font-size:10px}
+  .pr{display:inline-block;background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11px}
+  .red{color:var(--err);font-weight:700}.grn{color:var(--tool);font-weight:700}.amb{color:var(--warn);font-weight:700}
+  .auto{display:inline-block;font-size:9px;font-weight:800;color:var(--bg);background:var(--bus);padding:1px 6px;border-radius:9px;margin-left:5px}
+  .endings{margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .end{border:1px solid var(--line);border-radius:10px;padding:12px 14px;border-top:3px solid var(--line)}
+  .end.ok{border-top-color:var(--tool)}.end.uerr{border-top-color:var(--err)}.end.aerr{border-top-color:var(--err)}
+  .end h4{margin:0 0 6px;font-size:12.5px}
+  .end.ok h4{color:var(--tool)}.end.uerr h4{color:var(--err)}.end.aerr h4{color:var(--err)}
+  .end p{margin:0;color:var(--muted);font-size:11.5px}
+  .tbd{margin-top:16px;border-left:3px solid var(--err);background:rgba(245,115,78,.07);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--muted)}
+  .tbd b{color:var(--err)}
+  .tbd .adm{color:var(--audit);font-weight:700}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+  .diff{margin-top:6px;font-size:11.5px;color:var(--muted)}.diff b{color:var(--text)}
+</style>
+</head>
+<body>
+  <h1>Phase 5 — the same handshake, now on the PR</h1>
+  <p class="sub">The bus is the <b>PR</b> (commits · check statuses · review threads), the wait is the user agent <b>monitoring</b> it, and the gate is now <b>hard</b>. New vs the local loop: two feedback sources run at once (mechanized CI + audit), and the record is <b>public/archived</b>.</p>
+
+  <div class="handoff">
+    <b>Handoff (start of phase):</b> opening the PR <b>auto-triggers the mechanized CI gates</b> — the human doesn't start them. The human then hands the <code>PR URL</code> to <b>both</b>: → user agent <i>"monitor till green"</i> · → audit agent <i>"re-review on the PR."</i>
+  </div>
+
+  <div class="seq">
+    <div class="col-h ch-user">🤖 user agent</div>
+    <div class="col-h ch-bus">🔀 the PR (bus)</div>
+    <div class="col-h ch-audit">🔍 audit agent</div>
+
+    <div class="cell"><span class="n">1</span><span class="await">vrg-pr-await</span> — monitor the PR<span class="ex">blocks on PR state instead of burning tokens polling</span></div>
+    <div class="cell bus"><span class="auto">AUTO</span> CI gates running<span class="ex">CodeQL · Semgrep · Trivy · lang</span></div>
+    <div class="cell"><span class="n">1</span>re-review the delta on the PR<span class="ex">same commits · read-only</span></div>
+
+    <div class="cell"><span class="muted">▸ wakes on each PR change</span></div>
+    <div class="cell bus"><span class="pr"><span class="red">✗ Semgrep</span> · <span class="grn">✓ rest</span></span><br><span class="pr amb">review: changes requested</span><span class="ex">↑ posted by audit · public thread</span></div>
+    <div class="cell"><span class="n">2</span>post <b>PR review</b><span class="ex">approve · or request-changes (= the hard gate)</span></div>
+
+    <div class="cell"><span class="n">3</span>reconcile <b>3 sources</b>: CI failures + audit comments + human comments → patch → commit → <span class="write">push</span></div>
+    <div class="cell bus"><span class="pr">new commit C</span><span class="ex">push re-triggers CI &amp; signals re-review</span></div>
+    <div class="cell"><span class="muted">▸ re-review on the new commit</span></div>
+
+    <div class="cell"><span class="muted">▸ wakes on settled state</span></div>
+    <div class="cell bus"><span class="pr"><span class="grn">✓ all checks</span></span><br><span class="pr grn">review: approved</span></div>
+    <div class="cell"><span class="n">4</span>re-review → <span class="grn">approve</span></div>
+
+    <div class="cell"><span class="n">5</span><span class="grn">green + approved</span> → tell human "mergeable"</div>
+    <div class="cell bus"><span class="muted">→ Phase 6: human merges</span></div>
+    <div class="cell"><span class="muted">done · review is the archive</span></div>
+  </div>
+
+  <p class="diff"><b>Soft → hard.</b> Pre-PR audit was advisory (withhold a file). Here the audit's "request changes" is a <b>real merge block</b>, and the record lives publicly on the PR.</p>
+
+  <h3 style="margin:22px 0 4px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Three ways it ends (mirrors the local loop)</h3>
+  <div class="endings">
+    <div class="end ok">
+      <h4>① Green + approved</h4>
+      <p>All checks pass and the audit review is approved → PR is mergeable → <b>human merges</b> (Phase 6).</p>
+    </div>
+    <div class="end uerr">
+      <h4>② User agent gives up</h4>
+      <p>Can't get CI green or can't satisfy the review → <b>stops, asks the human</b>. Same everyday wall as the local loop.</p>
+    </div>
+    <div class="end aerr">
+      <h4>③ Audit blocks &amp; holds</h4>
+      <p>Requests changes that stay unresolved → <b>merge stays blocked</b>. Public, on the PR. Human decides what happens next.</p>
+    </div>
+  </div>
+
+  <div class="tbd">
+    <b>⚠ TBD #2 — how the block actually works.</b> Required reviewer? A required status check the audit posts? Branch-protection rule? <br>
+    And the override question it forces: <span class="adm">who can merge past a blocked audit gate?</span> If the human can't simply force it, that authority is exactly the kind of close-oversight, highest-privilege action the <span class="adm">reserved admin role</span> was waiting for — this may be its first real use case.
+  </div>
+</body>
+</html>

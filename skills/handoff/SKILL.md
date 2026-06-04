@@ -11,6 +11,10 @@ Standardize session-to-session continuity when an agent must restart
 mid-work (plugin updates, context limits, crashes). Replaces ad-hoc
 memory files with a disciplined, template-driven handoff protocol.
 
+> **Not the PR handoff.** This is session-continuity state, distinct from
+> the `.vergil/pr-template.yml` PR handoff used by the `implement`/`audit`
+> pair.
+
 Two modes:
 
 - `/handoff stop` — Capture current work state before killing the session.

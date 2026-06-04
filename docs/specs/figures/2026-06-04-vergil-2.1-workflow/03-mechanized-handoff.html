@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mechanized handoff — Diogenes-inspired</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --share:#56d4c4; --tool:#3fb37f; --warn:#f5734e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:13px;max-width:820px}
+  .cols{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:14px;align-items:stretch}
+  .lane{border:1px solid var(--line);border-radius:11px;padding:0 0 12px;overflow:hidden;background:var(--panel)}
+  .lh{padding:10px 14px;font-weight:700;font-size:13px;border-top:3px solid var(--line)}
+  .lane.user .lh{border-top-color:var(--user);color:var(--user)}
+  .lane.bus .lh{border-top-color:var(--share);color:var(--share)}
+  .lane.audit .lh{border-top-color:var(--audit);color:var(--audit)}
+  .step{margin:9px 14px 0;padding:8px 10px;background:#0b0f14;border:1px solid var(--line);border-radius:8px;font-size:12px}
+  .step .k{font-size:9.5px;font-weight:800;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+  .step h4{margin:2px 0 2px;font-size:12.5px}
+  .step p{margin:0;color:var(--muted);font-size:11.5px}
+  .tool{border-color:var(--tool)}
+  .tool .k{color:var(--tool)}
+  .file{margin:10px 14px 0;padding:9px 11px;border:1.5px dashed var(--share);border-radius:8px;background:rgba(86,212,196,.06)}
+  .file code{color:#cdd9e5;font-size:11.5px}
+  .file .cat{display:block;font-size:10.5px;margin:3px 0 0;color:var(--muted)}
+  .cat b{color:var(--text)}
+  .pill{display:inline-block;font-size:8.5px;font-weight:800;padding:1px 6px;border-radius:9px;margin-left:5px}
+  .p-ok{background:rgba(63,179,127,.18);color:var(--tool)}
+  .p-new{background:rgba(245,115,78,.18);color:var(--warn)}
+  .arrow{text-align:center;color:var(--muted);font-size:11px;margin:6px 0 0;font-style:italic}
+  .panel{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .box{border:1px solid var(--line);border-radius:10px;padding:13px 16px}
+  .box.dio{background:rgba(78,161,245,.06)} .box.grow{background:rgba(63,179,127,.06)}
+  .box h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .box.dio h4{color:var(--user)} .box.grow h4{color:var(--tool)}
+  .box ul{margin:0;padding-left:17px;color:var(--muted);font-size:12px}.box li{margin:4px 0}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+  .hgate{margin-top:16px;border-left:3px solid var(--human);background:rgba(245,185,66,.07);
+    border-radius:0 8px 8px 0;padding:9px 13px;font-size:12px;color:var(--muted)}
+  .hgate b{color:var(--human)}
+</style>
+</head>
+<body>
+  <h1>The handoff, mechanized — no agentic polling</h1>
+  <p class="sub">Diogenes' lesson: <b>the directory IS the state store</b>, and <b>deterministic code — not the AI — decides what happens next</b>. Our <code>.vergil/</code> files are already that store. So a tiny blocking-wait <b>tool</b> (green) replaces token-burning file-polling, and it grows into a full MCP controller later.</p>
+
+  <div class="cols">
+    <!-- USER AGENT -->
+    <div class="lane user">
+      <div class="lh">🤖 User agent · USER</div>
+      <div class="step"><span class="k">step</span><h4>Implement + validate</h4><p>Code on the branch · ↻ all local gates until green.</p></div>
+      <div class="step"><span class="k">write</span><h4>Write PR template</h4><p><code>pr-template.yml</code> incl. the <b>commit IDs</b> in this change.</p></div>
+      <div class="step tool"><span class="k">vrg tool · blocks</span><h4><code>vrg-await-audit</code></h4><p>Notifies human "done", then <b>blocks</b> (cheap, no tokens) until the feedback file lands. Returns the verdict.</p></div>
+      <div class="step"><span class="k">act</span><h4>Read verdict → fix or finish</h4><p><code>fix</code> → patch &amp; rewrite template (loop). <code>approve</code> → tell human "ready".</p></div>
+    </div>
+
+    <!-- SHARED BUS -->
+    <div class="lane bus">
+      <div class="lh">📁 <code>.vergil/</code> — the state store / bus</div>
+      <div class="file"><code>pr-template.yml</code><span class="pill p-ok">CODED</span>
+        <span class="cat">user ▸ audit &amp; submit-pr · carries <b>commit IDs</b> · its existence = "user done"</span></div>
+      <div class="file"><code>audit-feedback.yml</code><span class="pill p-new">DESIGN</span>
+        <span class="cat">audit ▸ user · <b>three categories</b>:</span>
+        <span class="cat">• <b>INFO</b> = approved — lists the exact <b>commit IDs</b> signed off ⇒ the real audit trail</span>
+        <span class="cat">• <b>WARNING / ERROR</b> = fix-in-code (→ user agent)</span>
+        <span class="cat">• flagged item → human approval queue (new suppressions)</span></div>
+      <div class="arrow">both files present + audit approved ⇒ <code>vrg-submit-pr</code> sanity-checks before opening the PR</div>
+    </div>
+
+    <!-- AUDIT AGENT -->
+    <div class="lane audit">
+      <div class="lh">🔍 Audit agent · AUDIT</div>
+      <div class="step tool"><span class="k">vrg tool · blocks</span><h4><code>vrg-await-template</code></h4><p>Paired session blocks until <code>pr-template.yml</code> appears — no polling.</p></div>
+      <div class="step"><span class="k">step</span><h4>Review the delta</h4><p>Read-only · only the listed commits · standards + suppression scrutiny.</p></div>
+      <div class="step"><span class="k">write</span><h4>Write feedback</h4><p>Per-commit verdict into <code>audit-feedback.yml</code>. No edits to code.</p></div>
+    </div>
+  </div>
+
+  <div class="hgate"><b>Human = the hard gate.</b> Complexity-by-default is fine because you can short-circuit anytime: ignore the audit, run <code>vrg-submit-pr</code> on a "red", or merge. The agents only "fix each other" while you choose not to intervene. <b>No bypass of the pipeline itself</b> — full gates + audit run every time, even for a typo. Complementary contexts: user agent <i>solves</i>; audit <i>holds it accountable</i>.</div>
+
+  <div class="panel">
+    <div class="box dio">
+      <h4>What we borrow from Diogenes</h4>
+      <ul>
+        <li><b>Directory-as-state-store.</b> Progress = which files exist, not what the AI claims. <code>.vergil/</code> already is this.</li>
+        <li><b>A <code>next_step</code> oracle in Python</b> decides whose turn it is — the AI never infers the next move from its own output.</li>
+        <li><b>Prompts stored as files, handed by reference</b> — the agent isn't preloaded with the whole workflow.</li>
+        <li><b>Deterministic mechanization between steps</b> (their killer feature: code that re-verifies and <i>drops</i> hallucinated agent output).</li>
+      </ul>
+    </div>
+    <div class="box grow">
+      <h4>MVP now → controller later (same pattern, two scales)</h4>
+      <ul>
+        <li><b>MVP:</b> two blocking-wait tools (<code>vrg-await-audit</code> / <code>-template</code>) over the <code>.vergil/</code> files. Tiny, cheap, kills polling. Ships the loop today.</li>
+        <li><b>Later:</b> a <code>.vergil/</code> state machine + MCP "what next" server that hands each agent its step-prompt and advances state — the Diogenes engine, lifted.</li>
+        <li><b>Heads-up:</b> Diogenes' own server-side execute path is still a stub (mid-surgery) — copy the <i>pattern</i> and the state-machine core, not that half.</li>
+        <li>This is the literal automation seam toward GitHub-triggered, then local-LLM.</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

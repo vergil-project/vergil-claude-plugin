@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 5 — two await loops + the one-liner handoff</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --bus:#56d4c4; --tool:#3fb37f; --err:#f5734e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 16px;font-size:13px;max-width:840px}
+  .handoff{border:1.5px solid var(--human);background:rgba(245,185,66,.07);border-radius:10px;padding:11px 15px;margin-bottom:18px;font-size:12.5px;color:var(--muted)}
+  .handoff h4{margin:0 0 5px;font-size:11px;color:var(--human);text-transform:uppercase;letter-spacing:.06em}
+  .handoff code{background:#0b0f14;padding:2px 7px;border-radius:5px;color:#cdd9e5;font-size:12px}
+  .handoff b{color:var(--text)}
+  .loops{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .loop{border:1px solid var(--line);border-radius:11px;padding:0 0 14px;overflow:hidden}
+  .loop.user{border-top:3px solid var(--user)}.loop.audit{border-top:3px solid var(--audit)}
+  .lh{padding:11px 15px 6px}
+  .lh h2{margin:0;font-size:15px}.loop.user h2{color:var(--user)}.loop.audit h2{color:var(--audit)}
+  .lh .id{font-size:11px;color:var(--muted);font-family:monospace}
+  .lstep{margin:8px 15px 0;padding:8px 11px;background:#0b0f14;border:1px solid var(--line);border-radius:8px;font-size:12px;position:relative}
+  .lstep .k{font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .lstep h4{margin:1px 0 2px;font-size:12.5px}.lstep p{margin:0;color:var(--muted);font-size:11.5px}
+  .await{border-color:var(--tool)}.await .k{color:var(--tool)}
+  .loopback{text-align:center;color:var(--tool);font-size:11px;margin:8px 15px 0;font-style:italic}
+  .stop{margin:8px 15px 0;padding:8px 11px;border-radius:8px;font-size:11.5px}
+  .stop.ok{background:rgba(63,179,127,.08);border:1px solid var(--tool)}
+  .stop.err{background:rgba(245,115,78,.08);border:1px solid var(--err)}
+  .stop b.ok{color:var(--tool)}.stop b.err{color:var(--err)}
+  .key{margin-top:18px;border:1px solid var(--line);border-radius:10px;padding:12px 16px;background:rgba(86,212,196,.05);font-size:12px;color:var(--muted)}
+  .key b{color:var(--bus)}
+  .enf{margin-top:14px;border-left:3px solid var(--err);background:rgba(245,115,78,.07);border-radius:0 8px 8px 0;padding:11px 15px;font-size:12px;color:var(--muted)}
+  .enf b{color:var(--err)}.enf .hi{color:var(--audit);font-weight:700}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+</style>
+</head>
+<body>
+  <h1>Phase 5 — two await-loops, one trivial handoff</h1>
+  <p class="sub">Both agents run the <i>same</i> <code>vrg-pr-await</code> loop on the PR; only the <b>stop conditions</b> differ. The human's entire job is to paste one line into each session.</p>
+
+  <div class="handoff">
+    <h4>The one-liner handoff</h4>
+    On success, <code>vrg-submit-pr</code> <b>prints the line to paste</b> — e.g. <code>/vergil:pr-watch &lt;PR_URL&gt;</code>. You paste the <b>same line</b> into both the user-agent and audit-agent sessions. The skill <b>reads its own identity</b> (<code>VRG_IDENTITY_MODE</code> = user / audit) and runs the matching loop. As lazy as it gets — type/paste, done.
+  </div>
+
+  <div class="loops">
+    <!-- USER -->
+    <div class="loop user">
+      <div class="lh"><h2>🤖 User agent loop</h2><div class="id">vergil-user[bot] · fixes</div></div>
+      <div class="lstep await"><span class="k">await · blocks</span><h4>vrg-pr-await</h4><p>Wake on any PR change (CI status, review, comment).</p></div>
+      <div class="lstep"><span class="k">examine</span><h4>Read PR state</h4><p>CI statuses + audit review + human comments.</p></div>
+      <div class="lstep"><span class="k">act</span><h4>Reconcile → push</h4><p>Patch all three sources → commit → push (the new commit re-enters the loop).</p></div>
+      <div class="loopback">↺ loop on each new commit / change</div>
+      <div class="stop ok"><b class="ok">STOP ✓</b> all checks green + audit approved → tell human "mergeable".</div>
+      <div class="stop err"><b class="err">STOP ✗</b> can't get green / stuck → ask the human.</div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="loop audit">
+      <div class="lh"><h2>🔍 Audit agent loop</h2><div class="id">vergil-audit[bot] · reviews</div></div>
+      <div class="lstep await"><span class="k">await · blocks</span><h4>vrg-pr-await</h4><p>Wake when the user agent pushes a new commit.</p></div>
+      <div class="lstep"><span class="k">review</span><h4>Re-review the delta</h4><p>Only the new commits · read-only · standards + suppression scrutiny.</p></div>
+      <div class="lstep"><span class="k">verdict</span><h4>Approve / request changes</h4><p>Posts a GitHub PR review.</p></div>
+      <div class="loopback">↺ approved-but-not-all-green ⇒ keep looping (re-review future fixes)</div>
+      <div class="stop ok"><b class="ok">STOP ✓</b> approved AND all checks green → nothing left to wait for.</div>
+      <div class="stop err"><b class="err">STOP ✗</b> error-abort: reject, "requires human" → no merge without explicit approval. <b>Not the honor system.</b></div>
+    </div>
+  </div>
+
+  <div class="key">
+    <b>The shared key:</b> both loops re-trigger on a <b>new commit</b>. The user agent's push is the signal that wakes the audit agent's next review and the user agent's own next status check. The PR's commit stream is the clock.
+  </div>
+
+  <div class="enf">
+    <b>✓ TBD #2 — resolved.</b> Today merge-rules are an honor system. The fix: <span class="hi">require a Code-Owner review from the audit identity</span> via branch protection, so GitHub itself blocks the merge. <b>Wrinkle (confirmed):</b> a GitHub <i>App</i> can't be a CODEOWNER — so the audit identity must be a <span class="hi">machine-user account</span>, not <code>[bot]</code>. See the enforcement diagram.
+  </div>
+</body>
+</html>

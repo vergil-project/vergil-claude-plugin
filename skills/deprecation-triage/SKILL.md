@@ -53,6 +53,11 @@ Collect or request:
 6. If user-visible and deferred, suppress and document the suppression.
 7. Update the issue with each re-test and close when resolved.
 
+> **Identity check (step 3).** Creating issues requires write access. If
+> the acting identity (USER / AUDIT) cannot create the issue, prepare the
+> title and body and hand them to the human to create — do not fail
+> silently.
+
 ## Issue template
 
 ```text

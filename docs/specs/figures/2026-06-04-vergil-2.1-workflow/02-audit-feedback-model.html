@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit feedback model</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --share:#56d4c4;
+    --info:#4ea1f5; --warn:#f5b942; --err:#f5734e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:13px;max-width:780px}
+  .src{max-width:520px;margin:0 auto 6px;text-align:center;background:rgba(176,110,245,.08);
+    border:1.5px solid var(--audit);border-radius:10px;padding:10px 14px}
+  .src h3{margin:0 0 3px;font-size:14px;color:var(--audit)}
+  .src p{margin:0;color:var(--muted);font-size:12px}
+  .down{text-align:center;color:var(--muted);font-size:18px;margin:4px 0}
+  .sev{display:flex;gap:10px;justify-content:center;margin:6px 0 18px;flex-wrap:wrap}
+  .sev span{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .s-info{background:rgba(78,161,245,.16);color:var(--info)}
+  .s-warn{background:rgba(245,185,66,.16);color:var(--warn)}
+  .s-err{background:rgba(245,115,78,.16);color:var(--err)}
+  .routes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .route{border:1.5px solid var(--line);border-radius:12px;padding:0 0 14px;overflow:hidden}
+  .route.user{border-top:3px solid var(--user)}
+  .route.human{border-top:3px solid var(--human)}
+  .rhead{padding:12px 16px 8px}
+  .rhead h2{margin:0;font-size:15px}
+  .rhead .dest{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .route.user .dest{color:var(--user)}.route.human .dest{color:var(--human)}
+  .rhead .file{font-size:11px;color:var(--muted);margin-top:2px}
+  .gatebar{font-size:10.5px;font-weight:800;letter-spacing:.04em;padding:4px 16px;text-transform:uppercase}
+  .soft{background:rgba(78,161,245,.12);color:var(--user)}
+  .hard{background:rgba(245,185,66,.14);color:var(--human)}
+  .check{margin:10px 16px 0;padding:9px 11px;background:#0b0f14;border:1px solid var(--line);border-radius:8px}
+  .check h4{margin:0 0 3px;font-size:12.5px}
+  .check p{margin:0;color:var(--muted);font-size:11.5px}
+  .check code{color:#cdd9e5;font-size:11px}
+  .tag{display:inline-block;font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:9px;margin-left:6px;vertical-align:middle}
+  .t-tbd{background:rgba(245,115,78,.18);color:var(--err)}
+  .t-start{background:rgba(63,179,127,.18);color:#3fb37f}
+  .why{margin-top:22px;background:rgba(86,212,196,.06);border:1px solid var(--line);border-radius:10px;padding:13px 16px}
+  .why h4{margin:0 0 7px;font-size:11px;color:var(--share);text-transform:uppercase;letter-spacing:.06em}
+  .why ul{margin:0;padding-left:18px;color:var(--muted);font-size:12px}.why li{margin:4px 0}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+  b.q{color:var(--err)}
+</style>
+</head>
+<body>
+  <h1>Audit feedback model — severity × destination</h1>
+  <p class="sub">Every audit finding gets a <b>severity</b> and a <b>route</b>. The route is the new structural idea: some findings the user agent fixes; some must surface to you for out-of-band sign-off.</p>
+
+  <div class="src">
+    <h3>🔍 Audit agent reviews the delta</h3>
+    <p>changed commits only · read-only · emits findings</p>
+  </div>
+  <div class="down">▼</div>
+  <div class="sev">
+    <span class="s-info">INFO</span><span class="s-warn">WARNING</span><span class="s-err">ERROR</span>
+  </div>
+
+  <div class="routes">
+    <!-- ROUTE 1 -->
+    <div class="route user">
+      <div class="rhead">
+        <div class="dest">Route 1 · → user agent</div>
+        <h2>Fix it in code</h2>
+        <div class="file">writes <code>.vergil/audit-feedback.yml</code> · user agent loops on it</div>
+      </div>
+      <div class="gatebar soft">soft gate · human may override anytime</div>
+      <div class="check"><h4>Coding-standards compliance <span class="tag t-start">START HERE</span></h4>
+        <p>Docstrings on <b>production</b> code (tests exempt — accepted), naming, structure. Did it meet the standards?</p></div>
+      <div class="check"><h4>Removable suppressions → force the real fix</h4>
+        <p>If a <code># type: ignore</code> / <code># noqa</code> / <code># nosec</code> can be removed without hurting integrity, push back. Strong stance on <b>type hints</b>.</p></div>
+    </div>
+
+    <!-- ROUTE 2 -->
+    <div class="route human">
+      <div class="rhead">
+        <div class="dest">Route 2 · → human</div>
+        <h2>Sign-off required</h2>
+        <div class="file">out-of-band approval queue · mechanism TBD</div>
+      </div>
+      <div class="gatebar hard">escalation · pulls the human in</div>
+      <div class="check"><h4>Newly-introduced exception / suppression <span class="tag t-start">START HERE</span></h4>
+        <p>Any net-new <code># noqa</code>, <code># type: ignore</code>, <code># nosec</code>, or broad <code>pyproject.toml</code> ignore ⇒ <b>requires your approval</b>.</p></div>
+      <div class="check"><h4>Second category? <span class="tag t-tbd">CONFIRM</span></h4>
+        <p><b class="q">You mentioned "two specific categories" feeding the human mechanism — what's the second?</b></p></div>
+    </div>
+  </div>
+
+  <div class="why">
+    <h4>Why this is the right job for the AI layer</h4>
+    <ul>
+      <li><b>Mechanized gates go green when a suppression is added</b> — the suppression silences them. That blind spot is exactly what the audit covers.</li>
+      <li><b>Soft before, hard after.</b> Pre-submit audit is advisory — approving a flagged suppression <i>is</i> the override, and you can run <code>vrg-submit-pr</code> on a "red" anytime. The Phase-5 post-PR audit is the one that blocks merge (TBD #2).</li>
+      <li><b>Detection vs judgment (future seam).</b> Spotting a net-new suppression is mechanizable (a diff check) — could become a cheap pre-filter later; the <i>judgment</i> ("removable without hurting integrity?") and the approval stay human/AI.</li>
+      <li><b>Start simple:</b> standards compliance + new-suppression escalation. Everything else is additive.</li>
+    </ul>
+  </div>
+</body>
+</html>
