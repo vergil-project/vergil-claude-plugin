@@ -135,14 +135,18 @@ Full reference:
 
 ### Skills
 
-Shared workflow skills, invoked as `/vergil-tooling:<name>`.
+Shared workflow skills, invoked as `/vergil:<name>`.
 
 | Skill | Purpose |
 |---|---|
-| `pr-workflow` | Guide PR creation, submission, and finalization |
-| `dependency-update` | Run the dependency-update workflow |
+| `implement` | USER agent: implement an issue, validate to green, hand off to the audit pair |
+| `audit` | AUDIT agent: review the change delta read-only, write the verdict |
+| `pr-watch` | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
+| `handoff` | Session-to-session continuity (capture/resume) |
+| `memory-audit` | Collaborative review of memory files |
+| `memory-init` | Initialize the memory directory with the policy header |
 
 Full reference:
 <https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md>.
@@ -155,13 +159,13 @@ Full reference:
 
 ## Plugin namespace
 
-All skills are namespaced under `vergil-tooling`:
+All skills are namespaced under `vergil` (the plugin's `name`):
 
 ```text
-/vergil-tooling:<skill-name>
+/vergil:<skill-name>
 ```
 
-Example: `/vergil-tooling:pr-workflow`.
+Example: `/vergil:implement`.
 
 ## Related repositories
 
@@ -196,18 +200,22 @@ outside `.worktrees/*/` are denied.
 
 ### Ship a change
 
-Use the [`pr-workflow` skill](skills/pr-workflow/SKILL.md) to
-submit, wait for CI green, and hand off:
+Under the Vergil 2.1 workflow, the agent prepares the change and
+the **human** opens the PR:
 
-```text
-/vergil-tooling:pr-workflow
-```
+1. The USER agent runs `/vergil:implement <issue>` — implement,
+   validate to green, and write `.vergil/pr-template.yml`.
+2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
+3. Paste the emitted `/vergil:pr-watch <PR_URL>` into both the USER
+   and AUDIT agent sessions for the post-PR loop; the AUDIT identity
+   gates merge via the `vergil-audit/approved` check.
 
-The agent submits via `vrg-submit-pr`, waits for CI to go green,
-fixes agent-fixable failures, and hands off to you for review and
-merge. Auto-merge is disabled fleet-wide; you review and merge
-feature/bugfix PRs manually. After you report the merge, the
-agent runs `vrg-finalize-repo` from inside the worktree.
+Auto-merge is disabled fleet-wide; you review and merge
+feature/bugfix PRs manually.
+
+> **Transition note.** This flow requires `vergil-tooling` 2.1
+> installed site-wide. Until then, submit changes manually the 2.0
+> way; the 2.1 skills are authored but not yet wired into daily dev.
 
 ### Cut a release
 

@@ -20,8 +20,8 @@ workflow has reached `conclusion: success` for the merge commit.
 
 Repos with additional async post-merge workflows (e.g.,
 `docker-publish.yml` in `vergil-tooling`) add them to this
-table. The `pr-workflow` skill reads this section to determine
-which workflows to verify.
+table. The `pr-watch` skill (post-PR loop) reads this section to
+determine which post-merge workflows to verify.
 
 ## External tooling dependencies
 
