@@ -3,8 +3,8 @@
 Skills are shared workflow definitions that Claude Code loads from
 the plugin. Each skill is a directory under `skills/` containing a
 `SKILL.md` file with frontmatter and structured instructions. All
-skills are namespaced under `vergil-tooling` and invoked as
-`/vergil-tooling:<skill-name>`.
+skills are namespaced under `vergil` and invoked as
+`/vergil:<skill-name>`.
 
 Each entry below covers what the skill does, when to use it, and
 its current status — including any tracked work that will
@@ -14,51 +14,52 @@ substantially change it.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [pr-workflow](#pr-workflow) | Submit a PR, wait for CI green, hand off to user; finalize after merge | Current |
-| [dependency-update](#dependency-update) | Run the dependency-update workflow | Current |
+| [implement](#implement) | USER agent: implement an issue, validate to green, hand off to the audit pair | Current (2.1) |
+| [audit](#audit) | AUDIT agent: review the change delta read-only, write the verdict | Current (2.1) |
+| [pr-watch](#pr-watch) | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
-## pr-workflow
+## implement
 
-**What it does.** Submits a PR via `vrg-submit-pr` from inside the
-issue's worktree, waits for CI to go green, fixes any agent-fixable
-red checks, and hands off to the user for review and merge. After
-the user reports the merge, runs `vrg-finalize-repo` from the
-worktree to clean up local state.
+**What it does.** USER-identity skill. Implements a GitHub issue on
+its feature branch, validates to green via `vrg-validate`, writes
+`.vergil/pr-template.yml` (the done-signal), and loops on the paired
+audit agent's `.vergil/audit-feedback.yml` verdict until approved.
 
-**When to use.** When work on a branch is complete and ready for
-review. Covers "open a PR for this branch" through "PR merged,
-clean up local state" — but the agent stops between submission
-and merge; humans review and merge feature/bugfix PRs.
+**When to use.** In the user-agent session, to take an issue from
+implementation through the point where the human opens the PR.
 
-**Status.** Current. Reflects the worktree convention and the
-fleet-wide "humans review human PRs" posture as of 2026-04-22.
-The release-workflow exception (agent merges release PRs via
-`vrg-merge-when-green`) is handled by the `vrg-publish` CLI in
-vergil-tooling, not here.
+**Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
+(`vrg-await`, etc.) at runtime.
 
-## dependency-update
+## audit
 
-**What it does.** Repeatable dependency-update workflow covering
-signal collection (security alerts, audits, planned upgrades),
-updating at sources of truth, regenerating lockfiles / exports /
-generated manifests, running validation, and progressing through
-the standard PR workflow. Includes failure handling with anchored-
-dependency records for cases where a dependency must be pinned
-below the latest acceptable range.
+**What it does.** AUDIT-identity skill. Waits on the USER agent's
+`.vergil/pr-template.yml`, reviews only the changed commits
+read-only (standards + suppression scrutiny), and writes a verdict
+to `.vergil/audit-feedback.yml` — or withholds it and alerts the
+human for an ERROR.
 
-**When to use.** When updating project dependencies — whether in
-response to a CVE, a scheduled cycle, or as part of normal
-maintenance.
+**When to use.** In the audit-agent session, paired with
+`implement` on the same issue.
 
-**Status.** Current. Rewritten as part of the skills audit
-([#114](https://github.com/vergil-project/vergil-claude-plugin/issues/114))
-with concrete per-category commands (Python deps via `uv lock`,
-CI action pins, runtime versions, doc toolchain, linters, build
-tools), `vrg-validate` as the canonical validation step,
-structured failure handling via anchored dependency records, and
-anchor review as a first-class section.
+**Status.** Current (Vergil 2.1).
+
+## pr-watch
+
+**What it does.** Identity-keyed post-PR loop, emitted by
+`vrg-submit-pr`. As USER, monitors the PR via `vrg-pr-await` and
+reconciles CI/audit/human feedback; as AUDIT, re-reviews and posts
+the `vergil-audit/approved` gate via `vrg-audit-approve`.
+
+**When to use.** Paste the emitted one-liner into both agent
+sessions after the human opens the PR.
+
+**Status.** Current (Vergil 2.1).
+
+<!-- dependency-update retired (#427): dependency updates are now a
+deterministic vergil-tooling utility, not a skill. -->
 
 ## deprecation-triage
 
@@ -116,9 +117,9 @@ Each skill is a directory under `skills/` containing:
 
 The plugin's `skills/` directory is loaded on session start. The
 skill `name` in the frontmatter plus the plugin's namespace
-(`vergil-tooling`) determines the invocation: a skill named
-`pr-workflow` in this plugin is invoked as
-`/vergil-tooling:pr-workflow`.
+(`vergil`) determines the invocation: a skill named
+`implement` in this plugin is invoked as
+`/vergil:implement`.
 
 Skills are documentation-as-config, not executable scripts. They
 tell Claude Code *how* to run a workflow; Claude Code executes

@@ -178,9 +178,8 @@ closes the issue explicitly.
 **Alternative.** Use `--linkage Ref` (or omit `--linkage` — `Ref`
 is the intended default once `vrg-submit-pr` is updated in
 `vergil-tooling`). After `vrg-finalize-repo` succeeds, close the
-issue with `gh issue close <N>`. The
-[`pr-workflow` skill](../skills/index.md#pr-workflow)'s "Close the
-issue" step documents this flow.
+issue with `gh issue close <N>` — the human-prompted finalize
+flow, run after the merge is reported.
 
 ### block-agent-merge
 
@@ -295,10 +294,8 @@ correct end of the work cycle. Finalization happens in a later
 session, after the user reports the merge. The hook would have
 fired on every correct exit, blocking the desired behavior.
 
-**What replaces it.** The
-[`pr-workflow` skill](../skills/index.md#pr-workflow)'s
-"After the merge" section documents the user-prompted finalize
-flow. The
+**What replaces it.** The user-prompted finalize flow — the human
+reports the merge, then the agent runs `vrg-finalize-repo`. The
 [`remind-finalize`](#remind-finalize) PostToolUse hook still
 emits a reminder after `vrg-submit-pr` so the agent knows to run
 `vrg-finalize-repo` once the merge is reported.
