@@ -1988,10 +1988,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pr-workflow" class="md-nav__link">
+  <a href="#implement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pr-workflow
+        implement
       
     </span>
   </a>
@@ -1999,10 +1999,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependency-update" class="md-nav__link">
+  <a href="#audit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dependency-update
+        audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pr-watch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pr-watch
       
     </span>
   </a>
@@ -2115,10 +2126,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pr-workflow" class="md-nav__link">
+  <a href="#implement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pr-workflow
+        implement
       
     </span>
   </a>
@@ -2126,10 +2137,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependency-update" class="md-nav__link">
+  <a href="#audit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dependency-update
+        audit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pr-watch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pr-watch
       
     </span>
   </a>
@@ -2190,8 +2212,8 @@
 <p>Skills are shared workflow definitions that Claude Code loads from
 the plugin. Each skill is a directory under <code>skills/</code> containing a
 <code>SKILL.md</code> file with frontmatter and structured instructions. All
-skills are namespaced under <code>vergil-tooling</code> and invoked as
-<code>/vergil-tooling:&lt;skill-name&gt;</code>.</p>
+skills are namespaced under <code>vergil</code> and invoked as
+<code>/vergil:&lt;skill-name&gt;</code>.</p>
 <p>Each entry below covers what the skill does, when to use it, and
 its current status — including any tracked work that will
 substantially change it.</p>
@@ -2206,14 +2228,19 @@ substantially change it.</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="#pr-workflow">pr-workflow</a></td>
-<td>Submit a PR, wait for CI green, hand off to user; finalize after merge</td>
-<td>Current</td>
+<td><a href="#implement">implement</a></td>
+<td>USER agent: implement an issue, validate to green, hand off to the audit pair</td>
+<td>Current (2.1)</td>
 </tr>
 <tr>
-<td><a href="#dependency-update">dependency-update</a></td>
-<td>Run the dependency-update workflow</td>
-<td>Current</td>
+<td><a href="#audit">audit</a></td>
+<td>AUDIT agent: review the change delta read-only, write the verdict</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#pr-watch">pr-watch</a></td>
+<td>Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT)</td>
+<td>Current (2.1)</td>
 </tr>
 <tr>
 <td><a href="#deprecation-triage">deprecation-triage</a></td>
@@ -2227,39 +2254,35 @@ substantially change it.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="pr-workflow">pr-workflow<a class="headerlink" href="#pr-workflow" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Submits a PR via <code>vrg-submit-pr</code> from inside the
-issue's worktree, waits for CI to go green, fixes any agent-fixable
-red checks, and hands off to the user for review and merge. After
-the user reports the merge, runs <code>vrg-finalize-repo</code> from the
-worktree to clean up local state.</p>
-<p><strong>When to use.</strong> When work on a branch is complete and ready for
-review. Covers "open a PR for this branch" through "PR merged,
-clean up local state" — but the agent stops between submission
-and merge; humans review and merge feature/bugfix PRs.</p>
-<p><strong>Status.</strong> Current. Reflects the worktree convention and the
-fleet-wide "humans review human PRs" posture as of 2026-04-22.
-The release-workflow exception (agent merges release PRs via
-<code>vrg-merge-when-green</code>) is handled by the <code>vrg-publish</code> CLI in
-vergil-tooling, not here.</p>
-<h2 id="dependency-update">dependency-update<a class="headerlink" href="#dependency-update" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Repeatable dependency-update workflow covering
-signal collection (security alerts, audits, planned upgrades),
-updating at sources of truth, regenerating lockfiles / exports /
-generated manifests, running validation, and progressing through
-the standard PR workflow. Includes failure handling with anchored-
-dependency records for cases where a dependency must be pinned
-below the latest acceptable range.</p>
-<p><strong>When to use.</strong> When updating project dependencies — whether in
-response to a CVE, a scheduled cycle, or as part of normal
-maintenance.</p>
-<p><strong>Status.</strong> Current. Rewritten as part of the skills audit
-(<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/114">#114</a>)
-with concrete per-category commands (Python deps via <code>uv lock</code>,
-CI action pins, runtime versions, doc toolchain, linters, build
-tools), <code>vrg-validate</code> as the canonical validation step,
-structured failure handling via anchored dependency records, and
-anchor review as a first-class section.</p>
+<h2 id="implement">implement<a class="headerlink" href="#implement" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
+its feature branch, validates to green via <code>vrg-validate</code>, writes
+<code>.vergil/pr-template.yml</code> (the done-signal), and loops on the paired
+audit agent's <code>.vergil/audit-feedback.yml</code> verdict until approved.</p>
+<p><strong>When to use.</strong> In the user-agent session, to take an issue from
+implementation through the point where the human opens the PR.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
+(<code>vrg-await</code>, etc.) at runtime.</p>
+<h2 id="audit">audit<a class="headerlink" href="#audit" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> AUDIT-identity skill. Waits on the USER agent's
+<code>.vergil/pr-template.yml</code>, reviews only the changed commits
+read-only (standards + suppression scrutiny), and writes a verdict
+to <code>.vergil/audit-feedback.yml</code> — or withholds it and alerts the
+human for an ERROR.</p>
+<p><strong>When to use.</strong> In the audit-agent session, paired with
+<code>implement</code> on the same issue.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1).</p>
+<h2 id="pr-watch">pr-watch<a class="headerlink" href="#pr-watch" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> Identity-keyed post-PR loop, emitted by
+<code>vrg-submit-pr</code>. As USER, monitors the PR via <code>vrg-pr-await</code> and
+reconciles CI/audit/human feedback; as AUDIT, re-reviews and posts
+the <code>vergil-audit/approved</code> gate via <code>vrg-audit-approve</code>.</p>
+<p><strong>When to use.</strong> Paste the emitted one-liner into both agent
+sessions after the human opens the PR.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1).</p>
+<!-- dependency-update retired (#427): dependency updates are now a
+deterministic vergil-tooling utility, not a skill. -->
+
 <h2 id="deprecation-triage">deprecation-triage<a class="headerlink" href="#deprecation-triage" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Applies the deprecation-warning triage policy:
 search for an existing issue matching the warning, create a
@@ -2308,9 +2331,9 @@ tracked for cleanup in
 </ul>
 <p>The plugin's <code>skills/</code> directory is loaded on session start. The
 skill <code>name</code> in the frontmatter plus the plugin's namespace
-(<code>vergil-tooling</code>) determines the invocation: a skill named
-<code>pr-workflow</code> in this plugin is invoked as
-<code>/vergil-tooling:pr-workflow</code>.</p>
+(<code>vergil</code>) determines the invocation: a skill named
+<code>implement</code> in this plugin is invoked as
+<code>/vergil:implement</code>.</p>
 <p>Skills are documentation-as-config, not executable scripts. They
 tell Claude Code <em>how</em> to run a workflow; Claude Code executes
 the flow using whatever tools the user has granted.</p>
