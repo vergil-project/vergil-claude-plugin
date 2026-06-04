@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-06-04
+
+### Bug fixes
+
+- fix MD012 in site skills catalog after dependency-update removal
+
+### Documentation
+
+- add 2.1 workflow and skill rationalization design
+- fold pushback resolutions into 2.1 design
+- add #427 plugin skill rationalization implementation plan
+- define .vergil/audit-feedback.yml channel format
+- reconcile deprecation-triage and handoff with the 2.1 model
+
+### Features
+
+- add implement skill (USER local loop)
+- add audit skill (AUDIT local loop)
+- add pr-watch skill (post-PR loop)
+
+### Refactoring
+
+- retire pr-workflow skill; repoint active refs to the 2.1 model
+- retire dependency-update skill (mechanized in vergil-tooling)
+
 ## [2.0.16] - 2026-05-28
 
 ### Chores
