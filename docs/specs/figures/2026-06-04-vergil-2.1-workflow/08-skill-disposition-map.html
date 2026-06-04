@@ -43,8 +43,8 @@
 </head>
 <body>
   <h1>Skill collection — disposition map v2 · issue #427</h1>
-  <p class="sub">Updated: dependency-update fully mechanized (drops), override is human-only, handoff is the one open call.</p>
-  <div class="tally">From 7 existing → <b>4 keep</b> · <b>2 retire</b> · <b>1 to decide</b> · plus <b>3 new</b>.</div>
+  <p class="sub">Final (post-pushback): dependency-update fully mechanized (drops), override is human-only, handoff kept as the interim recovery net.</p>
+  <div class="tally">From 7 existing → <b>5 keep</b> · <b>2 retire</b> · plus <b>3 new</b>.</div>
 
   <h2 class="sec">Existing skills</h2>
   <div class="grid">
@@ -56,10 +56,10 @@
       <div class="top"><h3>dependency-update</h3><span class="badge b-retire">retire → mechanize</span></div>
       <p>100% deterministic (even with language-support variety) ⇒ leaves the AI umbrella entirely. Becomes a mechanized <code>vergil-tooling</code> utility. No skill needed.</p>
     </div>
-    <div class="card decide">
-      <div class="top"><h3>handoff</h3><span class="badge b-decide">decide ⟶</span></div>
-      <p>Session-to-session continuity (capture/resume across reset, crash, plugin update). You suspect it's a deprecated hack.</p>
-      <p class="rec"><b>My rec: retire.</b> The new design externalizes state to durable artifacts (issue · plan · commits · <code>.vergil/</code>). Make <i>resumability a property</i> of <code>implement</code>/<code>audit</code> instead of a separate protocol. Details in chat.</p>
+    <div class="card keep">
+      <div class="top"><h3>handoff</h3><span class="badge b-keep">keep</span></div>
+      <p>Session-to-session continuity (capture/resume across reset, crash, reboot). Covers a real case the new design doesn't: a laptop reboot mid-task with unsaved agent state.</p>
+      <p class="rec" style="color:var(--ok)"><b style="color:var(--ok)">Kept</b> as the interim recovery net while <code>implement</code>/<code>audit</code> resumability stays deferred. Sits mostly unused; costs nothing to keep.</p>
     </div>
     <div class="card keep">
       <div class="top"><h3>deprecation-triage</h3><span class="badge b-keep">keep · verify</span></div>
