@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill collection — disposition map v2 (issue #427)</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --ok:#3fb37f; --err:#f5734e; --amber:#f5b942; --bus:#56d4c4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 16px;font-size:13px;max-width:840px}
+  h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:20px 0 8px;font-weight:700}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .card{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--panel);border-left:3px solid var(--line)}
+  .card.keep{border-left-color:var(--ok)}.card.retire{border-left-color:var(--err)}
+  .card.new{border-left-color:var(--user)}.card.decide{border-left-color:var(--audit)}
+  .card .top{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .card h3{margin:0;font-size:13px;font-family:monospace}
+  .badge{font-size:9px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;text-transform:uppercase;margin-left:auto}
+  .b-keep{background:rgba(63,179,127,.18);color:var(--ok)}
+  .b-retire{background:rgba(245,115,78,.18);color:var(--err)}
+  .b-new{background:rgba(78,161,245,.18);color:var(--user)}
+  .b-decide{background:rgba(176,110,245,.2);color:var(--audit)}
+  .card p{margin:0;color:var(--muted);font-size:11.5px}
+  .card p.rec{margin-top:5px;color:var(--audit);font-size:11px}.card p.rec b{color:var(--audit)}
+  .ident{font-size:9.5px;font-weight:700;color:var(--muted);font-family:monospace}
+  .card.new .ident.u{color:var(--user)}.card.new .ident.a{color:var(--audit)}.card.new .ident.k{color:var(--bus)}
+  .tools{border:1px dashed var(--bus);background:rgba(86,212,196,.05);border-radius:10px;padding:11px 14px;font-size:11.5px;color:var(--muted)}
+  .tools b{color:var(--bus)}.tools code{background:#0b0f14;padding:1px 5px;border-radius:4px;color:#cdd9e5}
+  .tools .new{color:var(--err);font-weight:700}.tools .exists{color:var(--ok);font-weight:700}
+  .principle{margin-top:16px;border-left:3px solid var(--user);background:rgba(78,161,245,.06);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:var(--muted)}
+  .principle b{color:var(--user)}
+  .tally{display:flex;gap:14px;margin:2px 0 4px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+  .tally b{color:var(--text)}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+</style>
+</head>
+<body>
+  <h1>Skill collection — disposition map v2 · issue #427</h1>
+  <p class="sub">Updated: dependency-update fully mechanized (drops), override is human-only, handoff is the one open call.</p>
+  <div class="tally">From 7 existing → <b>4 keep</b> · <b>2 retire</b> · <b>1 to decide</b> · plus <b>3 new</b>.</div>
+
+  <h2 class="sec">Existing skills</h2>
+  <div class="grid">
+    <div class="card retire">
+      <div class="top"><h3>pr-workflow</h3><span class="badge b-retire">retire → split</span></div>
+      <p>Built on the dead model (agent runs <code>vrg-submit-pr</code> end-to-end). Dissolved into <code>implement</code> / <code>pr-watch</code> + the human running submit-pr. The heart of the change.</p>
+    </div>
+    <div class="card retire">
+      <div class="top"><h3>dependency-update</h3><span class="badge b-retire">retire → mechanize</span></div>
+      <p>100% deterministic (even with language-support variety) ⇒ leaves the AI umbrella entirely. Becomes a mechanized <code>vergil-tooling</code> utility. No skill needed.</p>
+    </div>
+    <div class="card decide">
+      <div class="top"><h3>handoff</h3><span class="badge b-decide">decide ⟶</span></div>
+      <p>Session-to-session continuity (capture/resume across reset, crash, plugin update). You suspect it's a deprecated hack.</p>
+      <p class="rec"><b>My rec: retire.</b> The new design externalizes state to durable artifacts (issue · plan · commits · <code>.vergil/</code>). Make <i>resumability a property</i> of <code>implement</code>/<code>audit</code> instead of a separate protocol. Details in chat.</p>
+    </div>
+    <div class="card keep">
+      <div class="top"><h3>deprecation-triage</h3><span class="badge b-keep">keep · verify</span></div>
+      <p>Issue creation must respect the acting identity's role permissions; otherwise unaffected.</p>
+    </div>
+    <div class="card keep">
+      <div class="top"><h3>summarize</h3><span class="badge b-keep">keep</span></div>
+      <p>No boundary impact.</p>
+    </div>
+    <div class="card keep">
+      <div class="top"><h3>memory-audit</h3><span class="badge b-keep">keep</span></div>
+      <p>Human-approval gated already. Role check only.</p>
+    </div>
+    <div class="card keep">
+      <div class="top"><h3>memory-init</h3><span class="badge b-keep">keep</span></div>
+      <p>Unaffected.</p>
+    </div>
+  </div>
+
+  <h2 class="sec">New skills — each a one-liner you paste</h2>
+  <div class="grid3">
+    <div class="card new">
+      <div class="top"><h3>/vergil:implement</h3><span class="badge b-new">create</span></div>
+      <span class="ident u">USER agent · local loop</span>
+      <p>Issue → implement → validate-until-green → write <code>pr-template.yml</code> (with commit IDs) → <code>vrg-await</code> feedback → fix/loop, escalate ERROR, or done. <b>Resumable from durable state.</b></p>
+    </div>
+    <div class="card new">
+      <div class="top"><h3>/vergil:audit</h3><span class="badge b-new">create</span></div>
+      <span class="ident a">AUDIT agent · local loop</span>
+      <p>Issue + worktree → <code>vrg-await</code> template → review the delta (read-only) → write 3-category feedback / loop; ERROR ⇒ withhold + alert.</p>
+    </div>
+    <div class="card new">
+      <div class="top"><h3>/vergil:pr-watch</h3><span class="badge b-new">create</span></div>
+      <span class="ident k">identity-keyed · post-PR</span>
+      <p>Emitted by <code>vrg-submit-pr</code>; same line both paste. USER → monitor &amp; reconcile CI+audit+human → push. AUDIT → re-review &amp; post <code>vergil-audit/approved</code>.</p>
+    </div>
+  </div>
+
+  <h2 class="sec">Supporting tooling — vergil-tooling repo, not this plugin</h2>
+  <div class="tools">
+    <span class="new">NEW</span> <code>vrg-await</code> (blocking file waiter · temp+rename safe · <code>--since</code>) ·
+    <span class="new">NEW</span> <code>vrg-pr-await</code> (blocking PR-state waiter) ·
+    <span class="exists">EXISTS</span> <code>vrg-submit-pr</code> template mode — <span class="new">add</span> one-liner emission ·
+    <span class="new">NEW</span> audit <code>vergil-audit/approved</code> check-run ·
+    <span class="new">NEW</span> mechanized dependency-update utility ·
+    <span class="new">CONFIG</span> branch-protection (required checks + human bypass).
+  </div>
+
+  <div class="principle">
+    <b>Held to the principles:</b> one job per skill, ~1–2 pages, identity-aware, a clean automation seam. The old complexity is dissolved, not ported — and anything fully deterministic (dependency-update) leaves the AI entirely.
+  </div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Route B — the audit gate is just another required check</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --ok:#3fb37f; --err:#f5734e; --bus:#56d4c4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:13px;max-width:840px}
+  .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:start}
+  .pr{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .pr-h{padding:11px 15px;border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
+  .pr-h .id{font-family:monospace;font-size:11px;color:var(--muted);font-weight:400}
+  .checks{padding:8px 0}
+  .chk{display:flex;align-items:center;gap:10px;padding:8px 15px;font-size:12.5px;border-bottom:1px solid rgba(42,51,64,.5)}
+  .chk:last-child{border-bottom:none}
+  .ic{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+  .ic.ok{background:rgba(63,179,127,.2);color:var(--ok)}
+  .chk .nm{font-family:monospace;font-size:12px}
+  .chk .req{margin-left:auto;font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .chk.audit{background:rgba(176,110,245,.08)}
+  .chk.audit .nm{color:var(--audit);font-weight:700}
+  .chk .by{font-size:10.5px;color:var(--muted);margin-left:6px}
+  .merge{padding:12px 15px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .merge .btn{background:var(--ok);color:#06210f;font-weight:800;font-size:12px;padding:6px 14px;border-radius:7px}
+  .merge .lock{color:var(--ok);font-size:13px}
+  .side{display:flex;flex-direction:column;gap:14px}
+  .box{border:1px solid var(--line);border-radius:10px;padding:12px 15px}
+  .box h4{margin:0 0 7px;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .box.def{border-left:3px solid var(--audit)}.box.def h4{color:var(--audit)}
+  .box.ov{border-left:3px solid var(--human)}.box.ov h4{color:var(--human)}
+  .box.win{border-left:3px solid var(--ok)}.box.win h4{color:var(--ok)}
+  .box p,.box li{color:var(--muted);font-size:12px}.box ul{margin:0;padding-left:16px}.box li{margin:3px 0}
+  .box code{background:#0b0f14;padding:1px 6px;border-radius:4px;color:#cdd9e5;font-size:11.5px}
+  .blocked{margin-top:8px;font-size:11.5px;color:var(--err)}
+  .blocked b{color:var(--err)}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+</style>
+</head>
+<body>
+  <h1>Route B — the audit gate is just another required check</h1>
+  <p class="sub">Both identities stay GitHub Apps. The audit bot posts a <b>check-run</b>; branch protection requires it. Merge is blocked until <i>every</i> required check is green — the AI gate sitting as a peer beside the mechanized ones.</p>
+
+  <div class="wrap">
+    <div class="pr">
+      <div class="pr-h">PR #128 · feature/427-skill-rationalization <span class="id">→ develop</span></div>
+      <div class="checks">
+        <div class="chk"><span class="ic ok">✓</span><span class="nm">codeql</span><span class="req">required</span></div>
+        <div class="chk"><span class="ic ok">✓</span><span class="nm">semgrep</span><span class="req">required</span></div>
+        <div class="chk"><span class="ic ok">✓</span><span class="nm">trivy</span><span class="req">required</span></div>
+        <div class="chk"><span class="ic ok">✓</span><span class="nm">ruff · mypy · pytest</span><span class="req">required</span></div>
+        <div class="chk audit"><span class="ic ok">✓</span><span class="nm">vergil-audit / approved</span><span class="by">posted by vergil-audit[bot]</span><span class="req">required</span></div>
+      </div>
+      <div class="merge"><span class="lock">🔓</span><span class="btn">Merge pull request</span><span style="font-size:11px;color:var(--muted)">all checks green</span></div>
+    </div>
+
+    <div class="side">
+      <div class="box def">
+        <h4>The audit check</h4>
+        <p><code>vergil-audit/approved</code> is a check-run the App posts on the head commit — <b>success only when it approves</b>, failure/pending otherwise. Same act as writing <code>approve</code> to the local feedback file, now public.</p>
+        <p class="blocked"><b>No approval ⇒ check red ⇒ 🔒 merge blocked.</b> GitHub enforces it, not the bot's good behavior.</p>
+      </div>
+      <div class="box win">
+        <h4>Why B wins for us</h4>
+        <ul>
+          <li>Both bots <b>stay GitHub Apps</b> — no machine-user seat, identity model untouched.</li>
+          <li><b>Mirrors the local loop</b> exactly (write-approve → post-pass).</li>
+          <li>Findings still posted as <b>PR review comments</b> = the human-readable archive.</li>
+          <li>Standard mechanism — it's how every CI app already gates merges.</li>
+        </ul>
+      </div>
+      <div class="box ov">
+        <h4>Human override (not an agent role)</h4>
+        <p>Only a <b>human repo admin</b> can force-merge past a red audit check — a deliberate, logged act. <b>vergil-audit is a required check, not optional</b>: bypass it and you're simply not using the system as designed. The reserved admin <i>agent</i> role stays unused.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

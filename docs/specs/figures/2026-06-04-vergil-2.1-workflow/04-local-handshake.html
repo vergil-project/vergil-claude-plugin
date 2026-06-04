@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>implement↔audit — concrete example + three endings</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2a3340; --text:#e6edf3; --muted:#8b97a6;
+    --human:#f5b942; --user:#4ea1f5; --audit:#b06ef5; --share:#56d4c4; --tool:#3fb37f; --warn:#f5b942; --err:#f5734e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:24px 22px 60px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 16px;font-size:13px;max-width:820px}
+  .contract{border:1.5px solid var(--tool);background:rgba(63,179,127,.07);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--muted)}
+  .contract code{background:#0b0f14;padding:1px 6px;border-radius:4px;color:#cdd9e5}
+  .contract b{color:var(--tool)}
+  .seq{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .col-h{padding:9px 12px;font-weight:700;font-size:12.5px;text-align:center;border-bottom:1px solid var(--line);background:var(--panel)}
+  .ch-user{color:var(--user)}.ch-bus{color:var(--share)}.ch-audit{color:var(--audit)}
+  .cell{padding:9px 12px;border-bottom:1px solid var(--line);font-size:12px;min-height:44px}
+  .cell.bus{background:rgba(86,212,196,.05);border-left:1px solid var(--line);border-right:1px solid var(--line);text-align:center}
+  .n{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:var(--bg);border:1px solid var(--line);
+    font-size:10px;font-weight:700;color:var(--muted);text-align:center;line-height:17px;margin-right:5px}
+  .await{color:var(--tool);font-weight:700}.write{font-weight:600}.muted{color:var(--muted);font-size:11.5px}
+  .filev{display:inline-block;background:#0b0f14;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11px}
+  .filev code{color:#cdd9e5}.cs{color:var(--share);font-weight:700}
+  .warnt{color:var(--warn);font-weight:700}.ok{color:var(--tool);font-weight:700}
+  .ex{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .ex code{font-size:10px}
+  .endings{margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .end{border:1px solid var(--line);border-radius:10px;padding:12px 14px;border-top:3px solid var(--line)}
+  .end.ok{border-top-color:var(--tool)}.end.uerr{border-top-color:var(--err)}.end.aerr{border-top-color:var(--err)}
+  .end h4{margin:0 0 6px;font-size:12.5px}
+  .end.ok h4{color:var(--tool)}.end.uerr h4{color:var(--err)}.end.aerr h4{color:var(--err)}
+  .end p{margin:0 0 6px;color:var(--muted);font-size:11.5px}
+  .end .tag{display:inline-block;font-size:9px;font-weight:800;padding:1px 6px;border-radius:9px;margin-bottom:6px;text-transform:uppercase}
+  .t-norm{background:rgba(245,115,78,.15);color:var(--err)}
+  .t-punt{background:rgba(245,185,66,.15);color:var(--warn)}
+  .key{font-weight:700;color:var(--text)}
+  code{background:#0b0f14;padding:1px 5px;border-radius:4px;font-size:11.5px;color:#cdd9e5}
+</style>
+</head>
+<body>
+  <h1>implement ↔ audit — worked example + the three ways it ends</h1>
+  <p class="sub">The sequence below is the <b>warning→fix→approve</b> path with a real example. Immediate-approve is the same minus the loop. The two <i>other</i> endings — agent gives up, or audit declares an error — are below.</p>
+
+  <div class="contract">
+    <code>vrg-await &lt;path&gt; [--since &lt;sha256&gt;]</code> — blocks (forever, patiently) until the file <b>exists</b>, or with <code>--since</code> until its checksum <b>changes</b>. Writers use <b>temp-file + atomic rename</b> so no reader ever sees a half-written file. Prints the new <span class="cs">sha256</span>; the skill threads it back.
+  </div>
+
+  <div class="seq">
+    <div class="col-h ch-user">🤖 user agent</div>
+    <div class="col-h ch-bus">📁 .vergil/</div>
+    <div class="col-h ch-audit">🔍 audit agent</div>
+
+    <div class="cell"><span class="n">1</span>implement + ↻ validate until green<span class="ex">…but silences MyPy with <code># type: ignore</code> on <code>parse_config()</code></span></div>
+    <div class="cell bus"><span class="muted">— empty —</span></div>
+    <div class="cell"><span class="n">1</span><span class="await">vrg-await pr-template.yml</span><span class="ex">no --since · waits for existence</span></div>
+
+    <div class="cell"><span class="n">2</span><span class="write">write pr-template.yml</span> <span class="muted">(commits A,B)</span></div>
+    <div class="cell bus"><span class="filev"><code>pr-template.yml</code> <span class="cs">c1</span></span></div>
+    <div class="cell"><span class="muted">▸ await returns (<span class="cs">c1</span>)</span></div>
+
+    <div class="cell"><span class="n">4</span><span class="await">vrg-await audit-feedback.yml</span><span class="ex">notifies human: "ready — awaiting audit"</span></div>
+    <div class="cell bus"><span class="filev"><code>audit-feedback.yml</code> <span class="cs">f1</span></span><br><span class="warnt">⚠ WARNING</span><span class="ex">removable <code># type: ignore</code> — add the real return type, don't suppress MyPy</span></div>
+    <div class="cell"><span class="n">3</span>review delta → <span class="write">write feedback</span><span class="ex">notifies human: "not approved — 1 warning"</span></div>
+
+    <div class="cell"><span class="n">5</span>▸ returns (<span class="cs">f1</span>) → fix: drop the ignore, add <code>-&gt; AppConfig</code> → <span class="write">rewrite template</span><span class="ex">MyPy now passes for real</span></div>
+    <div class="cell bus"><span class="filev"><code>pr-template.yml</code> <span class="cs">c2</span></span></div>
+    <div class="cell"><span class="n">5</span><span class="await">vrg-await pr-template.yml --since <span class="cs">c1</span></span><span class="ex">fires on <span class="cs">c2</span></span></div>
+
+    <div class="cell"><span class="n">6</span><span class="await">vrg-await audit-feedback.yml --since <span class="cs">f1</span></span></div>
+    <div class="cell bus"><span class="filev"><code>audit-feedback.yml</code> <span class="cs">f2</span></span><br><span class="ok">✓ INFO: APPROVE</span><span class="ex">commits A,B signed off = audit trail</span></div>
+    <div class="cell"><span class="n">6</span>re-review → <span class="write">write feedback</span> <span class="ok">approve</span></div>
+
+    <div class="cell"><span class="n">7</span>▸ returns (<span class="cs">f2</span>) → <span class="ok">APPROVE</span> → "ready for PR" · <b>done</b></div>
+    <div class="cell bus"><span class="muted">both files present + approved</span></div>
+    <div class="cell"><span class="muted">done</span></div>
+  </div>
+
+  <h3 style="margin:22px 0 4px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Three ways the loop ends</h3>
+  <div class="endings">
+    <div class="end ok">
+      <h4>① Approve</h4>
+      <p>Immediately, or after warnings are fixed. Feedback file's INFO lists the signed-off <span class="key">commit IDs</span>. User agent tells the human it's ready for the PR.</p>
+    </div>
+    <div class="end uerr">
+      <span class="tag t-norm">normal · expected</span>
+      <h4>② User agent gives up</h4>
+      <p>"I can't get this green / I don't know what to do." The <span class="key">user agent stops and asks the human</span> — the everyday case where an agent hits a wall. Nothing exotic; you step in.</p>
+    </div>
+    <div class="end aerr">
+      <span class="tag t-punt">approval bit = punted</span>
+      <h4>③ Audit declares an ERROR</h4>
+      <p>Not a fixable warning. The audit agent <span class="key">does NOT write the feedback file</span> — it <span class="key">stops and alerts the human</span>. The user agent stays safely <span class="key">parked on its await</span> (blocking-forever is the feature). This is a <span class="key">non-human-approved exception</span> — e.g. a net-new security suppression. <span class="muted">How approval gets recorded/annotated = deferred.</span></p>
+    </div>
+  </div>
+</body>
+</html>
