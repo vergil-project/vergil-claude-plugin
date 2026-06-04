@@ -61,7 +61,6 @@ sessions after the human opens the PR.
 <!-- dependency-update retired (#427): dependency updates are now a
 deterministic vergil-tooling utility, not a skill. -->
 
-
 ## deprecation-triage
 
 **What it does.** Applies the deprecation-warning triage policy:
