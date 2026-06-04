@@ -9,11 +9,7 @@
   "plugins": [
     {
       "name": "vergil",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/vergil-project/vergil-claude-plugin.git",
-        "ref": "main"
-      },
+      "source": ".",
       "description": "Shared hooks, skills, agents, and commands for all managed repositories in the vergil-tooling ecosystem."
     }
   ]

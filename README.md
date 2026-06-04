@@ -47,7 +47,8 @@ The short version: add this to your repo's `.claude/settings.json`:
     "vergil-marketplace": {
       "source": {
         "source": "github",
-        "repo": "vergil-project/vergil-claude-plugin"
+        "repo": "vergil-project/vergil-claude-plugin",
+        "ref": "main"
       }
     }
   },
@@ -58,7 +59,10 @@ The short version: add this to your repo's `.claude/settings.json`:
 ```
 
 Commit that file. Claude Code discovers and enables the plugin on
-session start.
+session start. The `"ref": "main"` pins the marketplace to the
+**release** branch, so `marketplace update` tracks the latest
+released version (not the `develop` bleeding edge). The plugin loads
+directly from that checkout — there is no separate clone to fail.
 
 **Prerequisite:** this plugin's commands and skills shell out to
 `vrg-commit`, `vrg-submit-pr`, `vrg-finalize-repo`, and friends from
