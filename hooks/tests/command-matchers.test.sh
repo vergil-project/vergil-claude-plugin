@@ -61,6 +61,9 @@ T_NAME=(
   "rgc row 10: unbalanced quote, separator in span (accepted FP)"
   "rgc row 13: keyword position (accepted FN gap)"
   "rgc row 14: unbalanced quote, no separator"
+  "pr-create: plain invocation"
+  "pr-create: quoted body prose (#450 shape)"
+  "pr-create: gh api POST to /pulls"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -75,6 +78,9 @@ T_SCRIPT=(
   "block-raw-git-commit.sh"
   "block-raw-git-commit.sh"
   "block-raw-git-commit.sh"
+  "block-raw-gh-pr-create.sh"
+  "block-raw-gh-pr-create.sh"
+  "block-raw-gh-pr-create.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -89,12 +95,17 @@ T_COMMAND=(
   'echo "; git commit'
   'if git commit; then :; fi'
   'echo "git commit'
+  'gh pr create --title x'
+  "vrg-commit --type docs --scope x --message y --body \"docs say${NL}gh pr create is blocked\""
+  'gh api repos/o/r/pulls -X POST'
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
+  "" "" ""
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
+  "" "" ""
 )
 T_EXPECT=(
   "deny"
@@ -109,6 +120,9 @@ T_EXPECT=(
   "deny"
   "allow"
   "allow"
+  "deny"
+  "allow"
+  "deny"
 )
 
 pass=0
