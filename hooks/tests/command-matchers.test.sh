@@ -64,6 +64,10 @@ T_NAME=(
   "pr-create: plain invocation"
   "pr-create: quoted body prose (#450 shape)"
   "pr-create: gh api POST to /pulls"
+  "agent-merge: gh pr merge"
+  "agent-merge: gh pr review --approve"
+  "agent-merge: quoted body prose (#450 shape)"
+  "agent-merge: gh api PUT merge"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -81,6 +85,10 @@ T_SCRIPT=(
   "block-raw-gh-pr-create.sh"
   "block-raw-gh-pr-create.sh"
   "block-raw-gh-pr-create.sh"
+  "block-agent-merge.sh"
+  "block-agent-merge.sh"
+  "block-agent-merge.sh"
+  "block-agent-merge.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -98,14 +106,20 @@ T_COMMAND=(
   'gh pr create --title x'
   "vrg-commit --type docs --scope x --message y --body \"docs say${NL}gh pr create is blocked\""
   'gh api repos/o/r/pulls -X POST'
+  'gh pr merge 5'
+  'gh pr review 5 --approve'
+  "vrg-gh issue create --title t --body \"policy:${NL}gh pr merge 5 is forbidden\""
+  'gh api repos/o/r/pulls/5/merge -X PUT'
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
+  "" "" "" ""
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
+  "" "" "" ""
 )
 T_EXPECT=(
   "deny"
@@ -120,6 +134,10 @@ T_EXPECT=(
   "deny"
   "allow"
   "allow"
+  "deny"
+  "allow"
+  "deny"
+  "deny"
   "deny"
   "allow"
   "deny"
