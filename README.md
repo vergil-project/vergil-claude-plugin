@@ -65,7 +65,7 @@ released version (not the `develop` bleeding edge). The plugin loads
 directly from that checkout — there is no separate clone to fail.
 
 **Prerequisite:** this plugin's commands and skills shell out to
-`vrg-commit`, `vrg-submit-pr`, `vrg-finalize-repo`, and friends from
+`vrg-commit`, `vrg-submit-pr`, `vrg-await`, and friends from
 the vergil-tooling Python package. Install those on your host
 PATH first — see the Getting Started guide above.
 
@@ -131,7 +131,9 @@ for the rationale.
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-container-run`; warns on bare container-only tools |
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
-| `remind-finalize` | PostToolUse/Bash | After `vrg-submit-pr`, reminds to run `vrg-finalize-repo` |
+| `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is the human's Phase-6 action |
+| `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
+| `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
 Full reference:

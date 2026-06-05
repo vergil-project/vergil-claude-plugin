@@ -2,8 +2,9 @@
 # block-github-contents-api.sh — PreToolUse hook for Bash.
 #
 # Blocks gh api calls that write to the GitHub Contents API. File changes
-# must go through the local workflow (worktree → vrg-commit → vrg-submit-pr),
-# not bypass it via direct API writes to remote branches.
+# must go through the local workflow (worktree → vrg-commit →
+# .vergil/pr-template.yml → the human runs vrg-submit-pr), not bypass it
+# via direct API writes to remote branches.
 #
 # Only blocks write methods (PUT, POST, DELETE). GET requests (the default
 # when no method flag is present) are allowed — reading file contents is fine.
@@ -58,7 +59,7 @@ if [ "$has_contents_url" = true ] && [ "$has_write_method" = true ]; then
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Direct writes to the GitHub Contents API are blocked. File changes must go through the local workflow: edit files in your worktree, commit with vrg-commit, and submit with vrg-submit-pr. Note: vrg-gh denies gh api entirely.\n\nSee docs/specs/worktree-convention.md in vergil-tooling for the full convention."
+      permissionDecisionReason: "Direct writes to the GitHub Contents API are blocked. File changes go through the local workflow: edit files in your worktree, commit with vrg-commit, and write .vergil/pr-template.yml -- the human submits the PR with vrg-submit-pr. Note: vrg-gh denies gh api entirely.\n\nSee docs/specs/worktree-convention.md in vergil-tooling for the full convention."
     }
   }'
 else

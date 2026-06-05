@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # block-agent-merge.sh — PreToolUse hook for Bash.
-# Blocks gh pr merge and gh pr review --approve on non-release PRs.
-# Delegates branch verification to vrg-check-pr-merge.
+# Unconditionally denies gh pr merge / gh pr review --approve and the
+# equivalent gh api calls. Under the 2.1 workflow agents have no merge
+# path at all (credential-enforced); merging is the human's Phase-6
+# action via vrg-finalize-pr. This hook is the ergonomic fast-fail on
+# top of that hard credential gate.
 # Note: vrg-gh also rejects pr merge for non-escalated contexts.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
@@ -42,24 +45,10 @@ if [ "$is_merge_command" = false ]; then
   exit 0
 fi
 
-rc=0
-stderr=$(vrg-check-pr-merge "$command" 2>&1 1>/dev/null) || rc=$?
-if [ "$rc" -eq 0 ]; then
-  exit 0
-fi
-
-if [ "$rc" -eq 1 ]; then
-  reason="${stderr:-Denied by vrg-check-pr-merge (no details provided).}"
-elif [ "$rc" -eq 2 ]; then
-  reason="vrg-check-pr-merge could not determine whether this merge is allowed (exit 2). Error: ${stderr:-no details}. Resolve the tool failure before retrying."
-else
-  reason="vrg-check-pr-merge exited with unexpected code $rc. Error: ${stderr:-no details}. Cannot determine whether this merge is allowed."
-fi
-
-jq -n --arg reason "$reason" '{
+jq -n '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "deny",
-    permissionDecisionReason: $reason
+    permissionDecisionReason: "Agents never merge or approve PRs. Merging is a human action (Phase 6 of the 2.1 workflow, via vrg-finalize-pr) -- hand the PR URL to the human. This applies to all identities and all branches, release PRs included. See issue #441."
   }
 }'

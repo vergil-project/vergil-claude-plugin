@@ -168,67 +168,66 @@ individual linters.
 Fixes`, `--linkage Closes`, or `--linkage Resolves`.
 
 **Why.** These keywords auto-close the linked issue when the PR
-merges. Our workflow has a mandatory post-merge finalization phase
-(`vrg-finalize-repo`) that reconciles local state — an issue closed
-at merge time signals "done" while the local environment is stale.
-Using `Ref` linkage keeps the issue open until finalization
-confirms the work cycle is complete, at which point the agent
-closes the issue explicitly.
+merges. Under the 2.1 workflow issues are closed **explicitly by
+the human after PR finalization** (`vrg-finalize-pr`) — an issue
+closed automatically at merge time signals "done" before the human
+has confirmed the work cycle is complete. Closing is deliberately
+manual today; agents have closed issues incorrectly, so no
+automation owns it (a future close-analysis agent may).
 
-**Alternative.** Use `--linkage Ref` (or omit `--linkage` — `Ref`
-is the intended default once `vrg-submit-pr` is updated in
-`vergil-tooling`). After `vrg-finalize-repo` succeeds, close the
-issue with `gh issue close <N>` — the human-prompted finalize
-flow, run after the merge is reported.
+**Alternative.** Use `--linkage Ref`. Issue closing is the human's
+post-finalization action — not the agent's.
 
 ### block-agent-merge
 
-**What.** Denies Bash tool invocations that call `gh pr merge`
-or `gh pr review --approve` on non-release PRs.
+**What.** Denies Bash tool invocations that call `gh pr merge`,
+`gh pr review --approve`, or the equivalent `gh api` calls —
+unconditionally.
 
-**Why.** Agents must not merge feature or bugfix PRs — human
-review and merge is required. Skill prose saying "do not merge"
-is advisory; agents rationalize past it. This hook makes the
-rule mechanical. See
-[#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
-for the incident that motivated this.
+**Why.** Under the 2.1 workflow agents have no merge path at all:
+the per-VM GitHub App credentials cannot merge, and merging is the
+human's Phase-6 action (`vrg-finalize-pr`). Skill prose saying "do
+not merge" is advisory; agents rationalize past it. This hook makes
+the rule mechanical — an ergonomic fast-fail on top of the hard
+credential gate. The deny applies to **all identities** and all
+branches, release PRs included; the pre-2.1 release-branch
+allow-list (delegated to a `vrg-check-pr-merge` tool that was never
+shipped) was removed in [#441](https://github.com/vergil-project/vergil-claude-plugin/issues/441).
+See [#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
+for the original motivating incident.
 
-**How it works.** The hook delegates branch verification to
-`vrg-check-pr-merge`, which resolves the PR's head branch via the
-GitHub API and checks it against the release-workflow allow-list
-(`release/*`, `chore/bump-version-*`, and
-`chore/*-next-cycle-deps-*`). Exit codes follow the
-three-state convention
-([vergil-tooling#373](https://github.com/vergil-project/vergil-tooling/issues/373)):
-0 = allowed, 1 = denied, 2 = unknown. The unknown case still
-blocks the merge, but the reason message distinguishes "denied by
-policy" from "tool failed" so the user knows whether to investigate
-a policy question or a tooling failure.
+**Alternative.** Hand the PR URL to the human, who merges and
+finalizes via `vrg-finalize-pr`.
 
-**Alternative.** Hand off the PR URL to the user for review and
-merge. For release-workflow PRs (`release/*` and
-`chore/bump-version-*`), use `vrg-merge-when-green` from the
-`vrg-publish` CLI in vergil-tooling.
+### block-github-contents-api
+
+**What.** Denies `gh api` calls that write (PUT/POST/DELETE) to the
+GitHub Contents API. Reads (GET) are allowed.
+
+**Why.** Writing files via the API bypasses the local workflow
+entirely — no validation, no commit standards, no PR template. File
+changes go through the worktree: edit, `vrg-commit`, write
+`.vergil/pr-template.yml`; the human submits with `vrg-submit-pr`.
+(`vrg-gh` denies `gh api` outright; this hook catches raw `gh`.)
+
+**Alternative.** Make the change in your worktree and follow the
+local workflow.
 
 ## PreToolUse Hooks — Write|Edit
 
-No hooks currently active in this category.
+### block-worktree-bypass-write
+
+**What.** Blocks Write/Edit file modifications targeting the main
+worktree when the parallel-AI-agent worktree convention is active.
+
+**Why.** The main worktree is read-only by convention — all edits
+flow through a `.worktrees/<name>/` worktree on a feature branch.
+Symlinks into the main worktree are resolved best-effort and caught.
+Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
+
+**Alternative.** Write to your assigned worktree's absolute path.
 
 ## PostToolUse Hooks — Bash
-
-### remind-finalize
-
-**What.** After a successful `vrg-submit-pr` run, injects a reminder
-to run `vrg-finalize-repo` once the PR merges.
-
-**Why.** Finalization is easy to forget — the PR is created and
-attention moves elsewhere. `vrg-finalize-repo` pulls the merged
-change into local develop, deletes the merged feature branch, and
-prunes remote refs. Without it, local state diverges from remote
-and future PRs get confused.
-
-**Alternative.** Do run `vrg-finalize-repo` once the PR merges.
-There's no intent this hook blocks — it's a reminder, not a denial.
 
 ### detect-deprecation-warnings
 
@@ -287,18 +286,17 @@ on "PR submitted but `vrg-finalize-repo` not run." That hook
 (`stop-guard-finalization.sh`) was removed in
 [#56](https://github.com/vergil-project/vergil-claude-plugin/issues/56).
 
-**Why removed.** Under the current "humans review and merge
-feature/bugfix PRs" posture, the agent submits a PR, waits for
-CI green, hands off to the user, and **stops** — that's the
-correct end of the work cycle. Finalization happens in a later
-session, after the user reports the merge. The hook would have
-fired on every correct exit, blocking the desired behavior.
+**Why removed.** Under the 2.1 workflow the agent's work cycle ends
+at the PR template: it writes `.vergil/pr-template.yml` and stops —
+the **human** runs `vrg-submit-pr`, merges, and finalizes
+(`vrg-finalize-pr`). A session-end gate keyed to agent-side
+finalization has no correct trigger left.
 
-**What replaces it.** The user-prompted finalize flow — the human
-reports the merge, then the agent runs `vrg-finalize-repo`. The
-[`remind-finalize`](#remind-finalize) PostToolUse hook still
-emits a reminder after `vrg-submit-pr` so the agent knows to run
-`vrg-finalize-repo` once the merge is reported.
+**What replaces it.** Nothing needs to: submission, merge, and
+finalization are all human actions now. The retired
+`remind-finalize` PostToolUse hook (removed in #441) is gone for
+the same reason — its trigger, `vrg-submit-pr` in an agent
+session, no longer occurs.
 
 **Don't re-add this.** Re-adding a session-end finalize gate
 would block the standard PR submission workflow and force agents
