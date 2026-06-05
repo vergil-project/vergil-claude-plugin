@@ -68,6 +68,10 @@ T_NAME=(
   "agent-merge: gh pr review --approve"
   "agent-merge: quoted body prose (#450 shape)"
   "agent-merge: gh api PUT merge"
+  "host-split: wrapped host tool denied"
+  "host-split: quoted body mentioning wrapped host tool (#450 shape)"
+  "host-split: bare container tool warns"
+  "host-split: quoted body mentioning container tool (#450 shape)"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -89,6 +93,10 @@ T_SCRIPT=(
   "block-agent-merge.sh"
   "block-agent-merge.sh"
   "block-agent-merge.sh"
+  "enforce-host-container-split.sh"
+  "enforce-host-container-split.sh"
+  "enforce-host-container-split.sh"
+  "enforce-host-container-split.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -110,15 +118,21 @@ T_COMMAND=(
   'gh pr review 5 --approve'
   "vrg-gh issue create --title t --body \"policy:${NL}gh pr merge 5 is forbidden\""
   'gh api repos/o/r/pulls/5/merge -X PUT'
+  'vrg-container-run -- git status'
+  "vrg-commit --type docs --scope x --message y --body \"never do this:${NL}vrg-container-run -- gh pr list\""
+  'shellcheck hooks/scripts/lib/command-match.sh'
+  "vrg-commit --type docs --scope x --message y --body \"container tools:${NL}shellcheck runs in the container\""
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
   "" "" "" ""
+  "" "" "" ""
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
+  "" "" "" ""
   "" "" "" ""
 )
 T_EXPECT=(
@@ -141,6 +155,10 @@ T_EXPECT=(
   "deny"
   "allow"
   "deny"
+  "deny"
+  "allow"
+  "context"
+  "allow"
 )
 
 pass=0
