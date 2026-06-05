@@ -14,6 +14,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/command-match.sh"
 
 input=$(cat)
 cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
@@ -23,20 +25,21 @@ if ! is_managed_repo "$cwd"; then
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
+stripped=$(strip_quoted_segments "$command")
 
 is_merge_command=false
 
-if echo "$command" \
-     | grep -qE '(^|[;&|]\s*)gh\s+pr\s+(merge(\s|$)|review\s+.*--approve)'; then
+if echo "$stripped" \
+     | grep -qE '(^|[;&|({]\s*)gh\s+pr\s+(merge(\s|$)|review\s+.*--approve)'; then
   is_merge_command=true
 fi
 
-if echo "$command" | grep -qE 'gh\s+api\s+.*/pulls/[0-9]+/merge(\s|$)' \
+if echo "$stripped" | grep -qE 'gh\s+api\s+.*/pulls/[0-9]+/merge(\s|$)' \
   && echo "$command" | grep -qiE '(-X\s+PUT|--method\s+PUT|-XPUT)'; then
   is_merge_command=true
 fi
 
-if echo "$command" | grep -qE 'gh\s+api\s+.*/pulls/[0-9]+/reviews(\s|$)' \
+if echo "$stripped" | grep -qE 'gh\s+api\s+.*/pulls/[0-9]+/reviews(\s|$)' \
   && echo "$command" | grep -qiE '(-X\s+POST|--method\s+POST|-XPOST)'; then
   is_merge_command=true
 fi

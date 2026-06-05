@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# validate-custom — repo-local validation hook discovered by
+# vrg-validate. Runs the hook test suites under hooks/tests/.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+status=0
+for t in "$ROOT"/hooks/tests/*.test.sh; do
+	echo "Running: $t"
+	bash "$t" || status=1
+done
+exit "$status"

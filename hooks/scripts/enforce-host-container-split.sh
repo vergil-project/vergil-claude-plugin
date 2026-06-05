@@ -14,6 +14,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/host-container-tools.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/command-match.sh"
 
 input=$(cat)
 cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
@@ -23,10 +25,11 @@ if ! is_managed_repo "$cwd"; then
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
+stripped=$(strip_quoted_segments "$command")
 
 # Check for host tools wrapped in vrg-container-run -- (DENY)
 for tool in "${HOST_TOOLS[@]}"; do
-  if echo "$command" | grep -qE "(^|[;&|]\s*)vrg-container-run\s+--\s+$tool(\s|$)"; then
+  if echo "$stripped" | grep -qE "(^|[;&|({]\s*)vrg-container-run\s+--\s+$tool(\s|$)"; then
     jq -n --arg tool "$tool" '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
@@ -40,7 +43,7 @@ done
 
 # Check for container tools invoked directly (WARN)
 for tool in "${CONTAINER_TOOLS[@]}"; do
-  if echo "$command" | grep -qE "(^|[;&|]\s*)(vrg-container-run\s+--\s+)?$tool(\s|$)"; then
+  if echo "$stripped" | grep -qE "(^|[;&|({]\s*)(vrg-container-run\s+--\s+)?$tool(\s|$)"; then
     jq -n --arg tool "$tool" '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",

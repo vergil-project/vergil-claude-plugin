@@ -36,6 +36,26 @@ you're in, so the rule is universal.
 See [issue #87](https://github.com/vergil-project/vergil-claude-plugin/issues/87)
 for the rationale.
 
+## Command matching: quote-stripping
+
+Every Bash-command matcher below (except `block-heredoc`) tests
+tool names against a **quote-stripped** copy of the command string:
+single- and double-quoted spans are replaced with `""` first, then
+the tool name must appear in command position
+(`(^|[;&|({]\s*)<tool>(\s|$)`, applied per line).
+
+This is why a commit body or issue body that *mentions* a blocked
+command — even at the start of a line inside a multi-line `--body`
+argument — does not trigger a false deny, while the same text in
+command position still does.
+
+`block-heredoc` matches raw text: its regex must see the quoted
+delimiter in `<<'EOF'`, which stripping would remove.
+
+Canonical rule, accepted gaps, and the shared test vectors:
+[`docs/specs/2026-06-05-450-command-matcher-quoting-design.md`](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/specs/2026-06-05-450-command-matcher-quoting-design.md).
+See [issue #450](https://github.com/vergil-project/vergil-claude-plugin/issues/450).
+
 ## PreToolUse Hooks — Bash
 
 ### block-raw-git-commit
