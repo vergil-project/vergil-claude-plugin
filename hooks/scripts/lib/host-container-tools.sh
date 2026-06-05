@@ -10,14 +10,14 @@
 # Host-only: release/git workflow tools, thin gh/git wrappers.
 # shellcheck disable=SC2034
 HOST_TOOLS=(
-  vrg-prepare-release
+  vrg-await
   vrg-commit
-  vrg-submit-pr
-  vrg-finalize-repo
-  vrg-merge-when-green
-  vrg-wait-until-green
-  vrg-docker-run
   vrg-ensure-label
+  vrg-finalize-pr
+  vrg-pr-await
+  vrg-submit-pr
+  vrg-wait-until-green
+  vrg-container-run
   gh
   git
   git-cliff

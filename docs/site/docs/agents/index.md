@@ -21,13 +21,10 @@ code changes are made.
 2. **Branch State** — reports the current branch and warns if on a protected
    branch (`main` or `develop`)
 
-3. **Host Dispatcher** — verifies `vrg-docker-run` is available on PATH
-   (the host-side dispatcher for container-routed validation)
-
-4. **Standards and Conventions** — checks if the standards repo is available
+3. **Standards and Conventions** — checks if the standards repo is available
    locally at `../standards-and-conventions`
 
-5. **Hook Guard** — verifies `vrg-hook-guard` is available
+4. **Hook Guard** — verifies `vrg-hook-guard` is available
 
 ### Status Report
 
@@ -39,7 +36,6 @@ Repository:    <repo name>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <validation command or "not configured">
-vrg-docker-run: <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================

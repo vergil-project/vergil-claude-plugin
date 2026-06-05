@@ -77,7 +77,7 @@ vrg-submit-pr \
 - `--linkage` (optional, default: `Ref`): **always use `Ref`**.
   `Fixes`, `Closes`, and `Resolves` are forbidden — they auto-close
   the issue at merge time, bypassing finalization. Issues are closed
-  explicitly after `vrg-finalize-repo` succeeds.
+  explicitly by the human after PR finalization (`vrg-finalize-pr`).
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing
 

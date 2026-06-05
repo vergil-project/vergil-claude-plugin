@@ -61,17 +61,22 @@
             "statusMessage": "Checking worktree write target..."
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-audit-writes.sh",
+            "statusMessage": "Checking audit write allowlist..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/remind-finalize.sh",
-            "statusMessage": "Checking for PR submission..."
-          },
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-deprecation-warnings.sh",

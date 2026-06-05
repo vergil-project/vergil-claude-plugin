@@ -65,7 +65,7 @@ released version (not the `develop` bleeding edge). The plugin loads
 directly from that checkout — there is no separate clone to fail.
 
 **Prerequisite:** this plugin's commands and skills shell out to
-`vrg-commit`, `vrg-submit-pr`, `vrg-finalize-repo`, and friends from
+`vrg-commit`, `vrg-submit-pr`, `vrg-await`, and friends from
 the vergil-tooling Python package. Install those on your host
 PATH first — see the Getting Started guide above.
 
@@ -129,9 +129,12 @@ for the rationale.
 | `block-protected-branch-work` | PreToolUse/Bash | Blocks commits from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks commits on `develop`/`main` |
 | `block-heredoc` | PreToolUse/Bash | Blocks `<<EOF` in CLI args (use `--body-file` or `$(cat <file>)`) |
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
-| `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-docker-run`; warns on bare container-only tools |
+| `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-container-run`; warns on bare container-only tools |
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
-| `remind-finalize` | PostToolUse/Bash | After `vrg-submit-pr`, reminds to run `vrg-finalize-repo` |
+| `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is the human's Phase-6 action |
+| `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
+| `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active |
+| `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
 Full reference:
@@ -159,7 +162,7 @@ Full reference:
 
 | Agent | Purpose |
 |---|---|
-| `bootstrap` | Session-start preflight: repository profile, branch state, dispatcher availability, standards reference, git hooks |
+| `bootstrap` | Session-start preflight: repository profile, branch state, standards reference, hook guard availability |
 
 ## Plugin namespace
 
@@ -177,7 +180,7 @@ Example: `/vergil:implement`.
   — Python CLIs, bash validators, git hooks (consumed via PATH).
 - [`vergil-docker`](https://github.com/vergil-project/vergil-docker)
   — Dev container images (`ghcr.io/vergil-project/dev-python`, `dev-go`,
-  etc.) that `vrg-docker-run` dispatches into.
+  etc.) that `vrg-container-run` dispatches into.
 - [`vergil-actions`](https://github.com/vergil-project/vergil-actions)
   — Shared GitHub Actions composite actions consumed by CI.
 

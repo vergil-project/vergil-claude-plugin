@@ -10,3 +10,14 @@ Thumbs.db
 
 # Parallel AI agent worktrees (see CLAUDE.md)
 .worktrees/
+
+# Vergil agent workspace (2.1 spec §6; reconciliation spec §3.2)
+.vergil/
+build/
+.superpowers/
+
+# Generated docs (mkdocs default output)
+docs/site/site/
+
+# Personal Claude Code state
+.claude/settings.local.json

@@ -26,7 +26,7 @@ if echo "$command" | grep -qE 'vrg-submit-pr\b'; then
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: "Auto-close linkage keywords (Fixes, Closes, Resolves) are forbidden. Use --linkage Ref instead. Issues are closed explicitly after vrg-finalize-repo confirms the work cycle is complete. See issue #126."
+        permissionDecisionReason: "Auto-close linkage keywords (Fixes, Closes, Resolves) are forbidden. Use --linkage Ref instead. Issues are closed explicitly by the human after PR finalization -- never by merge keywords. See issue #126."
       }
     }'
     exit 0
