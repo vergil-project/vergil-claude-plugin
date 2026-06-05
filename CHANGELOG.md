@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.3] - 2026-06-05
+
+### Bug fixes
+
+- match raw-git-commit fallback against quote-stripped text
+- match pr-create tool-name predicates against stripped text
+- match agent-merge tool-name predicates against stripped text
+- match host-container-split loops against stripped text
+- match deprecation test-command predicate against stripped text
+- match protected-branch gating predicate against stripped text
+- anchor autoclose-linkage tool predicate on stripped text
+- match contents-api invocation detection against stripped text
+- match associative-array predicate against stripped text
+
+### Build
+
+- wire hook test suites into vrg-validate via validate-custom
+
+### Documentation
+
+- add command-matcher quoting design (#450)
+- fold pushback resolutions into command-matcher quoting design
+- verify canonical vectors empirically; correct table verdicts
+- add #450 matcher-quoting implementation plan
+- document quote-stripped command matching
+- link the filed vergil-tooling sub-issue in the matcher spec
+
+### Features
+
+- add shared quote-stripping helper for command matchers
+
+### Testing
+
+- add failing stripper tests for command matchers
+- add failing matcher tests encoding the canonical case table
+
 ## [2.1.2] - 2026-06-05
 
 ### Bug fixes
