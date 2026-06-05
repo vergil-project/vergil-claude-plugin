@@ -75,6 +75,9 @@ T_NAME=(
   "deprecation: pytest with warning in output"
   "deprecation: quoted body mentioning pytest (#450 shape)"
   "deprecation: pytest with clean output"
+  "protected: real commit at convention-repo root"
+  "protected: non-commit with quoted commit prose (#450 over-blocking)"
+  "protected: non-commit git operation"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -103,6 +106,9 @@ T_SCRIPT=(
   "detect-deprecation-warnings.sh"
   "detect-deprecation-warnings.sh"
   "detect-deprecation-warnings.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -131,6 +137,9 @@ T_COMMAND=(
   'pytest -q'
   "vrg-commit --type docs --scope x --message y --body \"test notes:${NL}pytest emitted warnings\""
   'pytest -q'
+  'git commit -m x'
+  "vrg-gh issue create --title t --body \"repro:${NL}git commit -m x was blocked\""
+  'git push origin HEAD'
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -138,6 +147,7 @@ T_CWD=(
   "" "" "" ""
   "" "" "" ""
   "" "" ""
+  "SCRATCH" "SCRATCH" "SCRATCH"
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -147,6 +157,7 @@ T_RESPONSE=(
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
   "2 passed"
+  "" "" ""
 )
 T_EXPECT=(
   "deny"
@@ -173,6 +184,9 @@ T_EXPECT=(
   "context"
   "allow"
   "context"
+  "allow"
+  "allow"
+  "deny"
   "allow"
   "allow"
 )
