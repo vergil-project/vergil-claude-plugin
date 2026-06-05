@@ -134,6 +134,7 @@ for the rationale.
 | `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is the human's Phase-6 action |
 | `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
 | `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active |
+| `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
 Full reference:

@@ -227,6 +227,35 @@ Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
 
 **Alternative.** Write to your assigned worktree's absolute path.
 
+### guard-audit-writes
+
+**What.** When `VRG_IDENTITY_MODE=audit`, denies Write/Edit/
+NotebookEdit calls targeting anything other than `.vergil/audit-*`
+(the audit's own artifacts) or `build/` (scratch space) inside the
+worktree. Other identities are never constrained by this hook.
+
+**Why.** The 2.1 workflow spec makes the AUDIT identity "read-only
+by discipline, not by sandbox" — this hook turns the discipline into
+a mechanical gate per the no-honor-system principle. The allowlist
+deliberately excludes `.vergil/pr-template.yml`: that file is the
+USER agent's artifact and the human's `vrg-submit-pr` input.
+
+**Soft gate, by design.** Identity comes from an environment
+variable a misbehaving agent can unset; every in-VM guard is soft.
+It steers a correctly behaving agent — hard enforcement lives at
+the per-identity GitHub App credentials, the pinned
+`vergil-audit/approved` required check, and the VM sandbox. Keeping
+the guard simple is the accepted trade-off. Bash-command writes
+(`>`, `tee`, `sed -i` …) are a documented gap for the same reason.
+
+**Failure mode.** Fail-closed inside the audit identity (no path,
+unresolvable path, or path escaping the worktree → deny);
+fail-open outside it.
+
+**Alternative.** Write audit findings to
+`.vergil/audit-feedback.yml`; use `build/` for scratch. Tests:
+`hooks/tests/guard-audit-writes.test.sh`.
+
 ## PostToolUse Hooks — Bash
 
 ### detect-deprecation-warnings
