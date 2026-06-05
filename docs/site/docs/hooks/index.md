@@ -168,18 +168,15 @@ individual linters.
 Fixes`, `--linkage Closes`, or `--linkage Resolves`.
 
 **Why.** These keywords auto-close the linked issue when the PR
-merges. Our workflow has a mandatory post-merge finalization phase
-(`vrg-finalize-repo`) that reconciles local state — an issue closed
-at merge time signals "done" while the local environment is stale.
-Using `Ref` linkage keeps the issue open until finalization
-confirms the work cycle is complete, at which point the agent
-closes the issue explicitly.
+merges. Under the 2.1 workflow issues are closed **explicitly by
+the human after PR finalization** (`vrg-finalize-pr`) — an issue
+closed automatically at merge time signals "done" before the human
+has confirmed the work cycle is complete. Closing is deliberately
+manual today; agents have closed issues incorrectly, so no
+automation owns it (a future close-analysis agent may).
 
-**Alternative.** Use `--linkage Ref` (or omit `--linkage` — `Ref`
-is the intended default once `vrg-submit-pr` is updated in
-`vergil-tooling`). After `vrg-finalize-repo` succeeds, close the
-issue with `gh issue close <N>` — the human-prompted finalize
-flow, run after the merge is reported.
+**Alternative.** Use `--linkage Ref`. Issue closing is the human's
+post-finalization action — not the agent's.
 
 ### block-agent-merge
 
