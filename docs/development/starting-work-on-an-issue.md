@@ -258,5 +258,6 @@ After the procedure completes, surface:
   any work that happens after the worktree is set up. Those are
   the responsibility of the `implement` / `audit` / `pr-watch`
   skills and the underlying `vrg-commit` / `vrg-submit-pr` tools.
-- Worktree teardown after merge. That is `vrg-finalize-repo`'s job,
-  run in the human-prompted finalize flow after the merge is reported.
+- Worktree teardown after merge. That is the human's
+  `vrg-finalize-pr` step — merge finalization and local cleanup are
+  human actions under the 2.1 workflow.

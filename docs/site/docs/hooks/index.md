@@ -215,7 +215,17 @@ local workflow.
 
 ## PreToolUse Hooks — Write|Edit
 
-No hooks currently active in this category.
+### block-worktree-bypass-write
+
+**What.** Blocks Write/Edit file modifications targeting the main
+worktree when the parallel-AI-agent worktree convention is active.
+
+**Why.** The main worktree is read-only by convention — all edits
+flow through a `.worktrees/<name>/` worktree on a feature branch.
+Symlinks into the main worktree are resolved best-effort and caught.
+Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
+
+**Alternative.** Write to your assigned worktree's absolute path.
 
 ## PostToolUse Hooks — Bash
 

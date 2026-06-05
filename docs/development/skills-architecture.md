@@ -40,6 +40,13 @@ agent or human picks up an issue.
 | B3. Submit | Push, create PR via `vrg-submit-pr`, link issue with `Fixes`/`Closes`/`Resolves`/`Ref`. Wait for CI green. **Human reviews and merges feature/bugfix PRs.** | → B4 (after merge) |
 | B4. Finalize | `vrg-finalize-repo`: pull develop, delete merged feature branch, prune worktrees and remotes. | → exit work cycle |
 
+> **Superseded (B2–B4).** The 2.1 workflow spec
+> (`docs/specs/2026-06-04-vergil-2.1-workflow-and-skill-rationalization-design.md`)
+> is the living truth for develop/submit/finalize: the agent stops at
+> `.vergil/pr-template.yml`, the human runs `vrg-submit-pr`, and
+> finalization is the human's `vrg-finalize-pr` (`vrg-finalize-repo`
+> no longer exists). This table is retained as the audit-time record.
+
 ### Lifecycle C: Release cycle
 
 Cadence: periodic (per maintainer's tempo). Trigger: enough merged
@@ -53,6 +60,10 @@ work on `develop` to justify a release.
 | C4. Confirm publish | Wait for `publish.yml` on `main` to succeed. Verify tag, develop tag, GitHub Release, package artifact, **`docs.yml`** completion (#84). | → C5 |
 | C5. Dependency refresh | Optional: Branch off develop, sweep dependencies, validate, submit via B-cycle (bare or via `dependency-update`). | → C6 |
 | C6. Close & finalize | Close the tracking issue with summary (#83). `vrg-finalize-repo`. **Tell user to run `/plugin marketplace update` → `/plugin update` → `/reload-plugins`** (#105). | → exit release cycle |
+
+> **Superseded (C1–C6).** Releases are cut via `vrg-publish`
+> (vergil-tooling); `vrg-prepare-release` and `vrg-merge-when-green`
+> no longer exist. This table is retained as the audit-time record.
 
 ### Lifecycle D: Cross-cutting
 
