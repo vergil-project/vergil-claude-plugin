@@ -4,8 +4,9 @@
 pushback-reviewed 2026-06-05, resolutions folded in) ·
 **Date:** 2026-06-05 ·
 **Issues:** [#450](https://github.com/vergil-project/vergil-claude-plugin/issues/450)
-(this repo) · vergil-tooling sub-issue to be filed for the
-`vrg-hook-guard` half (linked here once created)
+(this repo) ·
+[vergil-tooling#1443](https://github.com/vergil-project/vergil-tooling/issues/1443)
+(the `vrg-hook-guard` half)
 
 PreToolUse hook matchers scan the raw Bash command text for tool
 names. Two implementations exist — bash regexes in this repo's
