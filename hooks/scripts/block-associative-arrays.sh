@@ -10,6 +10,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/command-match.sh"
 
 input=$(cat)
 cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
@@ -19,9 +21,10 @@ if ! is_managed_repo "$cwd"; then
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
+stripped=$(strip_quoted_segments "$command")
 
 # Match declare with -A flag in any position (e.g., -A, -Ag, -rA, -gA).
-if echo "$command" | grep -qE 'declare\s+-[a-zA-Z]*A'; then
+if echo "$stripped" | grep -qE 'declare\s+-[a-zA-Z]*A'; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",

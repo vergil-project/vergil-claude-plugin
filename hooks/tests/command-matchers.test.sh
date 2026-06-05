@@ -84,6 +84,9 @@ T_NAME=(
   "contents-api: write method denied"
   "contents-api: GET allowed"
   "contents-api: quoted body citing the blocked call (#450 shape)"
+  "assoc: declare -A denied"
+  "assoc: indexed array allowed"
+  "assoc: quoted body citing the rule (#450 shape)"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -121,6 +124,9 @@ T_SCRIPT=(
   "block-github-contents-api.sh"
   "block-github-contents-api.sh"
   "block-github-contents-api.sh"
+  "block-associative-arrays.sh"
+  "block-associative-arrays.sh"
+  "block-associative-arrays.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -158,6 +164,9 @@ T_COMMAND=(
   'gh api --method PUT repos/o/r/contents/f.md'
   'gh api repos/o/r/contents/f.md'
   "vrg-commit --type docs --scope x --message y --body \"blocked example:${NL}gh api --method PUT repos/o/r/contents/f.md\""
+  'declare -A map'
+  'declare -a list'
+  "vrg-commit --type docs --scope x --message y --body \"bash policy:${NL}declare -A needs bash 4 and is blocked\""
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -166,6 +175,7 @@ T_CWD=(
   "" "" "" ""
   "" "" ""
   "SCRATCH" "SCRATCH" "SCRATCH"
+  "" "" ""
   "" "" ""
   "" "" ""
 )
@@ -177,6 +187,7 @@ T_RESPONSE=(
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
   "2 passed"
+  "" "" ""
   "" "" ""
   "" "" ""
   "" "" ""
@@ -206,6 +217,9 @@ T_EXPECT=(
   "context"
   "allow"
   "context"
+  "allow"
+  "allow"
+  "deny"
   "allow"
   "allow"
   "deny"
