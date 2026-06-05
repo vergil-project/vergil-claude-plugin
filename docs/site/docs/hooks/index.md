@@ -115,7 +115,7 @@ reference it: `--body-file /tmp/body.txt` or
 **What.** Denies Bash tool invocations that use bash 4+ associative
 arrays (`declare -A`, `typeset -A`).
 
-**Why.** The hook scripts and `vrg-docker-run` dispatcher themselves
+**Why.** The hook scripts and `vrg-container-run` dispatcher themselves
 run on the host shell, which on macOS is bash 3.2 (Apple has not
 shipped a newer bash since the GPL license change). Associative
 arrays silently fail on macOS bash 3.2, producing hard-to-debug
@@ -133,15 +133,15 @@ language-toolchain command against the canonical host-vs-container
 split from
 [#96](https://github.com/vergil-project/vergil-claude-plugin/issues/96).
 
-- **Denies** wrapping a host-only tool in `vrg-docker-run --`
-  (e.g., `vrg-docker-run -- gh issue list`). The host tool needs
+- **Denies** wrapping a host-only tool in `vrg-container-run --`
+  (e.g., `vrg-container-run -- gh issue list`). The host tool needs
   SSH-agent, host git config, or host `gh` auth — the container
   can't satisfy those.
 - **Warns** (via `additionalContext`, not deny) when a
   container-only tool is invoked directly — whether bare
-  (e.g., `ruff check .`) or wrapped in `vrg-docker-run --`.
+  (e.g., `ruff check .`) or wrapped in `vrg-container-run --`.
   Both bypass the canonical validation entry point. The correct
-  command is `vrg-docker-run -- vrg-validate`, which handles
+  command is `vrg-container-run -- vrg-validate`, which handles
   all tool routing internally.
 
 The canonical tool lists live in
@@ -154,12 +154,12 @@ being the only enforcement mechanism. Issue
 [#168](https://github.com/vergil-project/vergil-claude-plugin/issues/168)
 extended this to also catch agents bypassing the canonical
 validation entry point by calling linters directly (even correctly
-wrapped in `vrg-docker-run`). The agent should never invoke
+wrapped in `vrg-container-run`). The agent should never invoke
 individual linters — `vrg-validate` handles tool routing internally.
 
 **Alternative.** For denied commands: invoke the host tool
-directly (drop the `vrg-docker-run --` prefix). For warned
-commands: use `vrg-docker-run -- vrg-validate` instead of invoking
+directly (drop the `vrg-container-run --` prefix). For warned
+commands: use `vrg-container-run -- vrg-validate` instead of invoking
 individual linters.
 
 ### block-autoclose-linkage
