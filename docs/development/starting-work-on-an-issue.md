@@ -41,9 +41,10 @@ and you are at the repo root with a clean main worktree:
 gh issue view <N> --json number,title,state --jq '.'
 
 # 2. Decide branch type from issue context — feature is the
-#    default; use bugfix for non-urgent defect fixes; hotfix only
-#    for production-blocking issues branched from main
-TYPE=feature   # or bugfix | hotfix
+#    default; use bugfix for non-urgent defect fixes; chore for
+#    maintenance work (version bumps, migrations, tooling); hotfix
+#    only for production-blocking issues branched from main
+TYPE=feature   # or bugfix | chore | hotfix
 
 # 3. Construct a kebab-case slug from the issue title
 #    (2–4 tokens, keep the full branch name under 60 chars)
@@ -56,10 +57,10 @@ git worktree add ".worktrees/issue-${N}-${SLUG}" \
 ```
 
 Pre-warm the dev container cache for the new branch so the first
-`vrg-docker-run` invocation is fast:
+`vrg-container-run` invocation is fast:
 
 ```bash
-cd ".worktrees/issue-${N}-${SLUG}" && vrg-docker-cache build
+cd ".worktrees/issue-${N}-${SLUG}" && vrg-container-cache build
 ```
 
 Then either:
@@ -205,6 +206,7 @@ git fetch origin --quiet
 remote_branch=$(git branch -r --list \
   "origin/feature/${issue_number}-*" \
   "origin/bugfix/${issue_number}-*" \
+  "origin/chore/${issue_number}-*" \
   "origin/hotfix/${issue_number}-*" \
   | head -1 | sed 's|.*origin/||')
 ```
