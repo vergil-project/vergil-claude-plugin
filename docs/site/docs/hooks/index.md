@@ -183,32 +183,24 @@ flow, run after the merge is reported.
 
 ### block-agent-merge
 
-**What.** Denies Bash tool invocations that call `gh pr merge`
-or `gh pr review --approve` on non-release PRs.
+**What.** Denies Bash tool invocations that call `gh pr merge`,
+`gh pr review --approve`, or the equivalent `gh api` calls —
+unconditionally.
 
-**Why.** Agents must not merge feature or bugfix PRs — human
-review and merge is required. Skill prose saying "do not merge"
-is advisory; agents rationalize past it. This hook makes the
-rule mechanical. See
-[#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
-for the incident that motivated this.
+**Why.** Under the 2.1 workflow agents have no merge path at all:
+the per-VM GitHub App credentials cannot merge, and merging is the
+human's Phase-6 action (`vrg-finalize-pr`). Skill prose saying "do
+not merge" is advisory; agents rationalize past it. This hook makes
+the rule mechanical — an ergonomic fast-fail on top of the hard
+credential gate. The deny applies to **all identities** and all
+branches, release PRs included; the pre-2.1 release-branch
+allow-list (delegated to a `vrg-check-pr-merge` tool that was never
+shipped) was removed in [#441](https://github.com/vergil-project/vergil-claude-plugin/issues/441).
+See [#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
+for the original motivating incident.
 
-**How it works.** The hook delegates branch verification to
-`vrg-check-pr-merge`, which resolves the PR's head branch via the
-GitHub API and checks it against the release-workflow allow-list
-(`release/*`, `chore/bump-version-*`, and
-`chore/*-next-cycle-deps-*`). Exit codes follow the
-three-state convention
-([vergil-tooling#373](https://github.com/vergil-project/vergil-tooling/issues/373)):
-0 = allowed, 1 = denied, 2 = unknown. The unknown case still
-blocks the merge, but the reason message distinguishes "denied by
-policy" from "tool failed" so the user knows whether to investigate
-a policy question or a tooling failure.
-
-**Alternative.** Hand off the PR URL to the user for review and
-merge. For release-workflow PRs (`release/*` and
-`chore/bump-version-*`), use `vrg-merge-when-green` from the
-`vrg-publish` CLI in vergil-tooling.
+**Alternative.** Hand the PR URL to the human, who merges and
+finalizes via `vrg-finalize-pr`.
 
 ## PreToolUse Hooks — Write|Edit
 

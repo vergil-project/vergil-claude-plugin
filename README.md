@@ -131,6 +131,7 @@ for the rationale.
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-container-run`; warns on bare container-only tools |
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
+| `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is the human's Phase-6 action |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
 Full reference:
