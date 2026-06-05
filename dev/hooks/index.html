@@ -2159,6 +2159,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#guard-audit-writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        guard-audit-writes
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2519,6 +2530,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#guard-audit-writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        guard-audit-writes
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2837,6 +2859,29 @@ flow through a <code>.worktrees/&lt;name&gt;/</code> worktree on a feature branc
 Symlinks into the main worktree are resolved best-effort and caught.
 Design: <code>docs/specs/2026-05-09-worktree-write-guard-design.md</code>.</p>
 <p><strong>Alternative.</strong> Write to your assigned worktree's absolute path.</p>
+<h3 id="guard-audit-writes">guard-audit-writes<a class="headerlink" href="#guard-audit-writes" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> When <code>VRG_IDENTITY_MODE=audit</code>, denies Write/Edit/
+NotebookEdit calls targeting anything other than <code>.vergil/audit-*</code>
+(the audit's own artifacts) or <code>build/</code> (scratch space) inside the
+worktree. Other identities are never constrained by this hook.</p>
+<p><strong>Why.</strong> The 2.1 workflow spec makes the AUDIT identity "read-only
+by discipline, not by sandbox" — this hook turns the discipline into
+a mechanical gate per the no-honor-system principle. The allowlist
+deliberately excludes <code>.vergil/pr-template.yml</code>: that file is the
+USER agent's artifact and the human's <code>vrg-submit-pr</code> input.</p>
+<p><strong>Soft gate, by design.</strong> Identity comes from an environment
+variable a misbehaving agent can unset; every in-VM guard is soft.
+It steers a correctly behaving agent — hard enforcement lives at
+the per-identity GitHub App credentials, the pinned
+<code>vergil-audit/approved</code> required check, and the VM sandbox. Keeping
+the guard simple is the accepted trade-off. Bash-command writes
+(<code>&gt;</code>, <code>tee</code>, <code>sed -i</code> …) are a documented gap for the same reason.</p>
+<p><strong>Failure mode.</strong> Fail-closed inside the audit identity (no path,
+unresolvable path, or path escaping the worktree → deny);
+fail-open outside it.</p>
+<p><strong>Alternative.</strong> Write audit findings to
+<code>.vergil/audit-feedback.yml</code>; use <code>build/</code> for scratch. Tests:
+<code>hooks/tests/guard-audit-writes.test.sh</code>.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="detect-deprecation-warnings">detect-deprecation-warnings<a class="headerlink" href="#detect-deprecation-warnings" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Scans test output and command output for deprecation
