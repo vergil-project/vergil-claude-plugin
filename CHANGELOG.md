@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.2] - 2026-06-05
+
+### Bug fixes
+
+- restore host-container guard after vrg-container-run rename
+- simplify block-agent-merge to unconditional deny
+- reword autoclose-linkage rationale for the 2.1 workflow
+- contents-api deny message: template handoff, human submits
+- host tool list: drop vrg-finalize-repo, add 2.1 tools
+
+### Chores
+
+- migrate vergil pin and workflow refs to v2.1
+- gitignore agent workspace, build output, local settings
+
+### Documentation
+
+- fix stale tool names and missing chore branch type
+- add hooks/2.1 workflow reconciliation design
+- fold pushback resolutions into hooks/2.1 reconciliation design
+- record filed companion issue numbers in appendix A
+- add #441 drift-repair implementation plan
+- repoint teardown to vrg-finalize-pr; document live hooks; mark lifecycles superseded
+- add #442 audit write-guard implementation plan
+- document guard-audit-writes
+- repository-standards: issues close via human finalization
+
+### Features
+
+- add AUDIT identity write-guard
+- register guard-audit-writes for Write/Edit/NotebookEdit
+
+### Refactoring
+
+- retire remind-finalize hook
+
+### Testing
+
+- add failing table-driven tests for the audit write-guard
+
 ## [2.1.1] - 2026-06-04
 
 ### Bug fixes
