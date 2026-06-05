@@ -26,15 +26,18 @@ cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/command-match.sh"
 if ! is_managed_repo "$cwd"; then
   exit 0
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
+stripped=$(strip_quoted_segments "$command")
 
 # Only check commands that could create commits on the current branch.
 # Allow git operations that don't create commits (checkout, push, pull, etc.).
-if ! echo "$command" | grep -qE '(^|[;&|]\s*)(git\s+commit|vrg-commit)(\s|$)'; then
+if ! echo "$stripped" | grep -qE '(^|[;&|({]\s*)(git\s+commit|vrg-commit)(\s|$)'; then
   exit 0
 fi
 

@@ -11,6 +11,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/command-match.sh"
 
 input=$(cat)
 cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
@@ -24,8 +26,9 @@ if command -v vrg-hook-guard &>/dev/null; then
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
+stripped=$(strip_quoted_segments "$command")
 
-if echo "$command" | grep -qE '(^|[;&|]\s*)git\s+commit(\s|$)'; then
+if echo "$stripped" | grep -qE '(^|[;&|({]\s*)git\s+commit(\s|$)'; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
