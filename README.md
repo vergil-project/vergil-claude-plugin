@@ -65,7 +65,7 @@ released version (not the `develop` bleeding edge). The plugin loads
 directly from that checkout — there is no separate clone to fail.
 
 **Prerequisite:** this plugin's commands and skills shell out to
-`vrg-commit`, `vrg-submit-pr`, `vrg-finalize-repo`, and friends from
+`vrg-commit`, `vrg-submit-pr`, `vrg-await`, and friends from
 the vergil-tooling Python package. Install those on your host
 PATH first — see the Getting Started guide above.
 
@@ -131,7 +131,6 @@ for the rationale.
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-container-run`; warns on bare container-only tools |
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
-| `remind-finalize` | PostToolUse/Bash | After `vrg-submit-pr`, reminds to run `vrg-finalize-repo` |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
 Full reference:

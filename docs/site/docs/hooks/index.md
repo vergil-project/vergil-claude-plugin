@@ -216,20 +216,6 @@ No hooks currently active in this category.
 
 ## PostToolUse Hooks — Bash
 
-### remind-finalize
-
-**What.** After a successful `vrg-submit-pr` run, injects a reminder
-to run `vrg-finalize-repo` once the PR merges.
-
-**Why.** Finalization is easy to forget — the PR is created and
-attention moves elsewhere. `vrg-finalize-repo` pulls the merged
-change into local develop, deletes the merged feature branch, and
-prunes remote refs. Without it, local state diverges from remote
-and future PRs get confused.
-
-**Alternative.** Do run `vrg-finalize-repo` once the PR merges.
-There's no intent this hook blocks — it's a reminder, not a denial.
-
 ### detect-deprecation-warnings
 
 **What.** Scans test output and command output for deprecation
@@ -287,18 +273,17 @@ on "PR submitted but `vrg-finalize-repo` not run." That hook
 (`stop-guard-finalization.sh`) was removed in
 [#56](https://github.com/vergil-project/vergil-claude-plugin/issues/56).
 
-**Why removed.** Under the current "humans review and merge
-feature/bugfix PRs" posture, the agent submits a PR, waits for
-CI green, hands off to the user, and **stops** — that's the
-correct end of the work cycle. Finalization happens in a later
-session, after the user reports the merge. The hook would have
-fired on every correct exit, blocking the desired behavior.
+**Why removed.** Under the 2.1 workflow the agent's work cycle ends
+at the PR template: it writes `.vergil/pr-template.yml` and stops —
+the **human** runs `vrg-submit-pr`, merges, and finalizes
+(`vrg-finalize-pr`). A session-end gate keyed to agent-side
+finalization has no correct trigger left.
 
-**What replaces it.** The user-prompted finalize flow — the human
-reports the merge, then the agent runs `vrg-finalize-repo`. The
-[`remind-finalize`](#remind-finalize) PostToolUse hook still
-emits a reminder after `vrg-submit-pr` so the agent knows to run
-`vrg-finalize-repo` once the merge is reported.
+**What replaces it.** Nothing needs to: submission, merge, and
+finalization are all human actions now. The retired
+`remind-finalize` PostToolUse hook (removed in #441) is gone for
+the same reason — its trigger, `vrg-submit-pr` in an agent
+session, no longer occurs.
 
 **Don't re-add this.** Re-adding a session-end finalize gate
 would block the standard PR submission workflow and force agents
