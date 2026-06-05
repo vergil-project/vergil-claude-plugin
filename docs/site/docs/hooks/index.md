@@ -199,6 +199,20 @@ for the original motivating incident.
 **Alternative.** Hand the PR URL to the human, who merges and
 finalizes via `vrg-finalize-pr`.
 
+### block-github-contents-api
+
+**What.** Denies `gh api` calls that write (PUT/POST/DELETE) to the
+GitHub Contents API. Reads (GET) are allowed.
+
+**Why.** Writing files via the API bypasses the local workflow
+entirely — no validation, no commit standards, no PR template. File
+changes go through the worktree: edit, `vrg-commit`, write
+`.vergil/pr-template.yml`; the human submits with `vrg-submit-pr`.
+(`vrg-gh` denies `gh api` outright; this hook catches raw `gh`.)
+
+**Alternative.** Make the change in your worktree and follow the
+local workflow.
+
 ## PreToolUse Hooks — Write|Edit
 
 No hooks currently active in this category.
