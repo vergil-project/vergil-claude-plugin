@@ -13,16 +13,19 @@ cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/command-match.sh"
 if ! is_managed_repo "$cwd"; then
   exit 0
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
+stripped=$(strip_quoted_segments "$command")
 response=$(echo "$input" | jq -r '.tool_response // ""')
 
 # Only trigger after test commands
 is_test_command=false
-if echo "$command" | grep -qE '(^|[;&|]\s*)(pytest|cargo\s+test|go\s+test|bundle\s+exec\s+rspec|ruby\s+-e|rake\s+test|mvn\s+test|uv\s+run\s+pytest)(\s|$)'; then
+if echo "$stripped" | grep -qE '(^|[;&|({]\s*)(pytest|cargo\s+test|go\s+test|bundle\s+exec\s+rspec|ruby\s+-e|rake\s+test|mvn\s+test|uv\s+run\s+pytest)(\s|$)'; then
   is_test_command=true
 fi
 

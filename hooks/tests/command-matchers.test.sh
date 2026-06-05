@@ -72,6 +72,9 @@ T_NAME=(
   "host-split: quoted body mentioning wrapped host tool (#450 shape)"
   "host-split: bare container tool warns"
   "host-split: quoted body mentioning container tool (#450 shape)"
+  "deprecation: pytest with warning in output"
+  "deprecation: quoted body mentioning pytest (#450 shape)"
+  "deprecation: pytest with clean output"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -97,6 +100,9 @@ T_SCRIPT=(
   "enforce-host-container-split.sh"
   "enforce-host-container-split.sh"
   "enforce-host-container-split.sh"
+  "detect-deprecation-warnings.sh"
+  "detect-deprecation-warnings.sh"
+  "detect-deprecation-warnings.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -122,18 +128,25 @@ T_COMMAND=(
   "vrg-commit --type docs --scope x --message y --body \"never do this:${NL}vrg-container-run -- gh pr list\""
   'shellcheck hooks/scripts/lib/command-match.sh'
   "vrg-commit --type docs --scope x --message y --body \"container tools:${NL}shellcheck runs in the container\""
+  'pytest -q'
+  "vrg-commit --type docs --scope x --message y --body \"test notes:${NL}pytest emitted warnings\""
+  'pytest -q'
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
   "" "" "" ""
   "" "" "" ""
+  "" "" ""
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
   "" "" "" ""
   "" "" "" ""
+  "DeprecationWarning: old API"
+  "DeprecationWarning: old API"
+  "2 passed"
 )
 T_EXPECT=(
   "deny"
@@ -158,6 +171,9 @@ T_EXPECT=(
   "deny"
   "allow"
   "context"
+  "allow"
+  "context"
+  "allow"
   "allow"
 )
 
