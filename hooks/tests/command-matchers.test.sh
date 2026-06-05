@@ -81,6 +81,9 @@ T_NAME=(
   "autoclose: forbidden linkage keyword"
   "autoclose: Ref linkage allowed"
   "autoclose: quoted body mentioning the rule (#450 shape)"
+  "contents-api: write method denied"
+  "contents-api: GET allowed"
+  "contents-api: quoted body citing the blocked call (#450 shape)"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -115,6 +118,9 @@ T_SCRIPT=(
   "block-autoclose-linkage.sh"
   "block-autoclose-linkage.sh"
   "block-autoclose-linkage.sh"
+  "block-github-contents-api.sh"
+  "block-github-contents-api.sh"
+  "block-github-contents-api.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -149,6 +155,9 @@ T_COMMAND=(
   'vrg-submit-pr --issue 450 --linkage Fixes'
   'vrg-submit-pr --issue 450 --linkage Ref'
   "vrg-commit --type docs --scope x --message y --body \"policy reminder:${NL}vrg-submit-pr --linkage Fixes is forbidden\""
+  'gh api --method PUT repos/o/r/contents/f.md'
+  'gh api repos/o/r/contents/f.md'
+  "vrg-commit --type docs --scope x --message y --body \"blocked example:${NL}gh api --method PUT repos/o/r/contents/f.md\""
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -157,6 +166,7 @@ T_CWD=(
   "" "" "" ""
   "" "" ""
   "SCRATCH" "SCRATCH" "SCRATCH"
+  "" "" ""
   "" "" ""
 )
 T_RESPONSE=(
@@ -167,6 +177,7 @@ T_RESPONSE=(
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
   "2 passed"
+  "" "" ""
   "" "" ""
   "" "" ""
 )
@@ -195,6 +206,9 @@ T_EXPECT=(
   "context"
   "allow"
   "context"
+  "allow"
+  "allow"
+  "deny"
   "allow"
   "allow"
   "deny"
