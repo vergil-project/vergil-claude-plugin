@@ -1,6 +1,7 @@
 # Command-Matcher Quoting — Design
 
-**Status:** Design (approved in brainstorm 2026-06-05) ·
+**Status:** Design (approved in brainstorm 2026-06-05;
+pushback-reviewed 2026-06-05, resolutions folded in) ·
 **Date:** 2026-06-05 ·
 **Issues:** [#450](https://github.com/vergil-project/vergil-claude-plugin/issues/450)
 (this repo) · vergil-tooling sub-issue to be filed for the
@@ -62,16 +63,20 @@ the shell itself scans the command. This handles nesting
 ### 2.2 Command-position anchoring
 
 ```text
-(^|[;&|(]\s*)<tool>(\s|$)
+(^|[;&|({]\s*)<tool>(\s|$)
 ```
 
 Applied per line (grep's natural behavior in bash; `re.MULTILINE`
 in Python). Line starts are real command positions *after*
 stripping, because multi-line quoted arguments are gone.
 
-One deliberate hardening over the current plugin anchor: `(` joins
-the separator class so subshells — `(git …)` and `$(git …)` — are
-caught.
+Two deliberate hardenings over the current plugin anchor:
+
+- `(` joins the separator class so subshells — `(git …)` and
+  `$(git …)` — are caught.
+- `{` joins it so brace groups — `{ git commit; }` — are caught.
+  Brace expansion (`{git,x}`) cannot false-positive: no whitespace
+  follows the brace there, so `(\s|$)` does not fire.
 
 ### 2.3 Predicate classification
 
@@ -84,6 +89,12 @@ Not every predicate moves to stripped text:
   flags, `--linkage` values) → keep matching **raw** text. Their
   targets legitimately live inside quotes; stripping would create
   false negatives.
+- **Directory-extraction predicates** (the `cd <dir>` /
+  `git -C <dir>` prefix extraction in
+  `block-protected-branch-work.sh` that resolves where a commit
+  will actually run) → keep matching **raw** text. Their targets
+  are paths, which are legitimately quoted (`cd "/path with
+  space"`).
 
 ### 2.4 Accepted gaps (out of scope)
 
@@ -93,6 +104,22 @@ Documented so nobody re-litigates them later:
   level).
 - `eval` indirection.
 - Command substitution nested inside double quotes.
+- ANSI-C quoting (`$'…'`): bash allows `\'` escapes inside it, the
+  one place single-quoting permits them. The stripper ends the span
+  at the `\'`, leaving the remainder unstripped — a false-positive
+  direction only, consistent with the unbalanced-quote stance
+  (§2.1).
+- Shell keywords as command position (`if git commit; then`,
+  `do git commit`, `else git commit`): the tool name follows a
+  keyword, not a separator — a false-negative shape, not covered.
+  Extending the anchor to a keyword alternation works against the
+  one-rule-two-engines goal (§6.1).
+- The rare combination where a *real* commit command also contains
+  quoted prose matching `git -C <dir> commit`: the raw-text
+  directory extraction in `block-protected-branch-work.sh` (§2.3)
+  can mis-resolve the effective directory. The gating matcher on
+  stripped text confines this to commands that genuinely commit,
+  which makes the combination vanishingly rare.
 - The plugin scripts have no `bash -c` recheck (and never did);
   only `vrg-hook-guard` carries one (§4.3).
 
@@ -134,7 +161,7 @@ argument-content predicates on `$command`.
 | `block-agent-merge.sh` | all three predicates → stripped |
 | `enforce-host-container-split.sh` | both loop matchers → stripped |
 | `detect-deprecation-warnings.sh` | command matcher → stripped (the *output* scan for deprecation warnings is untouched) |
-| `block-protected-branch-work.sh` | inverted matcher → stripped — fixes the guard-*weakening* direction noted in #450 |
+| `block-protected-branch-work.sh` | gating matcher → stripped. Note: #450 records this as guard-*weakening*; reading the script shows the opposite — the matcher gates whether the guard applies, so a quoted-prose hit subjects *non-commit* commands to the worktree/branch check (over-blocking). The `cd`/`git -C` directory-extraction greps stay on raw text per §2.3 |
 | `block-autoclose-linkage.sh` | loose `vrg-submit-pr\b` → canonical anchor on stripped; `--linkage (Fixes\|Closes\|Resolves)` value check stays raw |
 | `block-github-contents-api.sh` | `gh api` tool-name check → stripped; contents-URL and HTTP-method checks stay raw |
 | `block-associative-arrays.sh` | `declare -A` matcher → stripped |
@@ -145,7 +172,8 @@ The last two table rows (`block-github-contents-api.sh`,
 they are the identical one-line fix and were approved in brainstorm
 to avoid leaving known instances of the defect class behind.
 
-All anchored regexes also pick up the `(` separator from §2.2.
+All anchored regexes also pick up the `(` and `{` separators from
+§2.2.
 
 ## 4. vergil-tooling changes (`vrg_hook_guard.py`)
 
@@ -157,26 +185,31 @@ handling inside double quotes).
 ### 4.2 Anchor replacement
 
 `_RAW_GIT_RE` / `_RAW_GH_RE` lookbehind `(?<![a-zA-Z0-9_-])` is
-replaced with the canonical anchor `(^|[;&|(]\s*)git(\s|$)` (resp.
+replaced with the canonical anchor `(^|[;&|({]\s*)git(\s|$)` (resp.
 `gh`) compiled with `re.MULTILINE`. This fixes the `./.git` and
 path-prefix false positives.
 
-### 4.3 `bash -c` recheck preserved — with an extended anchor
+### 4.3 `bash -c` recheck — confined to the extracted argument
 
 Today, when the stripped text contains `bash -c`, the guard
 rechecks the *raw* text because the quoted argument of `bash -c`
-*is* command text. The canonical anchor would break that recheck
-(in `bash -c "git commit"`, `git` is preceded by `"`). The recheck
-path therefore uses an extended separator class that includes quote
-characters:
+*is* command text. Rechecking the **whole** raw text, however,
+would resurrect the #450 false-positive shape for any command that
+happens to contain `bash -c` anywhere: one unrelated `bash -c`
+flips the entire command — including long quoted `--body` prose —
+back to raw matching.
 
-```text
-(^|[;&|("']\s*)<tool>(\s|$)
-```
+Instead, the recheck is confined to the text that actually is
+command text: when the stripped text matches `bash -c`, extract
+the quoted span(s) immediately following `bash -c` from the raw
+text and run the canonical §2.2 matcher against that extracted
+content only. Still crude — "the quoted string after `bash -c`",
+no parsing — consistent with decision 2.
 
-Slightly looser, but applied only to commands containing
-`bash -c`; the over-blocking surface is tiny and the alternative is
-an evasion regression.
+- `bash -c "git commit"` → extracted `git commit` → matches at
+  `^` → deny.
+- `bash -c 'true' && vrg-commit --body "…git commit prose…"` →
+  recheck sees only `true`; the body stays stripped → allow.
 
 ## 5. Error handling
 
@@ -189,45 +222,65 @@ reverting to the buggy matching.
 
 ## 6. Testing
 
-### 6.1 Plugin — `hooks/tests/command-match.test.sh`
+### 6.1 Canonical case table (shared vectors)
+
+The rule is implemented twice (jq/Oniguruma, Python `re`) — the
+exact condition under which near-identical regexes drift silently.
+Both test suites (§6.3 plugin, §6.4 tooling) **must encode this
+table verbatim**, each in its own harness, with a comment pointing
+at this section. Drift between the implementations then requires
+editing this table — a visible act.
+
+Verdicts are for the raw-`git`-invocation predicate; `⏎` marks a
+literal newline inside a quoted argument.
+
+| # | Command | Verdict | Exercises |
+| --- | --- | --- | --- |
+| 1 | `git commit -m x` | match | plain invocation |
+| 2 | `cd foo && git commit` | match | separator |
+| 3 | `$(git commit)` | match | `(` separator |
+| 4 | `{ git commit; }` | match | `{` separator |
+| 5 | `vrg-commit --body "line one⏎git commit prose"` | no match | #450 repro |
+| 6 | `find . -path ./.git -prune` | no match | position anchor |
+| 7 | `echo "git commit"` | no match | quoted span stripped |
+| 8 | `echo 'say "git commit"'` | no match | nesting |
+| 9 | `echo "he said \"git commit\""` | no match | escape handling |
+| 10 | `echo "git commit` | match | unbalanced quote — accepted FP direction (§2.1) |
+| 11 | `bash -c "git commit"` | match | recheck path — **vrg-hook-guard only** |
+| 12 | `bash -c 'true' && vrg-commit --body "git commit prose"` | no match | recheck confinement (§4.3) — **vrg-hook-guard only** |
+| 13 | `if git commit; then :; fi` | no match | keyword position — accepted gap (§2.4) |
+
+Rows 11–12 apply only to `vrg-hook-guard`; the plugin scripts have
+no `bash -c` recheck (§2.4).
+
+### 6.2 Plugin — `hooks/tests/command-match.test.sh`
 
 Table-driven (bash-3.2 parallel arrays, per the
 `guard-audit-writes.test.sh` convention), exercising
-`strip_quoted_segments` directly:
+`strip_quoted_segments` directly: the stripping-relevant §6.1
+vectors (5, 7–10) plus the empty command.
 
-- the #450 repro — multi-line `--body` with `git commit` at line
-  start → stripped text contains no `git commit`
-- escaped quotes inside double-quoted spans
-- nesting: `"don't"`, `'say "hi"'`
-- unbalanced quote → remainder unstripped (documented FP direction)
-- empty command
-
-### 6.2 Plugin — `hooks/tests/command-matchers.test.sh`
+### 6.3 Plugin — `hooks/tests/command-matchers.test.sh`
 
 Per-script allow/deny table feeding hook JSON to each of the nine
-changed scripts. Representative cases:
-
-- #450 repro payload → allow
-- plain `git commit -m x` → deny
-- `cd foo && git commit` → deny
-- `$(git commit)` → deny (new `(` separator)
-- inverted-guard case for `block-protected-branch-work.sh`: a
-  quoted-body `git commit` mention on a protected branch no longer
-  *skips* the guard
+changed scripts: the §6.1 vectors (minus 11–12) plus per-script
+cases, notably for `block-protected-branch-work.sh`: a non-commit
+command whose quoted body mentions `git commit`, run at the
+project root, is no longer denied (the over-blocking direction,
+§3.2).
 
 `block-raw-git-commit.sh` is tested with `vrg-hook-guard` masked
 from `PATH` so the fallback regex path is what runs.
 
-### 6.3 vergil-tooling — `tests/vergil_tooling/test_vrg_hook_guard.py`
+### 6.4 vergil-tooling — `tests/vergil_tooling/test_vrg_hook_guard.py`
 
-Extend the existing pytest module:
+Extend the existing pytest module: the full §6.1 table (including
+rows 11–12), plus:
 
 - `find … -path ./.git` → allow (the live regression)
-- multi-line quoted body with `git commit` at line start → allow
-- `bash -c "git commit"` → still deny (recheck path)
-- plain `git commit` / `gh pr create` → still deny
+- plain `gh pr create` → still deny
 
-### 6.4 Validation
+### 6.5 Validation
 
 `vrg-container-run -- vrg-validate` in each repo. If the hook test
 scripts are not yet wired into `vrg-validate`, wiring them in is
