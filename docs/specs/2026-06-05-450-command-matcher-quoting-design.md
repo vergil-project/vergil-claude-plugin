@@ -114,6 +114,10 @@ Documented so nobody re-litigates them later:
   keyword, not a separator — a false-negative shape, not covered.
   Extending the anchor to a keyword alternation works against the
   one-rule-two-engines goal (§6.1).
+- Trailing-punctuation adjacency: the `(\s|$)` tail means a matched
+  phrase whose final word abuts `)` or `;` with no space — e.g.
+  `$(git commit)` with no arguments — is missed. False-negative
+  shape, pre-existing, kept (real invocations carry arguments).
 - The rare combination where a *real* commit command also contains
   quoted prose matching `git -C <dir> commit`: the raw-text
   directory extraction in `block-protected-branch-work.sh` (§2.3)
@@ -238,17 +242,18 @@ literal newline inside a quoted argument.
 | --- | --- | --- | --- |
 | 1 | `git commit -m x` | match | plain invocation |
 | 2 | `cd foo && git commit` | match | separator |
-| 3 | `$(git commit)` | match | `(` separator |
-| 4 | `{ git commit; }` | match | `{` separator |
+| 3 | `x=$(git commit -m x)` | match | `(` separator |
+| 4 | `{ git commit -m x; }` | match | `{` separator |
 | 5 | `vrg-commit --body "line one⏎git commit prose"` | no match | #450 repro |
 | 6 | `find . -path ./.git -prune` | no match | position anchor |
 | 7 | `echo "git commit"` | no match | quoted span stripped |
 | 8 | `echo 'say "git commit"'` | no match | nesting |
 | 9 | `echo "he said \"git commit\""` | no match | escape handling |
-| 10 | `echo "git commit` | match | unbalanced quote — accepted FP direction (§2.1) |
+| 10 | `echo "; git commit` | match | unbalanced quote with a separator inside the span — accepted FP direction (§2.1) |
 | 11 | `bash -c "git commit"` | match | recheck path — **vrg-hook-guard only** |
 | 12 | `bash -c 'true' && vrg-commit --body "git commit prose"` | no match | recheck confinement (§4.3) — **vrg-hook-guard only** |
 | 13 | `if git commit; then :; fi` | no match | keyword position — accepted gap (§2.4) |
+| 14 | `echo "git commit` | no match | unbalanced quote; the unstripped `"` is not a separator |
 
 Rows 11–12 apply only to `vrg-hook-guard`; the plugin scripts have
 no `bash -c` recheck (§2.4).
@@ -258,7 +263,7 @@ no `bash -c` recheck (§2.4).
 Table-driven (bash-3.2 parallel arrays, per the
 `guard-audit-writes.test.sh` convention), exercising
 `strip_quoted_segments` directly: the stripping-relevant §6.1
-vectors (5, 7–10) plus the empty command.
+vectors (5, 7–10, 14) plus the empty command.
 
 ### 6.3 Plugin — `hooks/tests/command-matchers.test.sh`
 
