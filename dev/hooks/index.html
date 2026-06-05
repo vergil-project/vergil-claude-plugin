@@ -2120,6 +2120,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#block-github-contents-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        block-github-contents-api
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2134,6 +2145,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="PreToolUse Hooks — Write|Edit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#block-worktree-bypass-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        block-worktree-bypass-write
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2147,17 +2175,6 @@
   
     <nav class="md-nav" aria-label="PostToolUse Hooks — Bash">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#remind-finalize" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        remind-finalize
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#detect-deprecation-warnings" class="md-nav__link">
@@ -2463,6 +2480,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#block-github-contents-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        block-github-contents-api
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2477,6 +2505,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="PreToolUse Hooks — Write|Edit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#block-worktree-bypass-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        block-worktree-bypass-write
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2490,17 +2535,6 @@
   
     <nav class="md-nav" aria-label="PostToolUse Hooks — Bash">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#remind-finalize" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        remind-finalize
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#detect-deprecation-warnings" class="md-nav__link">
@@ -2759,54 +2793,51 @@ individual linters.</p>
 <p><strong>What.</strong> Denies <code>vrg-submit-pr</code> invocations that pass <code>--linkage
 Fixes</code>, <code>--linkage Closes</code>, or <code>--linkage Resolves</code>.</p>
 <p><strong>Why.</strong> These keywords auto-close the linked issue when the PR
-merges. Our workflow has a mandatory post-merge finalization phase
-(<code>vrg-finalize-repo</code>) that reconciles local state — an issue closed
-at merge time signals "done" while the local environment is stale.
-Using <code>Ref</code> linkage keeps the issue open until finalization
-confirms the work cycle is complete, at which point the agent
-closes the issue explicitly.</p>
-<p><strong>Alternative.</strong> Use <code>--linkage Ref</code> (or omit <code>--linkage</code> — <code>Ref</code>
-is the intended default once <code>vrg-submit-pr</code> is updated in
-<code>vergil-tooling</code>). After <code>vrg-finalize-repo</code> succeeds, close the
-issue with <code>gh issue close &lt;N&gt;</code> — the human-prompted finalize
-flow, run after the merge is reported.</p>
+merges. Under the 2.1 workflow issues are closed <strong>explicitly by
+the human after PR finalization</strong> (<code>vrg-finalize-pr</code>) — an issue
+closed automatically at merge time signals "done" before the human
+has confirmed the work cycle is complete. Closing is deliberately
+manual today; agents have closed issues incorrectly, so no
+automation owns it (a future close-analysis agent may).</p>
+<p><strong>Alternative.</strong> Use <code>--linkage Ref</code>. Issue closing is the human's
+post-finalization action — not the agent's.</p>
 <h3 id="block-agent-merge">block-agent-merge<a class="headerlink" href="#block-agent-merge" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Denies Bash tool invocations that call <code>gh pr merge</code>
-or <code>gh pr review --approve</code> on non-release PRs.</p>
-<p><strong>Why.</strong> Agents must not merge feature or bugfix PRs — human
-review and merge is required. Skill prose saying "do not merge"
-is advisory; agents rationalize past it. This hook makes the
-rule mechanical. See
-<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/162">#162</a>
-for the incident that motivated this.</p>
-<p><strong>How it works.</strong> The hook delegates branch verification to
-<code>vrg-check-pr-merge</code>, which resolves the PR's head branch via the
-GitHub API and checks it against the release-workflow allow-list
-(<code>release/*</code>, <code>chore/bump-version-*</code>, and
-<code>chore/*-next-cycle-deps-*</code>). Exit codes follow the
-three-state convention
-(<a href="https://github.com/vergil-project/vergil-tooling/issues/373">vergil-tooling#373</a>):
-0 = allowed, 1 = denied, 2 = unknown. The unknown case still
-blocks the merge, but the reason message distinguishes "denied by
-policy" from "tool failed" so the user knows whether to investigate
-a policy question or a tooling failure.</p>
-<p><strong>Alternative.</strong> Hand off the PR URL to the user for review and
-merge. For release-workflow PRs (<code>release/*</code> and
-<code>chore/bump-version-*</code>), use <code>vrg-merge-when-green</code> from the
-<code>vrg-publish</code> CLI in vergil-tooling.</p>
+<p><strong>What.</strong> Denies Bash tool invocations that call <code>gh pr merge</code>,
+<code>gh pr review --approve</code>, or the equivalent <code>gh api</code> calls —
+unconditionally.</p>
+<p><strong>Why.</strong> Under the 2.1 workflow agents have no merge path at all:
+the per-VM GitHub App credentials cannot merge, and merging is the
+human's Phase-6 action (<code>vrg-finalize-pr</code>). Skill prose saying "do
+not merge" is advisory; agents rationalize past it. This hook makes
+the rule mechanical — an ergonomic fast-fail on top of the hard
+credential gate. The deny applies to <strong>all identities</strong> and all
+branches, release PRs included; the pre-2.1 release-branch
+allow-list (delegated to a <code>vrg-check-pr-merge</code> tool that was never
+shipped) was removed in <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/441">#441</a>.
+See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/162">#162</a>
+for the original motivating incident.</p>
+<p><strong>Alternative.</strong> Hand the PR URL to the human, who merges and
+finalizes via <code>vrg-finalize-pr</code>.</p>
+<h3 id="block-github-contents-api">block-github-contents-api<a class="headerlink" href="#block-github-contents-api" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Denies <code>gh api</code> calls that write (PUT/POST/DELETE) to the
+GitHub Contents API. Reads (GET) are allowed.</p>
+<p><strong>Why.</strong> Writing files via the API bypasses the local workflow
+entirely — no validation, no commit standards, no PR template. File
+changes go through the worktree: edit, <code>vrg-commit</code>, write
+<code>.vergil/pr-template.yml</code>; the human submits with <code>vrg-submit-pr</code>.
+(<code>vrg-gh</code> denies <code>gh api</code> outright; this hook catches raw <code>gh</code>.)</p>
+<p><strong>Alternative.</strong> Make the change in your worktree and follow the
+local workflow.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
-<p>No hooks currently active in this category.</p>
+<h3 id="block-worktree-bypass-write">block-worktree-bypass-write<a class="headerlink" href="#block-worktree-bypass-write" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Blocks Write/Edit file modifications targeting the main
+worktree when the parallel-AI-agent worktree convention is active.</p>
+<p><strong>Why.</strong> The main worktree is read-only by convention — all edits
+flow through a <code>.worktrees/&lt;name&gt;/</code> worktree on a feature branch.
+Symlinks into the main worktree are resolved best-effort and caught.
+Design: <code>docs/specs/2026-05-09-worktree-write-guard-design.md</code>.</p>
+<p><strong>Alternative.</strong> Write to your assigned worktree's absolute path.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
-<h3 id="remind-finalize">remind-finalize<a class="headerlink" href="#remind-finalize" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> After a successful <code>vrg-submit-pr</code> run, injects a reminder
-to run <code>vrg-finalize-repo</code> once the PR merges.</p>
-<p><strong>Why.</strong> Finalization is easy to forget — the PR is created and
-attention moves elsewhere. <code>vrg-finalize-repo</code> pulls the merged
-change into local develop, deletes the merged feature branch, and
-prunes remote refs. Without it, local state diverges from remote
-and future PRs get confused.</p>
-<p><strong>Alternative.</strong> Do run <code>vrg-finalize-repo</code> once the PR merges.
-There's no intent this hook blocks — it's a reminder, not a denial.</p>
 <h3 id="detect-deprecation-warnings">detect-deprecation-warnings<a class="headerlink" href="#detect-deprecation-warnings" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Scans test output and command output for deprecation
 warnings; surfaces them to the agent for triage.</p>
@@ -2852,17 +2883,16 @@ is intentional.</p>
 on "PR submitted but <code>vrg-finalize-repo</code> not run." That hook
 (<code>stop-guard-finalization.sh</code>) was removed in
 <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/56">#56</a>.</p>
-<p><strong>Why removed.</strong> Under the current "humans review and merge
-feature/bugfix PRs" posture, the agent submits a PR, waits for
-CI green, hands off to the user, and <strong>stops</strong> — that's the
-correct end of the work cycle. Finalization happens in a later
-session, after the user reports the merge. The hook would have
-fired on every correct exit, blocking the desired behavior.</p>
-<p><strong>What replaces it.</strong> The user-prompted finalize flow — the human
-reports the merge, then the agent runs <code>vrg-finalize-repo</code>. The
-<a href="#remind-finalize"><code>remind-finalize</code></a> PostToolUse hook still
-emits a reminder after <code>vrg-submit-pr</code> so the agent knows to run
-<code>vrg-finalize-repo</code> once the merge is reported.</p>
+<p><strong>Why removed.</strong> Under the 2.1 workflow the agent's work cycle ends
+at the PR template: it writes <code>.vergil/pr-template.yml</code> and stops —
+the <strong>human</strong> runs <code>vrg-submit-pr</code>, merges, and finalizes
+(<code>vrg-finalize-pr</code>). A session-end gate keyed to agent-side
+finalization has no correct trigger left.</p>
+<p><strong>What replaces it.</strong> Nothing needs to: submission, merge, and
+finalization are all human actions now. The retired
+<code>remind-finalize</code> PostToolUse hook (removed in #441) is gone for
+the same reason — its trigger, <code>vrg-submit-pr</code> in an agent
+session, no longer occurs.</p>
 <p><strong>Don't re-add this.</strong> Re-adding a session-end finalize gate
 would block the standard PR submission workflow and force agents
 into broken cleanup behavior just to satisfy the hook.</p>
