@@ -78,6 +78,9 @@ T_NAME=(
   "protected: real commit at convention-repo root"
   "protected: non-commit with quoted commit prose (#450 over-blocking)"
   "protected: non-commit git operation"
+  "autoclose: forbidden linkage keyword"
+  "autoclose: Ref linkage allowed"
+  "autoclose: quoted body mentioning the rule (#450 shape)"
 )
 T_SCRIPT=(
   "block-raw-git-commit.sh"
@@ -109,6 +112,9 @@ T_SCRIPT=(
   "block-protected-branch-work.sh"
   "block-protected-branch-work.sh"
   "block-protected-branch-work.sh"
+  "block-autoclose-linkage.sh"
+  "block-autoclose-linkage.sh"
+  "block-autoclose-linkage.sh"
 )
 T_COMMAND=(
   'git commit -m x'
@@ -140,6 +146,9 @@ T_COMMAND=(
   'git commit -m x'
   "vrg-gh issue create --title t --body \"repro:${NL}git commit -m x was blocked\""
   'git push origin HEAD'
+  'vrg-submit-pr --issue 450 --linkage Fixes'
+  'vrg-submit-pr --issue 450 --linkage Ref'
+  "vrg-commit --type docs --scope x --message y --body \"policy reminder:${NL}vrg-submit-pr --linkage Fixes is forbidden\""
 )
 T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -148,6 +157,7 @@ T_CWD=(
   "" "" "" ""
   "" "" ""
   "SCRATCH" "SCRATCH" "SCRATCH"
+  "" "" ""
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -157,6 +167,7 @@ T_RESPONSE=(
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
   "2 passed"
+  "" "" ""
   "" "" ""
 )
 T_EXPECT=(
@@ -184,6 +195,9 @@ T_EXPECT=(
   "context"
   "allow"
   "context"
+  "allow"
+  "allow"
+  "deny"
   "allow"
   "allow"
   "deny"
