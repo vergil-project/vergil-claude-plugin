@@ -2051,6 +2051,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#command-matching-quote-stripping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command matching: quote-stripping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pretooluse-hooks-bash" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2422,6 +2433,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#command-matching-quote-stripping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command matching: quote-stripping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pretooluse-hooks-bash" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2741,6 +2763,21 @@ CLI invocations breaks unpredictably regardless of which repo
 you're in, so the rule is universal.</p>
 <p>See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/87">issue #87</a>
 for the rationale.</p>
+<h2 id="command-matching-quote-stripping">Command matching: quote-stripping<a class="headerlink" href="#command-matching-quote-stripping" title="Permanent link">&para;</a></h2>
+<p>Every Bash-command matcher below (except <code>block-heredoc</code>) tests
+tool names against a <strong>quote-stripped</strong> copy of the command string:
+single- and double-quoted spans are replaced with <code>""</code> first, then
+the tool name must appear in command position
+(<code>(^|[;&amp;|({]\s*)&lt;tool&gt;(\s|$)</code>, applied per line).</p>
+<p>This is why a commit body or issue body that <em>mentions</em> a blocked
+command — even at the start of a line inside a multi-line <code>--body</code>
+argument — does not trigger a false deny, while the same text in
+command position still does.</p>
+<p><code>block-heredoc</code> matches raw text: its regex must see the quoted
+delimiter in <code>&lt;&lt;'EOF'</code>, which stripping would remove.</p>
+<p>Canonical rule, accepted gaps, and the shared test vectors:
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/specs/2026-06-05-450-command-matcher-quoting-design.md"><code>docs/specs/2026-06-05-450-command-matcher-quoting-design.md</code></a>.
+See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/450">issue #450</a>.</p>
 <h2 id="pretooluse-hooks-bash">PreToolUse Hooks — Bash<a class="headerlink" href="#pretooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="block-raw-git-commit">block-raw-git-commit<a class="headerlink" href="#block-raw-git-commit" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that call <code>git commit</code> (or
