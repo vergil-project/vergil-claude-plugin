@@ -1,55 +1,70 @@
 ---
 name: audit
-description: AUDIT-identity skill — review the delta of a paired USER agent's branch read-only, and write the .vergil audit verdict. Never edits code. Run as the vergil-audit agent.
+description: AUDIT-identity skill — review a paired USER agent's delta read-only by running one judgment check per round-trip via vrg-pr-workflow, and report each verdict. Never edits code. Run as the vergil-audit agent.
 ---
 
 # Audit
 
-Drive the AUDIT half of the implement+audit pair (design spec §5, §7). Input: the
-same issue handed to the USER agent. You share the USER agent's worktree on the
-host mount.
+Drive the AUDIT half of the local PR workflow. You stay **dumb**: the
+`vrg-pr-workflow` oracle hands you one judgment check at a time and owns the
+workflow. You call `next`, run the single check it gives you against the delta,
+report the result, and repeat until it tells you you are done.
 
 ## Preflight
 
-1. Confirm identity: this runs in the **AUDIT** session. If `VRG_IDENTITY_MODE`
-   is `user` or `human`, stop.
-2. **You are read-only by discipline.** You have write access to the worktree
-   but MUST touch nothing except `.vergil/audit-feedback.yml`. Never edit code,
-   never commit, never push.
+1. Confirm you are the **AUDIT** agent: `vrg-whoami --mode` must print `audit`.
+   If not, stop.
+2. You share the USER agent's worktree on the host mount. **You are read-only by
+   discipline:** never edit code, never commit, never push. You report verdicts
+   only through `vrg-pr-workflow`.
 
-## Loop
+## The loop
 
-1. **Await the done-signal:**
+Start (and re-enter) the loop with:
 
-   ```bash
-   vrg-await .vergil/pr-template.yml            # first round
-   vrg-await .vergil/pr-template.yml --since <prev-digest>   # later rounds
+```bash
+vrg-pr-workflow next --issue <N>      # --issue required only on the first call
+```
+
+`next` blocks until it is your turn, then prints **one** directive as JSON for a
+single check:
+
+- `check` — the check id.
+- `prompt` — the full instructions for performing that check (inlined).
+- `range` — the cumulative delta to review (`<base>..<head>`).
+- `then: { verb: "submit-check", schema: "check.v1" }`.
+
+Do this, then call `next` again:
+
+1. Read the `prompt`. Perform **only** that one check against the `range`
+   (`vrg-git diff <range>`, `vrg-git log <range>`, read files as needed).
+2. Produce the `check.v1` JSON the prompt asks for and write it to a temp file:
+
+   ```json
+   { "id": "<check>", "status": "pass" | "fail" | "escalate",
+     "findings": [ { "file": "<path>", "line": 1, "severity": "warning", "note": "<…>" } ],
+     "reason": "<why a human is needed, if escalate>" }
    ```
 
-   Thread the printed digest as `--since` on later rounds.
-2. **Compute the delta:** the commits on this branch not in its base
-   (`vrg-git log --oneline origin/develop..HEAD` and
-   `vrg-git diff origin/develop...HEAD`). Review **only** these changes.
-3. **Review** (start simple — design §7.1):
-   - Coding-standards compliance — docstrings on *production* code (tests
-     exempt), naming, structure.
-   - **Suppression scrutiny** — flag net-new `# type: ignore`, `# noqa`,
-     `# nosec`, or broad `pyproject.toml` ignores. If removable without hurting
-     integrity, require the real fix (strong stance on type hints).
-4. **Write the verdict** to `.vergil/audit-feedback.yml` atomically (write
-   `.tmp`, then `mv`), per
-   `docs/specs/figures/2026-06-04-vergil-2.1-workflow/audit-feedback-format.md`:
-   - Clean → `verdict: approve` with the reviewed `commits`.
-   - Fixable issues → `verdict: changes` with one `findings` entry each.
-   - **ERROR** — a *newly introduced* suppression (requires human sign-off) or
-     anything you judge can't be auto-fixed: **do NOT write the file.** Print a
-     clear alert to the human describing the issue, and stop. The USER agent
-     stays parked.
-5. If you wrote `changes`, loop to step 1 (`--since`) to re-review the USER
-   agent's next commit. End when you write `approve` (or escalate an ERROR).
+3. Submit it:
+
+   ```bash
+   vrg-pr-workflow submit-check --payload <temp-file>
+   ```
+
+The oracle hands you the next check, or — once every check for the round is in —
+rolls up and hands control back to the USER. When the workflow is approved,
+`next` returns `{ "done": true, ... }`; stop.
+
+If `next` **errors** (the counterpart aborted), or you cannot proceed at all,
+surface it to the human and stop. Do not loop. (A single check that *needs* a
+human is reported as that check's `status: "escalate"` with a `reason` — not by
+giving up.)
 
 ## Notes
 
-- This is the **pre-PR** half. Posting the `vergil-audit/approved` merge check
-  happens later, on the PR, via `/vergil:pr-watch` (which calls
-  `vrg-audit-approve`). This skill never touches the PR.
+- The CLI resolves your role from `vrg-whoami` — never pass `--as`.
+- One check per round-trip keeps your working set small; you never hold all the
+  checks at once.
+- Posting the `vergil-audit/approved` merge check happens later, on the PR (the
+  post-PR phase), not here.
