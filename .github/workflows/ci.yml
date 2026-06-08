@@ -59,6 +59,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      # Requested by ci-security.yml@v2.1.3: codeql-action/upload-sarif
+      # needs it on private repos. See vergil-project/vergil-actions#698.
+      actions: read
 
   version:
     uses: vergil-project/vergil-actions/.github/workflows/ci-version-bump.yml@v2.1
