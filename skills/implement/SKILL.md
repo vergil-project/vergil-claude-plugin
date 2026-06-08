@@ -27,13 +27,42 @@ Drive the USER half of the Vergil 2.1 implement+audit pair (design spec
    the audit will reject that.
 3. **Write the PR template = the "done" signal.** Write
    `.vergil/pr-template.yml` atomically (write `.vergil/pr-template.yml.tmp`,
-   then `mv` it into place) with:
+   then `mv` it into place).
+
+   **Fields.** `summary` and `notes` are rendered **verbatim as single
+   bullets** in the PR body (the renderer emits `- {summary}` and
+   `- {notes}`) — write each as a substantive, self-contained sentence
+   describing the change and its rationale, not a stub or placeholder.
+
+   | Field     | Required | Rendered as                                       |
+   | --------- | -------- | ------------------------------------------------- |
+   | `issue`   | yes      | issue linkage (`<N>` or cross-repo `owner/repo#<N>`) |
+   | `title`   | yes      | the PR title (conventional-commit form)           |
+   | `summary` | yes      | one bullet under `## Summary`                     |
+   | `linkage` | no       | defaults to `Ref` — and `Ref` is the only allowed value (auto-close keywords `Closes`/`Fixes`/`Resolves` are banned repo-wide). Omit it unless you have a reason to set it. |
+   | `notes`   | no       | one bullet under `## Notes`                       |
+
+   **Supported YAML subset.** The template parser is a deliberately minimal
+   subset — **not** a full YAML parser. It supports only:
+   - flat `key: value` scalars (optionally wrapped in matching `'`/`"`
+     quotes, which are stripped);
+   - `key: |` literal blocks for genuinely multi-line values (continuation
+     lines indented two spaces).
+
+   It does **not** support folded scalars (`>`, `>-`) or nested mappings. A
+   bare `>-` or `>` is taken literally as the value and silently corrupts the
+   PR body — never use them. Keep `summary` and `notes` on one line each, or
+   use a `|` literal block.
+
+   **Worked example** (real content, not placeholders):
 
    ```yaml
-   issue: <N>
-   title: <conventional PR title>
-   summary: <one line>
-   notes: <optional>
+   issue: 458
+   title: "docs(implement): clarify pr-template fields and supported YAML"
+   summary: Document the pr-template field semantics and the parser's supported YAML subset so an agent stops producing a template that passes validation but renders a broken PR body.
+   notes: |
+     summary/notes render verbatim as single bullets; folded scalars
+     (>-, >) are unsupported and silently corrupt the body.
    ```
 
    Its appearance tells the paired audit agent you are done. (`vrg-submit-pr`
