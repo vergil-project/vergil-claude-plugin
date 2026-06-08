@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v2.0.8/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v2.0.5/">
+        <link rel="next" href="../v2.1.4/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>2.0.6 - Standard Tooling Plugin</title>
+        <title>2.1.5 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-206-2026-05-19" class="md-skip">
+        <a href="#release-215-2026-06-08" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              2.0.6
+              2.1.5
             
           </span>
         </div>
@@ -662,10 +662,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.5/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.5
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -681,6 +708,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1110,37 +1168,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2.0.6
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v2.0.6/" class="md-nav__link">
         
   
   
@@ -1156,48 +1187,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#chores" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chores
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2250,21 +2239,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
+  <a href="#features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#chores" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chores
+        Features
       
     </span>
   </a>
@@ -2288,17 +2266,17 @@
 
 
 
-<h1 id="release-206-2026-05-19">Release 2.0.6 (2026-05-19)<a class="headerlink" href="#release-206-2026-05-19" title="Permanent link">&para;</a></h1>
-<h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h1 id="release-215-2026-06-08">Release 2.1.5 (2026-06-08)<a class="headerlink" href="#release-215-2026-06-08" title="Permanent link">&para;</a></h1>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>replace stale gh auth token preflight with vrg-gh credential model</strong>
-vrg-gh resolves credentials internally via gh auth status/token. The old preflight tried to run gh auth token directly, which is denied by the vrg-gh wrapper. Replace with a lightweight vrg-gh command to verify auth is functional.</li>
+<li><strong>add issue-implement and issue-audit oracle-loop skills (#464)</strong></li>
+<li>feat(skills): rewrite implement and audit skills to drive the vrg-pr-workflow oracle</li>
 </ul>
-<h2 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h2>
+<p>Both skills collapse to the dumb oracle loop: call vrg-pr-workflow next, do exactly what the one directive says, report through the named verb, repeat until DONE. implement (USER): next -&gt; implement -&gt; report-ready; next -&gt; fix findings -&gt; report-fixes; next -&gt; approved -&gt; tell the human to run vrg-submit-pr; supports --no-audit for fast CI-backstopped work. audit (AUDIT): next -&gt; one check (prompt inlined) -&gt; run it against the delta -&gt; submit-check; repeat per check; next -&gt; DONE when approved. Role is resolved from vrg-whoami (no --as). Replaces the hand-rolled pr-template.yml + audit-feedback.yml handshake. Depends on vergil-project/vergil-tooling#1544.</p>
 <ul>
-<li><strong>bump version to 2.0.6</strong></li>
-<li><strong>remove co-authors section, normalize vergil dep to v2.0</strong></li>
+<li>feat(skills): add issue-implement/issue-audit; keep legacy implement/audit for rollback</li>
 </ul>
+<p>Move the oracle-loop rewrite into two new skills, issue-implement and issue-audit (the issue/pre-PR phase, mirroring the pr-* post-PR skills), and restore the legacy implement and audit skills to their original content. The legacy implement writes .vergil/pr-template.yml, so a published plugin works across the patch-level boundary: if the new vrg-submit-pr state-file path breaks, roll vergil-tooling back a patch and keep working with /vergil:implement, then roll forward. pr-watch is unchanged (identity-sensitive).</p>
 
 
 
