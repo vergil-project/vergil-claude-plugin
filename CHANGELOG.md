@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.6] - 2026-06-09
+
+### Documentation
+
+- add dual-agent audit test kit design (vergil-tooling#1563) (#468)
+- add dual-agent audit test runbook (vergil-tooling#1563) (#470)
+
+### Features
+
+- sequential handshake: issue-audit takes a worktree path; transparent loops (vergil-tooling#1572) (#469)
+
 ## [2.1.5] - 2026-06-08
 
 ### Features
