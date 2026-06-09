@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v2.0.6/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v2.0.4/">
+        <link rel="next" href="../v2.1.5/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>2.0.5 - Standard Tooling Plugin</title>
+        <title>2.1.6 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-205-2026-05-18" class="md-skip">
+        <a href="#release-216-2026-06-09" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              2.0.5
+              2.1.6
             
           </span>
         </div>
@@ -664,10 +664,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.6/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.6
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -683,6 +710,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1168,37 +1237,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2.0.5
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v2.0.5/" class="md-nav__link">
         
   
   
@@ -1214,48 +1256,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#chores" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chores
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2280,10 +2280,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#chores" class="md-nav__link">
+  <a href="#documentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Chores
+        Documentation
       
     </span>
   </a>
@@ -2318,28 +2318,22 @@
 
 
 
-<h1 id="release-205-2026-05-18">Release 2.0.5 (2026-05-18)<a class="headerlink" href="#release-205-2026-05-18" title="Permanent link">&para;</a></h1>
-<h2 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h2>
+<h1 id="release-216-2026-06-09">Release 2.1.6 (2026-06-09)<a class="headerlink" href="#release-216-2026-06-09" title="Permanent link">&para;</a></h1>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>bump version to 2.0.5</strong></li>
 <li>
-<p><strong>add GPL-3 LICENSE file</strong>
-GitHub does not inherit LICENSE files from the org-level .github repo. Each repo must have its own for the license badge to display and for CONTRIBUTING.md to reference a unified license.</p>
+<p><strong>add dual-agent audit test kit design (vergil-tooling#1563) (#468)</strong>
+Runbook+fixtures design for the issue-implement/issue-audit dual-agent loop, relocated here so the audit (which shares the vergil-tooling fixture worktree) never sees the test plan. Single-branch six-flaw chain, golden at end; marquee goal is a repeatable manual methodology to verify the feature. Depends on vergil-tooling#1564 (revise PR metadata) and #1566 (vrg-reword).</p>
 </li>
 <li>
-<p><strong>remove per-repo templates in favor of org defaults</strong>
-Issue templates and PR template are now inherited from vergil-project/.github. Per-repo copies were byte-identical and are no longer needed.</p>
+<p><strong>add dual-agent audit test runbook (vergil-tooling#1563) (#470)</strong>
+The USER agent's prescriptive script for the six-flaw chain, with verified-green golden fixtures and the coverage-complete weak test. Lives here so the audit (which shares the vergil-tooling fixture worktree) never sees it. Literal round text to be tuned against live audit runs.</p>
 </li>
-<li>
-<p><strong>add integration test marker for #340</strong></p>
-</li>
-<li><strong>rename vrg-github-config to vrg-github-repo-config</strong>
-Align pr-workflow and publish skills with the script rename in vergil-tooling PR #824. Ref #342</li>
 </ul>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>deploy permission model and update hook messages</strong></li>
-<li><strong>deploy deny rules to project-level settings</strong></li>
+<li><strong>sequential handshake: issue-audit takes a worktree path; transparent loops (vergil-tooling#1572) (#469)</strong>
+issue-implement now implements directly then engages the oracle only at the ready/handoff point (creating the worktree, emitting the /issue-audit <worktree-path> hand-off), so the audit starts when there is something to review. issue-audit takes the worktree path, cd's in, and runs with no issue number. Both skills mandate foreground, narrated, chatty execution — the visible back-and-forth is the human oversight.</li>
 </ul>
 
 
