@@ -5,57 +5,72 @@ description: USER-identity skill — implement a GitHub issue by driving the vrg
 
 # Issue Implement
 
-Drive the USER half of the local PR workflow. You stay **dumb**: the
-`vrg-pr-workflow` oracle owns the workflow. You call `next`, do exactly what the
-one directive says, report your result through the verb it names, and repeat
-until it tells you you are done. You hold no workflow logic of your own.
+Drive the USER half of the local PR workflow. You **implement the issue
+directly**, then engage the `vrg-pr-workflow` oracle only to run the audit
+handshake — so the audit never sits idle on an empty worktree. Once you signal
+ready you stay **dumb**: do exactly what each directive says and report through
+the verb it names, until done.
+
+## Run it in the foreground — be transparent
+
+Do all of this **inline, in the foreground**, narrating as you go: what you are
+implementing, each oracle directive you receive, each audit finding, and how you
+address it. Never spawn a sub-agent or run the loop silently — the human is
+watching this session in a split screen next to the audit, and the visible
+back-and-forth *is* the oversight.
 
 ## Preflight
 
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
    not, stop — this skill runs in the user-agent session.
-2. Be in the feature-branch worktree for this issue, not the repo root.
+2. **Create the worktree for this issue** from the repo root and work inside it
+   (pick a 2–4 token kebab slug):
 
-## The loop
+   ```bash
+   vrg-git worktree add -b feature/<N>-<slug> .worktrees/issue-<N>-<slug> origin/develop
+   cd .worktrees/issue-<N>-<slug>
+   ```
 
-Start (and re-enter) the loop with:
+## Implement, then hand off to the audit
 
-```bash
-vrg-pr-workflow next --issue <N>      # add --no-audit to skip the local audit
-```
+1. **Implement the issue** here with small `vrg-commit` commits. Validate until
+   green — `vrg-container-run -- vrg-validate` — fixing every failure and
+   re-running; **never** suppress a gate.
+2. **Hand off to the audit.** When the work is green and ready, give the human a
+   copy-pasteable line: *"Ready for audit — run
+   `/vergil:issue-audit <absolute-worktree-path>` in the audit window."*
+3. **Engage the oracle and signal ready:**
 
-`next` blocks until it is your turn, then prints **one** directive as JSON with
-a `do` (what to do) and a `then` (the verb to report with). Do the `do` exactly,
-run the `then` verb, then call `vrg-pr-workflow next` again. Repeat.
+   ```bash
+   vrg-pr-workflow next --issue <N>   # inits; heartbeats while waiting for the audit to join
+   ```
 
-- The CLI resolves your role from `vrg-whoami` — never pass `--as`.
-- `--issue <N>` is required only on the **first** `next` (it initializes the
-  workflow); omit it afterward.
-- `--no-audit` (solo mode) skips the *local* audit for small, high-confidence
-  work — quick one-liners, doc or config tweaks — trusting the CI gates as the
-  backstop. The PR-phase audit still runs after submission.
+   It returns an `implement` directive — you have already implemented, so go
+   straight to reporting ready:
 
-### Directives you will see
+   ```bash
+   vrg-pr-workflow report-ready --title "<conventional-commit title>" \
+     --summary "<one substantive sentence: what changed and why>" \
+     --notes "<reviewer-relevant notes>"
+   ```
 
-- **implement** — `then: { verb: "report-ready" }`. Implement the issue on the
-  branch with small `vrg-commit` commits. Validate until green
-  (`vrg-container-run -- vrg-validate`); fix every failure and re-run — **never**
-  suppress a gate. Then:
+   *Solo / no-audit:* for small, high-confidence work (one-liners, docs, config),
+   add `--no-audit` to that first `next`, skip the hand-off, and report ready —
+   the PR-phase audit still runs after submission.
 
-  ```bash
-  vrg-pr-workflow report-ready \
-    --title "<conventional-commit title>" \
-    --summary "<one substantive sentence: what changed and why>" \
-    --notes "<reviewer-relevant notes>"
-  ```
+## The review loop
 
-- **fix findings** — `then: { verb: "report-fixes" }`. The directive's
-  `findings` are the audit's requested changes. Address every one, validate
-  green, `vrg-commit`, then:
+Then loop: `vrg-pr-workflow next` → act on the directive → repeat.
+
+- **fix findings** — `then: { verb: "report-fixes" }`. Address every finding,
+  validate green, `vrg-commit`, then:
 
   ```bash
   vrg-pr-workflow report-fixes --note "<what you changed>"
   ```
+
+  When a finding is about the PR description itself, revise it on the same call
+  with `--summary` / `--notes` / `--title`.
 
 - **DONE** — `{ "done": true, "reason": "approved", ... }`. Tell the human:
   *"Approved — run `vrg-submit-pr` to open the PR."* Stop. Only the human opens

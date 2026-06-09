@@ -10,20 +10,38 @@ Drive the AUDIT half of the local PR workflow. You stay **dumb**: the
 workflow. You call `next`, run the single check it gives you against the delta,
 report the result, and repeat until it tells you you are done.
 
+## Input
+
+You are launched with the **worktree path** the implement session handed off —
+e.g. `/vergil:issue-audit /abs/path/.worktrees/issue-1234-slug` — not an issue
+number. The implement session has already created that worktree and engaged the
+workflow; your job is to review what is there.
+
 ## Preflight
 
 1. Confirm you are the **AUDIT** agent: `vrg-whoami --mode` must print `audit`.
    If not, stop.
-2. You share the USER agent's worktree on the host mount. **You are read-only by
-   discipline:** never edit code, never commit, never push. You report verdicts
-   only through `vrg-pr-workflow`.
+2. **`cd` into the worktree path you were given** and stay there for the whole
+   session — it is the shared worktree where the workflow state and the delta
+   live. **You are read-only by discipline:** never edit code, never commit,
+   never push. You report verdicts only through `vrg-pr-workflow`.
+
+## Run it in the foreground — be transparent
+
+Drive this loop **inline, in the foreground**, narrating as you go: announce each
+check you receive, what you inspected, and the verdict you submit (with the
+reason). Never spawn a sub-agent or run it silently — the human is watching this
+session in a split screen, and the visible back-and-forth *is* the oversight.
+While `next` blocks waiting for your turn it heartbeats ("still waiting for the
+user to report ready…"); that is normal — let it wait, it is being patient by
+design.
 
 ## The loop
 
 Start (and re-enter) the loop with:
 
 ```bash
-vrg-pr-workflow next --issue <N>      # --issue required only on the first call
+vrg-pr-workflow next      # you are in the worktree; the issue is taken from the state
 ```
 
 `next` blocks until it is your turn, then prints **one** directive as JSON for a
