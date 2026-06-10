@@ -146,8 +146,8 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 
 | Skill | Purpose |
 |---|---|
-| `implement` | USER agent: implement an issue, validate to green, hand off to the audit pair |
-| `audit` | AUDIT agent: review the change delta read-only, write the verdict |
+| `issue-implement` | USER agent: implement an issue, validate to green, drive the PR-workflow oracle, hand off to the human (local audit pair opt-in) |
+| `issue-audit` | AUDIT agent: review the change delta read-only via the oracle loop and report verdicts (opt-in; experimental) |
 | `pr-watch` | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
@@ -172,7 +172,7 @@ All skills are namespaced under `vergil` (the plugin's `name`):
 /vergil:<skill-name>
 ```
 
-Example: `/vergil:implement`.
+Example: `/vergil:issue-implement`.
 
 ## Related repositories
 
@@ -210,8 +210,9 @@ outside `.worktrees/*/` are denied.
 Under the Vergil 2.1 workflow, the agent prepares the change and
 the **human** opens the PR:
 
-1. The USER agent runs `/vergil:implement <issue>` — implement,
-   validate to green, and write `.vergil/pr-template.yml`.
+1. The USER agent runs `/vergil:issue-implement <issue>` — implement,
+   validate to green, then drive the `vrg-pr-workflow` oracle to
+   record the PR metadata.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
 3. Paste the emitted `/vergil:pr-watch <PR_URL>` into both the USER
    and AUDIT agent sessions for the post-PR loop; the AUDIT identity

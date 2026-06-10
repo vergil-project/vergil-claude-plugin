@@ -204,6 +204,6 @@ Working on the plugin itself (vs. consuming it) has its own
 canonical procedure. See
 [`README.md` → Development and deployment](README.md#development-and-deployment)
 for: worktree setup and the 2.1 ship-a-change flow
-(`/vergil:implement` → human `vrg-submit-pr` → `/vergil:pr-watch`).
+(`/vergil:issue-implement` → human `vrg-submit-pr` → `/vergil:pr-watch`).
 Releases are cut via `vrg-publish` (a standalone CLI in
 vergil-tooling).
