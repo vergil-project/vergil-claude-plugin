@@ -10,6 +10,13 @@ Drive the AUDIT half of the local PR workflow. You stay **dumb**: the
 workflow. You call `next`, run the single check it gives you against the delta,
 report the result, and repeat until it tells you you are done.
 
+> **Experimental.** The local dual-agent audit mechanism this skill drives is
+> experimental at this time. It is implemented and available to experiment with,
+> but it is not on the default path — `/vergil:issue-implement` runs *without*
+> the local audit unless the human explicitly passes `audit`. You reach this
+> skill only when that opt-in hand-off has happened. The PR-phase audit on the
+> open PR is separate and unaffected.
+
 ## Input
 
 You are launched with the **worktree path** the implement session handed off —

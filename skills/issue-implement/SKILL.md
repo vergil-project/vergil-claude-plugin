@@ -1,23 +1,38 @@
 ---
 name: issue-implement
-description: USER-identity skill — implement a GitHub issue by driving the vrg-pr-workflow oracle loop, then hand off to the human for PR submission. Run as the vergil-user agent. (The issue/pre-PR phase; the legacy `implement` skill remains for rolled-back tooling.)
+description: USER-identity skill — implement a GitHub issue by driving the vrg-pr-workflow oracle loop, then hand off to the human for PR submission. Runs without the local audit by default; pass `audit` to engage the local audit pair. Run as the vergil-user agent. (The issue/pre-PR phase; the legacy `implement` skill remains for rolled-back tooling.)
 ---
 
 # Issue Implement
 
 Drive the USER half of the local PR workflow. You **implement the issue
-directly**, then engage the `vrg-pr-workflow` oracle only to run the audit
-handshake — so the audit never sits idle on an empty worktree. Once you signal
-ready you stay **dumb**: do exactly what each directive says and report through
-the verb it names, until done.
+directly**, then engage the `vrg-pr-workflow` oracle to record the PR metadata
+and — only when the audit is requested — run the audit handshake. Once you
+signal ready you stay **dumb**: do exactly what each directive says and report
+through the verb it names, until done.
+
+## Audit is opt-in — default is no-audit
+
+By default this skill runs **without** the local dual-agent audit (it drives
+the oracle with `--no-audit`). Engage the local audit pair **only** when the
+human passes the word `audit` as an argument to this skill — e.g.
+`/vergil:issue-implement <N> audit`. With no such argument, take the
+[default path](#engage-the-oracle-and-signal-ready-default--no-audit) and never
+emit an audit hand-off.
+
+> **Experimental.** The local dual-agent audit mechanism is experimental at
+> this time. It is implemented and available to experiment with, but it is not
+> on the default path while the mechanism matures. This does **not** affect the
+> PR-phase audit that runs after `vrg-submit-pr` — that always runs, regardless
+> of the mode chosen here.
 
 ## Run it in the foreground — be transparent
 
 Do all of this **inline, in the foreground**, narrating as you go: what you are
-implementing, each oracle directive you receive, each audit finding, and how you
-address it. Never spawn a sub-agent or run the loop silently — the human is
-watching this session in a split screen next to the audit, and the visible
-back-and-forth *is* the oversight.
+implementing, each oracle directive you receive, and — in audit mode — each
+audit finding and how you address it. Never spawn a sub-agent or run the loop
+silently — when the audit is engaged the human is watching this session in a
+split screen next to it, and the visible back-and-forth *is* the oversight.
 
 ## Preflight
 
@@ -31,32 +46,53 @@ back-and-forth *is* the oversight.
    cd .worktrees/issue-<N>-<slug>
    ```
 
-## Implement, then hand off to the audit
+## Implement
 
-1. **Implement the issue** here with small `vrg-commit` commits. Validate until
-   green — `vrg-container-run -- vrg-validate` — fixing every failure and
-   re-running; **never** suppress a gate.
-2. **Hand off to the audit.** When the work is green and ready, give the human a
-   copy-pasteable line: *"Ready for audit — run
-   `/vergil:issue-audit <absolute-worktree-path>` in the audit window."*
-3. **Engage the oracle and signal ready:**
+**Implement the issue** here with small `vrg-commit` commits. Validate until
+green — `vrg-container-run -- vrg-validate` — fixing every failure and
+re-running; **never** suppress a gate.
+
+## Engage the oracle and signal ready (default — no-audit)
+
+When the work is green and ready, init the oracle in solo mode and report ready:
+
+```bash
+vrg-pr-workflow next --issue <N> --no-audit   # inits in solo / no-audit mode
+```
+
+It returns an `implement` directive — you have already implemented, so go
+straight to reporting ready:
+
+```bash
+vrg-pr-workflow report-ready --title "<conventional-commit title>" \
+  --summary "<one substantive sentence: what changed and why>" \
+  --notes "<reviewer-relevant notes>"
+```
+
+Then run [the review loop](#the-review-loop) — with no audit it goes straight to
+DONE, and you tell the human to run `vrg-submit-pr`. The PR-phase audit still
+runs after submission.
+
+### Audit mode (opt-in)
+
+When — and only when — the human passed `audit`, engage the local audit pair
+instead, so the audit never sits idle on an empty worktree:
+
+1. **Hand off to the audit.** Give the human a copy-pasteable line: *"Ready for
+   audit — run `/vergil:issue-audit <absolute-worktree-path>` in the audit
+   window."*
+2. **Init the oracle in paired mode and report ready** — same as above but
+   **without** `--no-audit`:
 
    ```bash
    vrg-pr-workflow next --issue <N>   # inits; heartbeats while waiting for the audit to join
-   ```
-
-   It returns an `implement` directive — you have already implemented, so go
-   straight to reporting ready:
-
-   ```bash
    vrg-pr-workflow report-ready --title "<conventional-commit title>" \
      --summary "<one substantive sentence: what changed and why>" \
      --notes "<reviewer-relevant notes>"
    ```
 
-   *Solo / no-audit:* for small, high-confidence work (one-liners, docs, config),
-   add `--no-audit` to that first `next`, skip the hand-off, and report ready —
-   the PR-phase audit still runs after submission.
+Then run the review loop below — in audit mode it will surface `fix findings`
+directives until the audit approves.
 
 ## The review loop
 
