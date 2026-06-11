@@ -598,6 +598,8 @@
       
         
       
+        
+      
     
     
     
@@ -650,6 +652,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.8
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -2228,10 +2258,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implement" class="md-nav__link">
+  <a href="#issue-implement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        implement
+        issue-implement
       
     </span>
   </a>
@@ -2239,10 +2269,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#audit" class="md-nav__link">
+  <a href="#issue-audit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        audit
+        issue-audit
       
     </span>
   </a>
@@ -2366,10 +2396,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#implement" class="md-nav__link">
+  <a href="#issue-implement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        implement
+        issue-implement
       
     </span>
   </a>
@@ -2377,10 +2407,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#audit" class="md-nav__link">
+  <a href="#issue-audit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        audit
+        issue-audit
       
     </span>
   </a>
@@ -2468,13 +2498,13 @@ substantially change it.</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="#implement">implement</a></td>
-<td>USER agent: implement an issue, validate to green, hand off to the audit pair</td>
+<td><a href="#issue-implement">issue-implement</a></td>
+<td>USER agent: implement an issue, validate to green, drive the PR-workflow oracle, hand off to the human (local audit opt-in)</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
-<td><a href="#audit">audit</a></td>
-<td>AUDIT agent: review the change delta read-only, write the verdict</td>
+<td><a href="#issue-audit">issue-audit</a></td>
+<td>AUDIT agent: review the change delta read-only via the oracle loop, report verdicts (opt-in; experimental)</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -2494,24 +2524,25 @@ substantially change it.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="implement">implement<a class="headerlink" href="#implement" title="Permanent link">&para;</a></h2>
+<h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via <code>vrg-validate</code>, writes
-<code>.vergil/pr-template.yml</code> (the done-signal), and loops on the paired
-audit agent's <code>.vergil/audit-feedback.yml</code> verdict until approved.</p>
+its feature branch, validates to green via <code>vrg-validate</code>, then drives
+the <code>vrg-pr-workflow</code> oracle to record the PR metadata
+(<code>.vergil/pr-workflow.json</code>) that <code>vrg-submit-pr</code> consumes. Runs
+without the local dual-agent audit by default; passing <code>audit</code> engages
+the paired audit handshake.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
-(<code>vrg-await</code>, etc.) at runtime.</p>
-<h2 id="audit">audit<a class="headerlink" href="#audit" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> AUDIT-identity skill. Waits on the USER agent's
-<code>.vergil/pr-template.yml</code>, reviews only the changed commits
-read-only (standards + suppression scrutiny), and writes a verdict
-to <code>.vergil/audit-feedback.yml</code> — or withholds it and alerts the
-human for an ERROR.</p>
+(<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
+<h2 id="issue-audit">issue-audit<a class="headerlink" href="#issue-audit" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> AUDIT-identity skill. Reviews a paired USER agent's
+delta read-only, running one judgment check per round-trip via
+<code>vrg-pr-workflow</code> and reporting each verdict. Never edits code.</p>
 <p><strong>When to use.</strong> In the audit-agent session, paired with
-<code>implement</code> on the same issue.</p>
-<p><strong>Status.</strong> Current (Vergil 2.1).</p>
+<code>issue-implement</code> when the user opted into the local audit — an
+experimental mechanism that is off by default.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1); experimental, off the default path.</p>
 <h2 id="pr-watch">pr-watch<a class="headerlink" href="#pr-watch" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Identity-keyed post-PR loop, emitted by
 <code>vrg-submit-pr</code>. As USER, monitors the PR via <code>vrg-pr-await</code> and
@@ -2572,8 +2603,8 @@ tracked for cleanup in
 <p>The plugin's <code>skills/</code> directory is loaded on session start. The
 skill <code>name</code> in the frontmatter plus the plugin's namespace
 (<code>vergil</code>) determines the invocation: a skill named
-<code>implement</code> in this plugin is invoked as
-<code>/vergil:implement</code>.</p>
+<code>issue-implement</code> in this plugin is invoked as
+<code>/vergil:issue-implement</code>.</p>
 <p>Skills are documentation-as-config, not executable scripts. They
 tell Claude Code <em>how</em> to run a workflow; Claude Code executes
 the flow using whatever tools the user has granted.</p>
