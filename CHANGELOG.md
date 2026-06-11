@@ -5,11 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.8] - 2026-06-11
+
+### Chores
+
+- re-trigger CI to pick up PR body issue linkage
+- remove legacy implement/audit skills; keep only the issue-* pair (#479) (#480)
+
 ## [2.1.7] - 2026-06-10
 
 ### Documentation
 
 - default issue-implement to no-audit; make audit opt-in (#474) (#475)
+
+### Release
+
+- 2.1.7 (#477)
 
 ## [2.1.6] - 2026-06-09
 

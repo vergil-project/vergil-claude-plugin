@@ -6,7 +6,7 @@ cross-repo sub-issues. It replaces the former `branch-workflow`
 skill (eliminated in
 [#55](https://github.com/vergil-project/vergil-claude-plugin/issues/55))
 — the substance is the same; the format is now a guideline that
-the consuming skills (`implement` / `pr-watch`, etc.) and `CLAUDE.md`
+the consuming skills (`issue-implement` / `pr-watch`, etc.) and `CLAUDE.md`
 reference directly.
 
 ## When this applies
@@ -256,7 +256,7 @@ After the procedure completes, surface:
 
 - Validation checks, commit message standards, PR submission, or
   any work that happens after the worktree is set up. Those are
-  the responsibility of the `implement` / `audit` / `pr-watch`
+  the responsibility of the `issue-implement` / `issue-audit` / `pr-watch`
   skills and the underlying `vrg-commit` / `vrg-submit-pr` tools.
 - Worktree teardown after merge. That is the human's
   `vrg-finalize-pr` step — merge finalization and local cleanup are

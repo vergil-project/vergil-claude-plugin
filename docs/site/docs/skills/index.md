@@ -14,37 +14,38 @@ substantially change it.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [implement](#implement) | USER agent: implement an issue, validate to green, hand off to the audit pair | Current (2.1) |
-| [audit](#audit) | AUDIT agent: review the change delta read-only, write the verdict | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, drive the PR-workflow oracle, hand off to the human (local audit opt-in) | Current (2.1) |
+| [issue-audit](#issue-audit) | AUDIT agent: review the change delta read-only via the oracle loop, report verdicts (opt-in; experimental) | Current (2.1) |
 | [pr-watch](#pr-watch) | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
-## implement
+## issue-implement
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via `vrg-validate`, writes
-`.vergil/pr-template.yml` (the done-signal), and loops on the paired
-audit agent's `.vergil/audit-feedback.yml` verdict until approved.
+its feature branch, validates to green via `vrg-validate`, then drives
+the `vrg-pr-workflow` oracle to record the PR metadata
+(`.vergil/pr-workflow.json`) that `vrg-submit-pr` consumes. Runs
+without the local dual-agent audit by default; passing `audit` engages
+the paired audit handshake.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR.
 
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
-(`vrg-await`, etc.) at runtime.
+(`vrg-pr-workflow`, etc.) at runtime.
 
-## audit
+## issue-audit
 
-**What it does.** AUDIT-identity skill. Waits on the USER agent's
-`.vergil/pr-template.yml`, reviews only the changed commits
-read-only (standards + suppression scrutiny), and writes a verdict
-to `.vergil/audit-feedback.yml` — or withholds it and alerts the
-human for an ERROR.
+**What it does.** AUDIT-identity skill. Reviews a paired USER agent's
+delta read-only, running one judgment check per round-trip via
+`vrg-pr-workflow` and reporting each verdict. Never edits code.
 
 **When to use.** In the audit-agent session, paired with
-`implement` on the same issue.
+`issue-implement` when the user opted into the local audit — an
+experimental mechanism that is off by default.
 
-**Status.** Current (Vergil 2.1).
+**Status.** Current (Vergil 2.1); experimental, off the default path.
 
 ## pr-watch
 
@@ -118,8 +119,8 @@ Each skill is a directory under `skills/` containing:
 The plugin's `skills/` directory is loaded on session start. The
 skill `name` in the frontmatter plus the plugin's namespace
 (`vergil`) determines the invocation: a skill named
-`implement` in this plugin is invoked as
-`/vergil:implement`.
+`issue-implement` in this plugin is invoked as
+`/vergil:issue-implement`.
 
 Skills are documentation-as-config, not executable scripts. They
 tell Claude Code *how* to run a workflow; Claude Code executes

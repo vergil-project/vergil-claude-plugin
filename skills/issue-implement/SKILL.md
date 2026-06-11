@@ -1,6 +1,6 @@
 ---
 name: issue-implement
-description: USER-identity skill — implement a GitHub issue by driving the vrg-pr-workflow oracle loop, then hand off to the human for PR submission. Runs without the local audit by default; pass `audit` to engage the local audit pair. Run as the vergil-user agent. (The issue/pre-PR phase; the legacy `implement` skill remains for rolled-back tooling.)
+description: USER-identity skill — implement a GitHub issue by driving the vrg-pr-workflow oracle loop, then hand off to the human for PR submission. Runs without the local audit by default; pass `audit` to engage the local audit pair. Run as the vergil-user agent.
 ---
 
 # Issue Implement
