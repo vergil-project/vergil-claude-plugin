@@ -115,6 +115,27 @@ Then loop: `vrg-pr-workflow next` → act on the directive → repeat.
 If `next` (or any verb) **errors** — the audit escalated to the human, or the
 counterpart aborted — surface the message to the human and stop. Do not loop.
 
+## Resolving conflicts with the base branch
+
+If `develop` (the base) advances while your branch is in flight — whether
+mid-loop or after the PR is open — and your branch conflicts with it, resolve it
+as **routine**. No human sign-off is needed:
+
+1. `vrg-git fetch origin`
+2. `vrg-git rebase origin/develop` — resolve conflicts, keeping both sides where
+   each adds independent content. `ORIG_HEAD` is your undo
+   (`vrg-git reset --hard ORIG_HEAD`) if the rebase goes wrong.
+3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
+4. `vrg-git push --force-with-lease` to update the branch / PR.
+
+**Force-pushing to update your _own_ in-flight PR after a rebase is a normal,
+pre-authorized part of this workflow** — not an exceptional action requiring
+human approval. The general "never force-push without explicit request" rule
+guards shared/protected history; it does **not** apply to rebasing your own
+feature branch onto its base. Always use `--force-with-lease` (the safe form —
+it refuses to overwrite if the remote moved unexpectedly), never a bare
+`--force`.
+
 ## Notes
 
 - `vrg-submit-pr` reads the PR metadata from the state file the oracle wrote
