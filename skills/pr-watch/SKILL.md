@@ -32,6 +32,12 @@ Loop:
 3. Otherwise **reconcile all three sources:** failing CI checks + audit review
    comments + human comments. Patch the code, `vrg-commit`, and push
    (`vrg-git push`). The new commit re-triggers CI and the audit's re-review.
+   - **Base-branch conflicts are routine here.** If the base (`develop`)
+     advanced and the PR now conflicts, rebase onto it and force-push — no human
+     sign-off needed: `vrg-git fetch origin`, `vrg-git rebase origin/develop`
+     (resolve, validate green), then `vrg-git push --force-with-lease`.
+     Force-pushing your _own_ in-flight PR after a rebase is pre-authorized; see
+     *Resolving conflicts with the base branch* in `issue-implement`.
 4. If you cannot get a check green or cannot satisfy a comment, **stop and ask
    the human** rather than thrashing.
 5. Loop with the updated `--since-sha` / `--since-reviews`.
