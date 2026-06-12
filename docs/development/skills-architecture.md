@@ -538,3 +538,45 @@ While executing the attack order:
 5. After each skill PR merges, this audit document is updated to
    mark the corresponding Part 2 entry's status as "done" with a
    pointer to the PR.
+
+## Authoring skill descriptions — the `description` is the trigger
+
+A skill's `description` frontmatter field is **the auto-invocation
+surface**. Claude Code matches a human's natural-language request
+against this string to decide whether to fire the skill — the body of
+the `SKILL.md` is never consulted for that decision. So the
+`description` must encode **when to invoke** the skill, not only
+**what the skill is**.
+
+**The anti-pattern** (what surfaced in
+[#489](https://github.com/vergil-project/vergil-claude-plugin/issues/489)):
+descriptions that lead with identity or mechanism —
+"USER-identity skill — …", "Identity-keyed post-PR skill — …",
+"Collaborative review of memory files — …". These read as
+"I am a specialist; do not pick me casually." A request phrased in
+plain language ("go implement this", "audit my memory") has nothing
+in the matchable surface to bind to, so the skill silently fails to
+fire and the agent hand-rolls the work instead — which, for
+`issue-implement`, strands the change with no sanctioned path to a PR.
+
+**The fix.** Write every `description` to:
+
+1. **Lead with the trigger.** Start with the action and *when* a human
+   would want it — "Use when/whenever the human asks to …" — before
+   any identity or mechanism framing.
+2. **Enumerate concrete verbal forms.** Quote 2–4 natural-language
+   phrasings a human actually uses ("implement #170", "go implement
+   this", "audit my memory"), including the bare slash-command form.
+   The router matches surface text; give it surface to match.
+3. **Encode the consequence of bypassing**, where bypassing is
+   harmful. `issue-implement`'s description states that `vrg-submit-pr`
+   is the *sole* PR path, precisely to discourage the freelance flow.
+4. **Keep identity/mechanism — but after the trigger.** Identity
+   ("Run as the vergil-audit agent"), the oracle it drives, and the
+   artifacts it writes still belong in the description; they just must
+   not be the *first* thing the router sees.
+
+When adding or editing a skill, sanity-check the description by asking:
+*would this fire on the plain-language request a human is most likely
+to make, or only on the exact slash command?* If only the latter, it
+has the gap above.

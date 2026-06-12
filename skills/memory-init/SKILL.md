@@ -1,6 +1,6 @@
 ---
 name: memory-init
-description: Initialize or update the memory directory with the human-approval policy header in MEMORY.md.
+description: Set up or refresh a project's memory directory. Use when the human asks to initialize, set up, bootstrap, or update memory ("init memory", "set up MEMORY.md", "add the memory policy header", "refresh the memory header"). Creates or updates MEMORY.md with the human-approval policy header.
 ---
 
 # Memory Init

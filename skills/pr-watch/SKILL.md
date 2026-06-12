@@ -1,6 +1,6 @@
 ---
 name: pr-watch
-description: Identity-keyed post-PR skill emitted by vrg-submit-pr. As USER, monitor the PR and reconcile CI/audit/human feedback; as AUDIT, re-review and post the vergil-audit/approved check. Paste the same line into both agent sessions.
+description: Monitor and reconcile an open PR after vrg-submit-pr. Use whenever a PR has just been opened and needs watching — vrg-submit-pr emits the invocation line to paste into both agent sessions, or the human asks to watch, monitor, or babysit the PR through CI and review. As USER, monitor the PR and reconcile CI/audit/human feedback; as AUDIT, re-review and post the vergil-audit/approved check. Identity-keyed: paste the same line into both agent sessions.
 ---
 
 # PR watch
