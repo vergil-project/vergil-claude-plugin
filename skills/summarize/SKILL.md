@@ -1,6 +1,6 @@
 ---
 name: summarize
-description: Multi-mode summarization for decisions, operations, or stream-of-consciousness capture. Use when the user asks for a structured summary or invokes SOC capture.
+description: Produce a structured summary in decisions, operations, or stream-of-consciousness (SOC) mode. Use when the human asks for a structured summary, a decision or operations writeup, or SOC capture ("summarize this", "write up these decisions", "capture this as SOC", "log this operation"). SOC mode is the canonical voice→text capture for the fleet.
 ---
 
 # Summarize

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.10] - 2026-06-12
+
+### Documentation
+
+- rewrite skill descriptions to lead with invocation triggers (#489) (#490)
+
 ## [2.1.9] - 2026-06-11
 
 ### Documentation

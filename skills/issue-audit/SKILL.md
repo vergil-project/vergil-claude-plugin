@@ -1,6 +1,6 @@
 ---
 name: issue-audit
-description: AUDIT-identity skill — review a paired USER agent's delta read-only by running one judgment check per round-trip via vrg-pr-workflow, and report each verdict. Never edits code. Run as the vergil-audit agent.
+description: Review a paired USER agent's implementation as the AUDIT agent. Use whenever you are acting as the audit half of the dual-agent loop — typically launched from the issue-implement hand-off line ("run /vergil:issue-audit <worktree>"), or when the human asks you to audit or review the paired implementation. Reviews the USER agent's delta read-only, running one judgment check per round-trip via vrg-pr-workflow and reporting each verdict. Never edits code. Run as the vergil-audit agent.
 ---
 
 # Issue Audit

@@ -1,6 +1,6 @@
 ---
 name: issue-implement
-description: USER-identity skill — implement a GitHub issue by driving the vrg-pr-workflow oracle loop, then hand off to the human for PR submission. Runs without the local audit by default; pass `audit` to engage the local audit pair. Run as the vergil-user agent.
+description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. Drives the vrg-pr-workflow oracle loop, which writes the .vergil/pr-workflow.json + pr-template.yml that vrg-submit-pr consumes. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Runs without the local audit by default; pass `audit` to engage the local audit pair. Run as the vergil-user agent.
 ---
 
 # Issue Implement

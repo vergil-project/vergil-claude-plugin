@@ -1,6 +1,6 @@
 ---
 name: deprecation-triage
-description: Triage deprecation warnings into a consistent workflow with issue tracking and suppression rules.
+description: Triage a deprecation warning into a tracked decision. Use whenever a deprecation warning surfaces — the detect-deprecation-warnings PostToolUse hook fires, or the human points at a warning in test/CI/build output and asks how to handle it ("triage this deprecation", "what do we do about this warning"). Searches for an existing issue, decides defer-or-fix, and applies issue-tracking and suppression rules consistently.
 ---
 
 # Deprecation triage
