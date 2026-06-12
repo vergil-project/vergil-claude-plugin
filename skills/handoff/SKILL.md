@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Session-to-session continuity — capture work state before stopping (/handoff stop) or resume from a previous session (/handoff start).
+description: Capture or restore work state across sessions. Use when wrapping up and you want to preserve context for next time ("/handoff stop", "save my progress", "hand this off before I stop"), or when picking work back up ("/handoff start", "resume where I left off", "what was I working on"). Captures work state before stopping and restores it on resume.
 ---
 
 # Handoff

@@ -1,6 +1,6 @@
 ---
 name: memory-audit
-description: Collaborative review of memory files — verify, assess staleness, and route each entry to the correct scope with human approval.
+description: Review memory files collaboratively with the human. Use when the human asks to audit, review, clean up, prune, or check memory ("audit my memory", "review MEMORY.md", "are these memories still accurate", "clean up memory"). Verifies each entry, assesses staleness, and routes it to the correct scope with human approval.
 ---
 
 # Memory Audit
