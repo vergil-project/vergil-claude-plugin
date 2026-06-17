@@ -11,6 +11,37 @@ and — only when the audit is requested — run the audit handshake. Once you
 signal ready you stay **dumb**: do exactly what each directive says and report
 through the verb it names, until done.
 
+## `vrg-pr-workflow` is a blocking request-reply — call it, stop, obey the reply
+
+`vrg-pr-workflow` is **not** fire-and-forget and **not** a long-running job you
+check on later. Every invocation (`next`, `report-ready`, `report-fixes`) is a
+**synchronous, blocking call**: it blocks in the foreground and returns exactly
+one JSON directive naming your next step. It is a request→reply exchange with the
+audit counterpart (or, solo, with the oracle itself) — a blocking RPC, not a
+background task.
+
+Rules, non-negotiable:
+
+- **One call, then STOP.** Run a single `vrg-pr-workflow` command and wait for it
+  to return. Do nothing else until you have read the directive it printed and
+  acted on it. The directive *is* your instruction set.
+- **Never background or poll it.** No `&`, no `run_in_background`, no
+  `sleep`-then-check, no "I'll look at it later." It already blocks until the
+  reply is ready; backgrounding it races the protocol and corrupts the session.
+- **`status` is not a driver.** `vrg-pr-workflow status` diagnoses a wedged
+  session by hand — never poll it in a loop. Only the return value of a blocking
+  `next` advances the workflow.
+- **Init exactly once.** Call `next --issue <N>` (paired) or
+  `next --issue <N> --no-audit` (solo) one time. Never re-run `next` with init
+  flags again — re-initing (e.g. `--no-audit` after a paired audit has joined)
+  tears the counterpart down and errors out.
+- **After init, drive with bare verbs.** The loop is `vrg-pr-workflow next` →
+  obey the directive → report via the verb it names → repeat, each call blocking
+  for its reply.
+
+If it seems to "hang," it is doing its job — blocking for the counterpart's
+reply. Wait for it. Do not start other work, spawn helpers, or poll.
+
 ## Audit is opt-in — default is no-audit
 
 By default this skill runs **without** the local dual-agent audit (it drives
@@ -57,7 +88,7 @@ re-running; **never** suppress a gate.
 When the work is green and ready, init the oracle in solo mode and report ready:
 
 ```bash
-vrg-pr-workflow next --issue <N> --no-audit   # inits in solo / no-audit mode
+vrg-pr-workflow next --issue <N> --no-audit   # init once; blocks, returns your first directive
 ```
 
 It returns an `implement` directive — you have already implemented, so go
@@ -85,7 +116,7 @@ instead, so the audit never sits idle on an empty worktree:
    **without** `--no-audit`:
 
    ```bash
-   vrg-pr-workflow next --issue <N>   # inits; heartbeats while waiting for the audit to join
+   vrg-pr-workflow next --issue <N>   # init once; BLOCKS until the audit joins and returns your first directive — do not poll or background it
    vrg-pr-workflow report-ready --title "<conventional-commit title>" \
      --summary "<one substantive sentence: what changed and why>" \
      --notes "<reviewer-relevant notes>"
@@ -96,7 +127,9 @@ directives until the audit approves.
 
 ## The review loop
 
-Then loop: `vrg-pr-workflow next` → act on the directive → repeat.
+Then loop: `vrg-pr-workflow next` → act on the directive → repeat. Each `next`
+blocks until its reply is ready — never background it, and never poll `status`
+in its place.
 
 - **fix findings** — `then: { verb: "report-fixes" }`. Address every finding,
   validate green, `vrg-commit`, then:
