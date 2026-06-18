@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.7/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.5/">
+        <link rel="next" href="../v2.1.11/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.6 - Standard Tooling Plugin</title>
+        <title>2.1.12 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-146-2026-04-28" class="md-skip">
+        <a href="#release-2112-2026-06-18" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.6
+              2.1.12
             
           </span>
         </div>
@@ -676,10 +676,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.12/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.12
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -695,6 +722,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#chores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chores
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2020,37 +2089,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.6
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.6/" class="md-nav__link">
         
   
   
@@ -2066,48 +2108,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2460,10 +2460,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
+  <a href="#chores" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bug fixes
+        Chores
       
     </span>
   </a>
@@ -2498,14 +2498,16 @@
 
 
 
-<h1 id="release-146-2026-04-28">Release 1.4.6 (2026-04-28)<a class="headerlink" href="#release-146-2026-04-28" title="Permanent link">&para;</a></h1>
-<h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h1 id="release-2112-2026-06-18">Release 2.1.12 (2026-06-18)<a class="headerlink" href="#release-2112-2026-06-18" title="Permanent link">&para;</a></h1>
+<h2 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>shorten mkdocs.yml site_description and drop stale commands reference</strong></li>
+<li><strong>pin own marketplace ref to develop for release compliance (#501) (#502)</strong>
+This repo is the marketplace source repo, so its own .claude/settings.json marketplace source.ref must be develop (self-referential dogfooding) per the version-derived-ref audit. The ref was absent, so the release process failed the local compliance check (marketplace_ref expected develop, got None). Add ref=develop; local audit now reports compliant. Refs #501.</li>
 </ul>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>align docs tree with post-audit codebase state</strong></li>
+<li><strong>state that vrg-pr-workflow / vrg-pr-await are blocking request-reply calls (#499) (#500)</strong>
+Agents were treating the PR-workflow oracle as async/fire-and-forget — backgrounding next, sleeping, polling status, re-initing with flags — which races the protocol and corrupts the session. Add an explicit blocking-contract section to issue-implement, tighten issue-audit's partial language, and add a tailored vrg-pr-await note to pr-watch: run one call, block for its reply, never background/poll/re-init. Refs #499.</li>
 </ul>
 
 
