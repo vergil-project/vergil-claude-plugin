@@ -43,6 +43,28 @@ While `next` blocks waiting for your turn it heartbeats ("still waiting for the
 user to report ready…"); that is normal — let it wait, it is being patient by
 design.
 
+## `vrg-pr-workflow` is a blocking request-reply — call it, stop, obey the reply
+
+`vrg-pr-workflow` is **not** fire-and-forget and **not** a long-running job you
+check on later. Every invocation (`next`, `submit-check`) is a **synchronous,
+blocking call**: it blocks in the foreground and returns exactly one JSON
+directive naming your next step. It is a request→reply exchange with the USER
+counterpart — a blocking RPC, not a background task.
+
+Rules, non-negotiable:
+
+- **One call, then STOP.** Run a single `vrg-pr-workflow` command and wait for it
+  to return; do nothing else until you have read the directive and acted on it.
+- **Never background or poll it.** No `&`, no `run_in_background`, no
+  `sleep`-then-check. It already blocks until your turn; backgrounding it races
+  the protocol and corrupts the session.
+- **`status` is not a driver.** `vrg-pr-workflow status` diagnoses a wedged
+  session by hand — never poll it in a loop. Only the return value of a blocking
+  `next` advances the workflow.
+- **Let `next` block.** When it heartbeats "still waiting for the user…", that is
+  the call doing its job — wait for it; do not re-run it, background it, or start
+  other work.
+
 ## The loop
 
 Start (and re-enter) the loop with:

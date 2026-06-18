@@ -9,6 +9,22 @@ Drive the post-PR loop (design spec §9). `vrg-submit-pr` prints
 `/vergil:pr-watch <PR_URL>`; paste it into **both** agent sessions. Read your
 own identity and run the matching half.
 
+## `vrg-pr-await` is a blocking wait — run it in the foreground, don't poll
+
+Both halves below are driven by `vrg-pr-await`, which **blocks** until the PR
+state changes (a new commit, a new review, or a check result) and then prints the
+current state as JSON. It is a single blocking call — not something to background
+or poll around:
+
+- **Run one `vrg-pr-await`, then wait for it to return.** CI and reviews can take
+  minutes; that wait *is* the call doing its job. Do not background it (`&` /
+  `run_in_background`), do not `sleep`-and-retry, and do not poll GitHub
+  separately in a loop.
+- **It returns once per state change.** Act on what it returns (reconcile, or
+  review), push your commit, then call `vrg-pr-await` again with updated
+  `--since-*` flags. The blocking call is the loop's clock — do not start other
+  work while it waits.
+
 ## Determine identity
 
 Check `VRG_IDENTITY_MODE`: `user` → the **Monitor** half; `audit` → the

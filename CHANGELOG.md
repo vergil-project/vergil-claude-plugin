@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.12] - 2026-06-18
+
+### Chores
+
+- pin own marketplace ref to develop for release compliance (#501) (#502)
+
+### Documentation
+
+- state that vrg-pr-workflow / vrg-pr-await are blocking request-reply calls (#499) (#500)
+
 ## [2.1.11] - 2026-06-12
 
 ### Chores
