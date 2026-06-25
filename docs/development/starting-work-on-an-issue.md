@@ -256,7 +256,7 @@ After the procedure completes, surface:
 
 - Validation checks, commit message standards, PR submission, or
   any work that happens after the worktree is set up. Those are
-  the responsibility of the `issue-implement` / `issue-audit` / `pr-watch`
+  the responsibility of the `issue-implement` / `pr-watch`
   skills and the underlying `vrg-commit` / `vrg-submit-pr` tools.
 - Worktree teardown after merge. That is the human's
   `vrg-finalize-pr` step — merge finalization and local cleanup are

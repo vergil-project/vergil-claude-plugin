@@ -14,8 +14,7 @@ substantially change it.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, drive the PR-workflow oracle, hand off to the human (local audit opt-in) | Current (2.1) |
-| [issue-audit](#issue-audit) | AUDIT agent: review the change delta read-only via the oracle loop, report verdicts (opt-in; experimental) | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
 | [pr-watch](#pr-watch) | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
@@ -23,29 +22,17 @@ substantially change it.
 ## issue-implement
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via `vrg-validate`, then drives
-the `vrg-pr-workflow` oracle to record the PR metadata
-(`.vergil/pr-workflow.json`) that `vrg-submit-pr` consumes. Runs
-without the local dual-agent audit by default; passing `audit` engages
-the paired audit handshake.
+its feature branch, validates to green via `vrg-validate`, then records
+the PR metadata (`.vergil/pr-workflow.json`) with
+`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume. A
+run-and-done hand-off: it records the metadata and the human opens the
+PR.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR.
 
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (`vrg-pr-workflow`, etc.) at runtime.
-
-## issue-audit
-
-**What it does.** AUDIT-identity skill. Reviews a paired USER agent's
-delta read-only, running one judgment check per round-trip via
-`vrg-pr-workflow` and reporting each verdict. Never edits code.
-
-**When to use.** In the audit-agent session, paired with
-`issue-implement` when the user opted into the local audit — an
-experimental mechanism that is off by default.
-
-**Status.** Current (Vergil 2.1); experimental, off the default path.
 
 ## pr-watch
 
