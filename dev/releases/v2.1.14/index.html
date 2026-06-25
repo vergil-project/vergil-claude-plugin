@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.10/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.8/">
+        <link rel="next" href="../v2.1.13/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.9 - Standard Tooling Plugin</title>
+        <title>2.1.14 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-149-2026-04-28" class="md-skip">
+        <a href="#release-2114-2026-06-25" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.9
+              2.1.14
             
           </span>
         </div>
@@ -680,10 +680,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.14/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.14
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -699,6 +726,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#refactoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1996,37 +2054,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.9
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.9/" class="md-nav__link">
         
   
   
@@ -2042,37 +2073,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2509,10 +2509,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
+  <a href="#refactoring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bug fixes
+        Refactoring
       
     </span>
   </a>
@@ -2536,12 +2536,17 @@
 
 
 
-<h1 id="release-149-2026-04-28">Release 1.4.9 (2026-04-28)<a class="headerlink" href="#release-149-2026-04-28" title="Permanent link">&para;</a></h1>
-<h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h1 id="release-2114-2026-06-25">Release 2.1.14 (2026-06-25)<a class="headerlink" href="#release-2114-2026-06-25" title="Permanent link">&para;</a></h1>
+<h2 id="refactoring">Refactoring<a class="headerlink" href="#refactoring" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>strengthen issue-closure step in pr-workflow so agents stop skipping it</strong>
-Issue closure was a subsection under After the merge that agents could overlook. Promoted to top-level section, added to the overview flow as step 5, and reinforced the key message throughout: using Ref instead of Fixes defers the timing of closure, not the responsibility. If the PR resolves the issue, the agent must close it explicitly after finalization.</li>
+<li><strong>collapse issue-implement to run-and-done; remove issue-audit (#512)</strong></li>
+<li>refactor(skills): collapse issue-implement to run-and-done; remove issue-audit</li>
 </ul>
+<p>Rewrite issue-implement to a single vrg-pr-workflow report-ready --issue call (run-and-done): drop the next/report-fixes/review-loop machinery, the blocking-RPC section, the --no-audit discussion, and the local-audit hand-off. Delete the issue-audit skill. Update README, the site skills index, and the starting-work doc. This is the release-blocking predecessor for vergil-tooling#1872, which removes those vrg-pr-workflow subcommands and makes report-ready require --issue. pr-watch is left unchanged (post-PR, not broken by the tooling change) as a separate follow-up. Ref #511</p>
+<ul>
+<li>refactor(skills): rewrite issue-implement to run-and-done report-ready</li>
+</ul>
+<p>Rewrite issue-implement to a single vrg-pr-workflow report-ready --issue call: drop the next/report-fixes/review-loop machinery, the blocking-RPC section, the --no-audit discussion, and the local-audit hand-off. Update README, the site skills index, and the starting-work doc to match (and drop the issue-audit references). Release-blocking predecessor for vergil-tooling#1872. Ref #511</p>
 
 
 
