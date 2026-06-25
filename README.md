@@ -178,7 +178,7 @@ Example: `/vergil:issue-implement`.
 
 - [`vergil-tooling`](https://github.com/vergil-project/vergil-tooling)
   — Python CLIs, bash validators, git hooks (consumed via PATH).
-- [`vergil-docker`](https://github.com/vergil-project/vergil-docker)
+- [`vergil-containers`](https://github.com/vergil-project/vergil-containers)
   — Dev container images (`ghcr.io/vergil-project/dev-python`, `dev-go`,
   etc.) that `vrg-container-run` dispatches into.
 - [`vergil-actions`](https://github.com/vergil-project/vergil-actions)
