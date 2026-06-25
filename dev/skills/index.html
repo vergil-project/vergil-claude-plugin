@@ -2662,7 +2662,7 @@ substantially change it.</p>
 </tr>
 <tr>
 <td><a href="#pr-watch">pr-watch</a></td>
-<td>Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT)</td>
+<td>USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -2689,12 +2689,12 @@ implementation through the point where the human opens the PR.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
 <h2 id="pr-watch">pr-watch<a class="headerlink" href="#pr-watch" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Identity-keyed post-PR loop, emitted by
-<code>vrg-submit-pr</code>. As USER, monitors the PR via <code>vrg-pr-await</code> and
-reconciles CI/audit/human feedback; as AUDIT, re-reviews and posts
-the <code>vergil-audit/approved</code> gate via <code>vrg-audit-approve</code>.</p>
-<p><strong>When to use.</strong> Paste the emitted one-liner into both agent
-sessions after the human opens the PR.</p>
+<p><strong>What it does.</strong> USER-identity post-PR loop, emitted by
+<code>vrg-submit-pr</code>. Monitors the open PR via <code>vrg-pr-await</code> and
+reconciles failing CI checks and human review feedback, pushing
+fixes until the PR is mergeable.</p>
+<p><strong>When to use.</strong> Run the emitted <code>/vergil:pr-watch &lt;PR_URL&gt;</code> line in
+the USER agent session after the human opens the PR.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <!-- dependency-update retired (#427): dependency updates are now a
 deterministic vergil-tooling utility, not a skill. -->
