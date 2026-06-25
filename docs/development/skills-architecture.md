@@ -459,7 +459,7 @@ CI-green-wait per #85, worktree-aware finalization, pointer to
 `docs.yml`-trigger audit document mentioned in #84's
 acceptance, and the cross-ecosystem follow-up issues (per-repo
 deploy docs for `vergil-tooling`,
-`vergil-docker`, `vergil-actions`) mentioned in
+`vergil-containers`, `vergil-actions`) mentioned in
 issue 105's acceptance. Both are bigger than the audit's step 3
 scope and tracked separately.
 
