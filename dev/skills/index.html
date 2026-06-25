@@ -2419,17 +2419,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#issue-audit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        issue-audit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pr-watch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2557,17 +2546,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#issue-audit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        issue-audit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pr-watch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2649,12 +2627,7 @@ substantially change it.</p>
 <tbody>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
-<td>USER agent: implement an issue, validate to green, drive the PR-workflow oracle, hand off to the human (local audit opt-in)</td>
-<td>Current (2.1)</td>
-</tr>
-<tr>
-<td><a href="#issue-audit">issue-audit</a></td>
-<td>AUDIT agent: review the change delta read-only via the oracle loop, report verdicts (opt-in; experimental)</td>
+<td>USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -2676,23 +2649,15 @@ substantially change it.</p>
 </table>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via <code>vrg-validate</code>, then drives
-the <code>vrg-pr-workflow</code> oracle to record the PR metadata
-(<code>.vergil/pr-workflow.json</code>) that <code>vrg-submit-pr</code> consumes. Runs
-without the local dual-agent audit by default; passing <code>audit</code> engages
-the paired audit handshake.</p>
+its feature branch, validates to green via <code>vrg-validate</code>, then records
+the PR metadata (<code>.vergil/pr-workflow.json</code>) with
+<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume. A
+run-and-done hand-off: it records the metadata and the human opens the
+PR.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
-<h2 id="issue-audit">issue-audit<a class="headerlink" href="#issue-audit" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> AUDIT-identity skill. Reviews a paired USER agent's
-delta read-only, running one judgment check per round-trip via
-<code>vrg-pr-workflow</code> and reporting each verdict. Never edits code.</p>
-<p><strong>When to use.</strong> In the audit-agent session, paired with
-<code>issue-implement</code> when the user opted into the local audit — an
-experimental mechanism that is off by default.</p>
-<p><strong>Status.</strong> Current (Vergil 2.1); experimental, off the default path.</p>
 <h2 id="pr-watch">pr-watch<a class="headerlink" href="#pr-watch" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Identity-keyed post-PR loop, emitted by
 <code>vrg-submit-pr</code>. As USER, monitors the PR via <code>vrg-pr-await</code> and
