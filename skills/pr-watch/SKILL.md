@@ -1,18 +1,18 @@
 ---
 name: pr-watch
-description: Monitor and reconcile an open PR after vrg-submit-pr. Use whenever a PR has just been opened and needs watching — vrg-submit-pr emits the invocation line to paste into both agent sessions, or the human asks to watch, monitor, or babysit the PR through CI and review. As USER, monitor the PR and reconcile CI/audit/human feedback; as AUDIT, re-review and post the vergil-audit/approved check. Identity-keyed: paste the same line into both agent sessions.
+description: Monitor and reconcile an open PR after vrg-submit-pr. Use whenever a PR has just been opened and needs watching — vrg-submit-pr emits the `/vergil:pr-watch <PR_URL>` line, or the human asks to watch, monitor, or babysit the PR through CI and review. Runs in the USER agent session: block on PR state with vrg-pr-await, reconcile failing CI and human review feedback, push fixes, and tell the human when the PR is mergeable.
 ---
 
 # PR watch
 
-Drive the post-PR loop (design spec §9). `vrg-submit-pr` prints
-`/vergil:pr-watch <PR_URL>`; paste it into **both** agent sessions. Read your
-own identity and run the matching half.
+Drive the post-PR loop. `vrg-submit-pr` prints `/vergil:pr-watch <PR_URL>`; run
+it in the USER agent session to monitor the open PR through CI and human review,
+reconcile feedback, and tell the human when the PR is ready to merge.
 
 ## `vrg-pr-await` is a blocking wait — run it in the foreground, don't poll
 
-Both halves below are driven by `vrg-pr-await`, which **blocks** until the PR
-state changes (a new commit, a new review, or a check result) and then prints the
+The loop is driven by `vrg-pr-await`, which **blocks** until the PR state
+changes (a new commit, a new review, or a check result) and then prints the
 current state as JSON. It is a single blocking call — not something to background
 or poll around:
 
@@ -20,17 +20,16 @@ or poll around:
   minutes; that wait *is* the call doing its job. Do not background it (`&` /
   `run_in_background`), do not `sleep`-and-retry, and do not poll GitHub
   separately in a loop.
-- **It returns once per state change.** Act on what it returns (reconcile, or
-  review), push your commit, then call `vrg-pr-await` again with updated
-  `--since-*` flags. The blocking call is the loop's clock — do not start other
-  work while it waits.
+- **It returns once per state change.** Act on what it returns (reconcile), push
+  your commit, then call `vrg-pr-await` again with updated `--since-*` flags. The
+  blocking call is the loop's clock — do not start other work while it waits.
 
-## Determine identity
+## Preflight
 
-Check `VRG_IDENTITY_MODE`: `user` → the **Monitor** half; `audit` → the
-**Review** half. If `human`, stop — this skill is for the agents.
+This skill runs in the **USER** agent session. Confirm with
+`vrg-whoami --mode` (`user`). If `human`, stop — this skill is for the agent.
 
-## USER half — Monitor & reconcile
+## Monitor & reconcile
 
 Loop:
 
@@ -42,12 +41,11 @@ Loop:
 
    (Omit the `--since-*` flags on the first call.) It prints PR state as JSON —
    parse the checks, reviews, and head SHA.
-2. **Stop condition:** all required checks are green **and** the
-   `vergil-audit/approved` check is success → tell the human the PR is
+2. **Stop condition:** all required checks are green → tell the human the PR is
    mergeable. Done.
-3. Otherwise **reconcile all three sources:** failing CI checks + audit review
-   comments + human comments. Patch the code, `vrg-commit`, and push
-   (`vrg-git push`). The new commit re-triggers CI and the audit's re-review.
+3. Otherwise **reconcile both sources:** failing CI checks + human review
+   comments. Patch the code, `vrg-commit`, and push (`vrg-git push`). The new
+   commit re-triggers CI.
    - **Base-branch conflicts are routine here.** If the base (`develop`)
      advanced and the PR now conflicts, rebase onto it and force-push — no human
      sign-off needed: `vrg-git fetch origin`, `vrg-git rebase origin/develop`
@@ -58,29 +56,7 @@ Loop:
    the human** rather than thrashing.
 5. Loop with the updated `--since-sha` / `--since-reviews`.
 
-## AUDIT half — Review & gate
-
-Loop:
-
-1. **Wait for a new commit:**
-
-   ```bash
-   vrg-pr-await <PR_URL> --since-sha <last-head-sha>
-   ```
-2. Re-review the delta of the new head commit (read-only — design §7.1).
-3. **Post the verdict on the PR:**
-   - Findings → post review comments with `vrg-gh`, then
-     `vrg-audit-approve <PR_URL> --conclusion failure` (the gate stays red).
-   - Clean → `vrg-audit-approve <PR_URL>` (conclusion `success` — the
-     `vergil-audit/approved` gate goes green).
-
-   `vrg-audit-approve` refuses to run as USER, so only this session can move the
-   gate.
-4. **Stop** when you have approved and all checks are green. For an ERROR that
-   needs the human, post `--conclusion failure` and alert them.
-
 ## Notes
 
-- **Per-commit gate:** the `vergil-audit/approved` check is bound to the head
-  SHA, so every USER push invalidates the prior approval and the AUDIT half must
-  re-post. That is by design — it forces re-review of new commits.
+- You never merge the PR. When the checks are green, the **human** reviews and
+  merges (auto-merge is disabled fleet-wide).

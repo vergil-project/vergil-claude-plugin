@@ -15,7 +15,7 @@ substantially change it.
 | Skill | Purpose | Status |
 |---|---|---|
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
-| [pr-watch](#pr-watch) | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) | Current (2.1) |
+| [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
@@ -36,13 +36,13 @@ implementation through the point where the human opens the PR.
 
 ## pr-watch
 
-**What it does.** Identity-keyed post-PR loop, emitted by
-`vrg-submit-pr`. As USER, monitors the PR via `vrg-pr-await` and
-reconciles CI/audit/human feedback; as AUDIT, re-reviews and posts
-the `vergil-audit/approved` gate via `vrg-audit-approve`.
+**What it does.** USER-identity post-PR loop, emitted by
+`vrg-submit-pr`. Monitors the open PR via `vrg-pr-await` and
+reconciles failing CI checks and human review feedback, pushing
+fixes until the PR is mergeable.
 
-**When to use.** Paste the emitted one-liner into both agent
-sessions after the human opens the PR.
+**When to use.** Run the emitted `/vergil:pr-watch <PR_URL>` line in
+the USER agent session after the human opens the PR.
 
 **Status.** Current (Vergil 2.1).
 

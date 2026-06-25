@@ -147,7 +147,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | Skill | Purpose |
 |---|---|
 | `issue-implement` | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human |
-| `pr-watch` | Post-PR loop — monitor/reconcile (USER) or re-review and gate (AUDIT) |
+| `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
 | `handoff` | Session-to-session continuity (capture/resume) |
@@ -213,9 +213,9 @@ the **human** opens the PR:
    validate to green, then record the PR metadata via
    `vrg-pr-workflow report-ready`.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
-3. Paste the emitted `/vergil:pr-watch <PR_URL>` into both the USER
-   and AUDIT agent sessions for the post-PR loop; the AUDIT identity
-   gates merge via the `vergil-audit/approved` check.
+3. Run the emitted `/vergil:pr-watch <PR_URL>` in the USER agent
+   session to monitor the PR through CI and review and reconcile
+   feedback until it is mergeable.
 
 Auto-merge is disabled fleet-wide; you review and merge
 feature/bugfix PRs manually.
