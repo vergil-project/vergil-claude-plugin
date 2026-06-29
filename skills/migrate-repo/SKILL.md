@@ -70,6 +70,17 @@ bucket ("a forgotten to-do in *that* project"). Flag anything ambiguous as
 `triage` rather than guessing. Paraphrase issue intent in your proposals; don't
 just echo titles.
 
+**Spec enrichment (retro-epics).** When a cluster forms a candidate retro-epic,
+search the repo's design corpus — `docs/specs/`, `docs/plans/`,
+`docs/superpowers/specs/` — for the design doc that birthed it. Rank candidates
+by slug/keyword overlap with the cluster's issue topics, by explicit references
+(an issue or its linked PR citing the spec path or an old epic number), and by
+date proximity; read only the top candidate(s) in-session to confirm the match.
+**Never enumerate or classify the whole corpus** — open issues are the index
+into the specs, so completed projects (no open issues) are never read. A
+confirmed match drives the epic's name, a 2–3 sentence summary, and a `Spec:`
+reference (§6). If nothing matches, propose the epic with a lightweight body.
+
 ### 5. Approve, batch by batch
 
 Present, and get the human's go-ahead for, each batch in turn:
@@ -89,8 +100,12 @@ For each approved batch, in this order:
 
 - **Create retro-epics** in `<owner>/.github`
   (`vrg-gh issue create --repo <owner>/.github --title "Epic: <name>" --body-file <tmp> --label epic`).
-  The body is lightweight — a member list and "retro-created during migration".
-  **No spec/plan doc** (reconstructed epics are not brainstormed ones).
+  When a spec was matched in Pass 2, the body uses the spec's project **name**, a
+  **2–3 sentence summary** distilled from it, the member task list, and a
+  **`Spec: <owner>/<repo>/<path>`** line recording where the original doc lives
+  (it is **not** moved). When no spec matched, fall back to a lightweight body —
+  member list + "reconstructed during migration". Either way **no spec/plan file
+  is created or moved** — reference-only.
 - **Native-link tasks**:
   `vrg-epic-link --epic <owner>/.github#<EPIC> --task <owner>/<repo>#<TASK>`
   (also for standing: `--epic <owner>/<repo>#<STANDING>`).
@@ -114,3 +129,9 @@ framework." If any open issue went unclassified, list it.
 - **One repo at a time.** Prove the procedure on a small repo before a large one.
 - Cross-org is out of scope: each org has its own `.github` and epics; never link
   across orgs.
+- **Spec enrichment is reference-only and current-work-only.** Retro-epics are
+  enriched from the matching existing spec, but specs are never moved, and
+  projects with no open issues are never reconstructed. Relocating current-work
+  specs into `.github/epics/<N>-<slug>/` and sweeping completed specs into an
+  `archive/` subdir is a **separate, deferred follow-up**. Reporting
+  (`vrg-roadmap` / `vrg-activity-log`) is unchanged.
