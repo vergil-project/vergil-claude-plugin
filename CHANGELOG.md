@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.17] - 2026-06-29
+
+### Documentation
+
+- epic/task convention on-ramp + linkage/namespace fixes (#525)
+
 ## [2.1.15] - 2026-06-25
 
 ### Refactoring
