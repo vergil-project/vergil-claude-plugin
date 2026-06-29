@@ -76,8 +76,11 @@ vrg-submit-pr \
 - `--summary` (required): one-line PR summary
 - `--linkage` (optional, default: `Ref`): **always use `Ref`**.
   `Fixes`, `Closes`, and `Resolves` are forbidden — they auto-close
-  the issue at merge time, bypassing finalization. Issues are closed
-  explicitly by the human after PR finalization (`vrg-finalize-pr`).
+  the issue at merge time, bypassing finalization. The Ref'd issue must
+  be a **task, not an epic** (`vrg-submit-pr` rejects epic links).
+  `vrg-finalize-pr` closes the task and rolls up its epic after the
+  post-merge checks pass — gated on an epic parent, so legacy issues are
+  left for manual close. See the epic/task convention in `CLAUDE.md`.
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing
 

@@ -120,6 +120,63 @@ the same; the format is now agent-instruction documentation rather
 than a slash-command, since the procedure was rarely invoked
 cold and is most useful as a reference at the moment work begins.
 
+## Epic / task issue convention
+
+Work is organized as a two-tier hierarchy invented on GitHub's flat
+model. The canonical spec and plan live in the epic's folder under the
+org `.github` repo (`.github/epics/<N>-<slug>/`); this section is the
+local on-ramp.
+
+### The model
+
+- **Finite epics** live in the org `.github` repo — one roadmap view of
+  every cross-cutting initiative. **Tasks** live in the member repo
+  where the work happens, each **1:1 with a single finalizing PR**.
+- **Standing epics** (`epic` + `standing` labels) are perpetual,
+  per-repo buckets for ad-hoc work — one `Ad-hoc maintenance` per repo;
+  they never auto-close.
+- Every task belongs to exactly one epic. There are no standalone tasks.
+
+### Linking a task to its epic
+
+Link each task under its epic as a **native GitHub sub-issue** at
+creation:
+
+```bash
+vrg-epic-link --epic vergil-project/.github#<EPIC> --task <owner>/<repo>#<TASK>
+```
+
+The native link is what makes epic rollup reliable; a `Parent:
+<owner>/<repo>#<N>` line in the task body is only a portable fallback
+for forges without sub-issues.
+
+### Closing — mechanical, never manual
+
+- PRs use **`Ref`-only** linkage; auto-close keywords stay forbidden,
+  and **a PR links a task, never an epic** (enforced at `vrg-submit-pr`).
+- `vrg-finalize-pr` closes the task **after** merge and post-merge
+  checks pass, then rolls the epic up (closing it when its last child
+  closes). Both are **gated on an `epic`-labeled parent**, so the
+  existing legacy backlog is left untouched — the model turns on
+  per-issue as repos migrate.
+
+### Invariants
+
+- **Only epics reopen.** A task is never reopened; a revert or follow-up
+  is a **new `bug`** (optionally `Ref`-linked to the culprit change).
+- Adding a task to a closed epic **reopens** it (`vrg-epic-link` does
+  this automatically).
+- **`hotfix`**: an emergency fix may skip planning — file it under the
+  repo's standing epic, label `hotfix` (flagged for retroactive review).
+
+### Labels
+
+Standardized orthogonal axes: **role** (`epic`, `standing`), **stage**
+(`triage`), **kind** (`bug`, `feature`, `docs`, `refactor`, `chore`,
+`research`, `idea`), **exception** (`hotfix`). Uncurated ideas and bugs
+enter as `triage` and are routed into the model by a periodic triage
+review.
+
 ## Shell command policy — additional rules
 
 **Do NOT use heredocs** (`<<EOF` / `<<'EOF'`) for multi-line arguments to CLI
@@ -135,8 +192,8 @@ delivers runtime CLI tools via PATH).
 
 **Project name**: vergil-claude-plugin
 
-**Plugin namespace**: `vergil-tooling` (skills invoked as
-`/vergil-tooling:<skill-name>`)
+**Plugin namespace**: `vergil` (skills invoked as
+`/vergil:<skill-name>`)
 
 **Status**: Pre-release (0.x)
 
@@ -145,7 +202,7 @@ delivers runtime CLI tools via PATH).
 ### Plugin Manifest (`.claude-plugin/plugin.json`)
 
 Defines the plugin identity, version, and metadata. The `name` field
-(`vergil-tooling`) determines the skill namespace prefix.
+(`vergil`) determines the skill namespace prefix.
 
 ### Hooks (`hooks/hooks.json`)
 
