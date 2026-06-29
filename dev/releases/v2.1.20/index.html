@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.9/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.7/">
+        <link rel="next" href="../v2.1.19/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.8 - Standard Tooling Plugin</title>
+        <title>2.1.20 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-148-2026-04-28" class="md-skip">
+        <a href="#release-2120-2026-06-29" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.8
+              2.1.20
             
           </span>
         </div>
@@ -692,10 +692,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.20/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.20
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -711,6 +738,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2204,37 +2262,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.8
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.8/" class="md-nav__link">
         
   
   
@@ -2250,37 +2281,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2689,10 +2689,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
+  <a href="#features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bug fixes
+        Features
       
     </span>
   </a>
@@ -2716,17 +2716,10 @@
 
 
 
-<h1 id="release-148-2026-04-28">Release 1.4.8 (2026-04-28)<a class="headerlink" href="#release-148-2026-04-28" title="Permanent link">&para;</a></h1>
-<h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h1 id="release-2120-2026-06-29">Release 2.1.20 (2026-06-29)<a class="headerlink" href="#release-2120-2026-06-29" title="Permanent link">&para;</a></h1>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li>
-<p><strong>remove non-existent /plugin update command from consumer-refresh sequence</strong>
-The three-step refresh sequence included /plugin update which does not exist as a Claude Code command. Running it drops into the generic /plugin menu with no effect. The marketplace update command already downloads the new version into the local cache, so the correct sequence is two steps: marketplace update then reload-plugins.</p>
-</li>
-<li>
-<p><strong>require explicit version extraction from publish.yml in preflight</strong>
-The publish skill's preflight and Phase 1 both said to read the version from the project manifest but did not specify how. This allowed agents to infer the version from branch names or conversation context instead of reading the actual file. Now preflight explicitly requires running the version extraction command from publish.yml, and Phase 1 and version-override reference the preflight-captured version rather than re-reading.</p>
-</li>
+<li><strong>migrate-repo — enrich retro-epics from existing specs (current-work, reference-only) (#542)</strong></li>
 </ul>
 
 
