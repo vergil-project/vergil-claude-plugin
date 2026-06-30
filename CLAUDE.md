@@ -146,6 +146,18 @@ initiative), promote it with **`/vergil:epic-create`** — it creates the epic i
 epic: file it under an existing or standing epic instead. Brainstormed epic
 specs go to `.github`, not the member repo's `docs/specs/`.
 
+### Plans evolve append-only
+
+A plan is **frozen at execution start** (when the first task ships). Don't
+rewrite the planned task list to absorb later changes — that hides how the plan
+actually evolved. Append instead to an `## Evolution during execution` section
+at the bottom of `plan.md`: dated entries of what was added, dropped, or
+rescoped, and **why**. The epic's GitHub sub-issues stay the authoritative live
+task list; the addendum captures the *reasoning* for deltas, so a reader sees
+what was foreseen up front versus adapted in flight. Log meaningful deviations
+only — a new/dropped task, a discovered dependency, a scope shift — not trivial
+mechanics. Before execution begins, plans are edited freely.
+
 ### Linking a task to its epic
 
 Link each task under its epic as a **native GitHub sub-issue** at
