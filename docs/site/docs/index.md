@@ -33,11 +33,23 @@ tools available to run.
 
 ### From marketplace
 
-Configure in your project's `.claude/settings.json`:
+The plugin ships through a single released channel on `main`. Configure your
+project's `.claude/settings.json`:
 
 ```json
 {
-  "plugins": ["vergil-tooling"]
+  "extraKnownMarketplaces": {
+    "vergil-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "vergil-project/vergil-claude-plugin",
+        "ref": "main"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "vergil@vergil-marketplace": true
+  }
 }
 ```
 
@@ -49,8 +61,8 @@ claude --plugin-dir /path/to/vergil-claude-plugin
 
 ## Plugin Namespace
 
-All skills are namespaced under `vergil-tooling`:
+All skills are namespaced under `vergil`:
 
 ```text
-/vergil-tooling:<skill-name>
+/vergil:<skill-name>
 ```
