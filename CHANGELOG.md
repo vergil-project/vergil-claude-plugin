@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.23] - 2026-06-30
+
+### Documentation
+
+- capture the plan-evolution-addendum convention (#40) (#557)
+
 ## [2.1.22] - 2026-06-30
 
 ### Chores
