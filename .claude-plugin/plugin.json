@@ -1,7 +1,7 @@
 {
   "name": "vergil",
   "description": "Shared hooks, skills, agents, and commands for all managed repositories in the vergil-tooling ecosystem.",
-  "version": "2.1.23",
+  "version": "2.1.24",
   "author": {
     "name": "vergil-project"
   },
