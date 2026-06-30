@@ -137,6 +137,15 @@ local on-ramp.
   they never auto-close.
 - Every task belongs to exactly one epic. There are no standalone tasks.
 
+### Creating an epic from a brainstorm
+
+When a brainstormed spec represents a finite epic (a cross-cutting, multi-PR
+initiative), promote it with **`/vergil:epic-create`** — it creates the epic in
+`.github`, publishes the spec/plan into `epics/<N>-<slug>/`, and returns the
+`vrg-epic-link` template for the tasks. A single-PR change is a **task**, not an
+epic: file it under an existing or standing epic instead. Brainstormed epic
+specs go to `.github`, not the member repo's `docs/specs/`.
+
 ### Linking a task to its epic
 
 Link each task under its epic as a **native GitHub sub-issue** at
