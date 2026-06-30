@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.22] - 2026-06-30
+
+### Chores
+
+- point plugin marketplace at main (single released channel, #45) (#552)
+
 ## [2.1.21] - 2026-06-30
 
 ### Features
