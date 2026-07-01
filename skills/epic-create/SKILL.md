@@ -38,8 +38,10 @@ When unsure, it is a task. Epics are for initiatives, not individual changes.
 ## Workflow
 
 1. **Create the epic issue** in `<owner>/.github`:
-   `vrg-gh issue create --repo <owner>/.github --title "Epic: <name>" --label epic --body-file <tmp>`.
-   Body: a short summary of the initiative. Note the issue number **N**.
+   `vrg-epic-create --title "Epic: <name>" --body-file <tmp>`. Run it from a repo
+   in the target org — it creates the issue in `<org>/.github` (org auto-detected
+   from the remote) and adds the `epic` label automatically. Body: a short
+   summary of the initiative. Note the issue number **N**.
 2. **Publish the docs.** On a worktree of the `<owner>/.github` repo, write the
    spec to `epics/<N>-<slug>/spec.md` and the plan (if any) to
    `epics/<N>-<slug>/plan.md` (`<slug>` is 2–4 kebab tokens). Validate

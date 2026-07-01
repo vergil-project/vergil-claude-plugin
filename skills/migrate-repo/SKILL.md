@@ -99,7 +99,9 @@ The human can edit any proposal before approving it.
 For each approved batch, in this order:
 
 - **Create retro-epics** in `<owner>/.github`
-  (`vrg-gh issue create --repo <owner>/.github --title "Epic: <name>" --body-file <tmp> --label epic`).
+  (`vrg-epic-create --title "Epic: <name>" --body-file <tmp>` — creates the issue
+  in `<org>/.github` with the `epic` label, org auto-detected from the repo you
+  run it in).
   When a spec was matched in Pass 2, the body uses the spec's project **name**, a
   **2–3 sentence summary** distilled from it, the member task list, and a
   **`Spec: <owner>/<repo>/<path>`** line recording where the original doc lives
