@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.24] - 2026-07-01
+
+### Bug fixes
+
+- update issue-create references to the new vrg-* creation commands (#567)
+
+### Documentation
+
+- document the single released-channel distribution model (#45) (#563)
+- fix stale install config + namespace; single-channel model (#45) (#564)
+
 ## [2.1.23] - 2026-06-30
 
 ### Documentation
