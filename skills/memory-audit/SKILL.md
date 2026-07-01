@@ -66,7 +66,9 @@ After the human decides:
 - **Relocate → global CLAUDE.md:** Draft the addition to
   `~/.claude/CLAUDE.md`. Show the draft. Write on approval.
 - **Relocate → plugin/skill issue:** Draft the issue body. Show the
-  draft. Create the issue with `gh issue create` on approval.
+  draft. On approval, create it with
+  `vrg-triage-create --repo <target-repo> --title … --body-file <tmp>` — an
+  unlinked `triage` issue that `triage-review` routes to an epic later.
 - **Delete:** Remove the file and its index entry from `MEMORY.md`.
 
 ### 5. Reconcile index
