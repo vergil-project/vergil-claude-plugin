@@ -76,7 +76,7 @@ Always available, not lifecycle-bound:
 
 The seams between phases are where skills fail today:
 
-1. **A1 → B1**: When an issue is created (via `gh issue create`),
+1. **A1 → B1**: When an issue is created (via `vrg-issue-create`),
    the natural next step is to start work on it. Today the user
    invokes them separately.
 2. **B3 → B4**: After merge, `vrg-finalize-repo` runs. PR-workflow
@@ -285,12 +285,13 @@ directly for warnings outside the hook's scope.
 
 ### project-issue
 
-**Status: ELIMINATED.** The skill was a thin wrapper around
-`gh issue create` with guided questions. After GitHub Projects
+**Status: ELIMINATED.** The skill was a thin wrapper around raw issue
+creation with guided questions. After GitHub Projects
 integration was stripped (step 5), the remaining value did not
 justify a dedicated skill — agents already create well-structured
 issues without it. The skill directory was removed; issue creation
-is now handled directly via `gh issue create`.
+is now handled directly via `vrg-issue-create` (and `vrg-epic-create` /
+`vrg-triage-create` for epics and triage).
 
 ### summarize
 
@@ -350,7 +351,7 @@ cadence that some changes don't need). The PAAD `vibe` and
 ### Gap 2 — A1→B1 chaining
 
 **Resolved.** `project-issue` was eliminated (#275). Issue
-creation is now direct (`gh issue create`); starting work follows
+creation is now direct (`vrg-issue-create`); starting work follows
 [`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md).
 No skill-to-skill chaining needed.
 
@@ -368,9 +369,10 @@ grounds that each skill should self-document. **Defer the call.**
 ### Gap 4 — Release tracking issue creation
 
 **Resolved.** `project-issue` was eliminated (#275). Release
-tracking issues are created directly via `gh issue create` in
-the `publish` skill's Phase 1 — there is now only one
-issue-creation path.
+tracking issues are created directly via `vrg-issue-create` in
+the `publish` skill's Phase 1 — issue creation goes through the
+sanctioned `vrg-issue-create` / `vrg-epic-create` / `vrg-triage-create`
+commands.
 
 ### Gap 5 — General incoming-signal triage
 
@@ -489,8 +491,8 @@ separate agent session per the user's instruction.
 User decided to remove all GitHub Projects integration.
 
 **Status update (2026-05-08): skill eliminated (#275).** After
-Projects removal, the skill was a thin wrapper around
-`gh issue create` with guided questions. Agents already create
+Projects removal, the skill was a thin wrapper around raw issue
+creation with guided questions. Agents already create
 well-structured issues without it. Skill directory removed;
 issue creation handled directly.
 

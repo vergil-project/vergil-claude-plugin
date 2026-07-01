@@ -7,6 +7,7 @@ in every Claude Code session.
 ## Table of Contents
 
 - [What this plugin does](#what-this-plugin-does)
+- [Distribution model](#distribution-model)
 - [Install](#install)
 - [Update](#update)
 - [Component inventory](#component-inventory)
@@ -28,6 +29,27 @@ available; this plugin ensures Claude Code uses them correctly —
 blocking raw `git commit` in favor of `vrg-commit`, blocking raw
 `gh pr create` in favor of `vrg-submit-pr`, routing per-file
 validation through the dev container, and so on.
+
+## Distribution model
+
+The plugin ships through a **single channel**: every consumer — every
+`vergil-project` repo and every external org — registers
+`vergil-marketplace@main` and runs the latest **released** version. There is no
+per-version pinning and no SemVer. The plugin is *behavioral guidance* (skills,
+hooks, agents), not a versioned API that code links against, so "track the
+release" is the entire model — and releasing to `main` is the one act that makes
+a new skill or hook live for everyone.
+
+To run **unreleased** (`develop`) behavior you don't need a second channel:
+
+- **Iterating on the plugin?** Load the working tree directly with
+  `claude --plugin-dir /path/to/vergil-claude-plugin` — see
+  [Develop against the source tree](#develop-against-the-source-tree).
+- **Need one unreleased skill ad hoc?** Tell the agent to read that file on
+  `develop` and follow it — the AI-equivalent of running it by hand.
+
+Full rationale and decision record:
+[`epics/45-plugin-distribution-model/spec.md`](https://github.com/vergil-project/.github/blob/main/epics/45-plugin-distribution-model/spec.md).
 
 ## Install
 

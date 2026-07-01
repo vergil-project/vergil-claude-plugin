@@ -35,14 +35,14 @@ Fire whenever the human wants to record something without stopping to plan it:
 4. **Create the issue:**
 
    ```bash
-   vrg-gh issue create --repo <owner>/<repo> \
+   vrg-triage-create --repo <owner>/<repo> \
      --title "<concise, specific title>" \
-     --body-file <tmpfile> \
-     --label triage
+     --body-file <tmpfile>
    ```
 
-   Add a `kind` label too if it's obvious (`bug`, `idea`, `docs`, …) — but the
-   only required label is `triage`.
+   `vrg-triage-create` adds the `triage` label and leaves the issue unlinked
+   (no parent epic) — `triage-review` routes it to an epic later. Add a `kind`
+   label too with `--label` if it's obvious (`bug`, `idea`, `docs`, …).
 5. **Report** the new issue URL and stop. Do **not** plan, scope, or start work
    — that is what `triage-review` and the formal path are for.
 

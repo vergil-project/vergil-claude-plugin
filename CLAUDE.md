@@ -268,6 +268,15 @@ tools available to run.
 **NEVER use raw `git commit`** — always use `vrg-commit`.
 **NEVER use raw `gh pr create`** — always use `vrg-submit-pr`.
 
+## Plugin distribution model
+
+The plugin ships through a **single channel**: every consumer (all of
+`vergil-project` and external orgs) registers `vergil-marketplace@main` — the
+released line. No SemVer, no per-version pinning, no dev marketplace; releasing
+to `main` is what makes a skill/hook live for everyone. To run unreleased
+`develop` behavior, load the source tree with `claude --plugin-dir` or tell the
+agent to read the file directly. Rationale: `vergil-project/.github` epic #45.
+
 ## Refreshing the plugin locally
 
 When the user asks how to refresh / update / reinstall this plugin

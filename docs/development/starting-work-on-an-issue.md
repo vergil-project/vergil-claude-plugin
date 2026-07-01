@@ -151,10 +151,11 @@ working directory:
 
 2. **If a sub-issue exists**, use its number.
 
-3. **If no sub-issue exists**, create one:
+3. **If no sub-issue exists**, create it linked under the parent in one step:
 
    ```bash
-   gh issue create \
+   vrg-issue-create \
+     --epic <parent_owner>/<parent_repo>#<parent_number> \
      --repo <current_repo> \
      --title "<parent_title>" \
      --body-file <tempfile>
@@ -168,17 +169,10 @@ working directory:
    See parent issue for full context and acceptance criteria.
    ```
 
-4. **Link it as a sub-issue** of the parent:
-
-   ```bash
-   child_db_id=$(gh api \
-     repos/<current_owner>/<current_repo>/issues/<child_number> \
-     --jq '.id')
-
-   gh api \
-     repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
-     --method POST -F sub_issue_id="$child_db_id"
-   ```
+   `vrg-issue-create` creates the sub-issue **and** links it natively under the
+   parent as a GitHub sub-issue — there is no separate linking step. The parent
+   must be an `epic`-labelled issue: the current model links every task under an
+   epic.
 
 Capture: `issue_number` — the repo-local number to use for
 worktree+branch creation.
