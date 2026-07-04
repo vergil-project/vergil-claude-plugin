@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.22/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.20/">
+        <link rel="next" href="../v2.1.25/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.21 - Standard Tooling Plugin</title>
+        <title>2.1.26 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-1421-2026-05-07" class="md-skip">
+        <a href="#release-2126-2026-07-04" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.21
+              2.1.26
             
           </span>
         </div>
@@ -704,10 +704,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.26/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.26
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -723,6 +750,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2020,37 +2078,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.21
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.21/" class="md-nav__link">
         
   
   
@@ -2066,37 +2097,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2896,10 +2896,11 @@
 
 
 
-<h1 id="release-1421-2026-05-07">Release 1.4.21 (2026-05-07)<a class="headerlink" href="#release-1421-2026-05-07" title="Permanent link">&para;</a></h1>
+<h1 id="release-2126-2026-07-04">Release 2.1.26 (2026-07-04)<a class="headerlink" href="#release-2126-2026-07-04" title="Permanent link">&para;</a></h1>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>add GitHub config compliance check to PR and publish workflow preflight</strong></li>
+<li><strong>route intake to .github with --kind (triage-capture, memory-audit) (#575) (#581)</strong>
+Epic vergil-project/.github#85, Task 8. Update the intake-creating skills to the new model: triage-capture drops the most-relevant-repo routing and always files in the org .github, choosing --kind triage|idea|research (was: triage label + per-repo choice). memory-audit's plugin/skill-issue path uses --kind triage into .github (the tool's default). Keeps every non-.github repo to single-PR tasks only; the org-wide intake queue is one filtered view.</li>
 </ul>
 
 
