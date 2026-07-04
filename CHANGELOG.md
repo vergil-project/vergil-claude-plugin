@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.25] - 2026-07-04
+
+### CI
+
+- add on: issues.closed caller for event-driven epic rollup (#571)
+
+### Chores
+
+- relicense to MIT (#573)
+
+### Features
+
+- make epic-create the orchestrating outer workflow (#574) (#577)
+
 ## [2.1.24] - 2026-07-01
 
 ### Bug fixes
