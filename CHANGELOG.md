@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.27] - 2026-07-05
+
+### Features
+
+- align migrate-repo to the ad-hoc model in .github (#576) (#585)
+
 ## [2.1.26] - 2026-07-04
 
 ### Features
