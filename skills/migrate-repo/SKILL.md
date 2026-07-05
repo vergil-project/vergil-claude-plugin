@@ -1,6 +1,6 @@
 ---
 name: migrate-repo
-description: Migrate a repo's existing open-issue backlog into the epic/task framework. Use when the human asks to "migrate <repo>", "bring <repo> into the framework", "onboard this repo's backlog", "do the migration for <repo>", or wants the existing pile of open issues triaged into epics/tasks/standing/closed so the roadmap and audit reflect reality. Guided, resumable, batch-approved, human-in-the-loop; closes the done ones, buckets ad-hoc into the standing epic, and reconstructs the obvious epics.
+description: Migrate a repo's existing open-issue backlog into the epic/task framework. Use when the human asks to "migrate <repo>", "bring <repo> into the framework", "onboard this repo's backlog", "do the migration for <repo>", or wants the existing pile of open issues triaged into epics/tasks/ad-hoc/closed so the roadmap and audit reflect reality. Guided, resumable, batch-approved, human-in-the-loop; closes the done ones, buckets ad-hoc work under the repo's ad-hoc epic in the org .github, and reconstructs the obvious epics.
 ---
 
 # Migrate repo
@@ -8,8 +8,8 @@ description: Migrate a repo's existing open-issue backlog into the epic/task fra
 ## Overview
 
 Bring one repo's pre-framework backlog into the epic/task model at **middle
-ambition**: close what's already done, drop clear ad-hoc work into the repo's
-standing `Ad-hoc maintenance` epic, and reconstruct a finite epic only where a
+ambition**: close what's already done, drop clear ad-hoc work under the repo's
+ad-hoc epic in the org `.github`, and reconstruct a finite epic only where a
 cluster of related open issues obviously forms an in-flight project. The skill is
 **resumable** (re-running only touches the not-yet-migrated remainder) and
 **batch-approved** (you approve dispositions in groups, never one issue at a
@@ -32,10 +32,10 @@ every repo and every org.
 ### 1. Setup
 
 - Seed the canonical labels: `vrg-ensure-label sync <owner>/<repo>`.
-- Ensure the repo's standing epic exists — search for an open issue titled
-  `Epic (standing): Ad-hoc maintenance` labelled `epic`+`standing`. If missing,
-  create it (`vrg-gh issue create … --label epic --label standing`). Record its
-  number; tasks routed to "standing" link under it.
+- Ensure the repo's ad-hoc epic exists in the org `.github`:
+  `vrg-adhoc-epic ensure --repo <owner>/<repo>` — it finds or creates
+  `Epic (ad hoc): <repo>` (labelled `epic`+`ad-hoc`) in `<owner>/.github` and
+  prints its ref. Record its number; ad-hoc tasks link under it.
 
 ### 2. Collect (resumable)
 
@@ -60,12 +60,12 @@ group per proposed epic) so the human approves in batches:
 | Disposition | Meaning | Action on approval |
 | --- | --- | --- |
 | **retro-epic** | A cluster of related issues that is really one in-flight initiative | create a finite epic in `<owner>/.github` (label `epic`), then `vrg-epic-link` each member as a task |
-| **standing** | Small, standalone ad-hoc work | `vrg-epic-link` under the repo's standing epic |
+| **ad-hoc** | Small, standalone ad-hoc work | `vrg-epic-link` under the repo's ad-hoc epic in `.github` |
 | **triage** | Genuinely uncertain / deserves its own brainstorm | label `triage`; defer to `/vergil:triage-review` |
 | **close** | Done (Pass 1), stale, duplicate, or obsolete | close with a reason |
 | **keep** | Looks actively in-progress right now | leave as-is; the human decides whether to fold it under an epic |
 
-Prefer attaching an issue to an **existing or proposed epic** over the standing
+Prefer attaching an issue to an **existing or proposed epic** over the ad-hoc
 bucket ("a forgotten to-do in *that* project"). Flag anything ambiguous as
 `triage` rather than guessing. Paraphrase issue intent in your proposals; don't
 just echo titles.
@@ -88,7 +88,7 @@ Present, and get the human's go-ahead for, each batch in turn:
 1. the **done** closes (from Pass 1),
 2. each **proposed epic** with its member tasks (name + members — the human can
    rename, split, merge, or move members),
-3. the **standing** batch,
+3. the **ad-hoc** batch,
 4. the **triage** batch,
 5. the **stale/dup** closes (each with its reason).
 
@@ -110,7 +110,8 @@ For each approved batch, in this order:
   is created or moved** — reference-only.
 - **Native-link tasks**:
   `vrg-epic-link --epic <owner>/.github#<EPIC> --task <owner>/<repo>#<TASK>`
-  (also for standing: `--epic <owner>/<repo>#<STANDING>`).
+  (the ad-hoc bucket's epic also lives in `.github`:
+  `--epic <owner>/.github#<ADHOC>`).
 - **Label** kinds (`bug`, `feature`, `docs`, …) where obvious; set `triage` on
   the triage batch.
 - **Close** the approved done/stale/dup issues:
@@ -119,7 +120,7 @@ For each approved batch, in this order:
 
 ### 7. Report
 
-Summarize: closed N · epics created M · tasks linked · standing K · triage T ·
+Summarize: closed N · epics created M · tasks linked · ad-hoc K · triage T ·
 kept J. Then: "run `vrg-roadmap` and `vrg-epic-audit` — `<repo>` is now in the
 framework." If any open issue went unclassified, list it.
 
