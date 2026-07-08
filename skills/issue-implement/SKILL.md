@@ -20,7 +20,11 @@ visible progress is the human's oversight.
 
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
    not, stop — this skill runs in the user-agent session.
-2. **Create the worktree for this issue** from the repo root and work inside it
+2. **Not a validation task.** If the issue carries the `validation` label, stop —
+   it is **not** code-implementation. A validation task is *run*, not built: its
+   acceptance is a recorded PASS comment, not a PR (and the PR tooling refuses
+   it). Hand it to **`issue-validate`** instead.
+3. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
    ```bash
@@ -33,6 +37,27 @@ visible progress is the human's oversight.
 **Implement the issue** here with small `vrg-commit` commits. Validate until
 green — `vrg-container-run -- vrg-validate` — fixing every failure and
 re-running; **never** suppress a gate.
+
+## Discovering a post-merge validation need
+
+Some changes cannot be proven by the pipeline's unit/integration tests — their
+real acceptance needs a cold rebuild, a live-lab check, or a deploy smoke test
+**after merge**. That is often only visible once you are deep in the code. When
+you hit it, mint a **validation follow-on** so the check is not forgotten:
+
+```bash
+vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
+  --title "Validate: <what>" --blocked-by <this-task-ref>
+```
+
+Attach the need to an existing epoch validation instead where that fits (one
+validation over several tasks) rather than minting a redundant one. See
+`epic-create`'s "Validation tasks" section for the full doctrine and the scaffold
+it stamps.
+
+**Merging the code is not the finish line for this kind of work.** Never declare
+the task or its epic done while a paired or epoch validation is still open — the
+validation task gates the epic's closure, and it closes only on a recorded PASS.
 
 ## Record the PR metadata and hand off
 
