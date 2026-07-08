@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.15/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.13/">
+        <link rel="next" href="../v2.1.27/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.14 - Standard Tooling Plugin</title>
+        <title>2.1.28 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-1414-2026-04-30" class="md-skip">
+        <a href="#release-2128-2026-07-08" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.14
+              2.1.28
             
           </span>
         </div>
@@ -708,10 +708,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.28/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.28
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -727,6 +754,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2276,37 +2345,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.14
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.14/" class="md-nav__link">
         
   
   
@@ -2322,37 +2364,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2929,6 +2940,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#features" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2956,10 +2978,22 @@
 
 
 
-<h1 id="release-1414-2026-04-30">Release 1.4.14 (2026-04-30)<a class="headerlink" href="#release-1414-2026-04-30" title="Permanent link">&para;</a></h1>
+<h1 id="release-2128-2026-07-08">Release 2.1.28 (2026-07-08)<a class="headerlink" href="#release-2128-2026-07-08" title="Permanent link">&para;</a></h1>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p><strong>add post-merge validation doctrine (#592)</strong>
+Extend epic-create with the validation task type: what it is (not PR-workable, closes only on PASS, gates rollup by staying open, blocked-by its deps), the judgment doctrine for when to add one (cold rebuild / live-lab / deploy smoke test; infra epics get a cold-rebuild validation by default), granularity (1:1 / epoch / epic bookend), and creation via vrg-issue-create --kind validation with the generic author-defined precondition scaffold. Seed infra cold-rebuild validations at epic-creation time. Part of epic vergil-project/.github#115. Ref #589.</p>
+</li>
+<li>
+<p><strong>discover/create validation follow-ons + redirect (#593)</strong>
+Teach issue-implement the post-merge validation concept: (1) a preflight redirect — a validation-labelled issue is run via issue-validate, not implemented here; (2) discover-and-create — when pipeline tests cannot prove acceptance (needs a cold rebuild / live-lab / deploy check after merge), mint a validation follow-on blocked-by this task; (3) never declare the task or epic done while a validation is outstanding. Part of epic vergil-project/.github#115. Ref #590.</p>
+</li>
+</ul>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>add handoff skill for session-to-session continuity</strong></li>
+<li><strong>add issue-validate skill (#594)</strong>
+New skill for the execution half of the post-merge validation framework: run a validation-labelled issue's checklist and record the result. Preflight confirms USER + the validation label; a preconditions gate runs first (block-not-fabricate on failure); the checklist runs against the live target; the result is a comment with a load-bearing 'Outcome: PASS/FAIL' line (the contract vrg-epic-audit reads). PASS closes the issue (epic rolls up); FAIL holds it open and files fix task(s). No worktree, no commits, no PR — deliberately contrasted with issue-implement. Part of epic vergil-project/.github#115. Ref #591.</li>
 </ul>
 
 
