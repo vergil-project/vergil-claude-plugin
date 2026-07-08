@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.28] - 2026-07-08
+
+### Documentation
+
+- add post-merge validation doctrine (#592)
+- discover/create validation follow-ons + redirect (#593)
+
+### Features
+
+- add issue-validate skill (#594)
+
 ## [2.1.27] - 2026-07-05
 
 ### Features
