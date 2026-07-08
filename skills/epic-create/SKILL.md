@@ -56,6 +56,54 @@ the final gate** — an epic is not done until the docs comprehensively describe
 what it changed. Seed these bookend tasks at epic-creation time (step 2 below)
 and fill in the specifics per epic.
 
+## Validation tasks — gating on post-merge validation
+
+Some tasks' real acceptance can only be confirmed **after merge** — a cold
+rebuild, a live-lab check, a deploy smoke test. One-PR-one-task auto-close would
+close them the moment code lands, so the epic could roll up as "done" before the
+check ever ran (this bit us once: a verification task auto-closed on a docs PR).
+A **validation task** re-establishes that gate.
+
+**What it is.** A first-class task type whose acceptance is proven by *running* a
+check and recording PASS/FAIL as an issue **comment** — not by merging a PR.
+
+- **Not PR-workable.** It has no code PR and never auto-closes; the PR tooling
+  (`vrg-submit-pr`, `vrg-pr-workflow report-ready`) refuses a `validation`-labelled
+  task. Run it via `issue-validate`, never `issue-implement`.
+- **Closes only on PASS**, recorded as a comment. On FAIL it stays open (like a
+  PR that cannot merge): file follow-on fix task(s) and leave it — and the
+  epic — open.
+- **Gates rollup** by staying open — it is an ordinary open child, so the epic
+  cannot roll up until it passes.
+- **Blocked-by its dependencies** (merge-first), recorded as `Blocked-by:`
+  reflinks so `vrg-epic-audit` reports it runnable (deps closed) vs blocked.
+
+**When to add one (judgment).** Add a validation follow-on when acceptance needs
+a cold rebuild, a live-lab check, or a deploy smoke test — i.e. the real
+acceptance path cannot be exercised by the pipeline's unit/integration tests.
+**Infra/provisioning-shaped epics carry a cold-rebuild validation by default.**
+Do **not** add one for pure docs or code fully covered by pipeline tests, where
+merge equals done.
+
+**Granularity is your call:** 1:1 (validate one task before the next), N:1 (one
+validation over a group/epoch, blocked-by all of them), or an epic-level closing
+bookend ("validate the deployed system"). At planning time you can often *see*
+the batch-validation opportunity and seed the epoch validation up front.
+
+**Create it** with the sanctioned path (never hand-roll the body):
+
+```bash
+vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
+  --title "Validate: <what>" --blocked-by <org>/<repo>#<TASK> [--blocked-by …]
+```
+
+This stamps the `validation` label and an **executable scaffold**: a generic,
+author-defined **precondition self-check** (a machine probe *or* a human-attested
+statement — the framework prescribes no mechanism; run it first and, if unmet,
+comment "blocked: preconditions not met" and stop, never fabricating), the
+**commands**, the **acceptance criteria**, and a **PASS/FAIL results template**.
+Fill in the specifics per task.
+
 ## The four-stage interaction doctrine
 
 `epic-create`'s core is a front-loaded analytical pipeline. Getting the
@@ -91,6 +139,10 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      brainstorm task(s) + the **documentation-review** task), each linked under
      N and living in `.github`:
      `vrg-issue-create --epic <org>/.github#N --repo <org>/.github --title … `.
+   - **If the epic is infra/provisioning-shaped, also seed a cold-rebuild
+     validation task by default** (`--kind validation`, blocked-by the
+     provisioning task(s)) — see "Validation tasks" above. Add other validation
+     follow-ons here or at plan time as the judgment calls for.
 3. **Write the spec** on a worktree of the documentation task's branch in the
    `.github` repo, at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens).
 4. **`paad:pushback`** on the spec → commit its revisions to the same worktree.
