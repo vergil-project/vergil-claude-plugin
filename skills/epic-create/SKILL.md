@@ -8,10 +8,11 @@ description: Use as the DEFAULT entry point for non-trivial work — building a 
 ## Overview
 
 `epic-create` is the **outer, orchestrating workflow** for non-trivial work. It
-runs the brainstorm → design → plan pipeline, creates the **finite epic** in the
-org `.github`, seeds the epic's **bookend tasks**, and publishes the spec and
-plan as the epic's docs. This is where significant work *starts* — not a step
-reached at the end.
+runs the brainstorm → design → plan pipeline, creates the **finite epic** in its
+resolved home (the org `.github` by default; a **private** repo self-homes its
+epics — see Preflight), seeds the epic's **bookend tasks**, and publishes the
+spec and plan as the epic's docs. This is where significant work *starts* — not a
+step reached at the end.
 
 Canonical convention: `vergil-project/.github#40`; worked example (this skill's
 own redesign): `vergil-project/.github#85`.
@@ -155,15 +156,23 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
 ## Preflight
 
 - Confirm you are the **USER** agent (`vrg-whoami --mode` is `user`).
-- Confirm the org's epic home (`<owner>/.github`).
+- Confirm the **resolved** epic home for the target repo. The home is derived
+  from visibility (`epics.resolve_epic_home`, epic #130): a **public** repo homes
+  its epics centrally in `<owner>/.github`; a **private** repo (with a public
+  `.github`) self-homes them in its own issue list, so nothing about private work
+  reaches the public `.github`. The create and report commands take an explicit
+  `--repo <owner>/<repo>` target (default: current repo) and echo the resolved
+  home before acting. See convention `#40` §3.2.
 
 ## Workflow
 
 1. **Brainstorm.** Run `superpowers:brainstorming` to converge on an approved
    design. (If it reduces to a single-PR task, stop — file a task, not an epic.)
 2. **Create the epic and seed its bookend tasks.**
-   - `vrg-epic-create --title "Epic: <name>" --body-file <tmp>` creates the issue
-     in `<org>/.github` with the `epic` label (org auto-detected); note the
+   - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
+     <tmp>` creates the issue in the target's **resolved home** with the `epic`
+     label (`--repo` defaults to the current repo; the command echoes the home —
+     `<org>/.github` for a public target, the repo itself when private); note the
      number **N**.
    - Create the **documentation task** and the **closing tasks** (follow-on
      brainstorm task(s) + the **documentation-review** task), each linked under
@@ -180,7 +189,8 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      (`--kind deployment`) wherever a later step needs the change *deployed*, not
      just merged. Add more here or at plan time as the judgment calls for.
 3. **Write the spec** on a worktree of the documentation task's branch in the
-   `.github` repo, at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens).
+   epic's **home repo** (`.github` for a public target, the repo itself when
+   private), at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens).
 4. **`paad:pushback`** on the spec → commit its revisions to the same worktree.
 5. **Human review** of the spec.
 6. **`superpowers:writing-plans`** → `epics/<N>-<slug>/plan.md` on the same
