@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.29] - 2026-07-09
+
+### Documentation
+
+- extract shared operational lifecycle; record SUCCESS (#602)
+- generalize doctrine to operational tasks (+ deployment) (#604)
+- redirect deployment issues to issue-deploy; discover deploy needs (#607)
+
+### Features
+
+- add the issue-deploy skill (#603)
+
 ## [2.1.28] - 2026-07-08
 
 ### Documentation
