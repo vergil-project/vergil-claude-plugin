@@ -48,7 +48,10 @@ carries these bookend tasks:
   2. **Documentation-review task** — verify the epic's changes are
      comprehensively reflected in the human-facing docs, **especially the
      versioned site docs** (`docs/site/…`), which are the primary interface for
-     understanding the system and tend to drift behind the code.
+     understanding the system and tend to drift behind the code. Because those
+     site docs live in a **member repo**, this task's PR lands there — so file
+     the task in **that member repo**, not `.github` (the placement law; see
+     Notes).
 
 This rides the **existing auto-close rollup**: an epic rolls up only when all its
 tasks close, so the closing tasks *gate* closure. The **documentation review is
@@ -164,8 +167,13 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      number **N**.
    - Create the **documentation task** and the **closing tasks** (follow-on
      brainstorm task(s) + the **documentation-review** task), each linked under
-     N and living in `.github`:
-     `vrg-issue-create --epic <org>/.github#N --repo <org>/.github --title … `.
+     N. **File each in the repo where its closing PR will land** (the placement
+     law — see Notes): the documentation and follow-on-brainstorm tasks live in
+     `.github` (`--repo <org>/.github`), but the **documentation-review** task
+     usually lands its PR in the **member repo** holding the site docs
+     (e.g. `vergil-tooling/docs/site`), so file it there
+     (`--repo <owner>/<repo>`) — never blanket `.github`:
+     `vrg-issue-create --epic <org>/.github#N --repo <owner>/<repo> --title … `.
    - **Seed operational tasks the epic will need** — see "Operational tasks"
      above. Infra/provisioning-shaped epics carry a cold-rebuild **validation**
      by default (`--kind validation`); seed a **deployment** task
@@ -189,11 +197,17 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
 
 ## Notes
 
-- **Epics live in `.github`; tasks live where their PR lands.** The epic issue
-  and its `spec.md`/`plan.md` belong in `<owner>/.github`. Most tasks live in the
-  member repo whose PR closes them; the bookend and self-referential tasks (docs,
-  follow-on brainstorm, doc review) live in `.github` because their PRs land
-  there.
+- **Placement law — a task lives in the repo where its closing PR lands, and a
+  PR only `Closes` an issue in its own repo.** Cross-repo relationships are
+  `Ref` or comments — **never** `Closes`. So file each task in the repo whose PR
+  will close it. The epic issue and its `spec.md`/`plan.md` belong in
+  `<owner>/.github`; the **documentation task** lives there too, because its PR
+  publishes the spec/plan into `.github`. But a bookend whose PR lands in a
+  **member repo** — most often the **documentation-review** task, since the
+  versioned site docs live in a member repo (e.g. `vergil-tooling/docs/site`) —
+  is filed in **that member repo**, not blanket `.github`. Filing it in `.github`
+  forces the illegal cross-repo close that produced a `vergil-tooling` PR
+  closing `vergil-project/.github#127`.
 - **Cross-org is out of scope:** each org has its own `.github`; never link epics
   or tasks across orgs.
 - Reconstructing epics from an existing backlog is a different job — use

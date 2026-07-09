@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.30] - 2026-07-09
+
+### Documentation
+
+- state same-repo placement law; file doc-review bookend in member repo (#613)
+
 ## [2.1.29] - 2026-07-09
 
 ### Documentation
