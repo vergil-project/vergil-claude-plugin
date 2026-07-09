@@ -169,6 +169,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | Skill | Purpose |
 |---|---|
 | `issue-implement` | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human |
+| `issue-localize` | USER agent: take a remotely-completed pushed branch and reconstruct its submit-ready state locally for `vrg-submit-pr` |
 | `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |

@@ -15,6 +15,7 @@ substantially change it.
 | Skill | Purpose | Status |
 |---|---|---|
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-localize](#issue-localize) | USER agent: reconstruct a remotely-completed branch's submit-ready state locally for `vrg-submit-pr` | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
@@ -30,6 +31,27 @@ PR.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR.
+
+**Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
+(`vrg-pr-workflow`, etc.) at runtime.
+
+## issue-localize
+
+**What it does.** USER-identity skill. Takes a **remotely-completed**
+branch — implemented on a cloud VM and pushed to origin — and makes it
+**submit-ready on the local host**. It is the tail of `issue-implement`
+applied to work done elsewhere: it skips implementation and does the
+same validate → `report-ready` → hand off. Because `.vergil/` is
+gitignored, the PR-ready state never rides the push and is stranded on
+the cloud VM's volume; rather than fetch it, this skill **regenerates**
+the PR metadata locally from the durable inputs (the pushed branch + the
+issue), so it stays fully decoupled from the cloud with no new
+infrastructure. Accepts an issue number or a branch name (one branch per
+issue, so it is unambiguous).
+
+**When to use.** In the user-agent session, when a remote/cloud agent
+already pushed an issue's branch but the local worktree has no
+`.vergil/pr-workflow.json` for `vrg-submit-pr` to read.
 
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (`vrg-pr-workflow`, etc.) at runtime.
