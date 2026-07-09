@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v2.0.1/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.24/">
+        <link rel="next" href="../v2.1.28/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.25 - Standard Tooling Plugin</title>
+        <title>2.1.29 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-1425-2026-05-11" class="md-skip">
+        <a href="#release-2129-2026-07-09" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.25
+              2.1.29
             
           </span>
         </div>
@@ -710,10 +710,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.29/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.29
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -729,6 +756,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1998,19 +2067,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.25/" class="md-nav__link">
         
   
   
@@ -2026,7 +2086,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -2904,6 +2963,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2919,7 +3008,27 @@
 
 
 
-<h1 id="release-1425-2026-05-11">Release 1.4.25 (2026-05-11)<a class="headerlink" href="#release-1425-2026-05-11" title="Permanent link">&para;</a></h1>
+<h1 id="release-2129-2026-07-09">Release 2.1.29 (2026-07-09)<a class="headerlink" href="#release-2129-2026-07-09" title="Permanent link">&para;</a></h1>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p><strong>extract shared operational lifecycle; record SUCCESS (#602)</strong>
+Add skills/issue-validate/references/operational-task-lifecycle.md — the shared run contract both operational run skills follow (preflight -&gt; preconditions gate -&gt; run -&gt; record Outcome -&gt; close-on-success / hold-open-on-failure). Update issue-validate to reference it and to record Outcome: SUCCESS/FAILURE (unified marker), keeping the validation-specific detail. Part of epic vergil-project/.github#124. Ref #598.</p>
+</li>
+<li>
+<p><strong>generalize doctrine to operational tasks (+ deployment) (#604)</strong>
+Generalize epic-create's 'Validation tasks' section to 'Operational tasks' covering both kinds: the merged-vs-deployed graph structure, the shared not-PR-workable/closes-on-SUCCESS/gates-rollup rules, when to add validation vs deployment, the impl-&gt;deploy-&gt;validate shape, --kind {validation|deployment} creation, and the deployment autonomy boundary (release is a human-gated precondition). Update the seeding step accordingly. Part of epic vergil-project/.github#124. Ref #600.</p>
+</li>
+<li>
+<p><strong>redirect deployment issues to issue-deploy; discover deploy needs (#607)</strong>
+Broaden the wrong-skill redirect to any operational label: a validation issue routes to issue-validate, a deployment issue to issue-deploy. Generalize discover-and-create to mint either a deployment follow-on (next step needs it deployed, not just merged) or a validation follow-on, and never declare done while an operational task is open (closes only on Outcome: SUCCESS). Part of epic vergil-project/.github#124. Ref #601.</p>
+</li>
+</ul>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>add the issue-deploy skill (#603)</strong>
+New skill for running deployment tasks: follows the shared operational-task lifecycle and adds the deployment specifics — agent-safe deploy steps only (a required release is a human-gated precondition; issue-deploy never cuts a release), idempotent retry-first on failure, record Outcome: SUCCESS/FAILURE, close on SUCCESS. Contrasts with issue-validate (verify) and issue-implement (no PR). Part of epic vergil-project/.github#124. Ref #599.</li>
+</ul>
 
 
 
