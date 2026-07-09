@@ -2929,6 +2929,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#issue-localize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        issue-localize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pr-watch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3056,6 +3067,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#issue-localize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        issue-localize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pr-watch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3141,6 +3163,11 @@ substantially change it.</p>
 <td>Current (2.1)</td>
 </tr>
 <tr>
+<td><a href="#issue-localize">issue-localize</a></td>
+<td>USER agent: reconstruct a remotely-completed branch's submit-ready state locally for <code>vrg-submit-pr</code></td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
 <td><a href="#pr-watch">pr-watch</a></td>
 <td>USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable</td>
 <td>Current (2.1)</td>
@@ -3166,6 +3193,23 @@ run-and-done hand-off: it records the metadata and the human opens the
 PR.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
+(<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
+<h2 id="issue-localize">issue-localize<a class="headerlink" href="#issue-localize" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill. Takes a <strong>remotely-completed</strong>
+branch — implemented on a cloud VM and pushed to origin — and makes it
+<strong>submit-ready on the local host</strong>. It is the tail of <code>issue-implement</code>
+applied to work done elsewhere: it skips implementation and does the
+same validate → <code>report-ready</code> → hand off. Because <code>.vergil/</code> is
+gitignored, the PR-ready state never rides the push and is stranded on
+the cloud VM's volume; rather than fetch it, this skill <strong>regenerates</strong>
+the PR metadata locally from the durable inputs (the pushed branch + the
+issue), so it stays fully decoupled from the cloud with no new
+infrastructure. Accepts an issue number or a branch name (one branch per
+issue, so it is unambiguous).</p>
+<p><strong>When to use.</strong> In the user-agent session, when a remote/cloud agent
+already pushed an issue's branch but the local worktree has no
+<code>.vergil/pr-workflow.json</code> for <code>vrg-submit-pr</code> to read.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
 <h2 id="pr-watch">pr-watch<a class="headerlink" href="#pr-watch" title="Permanent link">&para;</a></h2>
