@@ -56,53 +56,80 @@ the final gate** — an epic is not done until the docs comprehensively describe
 what it changed. Seed these bookend tasks at epic-creation time (step 2 below)
 and fill in the specifics per epic.
 
-## Validation tasks — gating on post-merge validation
+## Operational tasks — gating on more than merge
 
-Some tasks' real acceptance can only be confirmed **after merge** — a cold
-rebuild, a live-lab check, a deploy smoke test. One-PR-one-task auto-close would
-close them the moment code lands, so the epic could roll up as "done" before the
-check ever ran (this bit us once: a verification task auto-closed on a docs PR).
-A **validation task** re-establishes that gate.
+Some steps in an epic are proven not by merging a PR but by *running* something
+after merge and recording the result as a comment. These are **operational
+tasks** — a family of not-PR-workable task types. Two kinds today:
 
-**What it is.** A first-class task type whose acceptance is proven by *running* a
-check and recording PASS/FAIL as an issue **comment** — not by merging a PR.
+- **`validation`** — *verify* prior work is correct (a cold rebuild, a live-lab
+  check, a deploy smoke test). Run with `issue-validate`.
+- **`deployment`** — *make merged work usable*: install/sync/deploy it into the
+  environment so the next step can actually run against it. Run with
+  `issue-deploy`.
 
-- **Not PR-workable.** It has no code PR and never auto-closes; the PR tooling
-  (`vrg-submit-pr`, `vrg-pr-workflow report-ready`) refuses a `validation`-labelled
-  task. Run it via `issue-validate`, never `issue-implement`.
-- **Closes only on PASS**, recorded as a comment. On FAIL it stays open (like a
-  PR that cannot merge): file follow-on fix task(s) and leave it — and the
-  epic — open.
-- **Gates rollup** by staying open — it is an ordinary open child, so the epic
-  cannot roll up until it passes.
-- **Blocked-by its dependencies** (merge-first), recorded as `Blocked-by:`
-  reflinks so `vrg-epic-audit` reports it runnable (deps closed) vs blocked.
+They share one mechanism; each kind supplies its own label, scaffold, and run
+skill.
 
-**When to add one (judgment).** Add a validation follow-on when acceptance needs
-a cold rebuild, a live-lab check, or a deploy smoke test — i.e. the real
-acceptance path cannot be exercised by the pipeline's unit/integration tests.
-**Infra/provisioning-shaped epics carry a cold-rebuild validation by default.**
-Do **not** add one for pure docs or code fully covered by pipeline tests, where
-merge equals done.
+**Why deployment matters — merged vs deployed.** An implementation task closes
+when its PR merges to develop. But the next step sometimes needs the change not
+just *merged* but *deployed and usable*. A deployment task makes that explicit,
+and its closure **is** the "deployed" signal:
 
-**Granularity is your call:** 1:1 (validate one task before the next), N:1 (one
-validation over a group/epoch, blocked-by all of them), or an epic-level closing
-bookend ("validate the deployed system"). At planning time you can often *see*
-the batch-validation opportunity and seed the epoch validation up front.
+```text
+impl task(s) ──Blocked-by──▶ deployment ──Blocked-by──▶ validation / next impl
+   merged                      deployed (= task closed)     runs against deployed
+```
+
+A downstream task that needs the thing deployed depends on the **deployment
+task**; one that only needs it merged depends on the **impl task**. The existing
+`Blocked-by` + runnable-vs-blocked machinery does the rest — no special
+precondition mechanism.
+
+**Shared operational-task rules (both kinds):**
+
+- **Not PR-workable.** No code PR; `vrg-submit-pr` and `vrg-pr-workflow
+  report-ready` refuse an operational-labelled task. Run it via its run skill
+  (`issue-validate` / `issue-deploy`), never `issue-implement`.
+- **Closes only on `Outcome: SUCCESS`**, recorded as a comment. On failure it
+  stays open (like a PR that cannot merge), and its epic stays open.
+- **Gates rollup** by staying open — an ordinary open child.
+- **Blocked-by its dependencies** (merge-first / deploy-first), recorded as
+  `Blocked-by:` reflinks so `vrg-epic-audit` reports each runnable vs blocked,
+  tagged by kind.
+
+**When to add which (judgment).**
+
+- **Validation** — when acceptance needs a check the pipeline's own tests cannot
+  do (cold rebuild, live-lab, deploy smoke test). Infra/provisioning epics carry
+  a cold-rebuild validation by default. Not for docs or pipeline-covered code.
+- **Deployment** — when the next step (a later task, or a validation) needs the
+  change **deployed and usable**, not merely merged. If everything downstream
+  only needs develop, you don't need one.
+
+**Granularity is your call:** 1:1, N:1 (one operational task over a group/epoch,
+blocked-by all of them), or an epic-level closing bookend. At planning time you
+can often *see* where a deploy or a batch validation belongs and seed it up
+front — the common shape is **impl → deploy → validate**.
 
 **Create it** with the sanctioned path (never hand-roll the body):
 
 ```bash
-vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
-  --title "Validate: <what>" --blocked-by <org>/<repo>#<TASK> [--blocked-by …]
+vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> \
+  --kind {validation|deployment} --title "<what>" --blocked-by <org>/<repo>#<TASK> [--blocked-by …]
 ```
 
-This stamps the `validation` label and an **executable scaffold**: a generic,
+This stamps the kind's label and an **executable scaffold**: a generic,
 author-defined **precondition self-check** (a machine probe *or* a human-attested
-statement — the framework prescribes no mechanism; run it first and, if unmet,
+statement; the framework prescribes no mechanism — run it first and, if unmet,
 comment "blocked: preconditions not met" and stop, never fabricating), the
-**commands**, the **acceptance criteria**, and a **PASS/FAIL results template**.
-Fill in the specifics per task.
+procedure, the acceptance criteria, and a **SUCCESS/FAILURE results template**.
+
+**Deployment autonomy boundary.** A deployment task owns only the **agent-safe**
+deploy steps (install/sync/restart). Where deploying needs a **release**
+(bump/tag/publish), that release is a **human-gated precondition** — attested,
+never performed by the agent — the same policy that keeps PR submission and merge
+in human hands. `issue-deploy` never cuts a release.
 
 ## The four-stage interaction doctrine
 
@@ -139,10 +166,11 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      brainstorm task(s) + the **documentation-review** task), each linked under
      N and living in `.github`:
      `vrg-issue-create --epic <org>/.github#N --repo <org>/.github --title … `.
-   - **If the epic is infra/provisioning-shaped, also seed a cold-rebuild
-     validation task by default** (`--kind validation`, blocked-by the
-     provisioning task(s)) — see "Validation tasks" above. Add other validation
-     follow-ons here or at plan time as the judgment calls for.
+   - **Seed operational tasks the epic will need** — see "Operational tasks"
+     above. Infra/provisioning-shaped epics carry a cold-rebuild **validation**
+     by default (`--kind validation`); seed a **deployment** task
+     (`--kind deployment`) wherever a later step needs the change *deployed*, not
+     just merged. Add more here or at plan time as the judgment calls for.
 3. **Write the spec** on a worktree of the documentation task's branch in the
    `.github` repo, at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens).
 4. **`paad:pushback`** on the spec → commit its revisions to the same worktree.
