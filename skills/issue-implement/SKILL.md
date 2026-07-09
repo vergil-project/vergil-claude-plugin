@@ -20,10 +20,11 @@ visible progress is the human's oversight.
 
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
    not, stop — this skill runs in the user-agent session.
-2. **Not a validation task.** If the issue carries the `validation` label, stop —
-   it is **not** code-implementation. A validation task is *run*, not built: its
-   acceptance is a recorded PASS comment, not a PR (and the PR tooling refuses
-   it). Hand it to **`issue-validate`** instead.
+2. **Not an operational task.** If the issue carries an operational label, stop —
+   it is **not** code-implementation. An operational task is *run*, not built:
+   its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
+   refuses it). Hand a `validation` issue to **`issue-validate`** and a
+   `deployment` issue to **`issue-deploy`**.
 3. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
@@ -38,26 +39,37 @@ visible progress is the human's oversight.
 green — `vrg-container-run -- vrg-validate` — fixing every failure and
 re-running; **never** suppress a gate.
 
-## Discovering a post-merge validation need
+## Discovering an operational need (deployment or validation)
 
-Some changes cannot be proven by the pipeline's unit/integration tests — their
-real acceptance needs a cold rebuild, a live-lab check, or a deploy smoke test
-**after merge**. That is often only visible once you are deep in the code. When
-you hit it, mint a **validation follow-on** so the check is not forgotten:
+Merging the code is sometimes not the finish line. While implementing, you may
+find a follow-on **operational task** is needed — visible only once you are deep
+in the code:
 
-```bash
-vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
-  --title "Validate: <what>" --blocked-by <this-task-ref>
-```
+- **Deployment** — the next step (a later task, or a validation) needs this
+  change **deployed and usable**, not merely merged (install/sync/release-then-
+  install). Mint a deployment follow-on:
 
-Attach the need to an existing epoch validation instead where that fits (one
-validation over several tasks) rather than minting a redundant one. See
-`epic-create`'s "Validation tasks" section for the full doctrine and the scaffold
-it stamps.
+  ```bash
+  vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind deployment \
+    --title "Deploy: <what>" --blocked-by <this-task-ref>
+  ```
 
-**Merging the code is not the finish line for this kind of work.** Never declare
-the task or its epic done while a paired or epoch validation is still open — the
-validation task gates the epic's closure, and it closes only on a recorded PASS.
+- **Validation** — acceptance needs a check the pipeline's tests cannot do (a
+  cold rebuild, a live-lab check, a deploy smoke test after merge). Mint a
+  validation follow-on:
+
+  ```bash
+  vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
+    --title "Validate: <what>" --blocked-by <this-task-ref>
+  ```
+
+Attach the need to an existing epoch operational task where that fits (one over
+several tasks) rather than minting a redundant one. See `epic-create`'s
+"Operational tasks" section for the full doctrine and the scaffolds it stamps.
+
+**Never declare the task or its epic done while a paired or epoch operational
+task is still open** — it gates the epic's closure and closes only on a recorded
+`Outcome: SUCCESS`.
 
 ## Record the PR metadata and hand off
 
