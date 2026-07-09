@@ -25,17 +25,21 @@ every repo and every org.
 
 - Confirm you are the **USER** agent (`vrg-whoami --mode` is `user`) — this skill
   closes issues, which only the user agent may do.
-- Confirm the target `<owner>/<repo>` and the org's epic home (`<owner>/.github`).
+- Confirm the target `<owner>/<repo>` and its **resolved** epic home —
+  `<owner>/.github` for a public repo, the repo itself when private
+  (`epics.resolve_epic_home`, epic #130; the epic/ad-hoc commands take `--repo`
+  and echo the home). See convention `#40` §3.2.
 
 ## Workflow
 
 ### 1. Setup
 
 - Seed the canonical labels: `vrg-ensure-label sync <owner>/<repo>`.
-- Ensure the repo's ad-hoc epic exists in the org `.github`:
+- Ensure the repo's ad-hoc epic exists in its resolved home:
   `vrg-adhoc-epic ensure --repo <owner>/<repo>` — it finds or creates
-  `Epic (ad hoc): <repo>` (labelled `epic`+`ad-hoc`) in `<owner>/.github` and
-  prints its ref. Record its number; ad-hoc tasks link under it.
+  `Epic (ad hoc): <repo>` (labelled `epic`+`ad-hoc`) in the repo's resolved home
+  (`<owner>/.github` for a public repo, the repo itself when private) and echoes
+  it. Record its number; ad-hoc tasks link under it.
 
 ### 2. Collect (resumable)
 
