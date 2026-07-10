@@ -24,6 +24,9 @@ or poll around:
   your commit, then call `vrg-pr-await` again with updated `--since-*` flags. The
   blocking call is the loop's clock — do not start other work while it waits.
 
+(This is about correctly consuming the blocking `vrg-pr-await` call — not the
+retired continuous-oversight framing; sub-agents remain fine elsewhere.)
+
 ## Preflight
 
 This skill runs in the **USER** agent session. Confirm with
