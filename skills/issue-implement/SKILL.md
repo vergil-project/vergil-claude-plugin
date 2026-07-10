@@ -10,11 +10,18 @@ the human. You **implement the issue directly** in a worktree, validate it
 green, record the PR metadata through `vrg-pr-workflow report-ready`, and tell
 the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
 
-## Run it in the foreground — be transparent
+## Execute efficiently — trust and escalate
 
-Do all of this **inline, in the foreground**, narrating as you go: what you are
-implementing and why. Never spawn a sub-agent or run the work silently — the
-visible progress is the human's oversight.
+Implement by the most efficient means at your disposal. **Sub-agents are
+encouraged** wherever they make the work faster or keep your context clean —
+research fan-out, parallel sub-tasks, isolated exploration. You need not narrate
+every step for the human to watch: oversight lives in the front-loaded plan and
+at the hard gates (PR submit, merge, release), not in a live transcript. This is
+the **Front-Loaded Judgment, Trusted Execution** doctrine (see `CLAUDE.md`).
+
+The one thing that pulls the human back mid-flight is a **problem you cannot
+resolve**: stop and ask rather than thrash or guess. Never fabricate a result and
+never suppress a validation gate.
 
 ## Preflight
 
