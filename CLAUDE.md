@@ -218,6 +218,17 @@ delivers runtime CLI tools via PATH).
 
 **Status**: Pre-release (0.x)
 
+## Execution doctrine — Front-Loaded Judgment, Trusted Execution
+
+Human judgment is spent **up front** (brainstorm → pushback → alignment) and at
+the **hard gates** (PR submit, merge, release). Between those, agents execute by
+the **most efficient means available — sub-agents encouraged** (research
+fan-out, parallel implementation). The only mid-flight interrupt is a **problem
+the agent cannot resolve**: it stops and asks. We do **not** tune agent behavior
+for continuous human observability; that older "Continuous Oversight" invariant
+(inline/foreground, narrate everything, never spawn sub-agents) is **retired**.
+The never-fabricate and never-suppress-a-gate rules are unaffected.
+
 ## Architecture
 
 ### Plugin Manifest (`.claude-plugin/plugin.json`)

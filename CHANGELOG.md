@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.33] - 2026-07-10
+
+### Documentation
+
+- reverse oversight doctrine — encourage sub-agents, trust and escalate (#632)
+- reverse oversight doctrine — encourage sub-agents, trust and escalate (#633)
+- reverse oversight doctrine in issue-validate/issue-deploy; keep never-fabricate (#634)
+- state Front-Loaded Judgment, Trusted Execution as canonical invariant (#635)
+
+### Features
+
+- add epic-implement driver skill (#631)
+
 ## [2.1.32] - 2026-07-09
 
 ### Documentation

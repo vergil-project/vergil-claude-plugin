@@ -25,10 +25,13 @@ This is the sibling of `issue-implement`, and deliberately different:
 If you were sent here for an issue that is **not** `validation`-labelled, stop —
 that is code-implementation; use `issue-implement`.
 
-## Run it in the foreground — be transparent
+## Never fabricate a result
 
-Do everything **inline, in the foreground**, narrating as you go. Never fabricate
-or partially fake a result — if you cannot actually run a check, say so and stop.
+If you cannot actually run a check, say so and stop — **never fabricate or
+partially fake a result.** Use whatever means are efficient to run it (sub-agents
+encouraged); oversight is front-loaded and at the hard gates, not in a live
+transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see
+`CLAUDE.md`). If you hit a problem you cannot resolve, stop and ask.
 
 ## Preflight
 
