@@ -25,10 +25,13 @@ Sibling skills, deliberately different:
 If the issue is **not** `deployment`-labelled, stop: a `validation` issue goes to
 `issue-validate`; anything non-operational goes to `issue-implement`.
 
-## Run it in the foreground — be transparent
+## Never fabricate a result
 
-Do everything **inline, in the foreground**, narrating as you go. Never fabricate
-or partially fake a result — if you cannot actually run a step, say so and stop.
+If you cannot actually run a step, say so and stop — **never fabricate or
+partially fake a result.** Use whatever means are efficient to run it (sub-agents
+encouraged); oversight is front-loaded and at the hard gates, not in a live
+transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see
+`CLAUDE.md`). If you hit a problem you cannot resolve, stop and ask.
 
 ## Preflight
 
