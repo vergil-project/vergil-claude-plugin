@@ -19,12 +19,14 @@ reaped by the stale-session lifecycle. So we do **not** try to fetch that file;
 we **regenerate** the metadata locally from the two inputs that are always
 durable — the pushed branch and the issue.
 
-## Run it in the foreground — be transparent
+## Execute efficiently — trust and escalate
 
-Do all of this **inline, in the foreground**, narrating as you go: which branch
-you localized, what validation showed, and the PR metadata you reconstructed.
-Never spawn a sub-agent or run it silently — the visible progress is the human's
-oversight.
+Work by the most efficient means available; **sub-agents are encouraged** where
+they help. You need not narrate every step — oversight is front-loaded and at the
+hard gates, per the **Front-Loaded Judgment, Trusted Execution** doctrine (see
+`CLAUDE.md`). If you hit a problem you cannot resolve, stop and ask. Never
+fabricate the reconstructed metadata: if you cannot actually localize the branch
+or run validation, say so and stop.
 
 ## Preflight
 
