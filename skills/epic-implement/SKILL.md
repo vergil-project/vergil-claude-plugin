@@ -88,9 +88,12 @@ never fabricate, never suppress a validation gate.
 
 When only the closing bookends remain:
 
-- **Documentation-review task** — drive it to done like any other task (it is
-  mechanical: verify the epic's changes are reflected in the docs, especially
-  `docs/site`).
+- **Documentation-review task** — drive the sweep: verify the epic's changes are
+  reflected in the docs across every repo it touched, especially `docs/site`.
+  Its own same-repo doc edits are mechanical; where **other** repos' docs need
+  work it **spawns a per-repo doc task** (linked under the epic, closed by a
+  same-repo PR) rather than reaching across a repo boundary. See `epic-create`'s
+  bookend convention.
 - **Follow-on brainstorm task** — **stop and prepare, never run it.** Assemble
   what you accumulated (what shipped, what went sideways, new problems and
   opportunities) into a seed and hand the human into the closing brainstorm. This
