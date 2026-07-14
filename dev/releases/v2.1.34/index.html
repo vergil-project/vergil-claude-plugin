@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.16/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.14/">
+        <link rel="next" href="../v2.1.33/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>1.4.15 - Standard Tooling Plugin</title>
+        <title>2.1.34 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-1415-2026-05-01" class="md-skip">
+        <a href="#release-2134-2026-07-14" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1.4.15
+              2.1.34
             
           </span>
         </div>
@@ -720,10 +720,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.34/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.34
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -739,6 +766,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug fixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2428,37 +2497,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    1.4.15
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.15/" class="md-nav__link">
         
   
   
@@ -2474,37 +2516,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -3119,6 +3130,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3136,12 +3158,32 @@
 
 
 
-<h1 id="release-1415-2026-05-01">Release 1.4.15 (2026-05-01)<a class="headerlink" href="#release-1415-2026-05-01" title="Permanent link">&para;</a></h1>
+<h1 id="release-2134-2026-07-14">Release 2.1.34 (2026-07-14)<a class="headerlink" href="#release-2134-2026-07-14" title="Permanent link">&para;</a></h1>
 <h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>block gh api equivalents of blocked gh subcommands (pr create, pr merge, pr review) (#217)</strong></li>
-<li><strong>change 'stop and fix' to 'stop and report' in failure handling (#222)</strong></li>
+<li><strong>grant actions:read so CD starts with cd-release@v2.1 (#645)</strong>
+cd-release.yml@v2.1 now requires actions:read so its CI-evidence harvest can download the release PR's artifacts. A reusable workflow cannot request more permission than its caller grants, so cd.yml calling cd-release.yml@v2.1 without actions:read fails CD at load with startup_failure even on develop where the release job is skipped (the graph is validated at startup). Add actions:read to the top-level permissions block. Ref #643</li>
 </ul>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>reflect epic-implement skill and Trusted Execution doctrine in site docs (#639)</strong></li>
+<li><strong>docs-review bookend spans repos, spawns per-repo tasks (#642)</strong>
+Reframe the documentation-review bookend as a multi-repo sweep rather than a 1:1 docs-task-to-single-PR mapping. An epic's documentation usually spans several repos (per-repo docs, the higher-level docs repo, occasionally .github), so the review must spawn additional per-repo doc tasks — each linked under the epic and closed by a same-repo PR — rather than forcing one cross-repo close.</li>
+</ul>
+<p>Updates the bookend description, workflow step 2, and the placement-law note in epic-create; makes the matching consistency fix to the terminal handoff wording in epic-implement.</p>
+<ul>
+<li>
+<p><strong>encode the post-report-ready freeze contract in workflow skills (#646)</strong>
+Document the enforced freeze shipped in vergil-tooling#2346: from report-ready until submit a branch is frozen (vrg-commit and the vrg-git push path refuse new commits/branch-advancing pushes), and the only sanctioned reopen is a deliberate vrg-pr-workflow unfreeze.</p>
+</li>
+<li>
+<p>issue-implement, issue-localize: state the frozen/hands-off contract; correcting PR prose via re-running report-ready stays allowed (metadata, not code) but does not license new commits.</p>
+</li>
+<li>issue-implement, issue-localize: scope base-branch rebase/force-push to the pre-report-ready window; a conflict surfacing after report-ready is resolved post-submit in pr-watch.</li>
+<li>pr-watch: explain that submit lifts the freeze, which is why its reconcile commits and post-submit rebase/force-push are legitimate.</li>
+<li>epic-implement: on re-entry, treat a reported-ready task as finished; do not reopen its branch.</li>
+</ul>
+<p><strong>CI Evidence:</strong> All gates passed — full audit bundle available. <a href="https://github.com/vergil-project/vergil-claude-plugin/releases/download/v2.1.34/v2.1.34-ci-evidence.tar.gz">Download →</a></p>
 
 
 
