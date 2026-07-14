@@ -10,15 +10,49 @@ Each entry below covers what the skill does, when to use it, and
 its current status — including any tracked work that will
 substantially change it.
 
+## Execution doctrine — Front-Loaded Judgment, Trusted Execution
+
+Human judgment is spent **up front** (brainstorm → pushback → alignment)
+and at the **hard gates** (PR submit, merge, release). Between those,
+agents run these skills by the most efficient means available —
+**sub-agents are encouraged** for research fan-out and parallel work —
+and only stop mid-flight for a problem they cannot resolve. The plugin
+no longer tunes agent behavior for continuous human observability; that
+older "Continuous Oversight" model is retired. The never-fabricate and
+never-suppress-a-gate rules are unaffected.
+
 ## Skill catalogue (at a glance)
 
 | Skill | Purpose | Status |
 |---|---|---|
+| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, hand off the closing brainstorm | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
 | [issue-localize](#issue-localize) | USER agent: reconstruct a remotely-completed branch's submit-ready state locally for `vrg-submit-pr` | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
+
+## epic-implement
+
+**What it does.** USER-identity skill and the **epic-level driver** above
+the `issue-*` skills. Given an epic, it reconstructs state from the epic
+issue and its referenced plan (the authoritative driver), works every
+currently-runnable task to its gate — routing by kind to
+`issue-implement` / `issue-validate` / `issue-deploy`, and **dispatching
+parallel sub-agents where efficient** — then batches everything needing
+the human once and stops. It is stateless by design: re-invoking after a
+lost or compacted session re-derives position from GitHub.
+
+**When to use.** In the user-agent session, to start or resume work on an
+epic as a whole rather than one issue at a time — "implement epic #N",
+"pick up epic X where we left off".
+
+**Boundaries.** It never opens PRs, never merges, never runs `pr-watch`
+(a human-triggered exception), and never runs or closes the closing
+brainstorm — the final human gate.
+
+**Status.** Current (Vergil 2.1). First exemplar of the Front-Loaded
+Judgment, Trusted Execution doctrine.
 
 ## issue-implement
 

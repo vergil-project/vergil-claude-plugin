@@ -49,10 +49,18 @@ carries these bookend tasks:
   2. **Documentation-review task** — verify the epic's changes are
      comprehensively reflected in the human-facing docs, **especially the
      versioned site docs** (`docs/site/…`), which are the primary interface for
-     understanding the system and tend to drift behind the code. Because those
-     site docs live in a **member repo**, this task's PR lands there — so file
-     the task in **that member repo**, not `.github` (the placement law; see
-     Notes).
+     understanding the system and tend to drift behind the code. Treat this as a
+     **sweep, not a single edit**: an epic's documentation usually spans
+     **multiple repositories** — per-repo docs in each member repo, the
+     higher-level summary docs in the `docs` repo, and occasionally
+     correction/plan notes in `.github`. So it does **not** assume one docs PR
+     closes it. Where a repo's docs need work, the review **spawns a per-repo doc
+     task** (born linked under the epic), each closed by a **same-repo** PR — the
+     only linkage that respects the placement law (see Notes). File the review
+     task itself in the repo where the bulk of its own sweep lands (usually the
+     member repo holding the site docs, e.g. `vergil-tooling/docs/site`); it
+     spawns siblings for the other repos rather than forcing one cross-repo PR to
+     close it.
 
 This rides the **existing auto-close rollup**: an epic rolls up only when all its
 tasks close, so the closing tasks *gate* closure. The **documentation review is
@@ -183,6 +191,11 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      (e.g. `vergil-tooling/docs/site`), so file it there
      (`--repo <owner>/<repo>`) — never blanket `.github`:
      `vrg-issue-create --epic <org>/.github#N --repo <owner>/<repo> --title … `.
+     The documentation-review task is a **multi-repo sweep**: at review time it
+     may **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
+     linked under N, closed by a same-repo PR) for documentation that lives in
+     other repos. Seed only the review task here; its siblings are filed as the
+     sweep discovers where docs actually need to change.
    - **Seed operational tasks the epic will need** — see "Operational tasks"
      above. Infra/provisioning-shaped epics carry a cold-rebuild **validation**
      by default (`--kind validation`); seed a **deployment** task
@@ -217,7 +230,11 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
   versioned site docs live in a member repo (e.g. `vergil-tooling/docs/site`) —
   is filed in **that member repo**, not blanket `.github`. Filing it in `.github`
   forces the illegal cross-repo close that produced a `vergil-tooling` PR
-  closing `vergil-project/.github#127`.
+  closing `vergil-project/.github#127`. The same law is **why the
+  documentation-review is a sweep that spawns per-repo tasks**: when an epic's
+  docs span several repos, you do not point one docs PR at the review issue
+  across a repo boundary — you spawn a same-repo doc task in each affected repo,
+  each closed by its own same-repo PR.
 - **Cross-org is out of scope:** each org has its own `.github`; never link epics
   or tasks across orgs.
 - Reconstructing epics from an existing backlog is a different job — use

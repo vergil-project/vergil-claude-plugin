@@ -78,6 +78,14 @@ a rare, human-triggered exception the human invokes only if a gate goes red. Whe
 the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
 re-derive state and advance to the next frontier.
 
+**Every reported-ready branch is frozen — do not reopen it on re-entry.** Once a
+sub-agent records `report-ready`, that branch is done: `vrg-commit` and the
+`vrg-git` push path refuse further commits until the human submits. When you
+re-derive state, treat a reported-ready (or already-merged) task as finished —
+advance the frontier, do not re-run its issue or add commits to its branch. More
+work on a landed task is a **new follow-up issue**, never a mutation of that
+branch.
+
 ## 5. Escalate on problems — don't thrash
 
 The only reason to pull the human in mid-flight is a **problem you cannot
@@ -88,9 +96,12 @@ never fabricate, never suppress a validation gate.
 
 When only the closing bookends remain:
 
-- **Documentation-review task** — drive it to done like any other task (it is
-  mechanical: verify the epic's changes are reflected in the docs, especially
-  `docs/site`).
+- **Documentation-review task** — drive the sweep: verify the epic's changes are
+  reflected in the docs across every repo it touched, especially `docs/site`.
+  Its own same-repo doc edits are mechanical; where **other** repos' docs need
+  work it **spawns a per-repo doc task** (linked under the epic, closed by a
+  same-repo PR) rather than reaching across a repo boundary. See `epic-create`'s
+  bookend convention.
 - **Follow-on brainstorm task** — **stop and prepare, never run it.** Assemble
   what you accumulated (what shipped, what went sideways, new problems and
   opportunities) into a seed and hand the human into the closing brainstorm. This

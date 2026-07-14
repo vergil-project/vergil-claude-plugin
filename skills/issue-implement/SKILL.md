@@ -98,11 +98,36 @@ correct the title/summary/notes before the human submits, just run
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
 the human opens the PR.
 
+## The branch is frozen once you report it ready
+
+Reporting ready is a one-way handoff. From the moment `report-ready` records the
+metadata until the human runs `vrg-submit-pr`, the branch is **frozen** —
+`vrg-commit` and the `vrg-git` push path refuse any new commit or
+branch-advancing push to it, and the enforcement flags "drift" if HEAD has
+already moved past the reported commit. This is the tooling stopping the
+reused-branch straggler at source: the PR merges at the reported commit, so any
+extra commit stranded past it leaves a worktree cleanup can never delete.
+
+The contract:
+
+- **A task is exactly one PR. Once you report it ready, you are done with that
+  branch — hands off.** Do not commit to it, rebase-advance it, or "just tweak
+  one more thing." Once the branch is in `develop` it is finished, and any later
+  change is a **new follow-up issue**, never a mutation of the merged branch.
+- **Correcting the PR prose is still fine.** Re-running `report-ready` to fix the
+  title/summary/notes overwrites the metadata — that is data, not code, and stays
+  allowed. It does **not** license new commits.
+- **Genuinely reopening the branch for more commits before submit is rare and
+  deliberate.** It requires explicitly running `vrg-pr-workflow unfreeze` first
+  (which drops the state back to `implementing` while keeping the recorded
+  metadata). There is no silent default — if you are not sure you should reopen,
+  you should not.
+
 ## Resolving conflicts with the base branch
 
-If `develop` (the base) advances while your branch is in flight — whether before
-the PR is open or after — and your branch conflicts with it, resolve it as
-**routine**. No human sign-off is needed:
+If `develop` (the base) advances **while you are still implementing** (before you
+report ready) and your branch conflicts with it, resolve it as **routine**. No
+human sign-off is needed:
 
 1. `vrg-git fetch origin`
 2. `vrg-git rebase origin/develop` — resolve conflicts, keeping both sides where
@@ -118,6 +143,13 @@ guards shared/protected history; it does **not** apply to rebasing your own
 feature branch onto its base. Always use `--force-with-lease` (the safe form —
 it refuses to overwrite if the remote moved unexpectedly), never a bare
 `--force`.
+
+If the base only advances **after** you have reported ready, do **not** rebase
+the frozen branch — the push path refuses it. Leave it: a conflict that surfaces
+between report-ready and submit is resolved after the human submits, in
+`pr-watch` (submitting lifts the freeze, so the post-submit rebase/force-push
+there is legitimate). Reopening earlier requires a deliberate
+`vrg-pr-workflow unfreeze`.
 
 ## Notes
 
