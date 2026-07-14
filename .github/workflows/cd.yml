@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
 
 permissions:
+  # Needed because the release job calls cd-release.yml@v2.1, whose CI-evidence
+  # harvest downloads the release PR's artifacts; a reusable workflow cannot
+  # request more permission than its caller grants.
+  actions: read
   attestations: write
   contents: write
   id-token: write
