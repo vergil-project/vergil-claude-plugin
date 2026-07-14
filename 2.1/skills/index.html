@@ -650,6 +650,8 @@
       
         
       
+        
+      
     
     
     
@@ -702,6 +704,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.34/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.34
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -2997,10 +3027,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#execution-doctrine-front-loaded-judgment-trusted-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution doctrine — Front-Loaded Judgment, Trusted Execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skill-catalogue-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
         Skill catalogue (at a glance)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#epic-implement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        epic-implement
       
     </span>
   </a>
@@ -3135,10 +3187,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#execution-doctrine-front-loaded-judgment-trusted-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution doctrine — Front-Loaded Judgment, Trusted Execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skill-catalogue-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
         Skill catalogue (at a glance)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#epic-implement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        epic-implement
       
     </span>
   </a>
@@ -3237,6 +3311,15 @@ skills are namespaced under <code>vergil</code> and invoked as
 <p>Each entry below covers what the skill does, when to use it, and
 its current status — including any tracked work that will
 substantially change it.</p>
+<h2 id="execution-doctrine-front-loaded-judgment-trusted-execution">Execution doctrine — Front-Loaded Judgment, Trusted Execution<a class="headerlink" href="#execution-doctrine-front-loaded-judgment-trusted-execution" title="Permanent link">&para;</a></h2>
+<p>Human judgment is spent <strong>up front</strong> (brainstorm → pushback → alignment)
+and at the <strong>hard gates</strong> (PR submit, merge, release). Between those,
+agents run these skills by the most efficient means available —
+<strong>sub-agents are encouraged</strong> for research fan-out and parallel work —
+and only stop mid-flight for a problem they cannot resolve. The plugin
+no longer tunes agent behavior for continuous human observability; that
+older "Continuous Oversight" model is retired. The never-fabricate and
+never-suppress-a-gate rules are unaffected.</p>
 <h2 id="skill-catalogue-at-a-glance">Skill catalogue (at a glance)<a class="headerlink" href="#skill-catalogue-at-a-glance" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3247,6 +3330,11 @@ substantially change it.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><a href="#epic-implement">epic-implement</a></td>
+<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, hand off the closing brainstorm</td>
+<td>Current (2.1)</td>
+</tr>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
 <td>USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human</td>
@@ -3274,6 +3362,23 @@ substantially change it.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="epic-implement">epic-implement<a class="headerlink" href="#epic-implement" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill and the <strong>epic-level driver</strong> above
+the <code>issue-*</code> skills. Given an epic, it reconstructs state from the epic
+issue and its referenced plan (the authoritative driver), works every
+currently-runnable task to its gate — routing by kind to
+<code>issue-implement</code> / <code>issue-validate</code> / <code>issue-deploy</code>, and <strong>dispatching
+parallel sub-agents where efficient</strong> — then batches everything needing
+the human once and stops. It is stateless by design: re-invoking after a
+lost or compacted session re-derives position from GitHub.</p>
+<p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
+epic as a whole rather than one issue at a time — "implement epic #N",
+"pick up epic X where we left off".</p>
+<p><strong>Boundaries.</strong> It never opens PRs, never merges, never runs <code>pr-watch</code>
+(a human-triggered exception), and never runs or closes the closing
+brainstorm — the final human gate.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). First exemplar of the Front-Loaded
+Judgment, Trusted Execution doctrine.</p>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via <code>vrg-validate</code>, then records
