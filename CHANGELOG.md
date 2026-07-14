@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.34] - 2026-07-14
+
+### Bug fixes
+
+- grant actions:read so CD starts with cd-release@v2.1 (#645)
+
+### Documentation
+
+- reflect epic-implement skill and Trusted Execution doctrine in site docs (#639)
+- docs-review bookend spans repos, spawns per-repo tasks (#642)
+- encode the post-report-ready freeze contract in workflow skills (#646)
+
 ## [2.1.33] - 2026-07-10
 
 ### Documentation
