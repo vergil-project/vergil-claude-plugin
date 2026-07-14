@@ -59,6 +59,23 @@ Loop:
    the human** rather than thrashing.
 5. Loop with the updated `--since-sha` / `--since-reviews`.
 
+## Why pushing here is allowed (the freeze lifts at submit)
+
+Between `report-ready` and submit the branch is **frozen** — `vrg-commit` and the
+`vrg-git` push path refuse commits and branch-advancing pushes to it (the tooling
+stopping the reused-branch straggler). `vrg-submit-pr` marks the workflow
+`submitted`, which **lifts that freeze**. So by the time this skill runs the
+branch is already unfrozen, and the reconcile commits and post-submit
+rebase/force-push above are legitimate — they act on an open PR, not on a frozen
+pre-submit branch.
+
+That distinction is the whole point: this skill is the *only* place a
+reported-ready branch is touched again, and only because the human's submit
+reopened it. It is not a license to reopen a branch that has not been submitted —
+that still requires a deliberate `vrg-pr-workflow unfreeze`. And once the PR
+merges the branch is done for good: any further change is a new follow-up issue,
+never a mutation of the merged branch.
+
 ## Notes
 
 - You never merge the PR. When the checks are green, the **human** reviews and
