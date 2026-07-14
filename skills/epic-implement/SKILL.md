@@ -78,6 +78,14 @@ a rare, human-triggered exception the human invokes only if a gate goes red. Whe
 the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
 re-derive state and advance to the next frontier.
 
+**Every reported-ready branch is frozen — do not reopen it on re-entry.** Once a
+sub-agent records `report-ready`, that branch is done: `vrg-commit` and the
+`vrg-git` push path refuse further commits until the human submits. When you
+re-derive state, treat a reported-ready (or already-merged) task as finished —
+advance the frontier, do not re-run its issue or add commits to its branch. More
+work on a landed task is a **new follow-up issue**, never a mutation of that
+branch.
+
 ## 5. Escalate on problems — don't thrash
 
 The only reason to pull the human in mid-flight is a **problem you cannot

@@ -127,19 +127,35 @@ integration tests, not individual branches — while the pushed branch and the
 issue are always available even after the VM is reaped. Regenerating keeps this
 skill fully decoupled from the cloud, with no new infrastructure.
 
+## Resolving conflicts with the base branch
+
+If `develop` advanced while the branch sat on the cloud VM and the branch now
+conflicts, resolve it **before you report ready**, as **routine** — rebase onto
+`origin/develop`, re-validate green, and `vrg-git push --force-with-lease` to
+update the pushed branch. No human sign-off is needed; force-pushing your own
+not-yet-submitted feature branch after a rebase is pre-authorized. See *Resolving
+conflicts with the base branch* in
+[`issue-implement`](../issue-implement/SKILL.md) for the full procedure.
+
+Sequence this **before** you run `report-ready`, not after: once reported ready
+the branch is frozen (see *Hand off*) and the push path refuses the
+rebase-advancing force-push. A conflict that only surfaces after report-ready is
+resolved post-submit in `pr-watch`, not here.
+
 ## Hand off
 
 Tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only the
 human opens the PR — the control gate stays with the human.
 
-## Resolving conflicts with the base branch
-
-If `develop` advanced while the branch sat on the cloud VM and the branch now
-conflicts, resolve it as **routine** — rebase onto `origin/develop`, re-validate
-green, and `vrg-git push --force-with-lease` to update the pushed branch. No
-human sign-off is needed; force-pushing your own not-yet-submitted feature branch
-after a rebase is pre-authorized. See *Resolving conflicts with the base branch*
-in [`issue-implement`](../issue-implement/SKILL.md) for the full procedure.
+**The branch is frozen once you report it ready.** From `report-ready` until the
+human submits, `vrg-commit` and the `vrg-git` push path refuse new commits and
+branch-advancing pushes to this branch — the tooling stopping the reused-branch
+straggler at source. Localizing is a one-shot handoff: you regenerate the
+metadata and stop. Re-running `report-ready` to correct the title/summary/notes
+is fine (metadata, not code); genuinely reopening the branch for more commits
+before submit requires a deliberate `vrg-pr-workflow unfreeze`, never a silent
+default. More work is a new follow-up issue, never a mutation of the merged
+branch.
 
 ## Notes
 
