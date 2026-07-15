@@ -98,6 +98,24 @@ correct the title/summary/notes before the human submits, just run
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
 the human opens the PR.
 
+## Cloud / remote sessions — the relay handoff
+
+This skill runs the same on a cloud VM as on the Mac. With the relay tooling
+(epic [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),
+**the cloud can do PR-development end to end** — implement → validate green →
+`report-ready` — and only PR **submission and merge** stay human-on-Mac:
+
+- `report-ready` pushes a **relay ref** to origin carrying the ready-state, so
+  the Mac no longer needs the cloud VM's filesystem. (The old `issue-localize`
+  skill, which reconstructed `.vergil/pr-workflow.json` locally from the branch
+  and issue, is retired — the relay makes that regeneration unnecessary.)
+- On the Mac the human runs `vrg-submit-pr <branch> [<branch> …]` with a
+  **positional branch list**, which opens the PR(s) **worktree-free** from the
+  relayed ready-state.
+- **`--notes` must not carry secrets.** The relay ref is **world-readable** on a
+  public repo, so keep tokens, credentials, and internal-only URLs out of the
+  title/summary/notes.
+
 ## The branch is frozen once you report it ready
 
 Reporting ready is a one-way handoff. From the moment `report-ready` records the
