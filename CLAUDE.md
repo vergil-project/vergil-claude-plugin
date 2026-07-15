@@ -305,3 +305,26 @@ for: worktree setup and the 2.1 ship-a-change flow
 (`/vergil:issue-implement` → human `vrg-submit-pr` → `/vergil:pr-watch`).
 Releases are cut via `vrg-publish` (a standalone CLI in
 vergil-tooling).
+
+## Cloud sessions and the relay handoff
+
+A session may run on a cloud VM rather than the Mac. With the relay
+tooling (epic
+[vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),
+**the cloud can do PR-development end to end** — the agent runs
+`/vergil:issue-implement`, validates green, and records the PR metadata
+with `vrg-pr-workflow report-ready`, which pushes a **relay ref** to
+origin carrying the ready-state. Only PR **submission and merge** stay
+human-on-Mac:
+
+- On the Mac the human runs `vrg-submit-pr <branch> [<branch> …]` with a
+  **positional branch list**; it opens the PR(s) **worktree-free** from
+  the relayed ready-state — no shared filesystem with the VM is needed.
+- **`--notes` (and title/summary) must not carry secrets.** The relay
+  ref is **world-readable** on a public repo — keep tokens, credentials,
+  and internal-only URLs out of the metadata.
+
+This replaces the former `/issue-localize` skill, which reconstructed
+the ready-state locally before the relay existed. The authoritative
+cloud-session contract lives in `vergil-tooling`; this section is the
+local on-ramp.
