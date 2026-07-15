@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v2.0.12/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v2.0.10/">
+        <link rel="next" href="../v2.1.34/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>2.0.11 - Standard Tooling Plugin</title>
+        <title>2.1.35 - Standard Tooling Plugin</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-2011-2026-05-27" class="md-skip">
+        <a href="#release-2135-2026-07-15" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              2.0.11
+              2.1.35
             
           </span>
         </div>
@@ -722,10 +722,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v2.1.35/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.35
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -741,6 +768,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1898,37 +1956,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    2.0.11
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v2.0.11/" class="md-nav__link">
         
   
   
@@ -1944,48 +1975,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#chores" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chores
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -3150,21 +3139,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
+  <a href="#documentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bug fixes
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#chores" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chores
+        Documentation
       
     </span>
   </a>
@@ -3188,30 +3166,20 @@
 
 
 
-<h1 id="release-2011-2026-05-27">Release 2.0.11 (2026-05-27)<a class="headerlink" href="#release-2011-2026-05-27" title="Permanent link">&para;</a></h1>
-<h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
+<h1 id="release-2135-2026-07-15">Release 2.1.35 (2026-07-15)<a class="headerlink" href="#release-2135-2026-07-15" title="Permanent link">&para;</a></h1>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>replace /dev/stdin with cat in block-heredoc hook</strong></li>
-<li>
-<p><strong>replace vestigial post-merge config with hardcoded cd.yml monitoring</strong>
-Remove the generic [workflows.post-merge] vergil.toml lookup that was never implemented. Replace with hardcoded cd.yml monitoring on develop that polls by merge SHA, watches the run, and verifies the docs job — matching the pattern vrg-release uses in confirm.py.</p>
-</li>
-<li>
-<p><strong>align template section with vrg-container-run rename</strong></p>
-</li>
+<li><strong>retire issue-localize and reconcile the cloud-boundary contract (#651)</strong>
+Epic vergil-project/.github#148's relay tooling (vergil-tooling v2.1.143) makes the cloud-&gt;Mac handoff work without regenerating PR metadata locally: report-ready pushes a world-readable relay ref, and vrg-submit-pr accepts a positional branch list to open PRs worktree-free from the relayed ready-state.</li>
 </ul>
-<h2 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>bump version to 2.0.11</strong></li>
-<li><strong>remove legacy .githooks and invalid primary-language</strong></li>
-<li>
-<p><strong>replace .githooks with Claude Code hook guard</strong>
-Add .claude/hooks/guard.sh PreToolUse hook, remove .githooks/pre-commit, remove permission deny rules, update block-raw-git-commit.sh to delegate to vrg-hook-guard, update docs.</p>
-</li>
-<li>
-<p><strong>add missing container parameters and fix stale standards doc</strong></p>
-</li>
-</ul>
+<p>Remove the issue-localize skill and fix every reference:
+- delete skills/issue-localize/SKILL.md
+- README + docs/site skills index: drop the issue-localize row/section; note issue-implement now covers cloud VMs too
+- issue-implement SKILL.md: add a Cloud/remote relay-handoff section (report-ready pushes the relay ref; human runs vrg-submit-pr <branch> ...; --notes must carry no secrets since the ref is world-readable)
+- plugin CLAUDE.md: add a cloud-session on-ramp describing the relay handoff</p>
+<p>Historical release notes under releases/ are left untouched as records.</p>
+<p>Ref vergil-project/vergil-claude-plugin#650</p>
+<p><strong>CI Evidence:</strong> All gates passed — full audit bundle available. <a href="https://github.com/vergil-project/vergil-claude-plugin/releases/download/v2.1.35/v2.1.35-ci-evidence.tar.gz">Download →</a></p>
 
 
 
