@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.36] - 2026-07-24
+
+### Bug fixes
+
+- drop secrets: inherit from cd.yml (no publish, needs no secrets) (#657)
+
+### Features
+
+- add terminal finishing skill for the epic lifecycle (#661)
+
 ## [2.1.35] - 2026-07-15
 
 ### Documentation
