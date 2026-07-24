@@ -25,4 +25,3 @@ jobs:
   release:
     if: github.ref == 'refs/heads/main'
     uses: vergil-project/vergil-actions/.github/workflows/cd-release.yml@v2.1
-    secrets: inherit
