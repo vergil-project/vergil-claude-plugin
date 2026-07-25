@@ -658,6 +658,8 @@
       
         
       
+        
+      
     
     
     
@@ -710,6 +712,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.38/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.38
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3139,10 +3169,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#epic-create" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        epic-create
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#epic-implement" class="md-nav__link">
     <span class="md-ellipsis">
       
         epic-implement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#epic-retrospective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        epic-retrospective
       
     </span>
   </a>
@@ -3288,10 +3340,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#epic-create" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        epic-create
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#epic-implement" class="md-nav__link">
     <span class="md-ellipsis">
       
         epic-implement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#epic-retrospective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        epic-retrospective
       
     </span>
   </a>
@@ -3399,8 +3473,18 @@ never-suppress-a-gate rules are unaffected.</p>
 </thead>
 <tbody>
 <tr>
+<td><a href="#epic-create">epic-create</a></td>
+<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec → plan, create the epic and seed its bookend tasks</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
 <td><a href="#epic-implement">epic-implement</a></td>
-<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, hand off the closing brainstorm</td>
+<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#epic-retrospective">epic-retrospective</a></td>
+<td>USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -3425,6 +3509,19 @@ never-suppress-a-gate rules are unaffected.</p>
 </tr>
 </tbody>
 </table>
+<p>The three <code>epic-*</code> skills form the <strong>epic lifecycle</strong>: <code>epic-create</code> (run once) →
+<code>epic-implement</code> (run N times) → <code>epic-retrospective</code> (run once — the terminal
+gate that closes the epic).</p>
+<h2 id="epic-create">epic-create<a class="headerlink" href="#epic-create" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill and the <strong>entry point</strong> for non-trivial
+work. It opens into brainstorming, runs the front-loaded pipeline
+(brainstorm → pushback → writing-plans → alignment), creates the finite epic in
+its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
+documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
+spec + plan as a docs PR.</p>
+<p><strong>When to use.</strong> At the start of significant work — "let's build X", "start an
+epic for this". If the work collapses to a single PR, it is a task, not an epic.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="epic-implement">epic-implement<a class="headerlink" href="#epic-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>epic-level driver</strong> above
 the <code>issue-*</code> skills. Given an epic, it reconstructs state from the epic
@@ -3437,11 +3534,22 @@ lost or compacted session re-derives position from GitHub.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".</p>
-<p><strong>Boundaries.</strong> It never opens PRs, never merges, never runs <code>pr-watch</code>
-(a human-triggered exception), and never runs or closes the closing
-brainstorm — the final human gate.</p>
+<p><strong>Boundaries.</strong> It never opens PRs, never merges, and never runs <code>pr-watch</code>
+(a human-triggered exception). It <strong>drafts</strong> the terminal retrospective via
+<code>epic-retrospective</code> but never submits or merges its PR — the retrospective's
+docs PR is the final gate, and PR submit/merge stays a human gate.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). First exemplar of the Front-Loaded
 Judgment, Trusted Execution doctrine.</p>
+<h2 id="epic-retrospective">epic-retrospective<a class="headerlink" href="#epic-retrospective" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill and the <strong>terminal finishing gate</strong> of the
+epic lifecycle. Run once, at the end: its preflight refuses to run until every
+other child of the epic is closed, then it drafts <code>retrospective.md</code> — the
+backward-looking record that partners the spec and plan (spec → plan →
+retrospective) — from the execution history, runs a draft → review loop with the
+human, and hands off the closing docs PR whose merge <strong>closes the epic</strong>.</p>
+<p><strong>When to use.</strong> To finish an epic — "run the retrospective", "close out this
+epic", "we're done with this epic".</p>
+<p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via <code>vrg-validate</code>, then records
