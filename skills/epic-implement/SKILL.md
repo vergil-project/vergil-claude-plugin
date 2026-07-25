@@ -1,6 +1,6 @@
 ---
 name: epic-implement
-description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — with or without the slash command. A thin layer above the issue-* skills: it resumes from the epic issue and its referenced plan, works every currently-runnable task (sub-agents encouraged), batches everything needing the human once, and stops. It never opens PRs, never runs pr-watch, and never runs or closes the closing brainstorm.
+description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — with or without the slash command. A thin layer above the issue-* skills: it resumes from the epic issue and its referenced plan, works every currently-runnable task (sub-agents encouraged), batches everything needing the human once, and stops. It never opens PRs, never runs pr-watch, and never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
 ---
 
 # Epic implement
@@ -94,24 +94,31 @@ never fabricate, never suppress a validation gate.
 
 ## 6. Terminal handoff (hybrid)
 
-When only the closing bookends remain:
+When only the closing bookends remain, drive them **in order**:
 
-- **Documentation-review task** — drive the sweep: verify the epic's changes are
-  reflected in the docs across every repo it touched, especially `docs/site`.
-  Its own same-repo doc edits are mechanical; where **other** repos' docs need
-  work it **spawns a per-repo doc task** (linked under the epic, closed by a
-  same-repo PR) rather than reaching across a repo boundary. See `epic-create`'s
-  bookend convention.
-- **Follow-on brainstorm task** — **stop and prepare, never run it.** Assemble
-  what you accumulated (what shipped, what went sideways, new problems and
-  opportunities) into a seed and hand the human into the closing brainstorm. This
-  task is the **final human gate**: it is human-attested and closes only via the
-  human-gated docs PR it produces (or a manual human close), which then rolls up
-  the epic. You never close it.
+- **Documentation-review task (first)** — drive the sweep: verify the epic's
+  changes are reflected in the docs across every repo it touched, especially
+  `docs/site`. Its own same-repo doc edits are mechanical; where **other** repos'
+  docs need work it **spawns a per-repo doc task** (linked under the epic, closed
+  by a same-repo PR) rather than reaching across a repo boundary. See
+  `epic-create`'s bookend convention. This runs **before** the retrospective.
+- **Retrospective task (terminal — the final gate)** — hand off into
+  **`epic-retrospective`**, the run-once finishing skill. Its preflight refuses
+  to run until every other child of the epic is closed, so you reach it only once
+  the documentation-review sweep (and any siblings it spawned) have landed. The
+  skill drafts `retrospective.md` from the execution record, runs a
+  draft → review loop with the human, and its closing docs PR **closes the
+  epic**. You prepare and draft; **the human reviews and submits** the
+  retrospective PR — PR submit/merge stays a human gate.
+- **Follow-on brainstorm — semi-optional, never the end.** A forward-looking
+  brainstorm, when warranted, is a separate forward-axis concern (usually accrued
+  as its own task during implementation); its outcomes are *recorded* in the
+  retrospective's §5. It **no longer defines the terminal gate** — the
+  retrospective does.
 
 ## Notes
 
-- You never open a PR, never merge, never cut a release, and never close the
-  closing-brainstorm task. Those are human gates.
+- You never open a PR, never merge, and never cut a release. Those are human
+  gates. You draft the retrospective but never submit or merge its PR.
 - `/vergil:handoff` remains the recovery net, but is not required — the epic
   issue and its plan are the durable state.

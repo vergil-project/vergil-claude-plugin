@@ -41,12 +41,8 @@ carries these bookend tasks:
 
 - **First task — documentation.** The spec + plan for the epic; this task's PR
   publishes them into `.github` (see the workflow below).
-- **Closing tasks — two kinds:**
-  1. **Follow-on brainstorm task(s)** — review what shipped (successes,
-     failures, mid-flight changes, new problems and opportunities in both the
-     tooling and the target) and brainstorm + create the follow-on epic(s). If
-     the answer is the rare "nothing," you are done — but you always ask.
-  2. **Documentation-review task** — verify the epic's changes are
+- **Closing bookends — ordered, both mandatory:**
+  1. **Documentation-review task** — verify the epic's changes are
      comprehensively reflected in the human-facing docs, **especially the
      versioned site docs** (`docs/site/…`), which are the primary interface for
      understanding the system and tend to drift behind the code. Treat this as a
@@ -60,13 +56,30 @@ carries these bookend tasks:
      task itself in the repo where the bulk of its own sweep lands (usually the
      member repo holding the site docs, e.g. `vergil-tooling/docs/site`); it
      spawns siblings for the other repos rather than forcing one cross-repo PR to
-     close it.
+     close it. It runs **before** the retrospective.
+  2. **Retrospective task (terminal)** — the mandatory, **single**,
+     backward-looking record that partners the spec and plan at the documentation
+     tier; a later reader follows **spec → plan → retrospective**. Authored with
+     **`epic-retrospective`**, the run-once finishing skill whose preflight gate
+     refuses to run until every other child of the epic is closed. Its docs PR is
+     the epic's closing bookend, and its merge closes the epic. Seed it at
+     creation (title `Retrospective: <epic-slug>`), homed in the epic's home repo.
+- **Follow-on brainstorm — semi-optional (forward axis).** Reviewing what shipped
+  and brainstorming the follow-on epic(s) is a **forward-looking** concern that
+  **no longer defines the end of an epic**. Seed it as a bookend **only when a
+  known enabling chain exists at creation** ("we're building this specifically to
+  unlock X/Y/Z"); otherwise accrue it as specific follow-on tasks *during*
+  implementation, or skip it when there is nothing to chain. Its outcomes are
+  *recorded* in the retrospective's §5.
 
 This rides the **existing auto-close rollup**: an epic rolls up only when all its
-tasks close, so the closing tasks *gate* closure. The **documentation review is
-the final gate** — an epic is not done until the docs comprehensively describe
-what it changed. Seed these bookend tasks at epic-creation time (step 2 below)
-and fill in the specifics per epic.
+tasks close, so the closing bookends *gate* closure. The **retrospective is the
+final gate** — its terminality is enforced by the `epic-retrospective` skill's
+preflight (which aborts unless the retrospective task is the only open child), so
+an epic is not done until its retrospective lands. This is the closing half of
+the **three-skill lifecycle** (`epic-create` → `epic-implement` →
+`epic-retrospective`). Seed these bookend tasks at epic-creation time (step 2
+below) and fill in the specifics per epic.
 
 ## Operational tasks — gating on more than merge
 
@@ -182,11 +195,12 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      label (`--repo` defaults to the current repo; the command echoes the home —
      `<org>/.github` for a public target, the repo itself when private); note the
      number **N**.
-   - Create the **documentation task** and the **closing tasks** (follow-on
-     brainstorm task(s) + the **documentation-review** task), each linked under
-     N. **File each in the repo where its closing PR will land** (the placement
-     law — see Notes): the documentation and follow-on-brainstorm tasks live in
-     `.github` (`--repo <org>/.github`), but the **documentation-review** task
+   - Create the **documentation task** and the **closing bookends** (the
+     **documentation-review** task and the **retrospective** task), each linked
+     under N. **File each in the repo where its closing PR will land** (the
+     placement law — see Notes): the documentation and retrospective tasks live in
+     `.github` (`--repo <org>/.github`) — their PRs publish `spec.md`/`plan.md`
+     and `retrospective.md` into `.github` — but the **documentation-review** task
      usually lands its PR in the **member repo** holding the site docs
      (e.g. `vergil-tooling/docs/site`), so file it there
      (`--repo <owner>/<repo>`) — never blanket `.github`:
@@ -195,7 +209,10 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      may **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
      linked under N, closed by a same-repo PR) for documentation that lives in
      other repos. Seed only the review task here; its siblings are filed as the
-     sweep discovers where docs actually need to change.
+     sweep discovers where docs actually need to change. Seed a **follow-on
+     brainstorm** task **only** when a known enabling chain exists at creation
+     (see the bookend architecture above); otherwise leave it — it is accrued
+     during implementation or skipped.
    - **Seed operational tasks the epic will need** — see "Operational tasks"
      above. Infra/provisioning-shaped epics carry a cold-rebuild **validation**
      by default (`--kind validation`); seed a **deployment** task
@@ -224,8 +241,9 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
   PR only `Closes` an issue in its own repo.** Cross-repo relationships are
   `Ref` or comments — **never** `Closes`. So file each task in the repo whose PR
   will close it. The epic issue and its `spec.md`/`plan.md` belong in
-  `<owner>/.github`; the **documentation task** lives there too, because its PR
-  publishes the spec/plan into `.github`. But a bookend whose PR lands in a
+  `<owner>/.github`; the **documentation task** and the **retrospective task**
+  live there too, because their PRs publish `spec.md`/`plan.md` and
+  `retrospective.md` into `.github`. But a bookend whose PR lands in a
   **member repo** — most often the **documentation-review** task, since the
   versioned site docs live in a member repo (e.g. `vergil-tooling/docs/site`) —
   is filed in **that member repo**, not blanket `.github`. Filing it in `.github`
