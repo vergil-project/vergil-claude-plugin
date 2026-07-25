@@ -146,6 +146,25 @@ initiative), promote it with **`/vergil:epic-create`** — it creates the epic i
 epic: file it under an existing or standing epic instead. Brainstormed epic
 specs go to `.github`, not the member repo's `docs/specs/`.
 
+### The three-skill lifecycle and the retrospective bookend
+
+Epic work runs through three skills with distinct invocation cardinality:
+
+- **`/vergil:epic-create`** — run **once**: brainstorm → spec → plan, create the
+  epic and seed its bookends.
+- **`/vergil:epic-implement`** — run **N times**: drive the runnable frontier,
+  pause on blockers, resume later. Epics commonly sit parked between runs.
+- **`/vergil:epic-retrospective`** — run **once**: the terminal finishing gate.
+
+Every epic closes with a mandatory, **single retrospective** — the
+backward-looking record that partners the spec and plan
+(`epics/<N>-<slug>/retrospective.md`), so a later reader follows **spec → plan →
+retrospective**. It is the **final gate**: `epic-retrospective`'s preflight
+refuses to run until every other child of the epic is closed, and its docs PR
+merge closes the epic. The documentation-review sweep runs **before** it; the
+follow-on brainstorm is **semi-optional** — a forward-axis concern that no longer
+defines the end of an epic.
+
 ### Plans evolve append-only
 
 A plan is **frozen at execution start** (when the first task ships). Don't
@@ -157,6 +176,11 @@ task list; the addendum captures the *reasoning* for deltas, so a reader sees
 what was foreseen up front versus adapted in flight. Log meaningful deviations
 only — a new/dropped task, a discovered dependency, a scope shift — not trivial
 mechanics. Before execution begins, plans are edited freely.
+
+When the epic reaches its terminal retrospective bookend, this `Evolution during
+execution` log is the **raw feedstock for the retrospective's "How the plan
+evolved" section** — the retrospective synthesizes it into narrative rather than
+copying it (see the three-skill lifecycle above).
 
 ### Linking a task to its epic
 
