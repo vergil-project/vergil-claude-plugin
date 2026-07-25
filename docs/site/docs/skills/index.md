@@ -25,11 +25,31 @@ never-suppress-a-gate rules are unaffected.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, hand off the closing brainstorm | Current (2.1) |
+| [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec → plan, create the epic and seed its bookend tasks | Current (2.1) |
+| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
+| [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
+
+The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
+`epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
+gate that closes the epic).
+
+## epic-create
+
+**What it does.** USER-identity skill and the **entry point** for non-trivial
+work. It opens into brainstorming, runs the front-loaded pipeline
+(brainstorm → pushback → writing-plans → alignment), creates the finite epic in
+its resolved home, seeds the **bookend tasks** — documentation,
+documentation-review, and the terminal **retrospective** — and publishes the
+spec + plan as a docs PR.
+
+**When to use.** At the start of significant work — "let's build X", "start an
+epic for this". If the work collapses to a single PR, it is a task, not an epic.
+
+**Status.** Current (Vergil 2.1).
 
 ## epic-implement
 
@@ -46,12 +66,27 @@ lost or compacted session re-derives position from GitHub.
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".
 
-**Boundaries.** It never opens PRs, never merges, never runs `pr-watch`
-(a human-triggered exception), and never runs or closes the closing
-brainstorm — the final human gate.
+**Boundaries.** It never opens PRs, never merges, and never runs `pr-watch`
+(a human-triggered exception). It **drafts** the terminal retrospective via
+`epic-retrospective` but never submits or merges its PR — the retrospective's
+docs PR is the final gate, and PR submit/merge stays a human gate.
 
 **Status.** Current (Vergil 2.1). First exemplar of the Front-Loaded
 Judgment, Trusted Execution doctrine.
+
+## epic-retrospective
+
+**What it does.** USER-identity skill and the **terminal finishing gate** of the
+epic lifecycle. Run once, at the end: its preflight refuses to run until every
+other child of the epic is closed, then it drafts `retrospective.md` — the
+backward-looking record that partners the spec and plan (spec → plan →
+retrospective) — from the execution history, runs a draft → review loop with the
+human, and hands off the closing docs PR whose merge **closes the epic**.
+
+**When to use.** To finish an epic — "run the retrospective", "close out this
+epic", "we're done with this epic".
+
+**Status.** Current (Vergil 2.1).
 
 ## issue-implement
 
