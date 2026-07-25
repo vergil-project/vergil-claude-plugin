@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.37] - 2026-07-25
+
+### Documentation
+
+- route closing bookends through the retrospective terminal gate (#665)
+
 ## [2.1.36] - 2026-07-24
 
 ### Bug fixes
