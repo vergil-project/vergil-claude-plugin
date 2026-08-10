@@ -29,9 +29,17 @@ never-suppress-a-gate rules are unaffected.
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
+| [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
+| [triage-capture](#triage-capture) | Capture an uncurated idea/bug/to-do into the intake queue as a triage/idea/research issue, paraphrasing voice-to-text into clean prose | Current (2.1) |
+| [triage-review](#triage-review) | Groom the triage intake queue — route each uncurated issue into the epic/task model (periodic ~weekly pass) | Current (2.1) |
+| [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
+| [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
+| [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
+| [handoff](#handoff) | Capture work state before stopping and restore it on resume, preserving context across sessions | Current |
 
 The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
 `epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
@@ -110,6 +118,32 @@ before the relay existed — epic
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (`vrg-pr-workflow`, etc.) at runtime.
 
+## issue-deploy
+
+**What it does.** USER-identity skill. Runs a `deployment`-labelled task
+end to end: installs or syncs the merged change so it is actually usable
+(install / sync / release-then-install), then records the result as an
+`Outcome:` comment on the issue. It is *run*, not built — there is no PR,
+and the deployment tooling refuses one.
+
+**When to use.** When the human asks to deploy, install, roll out, or sync
+merged work, or when a later task needs a change deployed and usable rather
+than merely merged.
+
+**Status.** Current (Vergil 2.1).
+
+## issue-validate
+
+**What it does.** USER-identity skill. Runs a `validation`-labelled task
+whose acceptance is a **live check**, not a code change — a cold rebuild, a
+live-lab check, a post-deploy smoke test — and records PASS/FAIL as an
+`Outcome:` comment. Like deployment, it is *run*, not built: no PR.
+
+**When to use.** When the human asks to validate, verify, or run the
+checklist on a validation issue.
+
+**Status.** Current (Vergil 2.1).
+
 ## pr-watch
 
 **What it does.** USER-identity post-PR loop, emitted by
@@ -168,6 +202,78 @@ are intertwined here (`End SOC` triggers the structured summary).
 The cross-repo references in `the-infrastructure-mindset` are
 tracked for cleanup in
 [the-infrastructure-mindset#165](https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165).
+
+## triage-capture
+
+**What it does.** Captures an uncurated idea, bug, or to-do into the intake
+queue so it is never lost, creating an intake issue — `triage` (a problem
+not yet understood), `idea` (a spark), or `research` (a reproducible
+investigation) — in the org `.github`, paraphrasing voice-to-text into clean
+written prose.
+
+**When to use.** Whenever the human says "don't forget X", "capture this",
+"note a todo", or riffs an idea to come back to later — especially mid-task
+or via voice.
+
+**Status.** Current (Vergil 2.1).
+
+## triage-review
+
+**What it does.** Grooms the triage intake queue — collects every
+`triage`-labelled issue across the org and walks the human through
+dispositioning each one into the epic/task model.
+
+**When to use.** For the periodic (roughly weekly) intake pass — "review
+triage", "groom the backlog", "process the triage queue".
+
+**Status.** Current (Vergil 2.1).
+
+## migrate-repo
+
+**What it does.** Migrates a repo's existing open-issue backlog into the
+epic/task framework: triages the pile into epics, tasks, ad-hoc work, and
+closeable issues so the roadmap and audit reflect reality. Guided,
+resumable, batch-approved, human-in-the-loop.
+
+**When to use.** When onboarding a repo's backlog into the framework —
+`migrate <repo>`, `bring <repo> into the framework`, or "onboard this repo's
+backlog".
+
+**Status.** Current (Vergil 2.1).
+
+## memory-init
+
+**What it does.** Sets up or refreshes a project's memory directory —
+creates or updates `MEMORY.md` with the human-approval policy header.
+
+**When to use.** When the human asks to initialize, set up, bootstrap, or
+update memory ("init memory", "set up MEMORY.md", "refresh the memory
+header").
+
+**Status.** Current.
+
+## memory-audit
+
+**What it does.** Reviews memory files collaboratively with the human —
+verifies each entry, assesses staleness, and routes it to the correct scope
+(repo memory, global instructions, or a tooling issue) with human approval.
+
+**When to use.** When the human asks to audit, review, clean up, or prune
+memory ("audit my memory", "review MEMORY.md", "are these memories still
+accurate").
+
+**Status.** Current.
+
+## handoff
+
+**What it does.** Captures work state across sessions — preserves context
+before you stop (`/handoff stop`) and restores where you left off on resume
+(`/handoff start`).
+
+**When to use.** When wrapping up and you want to preserve context for next
+time, or when picking work back up in a new session.
+
+**Status.** Current.
 
 ## How skills work — technical
 
