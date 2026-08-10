@@ -36,8 +36,11 @@ Canonical convention: `vergil-project/.github#40`; this skill's own epic:
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
    not, stop.
 2. Resolve the epic ref (`<org>/.github#N`, `#N`, or a URL) and read the epic
-   issue. Identify the **retrospective task** — the epic's retrospective bookend
-   (seeded by `epic-create`; its title reads `Retrospective: <epic-slug>`).
+   issue. Identify the **retrospective task** — the epic's retrospective bookend,
+   seeded by `epic-create` and stamped with the `retrospective` label
+   (`vrg-issue-create --kind retrospective`, tooling ≥ 2.1.167). **Identify it by
+   that label.** Fall back to the title convention (`Retrospective: <epic-slug>`)
+   only for epics created before the label existed.
 
 ### The definition-of-done gate
 
@@ -127,8 +130,10 @@ On approval:
   do not run it while other tasks are open.
 - You never open the PR, never merge, and never cut a release — those are human
   gates.
-- Identifying **R** is convention-based today (the retrospective bookend seeded by
-  `epic-create`). A sanctioned `--kind retrospective` scaffold that marks it
-  mechanically is a candidate follow-on, deliberately out of scope here.
+- Identifying **R** prefers the `retrospective` label stamped by
+  `vrg-issue-create --kind retrospective` (tooling ≥ 2.1.167) — mechanical
+  label-matching is more robust than string-matching a title — with the title
+  convention (`Retrospective: <epic-slug>`) kept as a fallback for epics created
+  before the label existed.
 - `/vergil:handoff` remains the recovery net; the epic issue, its plan, and the
   sub-issue states are the durable source of position.
