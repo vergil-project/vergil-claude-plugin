@@ -66,14 +66,25 @@ unique, so parallel efforts never collide.
 
 The **gate** is the general boundary where you can no longer proceed without the
 human — not merely "a PR is ready." When the runnable frontier is worked,
-present a **single consolidated batch** of everything needing the human:
+present everything needing the human:
 
 - PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
 - operational tasks needing a human-gated release;
 - any problems you got stuck on (see step 5).
 
-Batch **once** and stop. Your responsibility **ends here.** The human takes the
-batch through `vrg-submit-pr` → merge/finalize. **Do not run `pr-watch`** — it is
+**Batch PRs per repository, not across repos.** `vrg-submit-pr` operates on one
+repo at a time — it takes a branch list *within a single repo* — so the unit of
+submission is a repo's ready set. As soon as **all currently-ready tasks for a
+single repo** have reached `report-ready`, hand that repo's branches off as one
+`vrg-submit-pr` invocation, **independently of other repos** whose tasks are
+still in flight. Don't hold a finished repo's PRs hostage to a slower repo's
+work. This is always safe: concurrently-runnable tasks are non-interdependent by
+construction (an unmerged dependency keeps its dependent off the runnable
+frontier), so a per-repo ready set can always be submitted together — and
+interdependent tasks are never in the same batch.
+
+Batch each repo **once** and stop. Your responsibility **ends here.** The human
+takes each batch through `vrg-submit-pr` → merge/finalize. **Do not run `pr-watch`** — it is
 a rare, human-triggered exception the human invokes only if a gate goes red. When
 the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
 re-derive state and advance to the next frontier.
