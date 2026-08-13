@@ -1,0 +1,20 @@
+name: Ops
+
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  github-config:
+    uses: vergil-project/vergil-actions/.github/workflows/ops-github-config.yml@v2.1
+    permissions:
+      contents: read
+      issues: write
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
