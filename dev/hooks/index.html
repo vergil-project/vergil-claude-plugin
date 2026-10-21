@@ -3863,14 +3863,15 @@ See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/450">
 <p><strong>What.</strong> Denies Bash tool invocations that call <code>git commit</code> (or
 pipe-chained equivalents).</p>
 <p><strong>Why.</strong> <code>vrg-commit</code> constructs standards-compliant conventional
-commit messages with the co-author trailer resolved from
-<code>vergil.toml</code>. Hand-written <code>git commit -m</code>
-invocations drift from the commit-message standard over time; raw
-commits also bypass the co-author resolution entirely.</p>
+commit messages. Hand-written <code>git commit -m</code>
+invocations drift from the commit-message standard over time.
+Commits carry no AI co-author trailer; Claude Code attribution is
+turned off in <code>.claude/settings.json</code>
+(vergil-project/vergil-tooling#3200).</p>
 <p><strong>Alternative.</strong> Use
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/commit.md"><code>vrg-commit</code></a>
-with the appropriate <code>--type</code>, <code>--scope</code>, <code>--message</code>, <code>--body</code>, and
-<code>--agent</code> flags.</p>
+with the appropriate <code>--type</code>, <code>--scope</code>, <code>--message</code>, and <code>--body</code>
+flags.</p>
 <h3 id="block-raw-gh-pr-create">block-raw-gh-pr-create<a class="headerlink" href="#block-raw-gh-pr-create" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that call <code>gh pr create</code>.</p>
 <p><strong>Why.</strong> <code>vrg-submit-pr</code> builds standards-compliant PR bodies with
