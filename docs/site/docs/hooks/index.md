@@ -8,10 +8,11 @@ alike routinely drift from when enforcement is prose-only.
 > **Looking for the overall workflow?** See
 > [`vergil-tooling` → Git Workflow](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/git-workflow.md)
 > for the big-picture guide covering branching, commit/PR/finalize
-> cycle, worktrees, and how these plugin hooks compose with the
-> pre-commit git hook. This page is the reference for the plugin's
-> hooks specifically; the pre-commit git hook is documented in
-> [`vergil-tooling` → Git Hooks and Validation](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md).
+> cycle, and worktrees. This page is the reference for the plugin's
+> hooks specifically; where each validation check runs is covered in
+> [`vergil-tooling` → Validation Matrix](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/validation-matrix.md),
+> and the per-repo hook guard in
+> [`vergil-tooling` → Hook Guard](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md).
 
 Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.
@@ -109,10 +110,10 @@ origin/develop` and run all edits + commits from inside that
 directory. On non-adopted repos: create and check out a feature
 branch with a name matching the repo's `branching_model` prefixes.
 
-This hook complements the pre-commit git hook's
-[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit)
-— this one catches the agent-tool invocation early; the pre-commit
-hook catches every `git commit` regardless of how it was invoked.
+This hook complements `vrg-commit`'s own
+[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
+— this one catches the agent-tool invocation early, before
+`vrg-commit` runs.
 
 ### block-heredoc
 
