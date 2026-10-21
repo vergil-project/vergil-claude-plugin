@@ -64,15 +64,16 @@ See [issue #450](https://github.com/vergil-project/vergil-claude-plugin/issues/4
 pipe-chained equivalents).
 
 **Why.** `vrg-commit` constructs standards-compliant conventional
-commit messages with the co-author trailer resolved from
-`vergil.toml`. Hand-written `git commit -m`
-invocations drift from the commit-message standard over time; raw
-commits also bypass the co-author resolution entirely.
+commit messages. Hand-written `git commit -m`
+invocations drift from the commit-message standard over time.
+Commits carry no AI co-author trailer; Claude Code attribution is
+turned off in `.claude/settings.json`
+(vergil-project/vergil-tooling#3200).
 
 **Alternative.** Use
 [`vrg-commit`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/commit.md)
-with the appropriate `--type`, `--scope`, `--message`, `--body`, and
-`--agent` flags.
+with the appropriate `--type`, `--scope`, `--message`, and `--body`
+flags.
 
 ### block-raw-gh-pr-create
 
