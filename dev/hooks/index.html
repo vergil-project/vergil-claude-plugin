@@ -3821,10 +3821,11 @@ alike routinely drift from when enforcement is prose-only.</p>
 <p><strong>Looking for the overall workflow?</strong> See
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/git-workflow.md"><code>vergil-tooling</code> → Git Workflow</a>
 for the big-picture guide covering branching, commit/PR/finalize
-cycle, worktrees, and how these plugin hooks compose with the
-pre-commit git hook. This page is the reference for the plugin's
-hooks specifically; the pre-commit git hook is documented in
-<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md"><code>vergil-tooling</code> → Git Hooks and Validation</a>.</p>
+cycle, and worktrees. This page is the reference for the plugin's
+hooks specifically; where each validation check runs is covered in
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/validation-matrix.md"><code>vergil-tooling</code> → Validation Matrix</a>,
+and the per-repo hook guard in
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md"><code>vergil-tooling</code> → Hook Guard</a>.</p>
 </blockquote>
 <p>Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.</p>
@@ -3898,10 +3899,10 @@ blocking commits on <code>main</code> or <code>develop</code> regardless of dire
 origin/develop</code> and run all edits + commits from inside that
 directory. On non-adopted repos: create and check out a feature
 branch with a name matching the repo's <code>branching_model</code> prefixes.</p>
-<p>This hook complements the pre-commit git hook's
-<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit">protected-branch check</a>
-— this one catches the agent-tool invocation early; the pre-commit
-hook catches every <code>git commit</code> regardless of how it was invoked.</p>
+<p>This hook complements <code>vrg-commit</code>'s own
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch">protected-branch check</a>
+— this one catches the agent-tool invocation early, before
+<code>vrg-commit</code> runs.</p>
 <h3 id="block-heredoc">block-heredoc<a class="headerlink" href="#block-heredoc" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that contain heredoc syntax
 (<code>&lt;&lt;EOF</code>, <code>&lt;&lt;'EOF'</code>, etc.) in CLI arguments.</p>
@@ -4064,9 +4065,13 @@ via <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/
 which is the documented "only validation command" per every
 consuming repo's CLAUDE.md. The
 <a href="#block-raw-git-commit"><code>block-raw-git-commit</code></a> PreToolUse hook
-already enforces commits going through <code>vrg-commit</code>, and <code>vrg-commit</code>
-runs the pre-commit git hook — so there's a hard gate between
-"edits land" and "edits ship."</p>
+already enforces commits going through <code>vrg-commit</code>, which checks
+the branch and worktree context before committing: it refuses a
+detached HEAD, a protected branch, a branch name that does not
+match the branching model or lacks an issue number, and a
+feature-branch commit from the main worktree. <code>vrg-commit</code> does
+not run validation itself; that happens in <code>vrg-validate</code> and
+again in PR CI.</p>
 <p><strong>Don't re-add this.</strong> A future contributor noticing the absence
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
