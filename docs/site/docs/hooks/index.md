@@ -321,9 +321,13 @@ via [`vrg-validate`](https://github.com/vergil-project/vergil-tooling/blob/devel
 which is the documented "only validation command" per every
 consuming repo's CLAUDE.md. The
 [`block-raw-git-commit`](#block-raw-git-commit) PreToolUse hook
-already enforces commits going through `vrg-commit`, and `vrg-commit`
-runs the pre-commit git hook — so there's a hard gate between
-"edits land" and "edits ship."
+already enforces commits going through `vrg-commit`, which checks
+the branch and worktree context before committing: it refuses a
+detached HEAD, a protected branch, a branch name that does not
+match the branching model or lacks an issue number, and a
+feature-branch commit from the main worktree. `vrg-commit` does
+not run validation itself; that happens in `vrg-validate` and
+again in PR CI.
 
 **Don't re-add this.** A future contributor noticing the absence
 should resist the impulse to re-add per-edit validation as a
