@@ -1,0 +1,11 @@
+# Managed by vergil-tooling (epic vergil-project/.github#420). Do not edit.
+# Report-only: Dependabot alerts are on; Dependabot never opens PRs here.
+# open-pull-requests-limit: 0 on every entry is enforced by vrg-validate
+# and the nightly repo-config audit.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
