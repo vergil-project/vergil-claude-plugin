@@ -242,10 +242,6 @@ the **human** opens the PR:
 Auto-merge is disabled fleet-wide; you review and merge
 feature/bugfix PRs manually.
 
-> **Transition note.** This flow requires `vergil-tooling` 2.1
-> installed site-wide. Until then, submit changes manually the 2.0
-> way; the 2.1 skills are authored but not yet wired into daily dev.
-
 ### Cut a release
 
 Releases are cut via `vrg-publish`, a standalone CLI in

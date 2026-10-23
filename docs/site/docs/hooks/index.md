@@ -8,10 +8,11 @@ alike routinely drift from when enforcement is prose-only.
 > **Looking for the overall workflow?** See
 > [`vergil-tooling` → Git Workflow](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/git-workflow.md)
 > for the big-picture guide covering branching, commit/PR/finalize
-> cycle, worktrees, and how these plugin hooks compose with the
-> pre-commit git hook. This page is the reference for the plugin's
-> hooks specifically; the pre-commit git hook is documented in
-> [`vergil-tooling` → Git Hooks and Validation](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md).
+> cycle, and worktrees. This page is the reference for the plugin's
+> hooks specifically; where each validation check runs is covered in
+> [`vergil-tooling` → Validation Matrix](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/validation-matrix.md),
+> and the per-repo hook guard in
+> [`vergil-tooling` → Hook Guard](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md).
 
 Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.
@@ -64,15 +65,16 @@ See [issue #450](https://github.com/vergil-project/vergil-claude-plugin/issues/4
 pipe-chained equivalents).
 
 **Why.** `vrg-commit` constructs standards-compliant conventional
-commit messages with the co-author trailer resolved from
-`vergil.toml`. Hand-written `git commit -m`
-invocations drift from the commit-message standard over time; raw
-commits also bypass the co-author resolution entirely.
+commit messages. Hand-written `git commit -m`
+invocations drift from the commit-message standard over time.
+Commits carry no AI co-author trailer; Claude Code attribution is
+turned off in `.claude/settings.json`
+(vergil-project/vergil-tooling#3200).
 
 **Alternative.** Use
 [`vrg-commit`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/commit.md)
-with the appropriate `--type`, `--scope`, `--message`, `--body`, and
-`--agent` flags.
+with the appropriate `--type`, `--scope`, `--message`, and `--body`
+flags.
 
 ### block-raw-gh-pr-create
 
@@ -108,10 +110,10 @@ origin/develop` and run all edits + commits from inside that
 directory. On non-adopted repos: create and check out a feature
 branch with a name matching the repo's `branching_model` prefixes.
 
-This hook complements the pre-commit git hook's
-[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit)
-— this one catches the agent-tool invocation early; the pre-commit
-hook catches every `git commit` regardless of how it was invoked.
+This hook complements `vrg-commit`'s own
+[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
+— this one catches the agent-tool invocation early, before
+`vrg-commit` runs.
 
 ### block-heredoc
 
@@ -319,9 +321,13 @@ via [`vrg-validate`](https://github.com/vergil-project/vergil-tooling/blob/devel
 which is the documented "only validation command" per every
 consuming repo's CLAUDE.md. The
 [`block-raw-git-commit`](#block-raw-git-commit) PreToolUse hook
-already enforces commits going through `vrg-commit`, and `vrg-commit`
-runs the pre-commit git hook — so there's a hard gate between
-"edits land" and "edits ship."
+already enforces commits going through `vrg-commit`, which checks
+the branch and worktree context before committing: it refuses a
+detached HEAD, a protected branch, a branch name that does not
+match the branching model or lacks an issue number, and a
+feature-branch commit from the main worktree. `vrg-commit` does
+not run validation itself; that happens in `vrg-validate` and
+again in PR CI.
 
 **Don't re-add this.** A future contributor noticing the absence
 should resist the impulse to re-add per-edit validation as a

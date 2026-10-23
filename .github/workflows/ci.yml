@@ -20,32 +20,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mkdocs-build:
-    name: "quality / mkdocs-build"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.14'
-
-      - name: Install mkdocs-material
-        run: pip install mkdocs-material
-
-      - name: Build docs
-        run: mkdocs build --strict
-        working-directory: docs/site
+  docs:
+    uses: vergil-project/vergil-actions/.github/workflows/ci-docs.yml@v2.1
 
   quality:
     uses: vergil-project/vergil-actions/.github/workflows/ci-quality.yml@v2.1
     with:
       language: claude-plugin
-      versions: '["latest"]'
       container-suffix: base
-      container-tag: 'latest'
 
   security:
     uses: vergil-project/vergil-actions/.github/workflows/ci-security.yml@v2.1
@@ -55,7 +37,6 @@ jobs:
       run-standards: ${{ inputs.run-release != 'false' }}
       run-security: ${{ inputs.run-security != 'false' }}
       container-suffix: base
-      container-tag: 'latest'
     permissions:
       contents: read
       security-events: write
@@ -69,4 +50,3 @@ jobs:
       language: claude-plugin
       run-release: ${{ inputs.run-release != 'false' }}
       container-suffix: base
-      container-tag: 'latest'

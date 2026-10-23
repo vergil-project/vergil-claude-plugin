@@ -291,7 +291,7 @@ integration was stripped (step 5), the remaining value did not
 justify a dedicated skill — agents already create well-structured
 issues without it. The skill directory was removed; issue creation
 is now handled directly via `vrg-issue-create` (and `vrg-epic-create` /
-`vrg-triage-create` for epics and triage).
+`vrg-intake-create` for epics and intake captures).
 
 ### summarize
 
@@ -371,7 +371,7 @@ grounds that each skill should self-document. **Defer the call.**
 **Resolved.** `project-issue` was eliminated (#275). Release
 tracking issues are created directly via `vrg-issue-create` in
 the `publish` skill's Phase 1 — issue creation goes through the
-sanctioned `vrg-issue-create` / `vrg-epic-create` / `vrg-triage-create`
+sanctioned `vrg-issue-create` / `vrg-epic-create` / `vrg-intake-create`
 commands.
 
 ### Gap 5 — General incoming-signal triage

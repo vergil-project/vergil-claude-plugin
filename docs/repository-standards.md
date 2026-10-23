@@ -60,8 +60,9 @@ vrg-commit \
 - `--message` (required): commit description
 - `--body` (optional): detailed commit body
 
-The script resolves the correct `Co-Authored-By` identity from
-`vergil.toml` and the git hooks validate the result.
+The git hooks validate the result. Commits carry no AI co-author
+trailer; Claude Code attribution is turned off in
+`.claude/settings.json` (vergil-project/vergil-tooling#3200).
 
 ### Submitting PRs
 

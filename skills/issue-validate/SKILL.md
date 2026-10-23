@@ -103,7 +103,7 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 - **No worktree, no commits, no PR.** A validation task touches no code, and the
   PR tooling (`vrg-submit-pr`, `vrg-pr-workflow report-ready`) refuses it. If you
   find yourself wanting to open a PR, you are on the wrong issue.
-- **Triage is out of band.** If you discover unrelated problems while running,
-  capture them as their own issues (`triage-capture` / `vrg-issue-create`) — do
-  not fold them into this task's result.
+- **Discovered problems are out of band.** If you discover unrelated problems
+  while running, capture them as their own issues (`intake-capture` /
+  `vrg-issue-create`) — do not fold them into this task's result.
 - `/vergil:handoff` remains the recovery net if a session is lost mid-run.

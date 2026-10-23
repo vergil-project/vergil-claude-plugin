@@ -46,8 +46,8 @@ every repo and every org.
 List the repo's open issues
 (`vrg-gh issue list --repo <owner>/<repo> --state open --limit 500 --json number,title,labels,body,createdAt`).
 **Skip any already in the model**: `epic`-labelled, already carrying a
-`Parent: <owner>/.github#<N>` line or a native sub-issue parent, or already
-`triage`-labelled. Report how many remain to classify.
+`Parent: <owner>/.github#<N>` line or a native sub-issue parent (which includes
+items already under the intake epic). Report how many remain to classify.
 
 ### 3. Pass 1 — done detection
 
@@ -65,13 +65,13 @@ group per proposed epic) so the human approves in batches:
 | --- | --- | --- |
 | **retro-epic** | A cluster of related issues that is really one in-flight initiative | create a finite epic in `<owner>/.github` (label `epic`), then `vrg-epic-link` each member as a task |
 | **ad-hoc** | Small, standalone ad-hoc work | `vrg-epic-link` under the repo's ad-hoc epic in `.github` |
-| **triage** | Genuinely uncertain / deserves its own brainstorm | label `triage`; defer to `/vergil:triage-review` |
+| **intake** | Genuinely uncertain / deserves its own brainstorm | link under the intake epic of the repo's queue home (§6); defer to `/vergil:intake-review` |
 | **close** | Done (Pass 1), stale, duplicate, or obsolete | close with a reason |
 | **keep** | Looks actively in-progress right now | leave as-is; the human decides whether to fold it under an epic |
 
 Prefer attaching an issue to an **existing or proposed epic** over the ad-hoc
 bucket ("a forgotten to-do in *that* project"). Flag anything ambiguous as
-`triage` rather than guessing. Paraphrase issue intent in your proposals; don't
+**intake** rather than guessing. Paraphrase issue intent in your proposals; don't
 just echo titles.
 
 **Spec enrichment (retro-epics).** When a cluster forms a candidate retro-epic,
@@ -93,7 +93,7 @@ Present, and get the human's go-ahead for, each batch in turn:
 2. each **proposed epic** with its member tasks (name + members — the human can
    rename, split, merge, or move members),
 3. the **ad-hoc** batch,
-4. the **triage** batch,
+4. the **intake** batch,
 5. the **stale/dup** closes (each with its reason).
 
 The human can edit any proposal before approving it.
@@ -116,15 +116,21 @@ For each approved batch, in this order:
   `vrg-epic-link --epic <owner>/.github#<EPIC> --task <owner>/<repo>#<TASK>`
   (the ad-hoc bucket's epic also lives in `.github`:
   `--epic <owner>/.github#<ADHOC>`).
-- **Label** kinds (`bug`, `feature`, `docs`, …) where obvious; set `triage` on
-  the triage batch.
+- **Label** kinds (`bug`, `feature`, `docs`, …) where obvious. Never apply the
+  retired `triage` / `idea` / `research` labels.
+- **Link the intake batch** under the intake epic of the repo's queue home
+  (`<owner>/.github` for a public repo, the repo itself when private):
+  `vrg-epic-move --task <owner>/<repo>#<N> --epic intake`. The `intake`
+  sentinel resolves the task repo's intake epic (creating it if absent) and the
+  move is idempotent. Each item stays in its repo until `intake-review` routes
+  it.
 - **Close** the approved done/stale/dup issues:
   `vrg-gh issue close <N> --repo <owner>/<repo> --comment "<reason>"`. Only the
   set the human approved this run — never autonomously.
 
 ### 7. Report
 
-Summarize: closed N · epics created M · tasks linked · ad-hoc K · triage T ·
+Summarize: closed N · epics created M · tasks linked · ad-hoc K · intake T ·
 kept J. Then: "run `vrg-roadmap` and `vrg-epic-audit` — `<repo>` is now in the
 framework." If any open issue went unclassified, list it.
 

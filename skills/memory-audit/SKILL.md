@@ -67,9 +67,9 @@ After the human decides:
   `~/.claude/CLAUDE.md`. Show the draft. Write on approval.
 - **Relocate → plugin/skill issue:** Draft the issue body. Show the
   draft. On approval, create it with
-  `vrg-triage-create --kind triage --title … --body-file <tmp>` — an unlinked
-  intake issue in the org `.github` (the tool's default) that `triage-review`
-  routes to an epic later.
+  `vrg-intake-create --title … --body-file <tmp>` — an intake issue linked
+  under the intake epic of the current repo's queue home (the org `.github`
+  for a public repo) that `intake-review` routes later.
 - **Delete:** Remove the file and its index entry from `MEMORY.md`.
 
 ### 5. Reconcile index

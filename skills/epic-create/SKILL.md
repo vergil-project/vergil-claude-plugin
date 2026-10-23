@@ -1,6 +1,6 @@
 ---
 name: epic-create
-description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → pushback → plan → alignment → docs PR. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. If the work reduces to one PR, it is a task, not an epic.
+description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → pushback → plan → alignment → docs PR. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. Every run is tracked in a planning issue — pass a planning or intake issue, a free-text idea, or no argument to summarize the planning queue ("what's in planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
 ---
 
 # Epic create
@@ -185,16 +185,99 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
   `--repo <owner>/<repo>` target (default: current repo) and echo the resolved
   home before acting. See convention `#40` §3.2.
 
+## The planning issue — every epic-create runs through one
+
+Expanding an idea into a full epic can take hours or days, so **every
+`epic-create` session is tracked in a planning issue**: an open child of the
+**planning epic** (`Epic (planning): <name>`, labelled `epic` + `planning`) in
+the target's queue home — `<owner>/.github` for a public repo, the repo itself
+for a self-homed private one. The planning issue stays open, unchanged in
+substance, until the epic is fully expanded, and its comments are the written
+record a paused session resumes from. Below, `<M>` is the planning issue and
+`<N>` the epic it produces.
+
+**Three states, nothing more** (computed by `vrg-queue planning`):
+
+| State | Representation |
+| --- | --- |
+| `waiting` | Open under the planning epic, no `in-progress` label |
+| `in-progress` | Open, `in-progress` label; the detail is in the latest progress comment |
+| `ready-to-close` | `in-progress`, all three markers present (below), and the docs task closed (its docs PR merged) |
+
+Do not invent further states (blocked, deferred, …) — put that detail in the
+progress comment.
+
+### Entry points
+
+Find the planning issue before anything else. Check where an issue stands from
+its native parent:
+`vrg-gh issue view <M> --repo <owner>/<repo> --json parent`, then the parent's
+labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
+(`epic` + `planning` is the planning epic; `epic` + `intake` is the intake epic).
+
+| Invocation | What to do |
+| --- | --- |
+| `epic-create <issue>`, issue is in **planning** | Start it, or **resume** it: read its progress comments (`vrg-gh issue view <M> --repo <owner>/<repo> --comments`) and pick up at the recorded resume point. |
+| `epic-create <issue>`, issue is in **intake** | Pull it into planning first — a one-item intake review: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. |
+| `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning` (add `--repo <owner>/<private-repo>` for a self-homed private repo): waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on. |
+| `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <queue-home> --title "<idea>" --body-file <tmp>` (`<queue-home>` is `<owner>/.github` for a public target, the private repo itself otherwise). |
+
+- An issue under **any other parent** (an ad-hoc or finite epic) is already
+  ready work, not a planning candidate. Stop and ask the human.
+  (`vrg-intake-route … planning` does accept an **unparented** issue.)
+- `vrg-queue planning` exits 1 with `no open 'Epic (planning): <name>' planning
+  epic in <home>` when no planning queue exists yet. That is **an empty queue,
+  not a failure**: say so and offer the free-text entry point. Do not retry.
+  `vrg-queue planning --json` gives each item's `ref` and `epic` as
+  `{owner, repo, number}` objects.
+
+### Progress comments and markers
+
+Comment on the planning issue at **every stage boundary** of the workflow below
+— brainstorm approved, epic created, spec committed, pushback done, plan
+written, alignment done, docs PR handed off, tasks filed — and **whenever the
+session pauses** ("blocked on …" / "resume at …"). Write each comment to a temp
+file and post it with
+`vrg-gh issue comment <M> --repo <owner>/<repo> --body-file <tmp>`.
+
+- The **first line** is the human summary (what is done, what is next or what
+  it is blocked on) — `vrg-queue planning` shows it as the item's latest note.
+- Once known, include these **marker lines**, each alone on its own line with a
+  fully qualified ref and nothing else on the line (the queue view parses them;
+  the latest of each wins):
+
+  ```text
+  Epic: <owner>/<repo>#<N>
+  Docs task: <owner>/<repo>#<D>
+  Tasks filed: yes
+  ```
+
+  `Epic:` once the epic exists, `Docs task:` once the documentation task exists,
+  and `Tasks filed: yes` only after **every** implementation task is filed.
+- When you create the epic, put a `Planning: <owner>/<repo>#<M>` line (the
+  planning issue's ref) in the **epic's body**.
+
 ## Workflow
 
+0. **Start the planning issue.** Resolve it through the entry points above,
+   then mark it in progress:
+   `vrg-gh issue edit <M> --repo <owner>/<repo> --add-label in-progress`.
+   Post the progress comments (above) at each step boundary that follows.
 1. **Brainstorm.** Run `superpowers:brainstorming` to converge on an approved
-   design. (If it reduces to a single-PR task, stop — file a task, not an epic.)
+   design. (If it reduces to a single-PR task, stop — file a task, not an epic,
+   and close the planning issue with a pointer to it:
+   `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed --comment
+   "Filed as task <owner>/<repo>#<T>"`.) If brainstorming
+   concludes the idea is **not worth doing**, close the planning issue with the
+   reason: `vrg-gh issue close <M> --repo <owner>/<repo> --reason "not planned"
+   --comment "<reason>"`.
 2. **Create the epic and seed its bookend tasks.**
    - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
      <tmp>` creates the issue in the target's **resolved home** with the `epic`
      label (`--repo` defaults to the current repo; the command echoes the home —
      `<org>/.github` for a public target, the repo itself when private); note the
-     number **N**.
+     number **N**. The body carries the `Planning: <owner>/<repo>#<M>` line, and
+     the progress comment that follows carries `Epic: <owner>/<repo>#<N>`.
    - Create the **documentation task** and the **closing bookends** (the
      **documentation-review** task and the **retrospective** task), each linked
      under N. **File each in the repo where its closing PR will land** (the
@@ -212,7 +295,8 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
      sweep discovers where docs actually need to change. Seed a **follow-on
      brainstorm** task **only** when a known enabling chain exists at creation
      (see the bookend architecture above); otherwise leave it — it is accrued
-     during implementation or skipped.
+     during implementation or skipped. Record the documentation task as
+     `Docs task: <owner>/<repo>#<D>` in the next progress comment.
    - **Seed operational tasks the epic will need** — see "Operational tasks"
      above. Infra/provisioning-shaped epics carry a cold-rebuild **validation**
      by default (`--kind validation`); seed a **deployment** task
@@ -233,7 +317,17 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
 9. **File the implementation tasks** from the plan, each in the repo where its PR
    lands and linked under the epic: born linked via `vrg-issue-create --epic
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
-   `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`.
+   `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
+   last one is filed, post the progress comment with `Tasks filed: yes`.
+10. **Close the planning issue — only when it is ready.** Run `vrg-queue
+    planning` (with `--repo` for a private home). If it shows the item
+    `ready-to-close`, close it:
+    `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed --comment
+    "Planned as <owner>/<repo>#<N>"`. Otherwise the docs PR has not merged yet
+    (a human action): post a progress comment recording "waiting on docs PR
+    merge" and leave the item `in-progress`. It is closed on the next
+    `epic-create` touch, when the planning-queue summary shows it
+    `ready-to-close`.
 
 ## Notes
 
@@ -256,4 +350,9 @@ the no-brainers — correct me if I'm wrong" review, not by gating each one.
 - **Cross-org is out of scope:** each org has its own `.github`; never link epics
   or tasks across orgs.
 - Reconstructing epics from an existing backlog is a different job — use
-  `migrate-repo`. Capturing an uncurated idea is `triage-capture`.
+  `migrate-repo`. Capturing an uncurated idea is `intake-capture`; routing
+  intake items (including into planning) is `intake-review`.
+- **Planning items are not PR-workable.** `issue-implement`, `vrg-pr-workflow
+  report-ready`, and `vrg-submit-pr` refuse an issue whose parent is the
+  planning (or intake) epic. The planning issue is closed, never implemented;
+  the work ships through the epic's tasks.
