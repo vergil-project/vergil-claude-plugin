@@ -3268,10 +3268,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#triage-capture" class="md-nav__link">
+  <a href="#intake-capture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        triage-capture
+        intake-capture
       
     </span>
   </a>
@@ -3279,10 +3279,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#triage-review" class="md-nav__link">
+  <a href="#intake-review" class="md-nav__link">
     <span class="md-ellipsis">
       
-        triage-review
+        intake-review
       
     </span>
   </a>
@@ -3527,10 +3527,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#triage-capture" class="md-nav__link">
+  <a href="#intake-capture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        triage-capture
+        intake-capture
       
     </span>
   </a>
@@ -3538,10 +3538,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#triage-review" class="md-nav__link">
+  <a href="#intake-review" class="md-nav__link">
     <span class="md-ellipsis">
       
-        triage-review
+        intake-review
       
     </span>
   </a>
@@ -3694,13 +3694,13 @@ never-suppress-a-gate rules are unaffected.</p>
 <td>Current</td>
 </tr>
 <tr>
-<td><a href="#triage-capture">triage-capture</a></td>
-<td>Capture an uncurated idea/bug/to-do into the intake queue as a triage/idea/research issue, paraphrasing voice-to-text into clean prose</td>
+<td><a href="#intake-capture">intake-capture</a></td>
+<td>Capture an uncurated idea/bug/to-do into the intake queue with <code>vrg-intake-create</code> — no kind or category step — paraphrasing voice-to-text into clean prose</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
-<td><a href="#triage-review">triage-review</a></td>
-<td>Groom the triage intake queue — route each uncurated issue into the epic/task model (periodic ~weekly pass)</td>
+<td><a href="#intake-review">intake-review</a></td>
+<td>Review the intake queue oldest first in batches of 4 and route each item (drop, defer, one-off, split, planning) with <code>vrg-intake-route</code></td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -3734,9 +3734,16 @@ work. It opens into brainstorming, runs the front-loaded pipeline
 (brainstorm → pushback → writing-plans → alignment), creates the finite epic in
 its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
 documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
-spec + plan as a docs PR.</p>
+spec + plan as a docs PR. Every run is tracked in a <strong>planning issue</strong> (an open
+child of the planning epic): it is entered from a planning issue, an intake
+issue (pulled into planning), a free-text idea (a new planning issue), or with
+no argument (a <code>vrg-queue planning</code> summary). It labels the item <code>in-progress</code>,
+records progress comments with the <code>Epic:</code> / <code>Docs task:</code> / <code>Tasks filed: yes</code>
+markers, and closes the planning issue once the epic is fully expanded (docs PR
+merged, tasks filed).</p>
 <p><strong>When to use.</strong> At the start of significant work — "let's build X", "start an
-epic for this". If the work collapses to a single PR, it is a task, not an epic.</p>
+epic for this" — or to resume a paused planning session. If the work collapses
+to a single PR, it is a task, not an epic.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="epic-implement">epic-implement<a class="headerlink" href="#epic-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>epic-level driver</strong> above
@@ -3772,7 +3779,9 @@ its feature branch, validates to green via <code>vrg-validate</code>, then recor
 the PR metadata (<code>.vergil/pr-workflow.json</code>) with
 <code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume. A
 run-and-done hand-off: it records the metadata and the human opens the
-PR.</p>
+PR. It refuses an issue whose native parent is the intake or
+planning epic (route it with <code>intake-review</code> or expand it with
+<code>epic-create</code> first), mirroring the PR tooling's refusal.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR. The same
 flow runs on a cloud VM: <code>report-ready</code> pushes a world-readable <strong>relay
@@ -3850,22 +3859,34 @@ are intertwined here (<code>End SOC</code> triggers the structured summary).
 The cross-repo references in <code>the-infrastructure-mindset</code> are
 tracked for cleanup in
 <a href="https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165">the-infrastructure-mindset#165</a>.</p>
-<h2 id="triage-capture">triage-capture<a class="headerlink" href="#triage-capture" title="Permanent link">&para;</a></h2>
+<h2 id="intake-capture">intake-capture<a class="headerlink" href="#intake-capture" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Captures an uncurated idea, bug, or to-do into the intake
-queue so it is never lost, creating an intake issue — <code>triage</code> (a problem
-not yet understood), <code>idea</code> (a spark), or <code>research</code> (a reproducible
-investigation) — in the org <code>.github</code>, paraphrasing voice-to-text into clean
-written prose.</p>
+queue so it is never lost. It runs <code>vrg-intake-create</code>, which files one issue
+in the current repo's queue home (the org <code>.github</code> for a public repo, the repo
+itself for a private one) and links it under that home's intake epic as it is
+created. There is no kind or category step: membership in the intake queue is
+the item's state. Voice-to-text input is paraphrased into clean written prose.
+Renamed from the triage capture skill in epic
+<a href="https://github.com/vergil-project/.github/issues/176">vergil-project/.github#176</a>.</p>
 <p><strong>When to use.</strong> Whenever the human says "don't forget X", "capture this",
 "note a todo", or riffs an idea to come back to later — especially mid-task
 or via voice.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
-<h2 id="triage-review">triage-review<a class="headerlink" href="#triage-review" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Grooms the triage intake queue — collects every
-<code>triage</code>-labelled issue across the org and walks the human through
-dispositioning each one into the epic/task model.</p>
-<p><strong>When to use.</strong> For the periodic (roughly weekly) intake pass — "review
-triage", "groom the backlog", "process the triage queue".</p>
+<h2 id="intake-review">intake-review<a class="headerlink" href="#intake-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> Reviews the intake queue and routes every item into the
+epic/task model. It lists the queue with <code>vrg-queue intake</code> (oldest first),
+checks each item's current state (an overlapping or closed issue, a bug that is
+already fixed), and presents batches of 4 with one paragraph per item and a
+recommended route. The human confirms each batch in one reply, and the agent
+applies it with <code>vrg-intake-route</code>: <strong>drop</strong>, <strong>defer</strong>, <strong>one-off</strong> (move into
+a repo's ad-hoc or finite epic, transferring the issue or recreating it when
+GitHub refuses the transfer), <strong>split</strong> (into tasks made with
+<code>vrg-issue-create</code>), or <strong>planning</strong> (hand to <code>epic-create</code>). The agent closes
+dropped and split items itself. Renamed from the triage review skill in the
+same epic.</p>
+<p><strong>When to use.</strong> For the periodic intake pass — "review intake", "groom the
+backlog", "process the intake queue", "what's in intake" (and the older
+"review triage" phrasings).</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="migrate-repo">migrate-repo<a class="headerlink" href="#migrate-repo" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Migrates a repo's existing open-issue backlog into the
