@@ -667,6 +667,8 @@
       
         
       
+        
+      
     
     
     
@@ -722,6 +724,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v2.1.39/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.39
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3309,7 +3339,7 @@
 <ul>
 <li>
 <p><strong>add spec for blocking agent merge of non-release PRs</strong>
-Design spec for a PreToolUse hook that intercepts gh pr merge and gh pr review --approve, denying them unless the target branch is a release-workflow PR (release/<em> or chore/bump-version-</em>). Covers hook behavior, edge cases, and the key insight that st-merge-when-green does not need an exemption because it calls gh pr merge via Python subprocess, not through the Bash tool boundary.</p>
+Design spec for a PreToolUse hook that intercepts gh pr merge and gh pr review --approve, denying them unless the target branch is a release-workflow PR (release/* or chore/bump-version-*). Covers hook behavior, edge cases, and the key insight that st-merge-when-green does not need an exemption because it calls gh pr merge via Python subprocess, not through the Bash tool boundary.</p>
 </li>
 <li>
 <p><strong>update block-agent-merge spec with pushback resolutions</strong>
