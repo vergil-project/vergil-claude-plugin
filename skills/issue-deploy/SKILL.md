@@ -99,6 +99,7 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   the environment, not the code; the PR tooling refuses it, and cutting a release
   is a human action. If you find yourself wanting to open a PR or run a release,
   you are outside this skill's remit — stop.
-- **Triage is out of band.** Capture unrelated problems as their own issues
-  (`triage-capture` / `vrg-issue-create`), not in this task's result.
+- **Discovered problems are out of band.** Capture unrelated problems as their
+  own issues (`intake-capture` / `vrg-issue-create`), not in this task's
+  result.
 - `/vergil:handoff` is the recovery net if a session is lost mid-run.

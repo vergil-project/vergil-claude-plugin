@@ -216,11 +216,14 @@ for forges without sub-issues.
 
 ### Labels
 
-Standardized orthogonal axes: **role** (`epic`, `standing`), **stage**
-(`triage`), **kind** (`bug`, `feature`, `docs`, `refactor`, `chore`,
-`research`, `idea`), **exception** (`hotfix`). Uncurated ideas and bugs
-enter as `triage` and are routed into the model by a periodic triage
-review.
+Standardized orthogonal axes: **role** (`epic`, `standing`), **kind**
+(`bug`, `feature`, `docs`, `refactor`, `chore`), **exception** (`hotfix`).
+An issue's stage is its **parent epic**, not a label: uncurated ideas and
+bugs enter the org's intake epic (`/vergil:intake-capture`), are routed by
+`/vergil:intake-review`, and items that need a full epic wait in the
+planning epic for `/vergil:epic-create`. The `triage` / `idea` /
+`research` labels are retired; `in-progress` marks a planning item under
+way.
 
 ## Shell command policy — additional rules
 

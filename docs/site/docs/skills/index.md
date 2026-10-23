@@ -34,8 +34,8 @@ never-suppress-a-gate rules are unaffected.
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
-| [triage-capture](#triage-capture) | Capture an uncurated idea/bug/to-do into the intake queue as a triage/idea/research issue, paraphrasing voice-to-text into clean prose | Current (2.1) |
-| [triage-review](#triage-review) | Groom the triage intake queue — route each uncurated issue into the epic/task model (periodic ~weekly pass) | Current (2.1) |
+| [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
+| [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
 | [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
 | [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
 | [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
@@ -52,10 +52,17 @@ work. It opens into brainstorming, runs the front-loaded pipeline
 (brainstorm → pushback → writing-plans → alignment), creates the finite epic in
 its resolved home, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
-spec + plan as a docs PR.
+spec + plan as a docs PR. Every run is tracked in a **planning issue** (an open
+child of the planning epic): it is entered from a planning issue, an intake
+issue (pulled into planning), a free-text idea (a new planning issue), or with
+no argument (a `vrg-queue planning` summary). It labels the item `in-progress`,
+records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
+markers, and closes the planning issue once the epic is fully expanded (docs PR
+merged, tasks filed).
 
 **When to use.** At the start of significant work — "let's build X", "start an
-epic for this". If the work collapses to a single PR, it is a task, not an epic.
+epic for this" — or to resume a paused planning session. If the work collapses
+to a single PR, it is a task, not an epic.
 
 **Status.** Current (Vergil 2.1).
 
@@ -103,7 +110,9 @@ its feature branch, validates to green via `vrg-validate`, then records
 the PR metadata (`.vergil/pr-workflow.json`) with
 `vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume. A
 run-and-done hand-off: it records the metadata and the human opens the
-PR.
+PR. It refuses an issue whose native parent is the intake or
+planning epic (route it with `intake-review` or expand it with
+`epic-create` first), mirroring the PR tooling's refusal.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR. The same
@@ -203,13 +212,16 @@ The cross-repo references in `the-infrastructure-mindset` are
 tracked for cleanup in
 [the-infrastructure-mindset#165](https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165).
 
-## triage-capture
+## intake-capture
 
 **What it does.** Captures an uncurated idea, bug, or to-do into the intake
-queue so it is never lost, creating an intake issue — `triage` (a problem
-not yet understood), `idea` (a spark), or `research` (a reproducible
-investigation) — in the org `.github`, paraphrasing voice-to-text into clean
-written prose.
+queue so it is never lost. It runs `vrg-intake-create`, which files one issue
+in the current repo's queue home (the org `.github` for a public repo, the repo
+itself for a private one) and links it under that home's intake epic as it is
+created. There is no kind or category step: membership in the intake queue is
+the item's state. Voice-to-text input is paraphrased into clean written prose.
+Renamed from the triage capture skill in epic
+[vergil-project/.github#176](https://github.com/vergil-project/.github/issues/176).
 
 **When to use.** Whenever the human says "don't forget X", "capture this",
 "note a todo", or riffs an idea to come back to later — especially mid-task
@@ -217,14 +229,23 @@ or via voice.
 
 **Status.** Current (Vergil 2.1).
 
-## triage-review
+## intake-review
 
-**What it does.** Grooms the triage intake queue — collects every
-`triage`-labelled issue across the org and walks the human through
-dispositioning each one into the epic/task model.
+**What it does.** Reviews the intake queue and routes every item into the
+epic/task model. It lists the queue with `vrg-queue intake` (oldest first),
+checks each item's current state (an overlapping or closed issue, a bug that is
+already fixed), and presents batches of 4 with one paragraph per item and a
+recommended route. The human confirms each batch in one reply, and the agent
+applies it with `vrg-intake-route`: **drop**, **defer**, **one-off** (move into
+a repo's ad-hoc or finite epic, transferring the issue or recreating it when
+GitHub refuses the transfer), **split** (into tasks made with
+`vrg-issue-create`), or **planning** (hand to `epic-create`). The agent closes
+dropped and split items itself. Renamed from the triage review skill in the
+same epic.
 
-**When to use.** For the periodic (roughly weekly) intake pass — "review
-triage", "groom the backlog", "process the triage queue".
+**When to use.** For the periodic intake pass — "review intake", "groom the
+backlog", "process the intake queue", "what's in intake" (and the older
+"review triage" phrasings).
 
 **Status.** Current (Vergil 2.1).
 

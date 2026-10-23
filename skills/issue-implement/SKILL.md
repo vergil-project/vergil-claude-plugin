@@ -32,7 +32,29 @@ never suppress a validation gate.
    its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
    refuses it). Hand a `validation` issue to **`issue-validate`** and a
    `deployment` issue to **`issue-deploy`**.
-3. **Create the worktree for this issue** from the repo root and work inside it
+3. **Not an intake or planning item.** Check the issue's **native parent**:
+
+   ```bash
+   vrg-gh issue view <N> --repo <owner>/<repo> --json parent
+   vrg-gh issue view <P> --repo <parent-owner>/<parent-repo> --json labels
+   ```
+
+   If the parent carries `epic` + `intake` (an `Epic (intake): …` queue epic) or
+   `epic` + `planning` (an `Epic (planning): …` queue epic), stop — the item is
+   not buildable yet. Tell the human, mirroring the PR tooling's refusal:
+
+   - intake: `--issue (<ref>) is in the intake queue; it is not buildable until
+     it is routed. Route it with intake-review first.`
+   - planning: `--issue (<ref>) is in the planning queue; it is not buildable
+     until its epic is expanded. Expand it with epic-create first.`
+
+   This is the upstream half of the refusal: `vrg-pr-workflow report-ready` and
+   `vrg-submit-pr` refuse the same issues by the same native-parent test, so
+   implementing one would strand the work with no path to a PR. Routing it out
+   of the queue (`intake-review` → one-off or split; `epic-create` for
+   planning) is the only way to lift the refusal. If the parent cannot be read,
+   say so and stop rather than assume it is not queued.
+4. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
    ```bash
