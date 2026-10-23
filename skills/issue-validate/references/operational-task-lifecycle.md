@@ -42,6 +42,6 @@ kind-specific concerns.
 
 ## Out of band
 
-Triage discovered problems as their own issues (`triage-capture` /
+Capture discovered problems as their own issues (`intake-capture` /
 `vrg-issue-create`) — do not fold them into this task's result.
 `/vergil:handoff` is the recovery net if a session is lost mid-run.
