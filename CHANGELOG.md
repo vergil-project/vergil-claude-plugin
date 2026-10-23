@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.39] - 2026-10-23
+
+### Bug fixes
+
+- emit required docs / docs check via reusable ci-docs.yml (#679)
+
+### Chores
+
+- reconcile .gitignore to baseline + add ops.yml (#684) (#685)
+- sync .gitignore to the canonical baseline (#687)
+- sync the vergil-managed .gitignore block (#689)
+- turn off Claude Code co-author attribution (#698)
+- add the report-only dependabot.yml (#702)
+
+### Documentation
+
+- complete the site skills catalogue (#676)
+- identify the retrospective task by label, not title (#680)
+- clarify PR batching is per-repository (#681)
+- capture subagent sandbox-bypass finding as a report (#682)
+- capture OpenSSF Scorecard as dated snapshot docs (#683)
+- drop stale v2.1 Transition note (#693)
+- repoint links off the deleted git-hooks-and-validation page (#700)
+
+### Features
+
+- replace triage skills with intake-capture and intake-review; track epic-create through planning issues (#704)
+
+### Refactoring
+
+- drop the hardcoded matrix inputs from ci.yml (#691)
+
 ## [2.1.38] - 2026-07-25
 
 ### Documentation
@@ -231,15 +263,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - re-trigger CI to pick up PR body issue linkage
 - remove legacy implement/audit skills; keep only the issue-* pair (#479) (#480)
 
+### Release
+
+- 2.1.7 (#477)
+
 ## [2.1.7] - 2026-06-10
 
 ### Documentation
 
 - default issue-implement to no-audit; make audit opt-in (#474) (#475)
-
-### Release
-
-- 2.1.7 (#477)
 
 ## [2.1.6] - 2026-06-09
 
