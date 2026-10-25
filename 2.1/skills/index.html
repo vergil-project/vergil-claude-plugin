@@ -662,6 +662,8 @@
       
         
       
+        
+      
     
     
     
@@ -714,6 +716,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.40/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.40
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3807,9 +3837,10 @@ epic", "we're done with this epic".</p>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via <code>vrg-validate</code>, then records
 the PR metadata (<code>.vergil/pr-workflow.json</code>) with
-<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume. A
-run-and-done hand-off: it records the metadata and the human opens the
-PR. It refuses an issue whose native parent is the intake or
+<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
+<code>report-ready</code> also pushes the branch to origin, so there is no separate
+push step. A run-and-done hand-off: it publishes the branch, records the
+metadata, and the human opens the PR. It refuses an issue whose native parent is the intake or
 planning epic (route it with <code>intake-review</code> or expand it with
 <code>epic-create</code> first), mirroring the PR tooling's refusal.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
