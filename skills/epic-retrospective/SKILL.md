@@ -49,8 +49,30 @@ verifies that assertion — it is the **sole** enforcement of the retrospective'
 terminality (there are no static `Blocked-by` reflinks; they would not scale
 against a dynamic epic):
 
-- Enumerate every sub-issue of the epic:
-  `vrg-gh issue view <epic-ref> --json subIssues,subIssuesSummary`.
+- Enumerate every sub-issue of the epic with `vrg-epic-audit`, which accepts
+  the full `owner/repo#N` ref (or a bare `#N`) and emits
+  `{"epic": …, "children": [{repo, number, title, state}, …]}`:
+
+  ```bash
+  children=$(vrg-epic-audit --epic <epic-ref>); echo "exit=$?"
+  printf '%s\n' "$children" | jq '.children | length'
+  printf '%s\n' "$children" \
+    | jq -r '.children[] | select(.state=="OPEN") | "\(.repo)#\(.number) \(.title)"'
+  ```
+
+  Do **not** use `vrg-gh issue view <owner/repo#N> --json subIssues,…` for this:
+  the `vrg-gh` issue-view parser rejects the `owner/repo#N` form
+  (`invalid issue format`, exit 1, empty stdout).
+- **Run the enumeration clean and read its exit code.** Never pipe it through
+  `head`, `tail`, `grep`, or a pager, and never merge stderr into a truncated
+  stream (`2>&1 | head`) — a pipe replaces the command's exit status with the
+  last stage's and can hide the error, so a failed command looks like "no
+  children." If you must pipe, use `set -o pipefail` or check
+  `${PIPESTATUS[0]}`.
+- **Failed or empty output is ambiguous → stop.** A non-zero exit, missing or
+  unparsable JSON, or an empty `children` array (an epic always has at least
+  its bookends, including R itself) means the gate **could not verify** — stop
+  and ask the human. Never read it as "no open children."
 - Let **R** be the retrospective task. If **any child other than R is still
   open**, **abort** — print the open refs and stop:
 
@@ -61,8 +83,9 @@ against a dynamic epic):
   siblings it spawned are just other open children the gate catches, so
   "documentation-review runs before the retrospective" falls out for free.
 
-`vrg-epic-audit` may be consulted as a **consistency cross-check** (linking,
-drift) but is never the gate's source of truth. Never fabricate a pass; if the
+`vrg-epic-audit --epic` is the gate's source of truth for child state; its
+default drift-audit mode (no `--epic`) may additionally be consulted as a
+**consistency cross-check** (linking, drift). Never fabricate a pass; if the
 enumeration is ambiguous, stop and ask.
 
 ## The retrospective artifact — `epics/<N>-<slug>/retrospective.md`
