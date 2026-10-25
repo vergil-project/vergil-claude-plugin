@@ -41,11 +41,22 @@ git -C "$SCRATCH" init --quiet
 printf '[project]\n' > "$SCRATCH/vergil.toml"
 printf '.worktrees/\n' > "$SCRATCH/.gitignore"
 
+# Second scratch managed repo that has NOT adopted the worktree
+# convention and sits on the protected branch `develop`, for the
+# legacy protected-branch rows (#694). An unborn branch still reports
+# its name via `git branch --show-current`.
+PROTECTED=$(mktemp -d)
+trap 'rm -rf "$SCRATCH" "$PROTECTED"' EXIT
+git -C "$PROTECTED" init --quiet
+git -C "$PROTECTED" symbolic-ref HEAD refs/heads/develop
+printf '[project]\n' > "$PROTECTED/vergil.toml"
+
 # Parallel arrays: one case per index.
 #   T_NAME     — label
 #   T_SCRIPT   — hook script under hooks/scripts/
 #   T_COMMAND  — tool_input.command payload value
-#   T_CWD      — payload cwd: "" = $ROOT, "SCRATCH" = $SCRATCH
+#   T_CWD      — payload cwd: "" = $ROOT, "SCRATCH" = $SCRATCH,
+#                "PROTECTED" = $PROTECTED
 #   T_RESPONSE — tool_response payload value ("" = omit)
 #   T_EXPECT   — deny | allow | context
 T_NAME=(
@@ -78,6 +89,14 @@ T_NAME=(
   "protected: real commit at convention-repo root"
   "protected: non-commit with quoted commit prose (#450 over-blocking)"
   "protected: non-commit git operation"
+  "protected #694: vrg-commit at convention-repo root not matched"
+  "protected #694: cd <worktree> && vrg-commit not matched"
+  "protected #694: env-prefixed vrg-commit not matched"
+  "protected #694: subshell cd; vrg-commit not matched"
+  "protected #694: vrg-commit on protected develop not matched"
+  "protected #694: raw git commit on protected develop still denied"
+  "protected #694: cd . && raw git commit on develop still denied"
+  "protected #694: raw git commit chained after vrg-commit still denied"
   "autoclose: forbidden linkage keyword"
   "autoclose: Ref linkage allowed"
   "autoclose: quoted body mentioning the rule (#450 shape)"
@@ -115,6 +134,14 @@ T_SCRIPT=(
   "detect-deprecation-warnings.sh"
   "detect-deprecation-warnings.sh"
   "detect-deprecation-warnings.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
+  "block-protected-branch-work.sh"
   "block-protected-branch-work.sh"
   "block-protected-branch-work.sh"
   "block-protected-branch-work.sh"
@@ -158,6 +185,14 @@ T_COMMAND=(
   'git commit -m x'
   "vrg-gh issue create --title t --body \"repro:${NL}git commit -m x was blocked\""
   'git push origin HEAD'
+  'vrg-commit --type fix --scope x --message y'
+  "cd $SCRATCH/.worktrees/issue-1-x && vrg-commit --type fix --scope x --message y"
+  'VRG_X=1 vrg-commit --type fix --scope x --message y'
+  '(cd /elsewhere/.worktrees/issue-1-x; vrg-commit --type fix --scope x --message y)'
+  'vrg-commit --type fix --scope x --message y'
+  'git commit -m x'
+  'cd . && git commit -m x'
+  'vrg-commit --type fix --scope x --message y && git commit -m x'
   'vrg-submit-pr --issue 450 --linkage Fixes'
   'vrg-submit-pr --issue 450 --linkage Ref'
   "vrg-commit --type docs --scope x --message y --body \"policy reminder:${NL}vrg-submit-pr --linkage Fixes is forbidden\""
@@ -175,6 +210,8 @@ T_CWD=(
   "" "" "" ""
   "" "" ""
   "SCRATCH" "SCRATCH" "SCRATCH"
+  "SCRATCH" "SCRATCH" "SCRATCH" "SCRATCH"
+  "PROTECTED" "PROTECTED" "PROTECTED" "SCRATCH"
   "" "" ""
   "" "" ""
   "" "" ""
@@ -188,6 +225,8 @@ T_RESPONSE=(
   "DeprecationWarning: old API"
   "2 passed"
   "" "" ""
+  "" "" "" ""
+  "" "" "" ""
   "" "" ""
   "" "" ""
   "" "" ""
@@ -222,6 +261,14 @@ T_EXPECT=(
   "deny"
   "allow"
   "allow"
+  "allow"
+  "allow"
+  "allow"
+  "allow"
+  "allow"
+  "deny"
+  "deny"
+  "deny"
   "deny"
   "allow"
   "allow"
@@ -248,6 +295,8 @@ while [ "$i" -lt "$total" ]; do
 
   if [ "$case_cwd" = "SCRATCH" ]; then
     case_cwd="$SCRATCH"
+  elif [ "$case_cwd" = "PROTECTED" ]; then
+    case_cwd="$PROTECTED"
   elif [ -z "$case_cwd" ]; then
     case_cwd="$ROOT"
   fi

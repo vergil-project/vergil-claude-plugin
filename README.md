@@ -148,7 +148,7 @@ for the rationale.
 |---|---|---|
 | `block-raw-git-commit` | PreToolUse/Bash | Redirects raw `git commit` to `vrg-commit` |
 | `block-raw-gh-pr-create` | PreToolUse/Bash | Redirects raw `gh pr create` to `vrg-submit-pr` |
-| `block-protected-branch-work` | PreToolUse/Bash | Blocks commits from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks commits on `develop`/`main` |
+| `block-protected-branch-work` | PreToolUse/Bash | Blocks raw `git commit` from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks it on `develop`/`main`. `vrg-commit` is not matched — it checks the real branch itself |
 | `block-heredoc` | PreToolUse/Bash | Blocks `<<EOF` in CLI args (use `--body-file` or `$(cat <file>)`) |
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Denies wrapping host-only tools in `vrg-container-run`; warns on bare container-only tools |
@@ -223,8 +223,9 @@ worktree+branch creation, agent prompt template) lives at
 [`docs/development/starting-work-on-an-issue.md`](docs/development/starting-work-on-an-issue.md).
 
 The worktree convention is enforced by the
-`block-protected-branch-work` hook: commits originating from
-outside `.worktrees/*/` are denied.
+`block-protected-branch-work` hook (raw `git commit` originating
+from outside `.worktrees/*/` is denied) and by `vrg-commit`'s own
+run-time protected-branch check.
 
 ### Ship a change
 
