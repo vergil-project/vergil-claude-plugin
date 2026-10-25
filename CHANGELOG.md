@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.40] - 2026-10-25
+
+### Chores
+
+- sync the vergil-managed .gitignore block (#711)
+
+### Documentation
+
+- document that report-ready publishes the branch (#714)
+
+### Features
+
+- refuse epic/archive issues in preflight (#713)
+
 ## [2.1.39] - 2026-10-23
 
 ### Bug fixes

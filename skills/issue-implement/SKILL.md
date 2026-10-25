@@ -7,7 +7,8 @@ description: Implement a GitHub issue end-to-end as the USER agent. Use whenever
 
 Implement a GitHub issue end-to-end as the USER agent, then hand the PR off to
 the human. You **implement the issue directly** in a worktree, validate it
-green, record the PR metadata through `vrg-pr-workflow report-ready`, and tell
+green, record the PR metadata through `vrg-pr-workflow report-ready` (which also
+pushes the branch to origin), and tell
 the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
 
 ## Execute efficiently — trust and escalate
@@ -27,12 +28,32 @@ never suppress a validation gate.
 
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
    not, stop — this skill runs in the user-agent session.
-2. **Not an operational task.** If the issue carries an operational label, stop —
+2. **Not an epic or archive.** Read the issue's own labels:
+
+   ```bash
+   vrg-gh issue view <N> --repo <owner>/<repo> --json labels
+   ```
+
+   If it carries `epic` or `archive`, stop — it is an umbrella, not a task, and
+   has no PR of its own. Tell the human, mirroring the PR tooling's refusal:
+
+   - epic: `--issue (<ref>) is an epic, not a task; an epic is closed by rollup
+     when its tasks complete, never by a PR. Create the task under the epic
+     first and use the task's number.` To drive an epic's tasks, use
+     **`epic-implement`**.
+   - archive: `--issue (<ref>) is an archive, not a task; an archive only holds
+     a standing epic's closed tasks. Use a task's number.`
+
+   `vrg-pr-workflow report-ready`, `vrg-submit-pr`, `vrg-epic-link --task` and
+   `vrg-issue-create --blocked-by` refuse the same issues by the same label
+   test, so implementing one would strand the work with no path to a PR. If the
+   labels cannot be read, say so and stop rather than assume it is a task.
+3. **Not an operational task.** If the issue carries an operational label, stop —
    it is **not** code-implementation. An operational task is *run*, not built:
    its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
    refuses it). Hand a `validation` issue to **`issue-validate`** and a
    `deployment` issue to **`issue-deploy`**.
-3. **Not an intake or planning item.** Check the issue's **native parent**:
+4. **Not an intake or planning item.** Check the issue's **native parent**:
 
    ```bash
    vrg-gh issue view <N> --repo <owner>/<repo> --json parent
@@ -54,7 +75,7 @@ never suppress a validation gate.
    of the queue (`intake-review` → one-off or split; `epic-create` for
    planning) is the only way to lift the refusal. If the parent cannot be read,
    say so and stop rather than assume it is not queued.
-4. **Create the worktree for this issue** from the repo root and work inside it
+5. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
    ```bash
@@ -111,11 +132,25 @@ vrg-pr-workflow report-ready --issue <N> \
   --notes "<reviewer-relevant notes>"
 ```
 
-This writes `.vergil/pr-workflow.json` — the file `vrg-submit-pr` reads. It is a
-plain run-and-done command: it records the metadata and exits. There is no loop
-to drive, nothing to poll, and no second agent to wait for. If you need to
-correct the title/summary/notes before the human submits, just run
-`report-ready` again — it overwrites.
+This **publishes the branch** — it pushes the reported commit to
+`origin/<branch>` (setting upstream) — then writes `.vergil/pr-workflow.json`,
+the file `vrg-submit-pr` reads. **Do not push the branch yourself first**; there
+is no separate push step. It is a plain run-and-done command: it pushes, records
+the metadata, and exits. There is no loop to drive, nothing to poll, and no
+second agent to wait for. If you need to correct the title/summary/notes before
+the human submits, just run `report-ready` again — it overwrites (and the push
+is a no-op when origin already has the reported commit).
+
+How the push can end:
+
+- **`.github/workflows/**` changes** — GitHub refuses an agent identity's push of
+  workflow files. That is expected: `report-ready` warns, **records the state
+  anyway**, and the human's `vrg-submit-pr` pushes the branch at submit time.
+- **`origin/<branch>` has diverged** (e.g. you rebased after an earlier push) —
+  the push is refused and `report-ready` stops with nothing recorded. Update the
+  branch with `vrg-git push --force-with-lease`, then re-run `report-ready`.
+- **Any other push failure** — `report-ready` fails with **nothing recorded** and
+  no relay ref written. Fix the cause and re-run it.
 
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
 the human opens the PR.
@@ -127,8 +162,9 @@ This skill runs the same on a cloud VM as on the Mac. With the relay tooling
 **the cloud can do PR-development end to end** — implement → validate green →
 `report-ready` — and only PR **submission and merge** stay human-on-Mac:
 
-- `report-ready` pushes a **relay ref** to origin carrying the ready-state, so
-  the Mac no longer needs the cloud VM's filesystem. (The old `issue-localize`
+- `report-ready` pushes the **feature branch** and then a **relay ref** to
+  origin carrying the ready-state, so the Mac no longer needs the cloud VM's
+  filesystem — no separate `vrg-git push` is needed. (The old `issue-localize`
   skill, which reconstructed `.vergil/pr-workflow.json` locally from the branch
   and issue, is retired — the relay makes that regeneration unnecessary.)
 - On the Mac the human runs `vrg-submit-pr <branch> [<branch> …]` with a

@@ -340,8 +340,9 @@ tooling (epic
 [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),
 **the cloud can do PR-development end to end** — the agent runs
 `/vergil:issue-implement`, validates green, and records the PR metadata
-with `vrg-pr-workflow report-ready`, which pushes a **relay ref** to
-origin carrying the ready-state. Only PR **submission and merge** stay
+with `vrg-pr-workflow report-ready`, which pushes the feature branch and
+then a **relay ref** to origin carrying the ready-state (no separate
+`vrg-git push` is needed). Only PR **submission and merge** stay
 human-on-Mac:
 
 - On the Mac the human runs `vrg-submit-pr <branch> [<branch> …]` with a
