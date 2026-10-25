@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.41] - 2026-10-25
+
+### Bug fixes
+
+- enumerate the DoD gate with vrg-epic-audit and stop on failed output (#718)
+- stop matching vrg-commit in block-protected-branch-work (#719)
+
+### Chores
+
+- stop tracking generated changelog/releases docs (#720)
+
 ## [2.1.40] - 2026-10-25
 
 ### Chores
