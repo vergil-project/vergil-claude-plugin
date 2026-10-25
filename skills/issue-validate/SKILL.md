@@ -42,7 +42,11 @@ transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see
    vrg-gh issue view <N> --json labels
    ```
 
-   If it does not, this is the wrong skill — hand it to `issue-implement`.
+   If it does not, this is the wrong skill — hand it to `issue-implement`. If
+   it carries `epic` or `archive`, stop: it is an umbrella, not a task (`<ref>
+   is an epic, not a task` / `<ref> is an archive, not a task`); to drive an
+   epic's tasks, use `epic-implement`. If the labels cannot be read, say so and
+   stop.
 3. Read the issue body. It is a self-contained scaffold: **preconditions**,
    **commands**, **acceptance criteria**, and a **results template**.
 
