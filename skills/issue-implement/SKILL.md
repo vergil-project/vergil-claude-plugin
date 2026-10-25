@@ -7,7 +7,8 @@ description: Implement a GitHub issue end-to-end as the USER agent. Use whenever
 
 Implement a GitHub issue end-to-end as the USER agent, then hand the PR off to
 the human. You **implement the issue directly** in a worktree, validate it
-green, record the PR metadata through `vrg-pr-workflow report-ready`, and tell
+green, record the PR metadata through `vrg-pr-workflow report-ready` (which also
+pushes the branch to origin), and tell
 the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
 
 ## Execute efficiently — trust and escalate
@@ -131,11 +132,25 @@ vrg-pr-workflow report-ready --issue <N> \
   --notes "<reviewer-relevant notes>"
 ```
 
-This writes `.vergil/pr-workflow.json` — the file `vrg-submit-pr` reads. It is a
-plain run-and-done command: it records the metadata and exits. There is no loop
-to drive, nothing to poll, and no second agent to wait for. If you need to
-correct the title/summary/notes before the human submits, just run
-`report-ready` again — it overwrites.
+This **publishes the branch** — it pushes the reported commit to
+`origin/<branch>` (setting upstream) — then writes `.vergil/pr-workflow.json`,
+the file `vrg-submit-pr` reads. **Do not push the branch yourself first**; there
+is no separate push step. It is a plain run-and-done command: it pushes, records
+the metadata, and exits. There is no loop to drive, nothing to poll, and no
+second agent to wait for. If you need to correct the title/summary/notes before
+the human submits, just run `report-ready` again — it overwrites (and the push
+is a no-op when origin already has the reported commit).
+
+How the push can end:
+
+- **`.github/workflows/**` changes** — GitHub refuses an agent identity's push of
+  workflow files. That is expected: `report-ready` warns, **records the state
+  anyway**, and the human's `vrg-submit-pr` pushes the branch at submit time.
+- **`origin/<branch>` has diverged** (e.g. you rebased after an earlier push) —
+  the push is refused and `report-ready` stops with nothing recorded. Update the
+  branch with `vrg-git push --force-with-lease`, then re-run `report-ready`.
+- **Any other push failure** — `report-ready` fails with **nothing recorded** and
+  no relay ref written. Fix the cause and re-run it.
 
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
 the human opens the PR.
@@ -147,8 +162,9 @@ This skill runs the same on a cloud VM as on the Mac. With the relay tooling
 **the cloud can do PR-development end to end** — implement → validate green →
 `report-ready` — and only PR **submission and merge** stay human-on-Mac:
 
-- `report-ready` pushes a **relay ref** to origin carrying the ready-state, so
-  the Mac no longer needs the cloud VM's filesystem. (The old `issue-localize`
+- `report-ready` pushes the **feature branch** and then a **relay ref** to
+  origin carrying the ready-state, so the Mac no longer needs the cloud VM's
+  filesystem — no separate `vrg-git push` is needed. (The old `issue-localize`
   skill, which reconstructed `.vergil/pr-workflow.json` locally from the branch
   and issue, is retired — the relay makes that regeneration unnecessary.)
 - On the Mac the human runs `vrg-submit-pr <branch> [<branch> …]` with a
