@@ -92,9 +92,9 @@ with `--issue`, `--summary`, `--linkage`, and `--notes` flags.
 
 ### block-protected-branch-work
 
-**What.** Denies Bash tool invocations that run `git commit` or
-`vrg-commit` when the effective working directory falls outside the
-worktree convention's allowed locations.
+**What.** Denies Bash tool invocations that run raw `git commit` when
+the effective working directory falls outside the worktree
+convention's allowed locations. It does not match `vrg-commit`.
 
 **Why.** Behavior depends on whether the target repo has adopted the
 [worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
@@ -112,8 +112,13 @@ branch with a name matching the repo's `branching_model` prefixes.
 
 This hook complements `vrg-commit`'s own
 [protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
-— this one catches the agent-tool invocation early, before
-`vrg-commit` runs.
+— that check runs inside `vrg-commit` against the branch of the
+directory it actually executes in, so it is the authoritative guard for
+`vrg-commit`. This hook only guesses the target repo from the session
+cwd and the command text, and under the sandbox that cwd is reset to
+the project root, so matching `vrg-commit` here produced false denies
+for worktree commits in sibling repos (#694). The hook therefore covers
+raw `git commit` only.
 
 ### block-heredoc
 

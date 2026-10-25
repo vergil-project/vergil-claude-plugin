@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # block-protected-branch-work.sh — PreToolUse hook for Bash.
 #
-# Blocks commits that shouldn't happen at the project root:
+# Blocks raw `git commit` invocations that shouldn't happen at the
+# project root:
 #
 # 1. If the repo has adopted the parallel-AI-agent worktree convention
 #    (signal: `.worktrees/` line in .gitignore), enforce that commits
@@ -12,6 +13,8 @@
 #    long-standing behavior: block commits on `main` or `develop`.
 #
 # Does NOT block branch operations (checkout, merge, push, pull, etc.).
+# Does NOT match `vrg-commit`: it enforces the protected-branch rule
+# itself at run time, against the real target branch (#694).
 #
 # See vergil-project/vergil-tooling/docs/specs/worktree-convention.md
 # for the adopted-convention rules.
@@ -37,7 +40,17 @@ stripped=$(strip_quoted_segments "$command")
 
 # Only check commands that could create commits on the current branch.
 # Allow git operations that don't create commits (checkout, push, pull, etc.).
-if ! echo "$stripped" | grep -qE '(^|[;&|({]\s*)(git\s+commit|vrg-commit)(\s|$)'; then
+#
+# `vrg-commit` is deliberately NOT matched (#694). It runs its own
+# protected-branch check at run time against the branch of the directory
+# it actually executes in (vergil-tooling bin/vrg_commit.py,
+# _validate_commit_context), so that check is authoritative. This hook
+# can only guess the target repo from the session cwd plus a parse of the
+# command text; under the sandbox that cwd is reset to the project root,
+# so any command shape the parse misses (e.g. `VAR=x vrg-commit`,
+# `(cd <wt>; vrg-commit)`) evaluated the session-root repo and produced
+# a false deny that pushed agents to disable the sandbox.
+if ! echo "$stripped" | grep -qE '(^|[;&|({]\s*)git\s+commit(\s|$)'; then
   exit 0
 fi
 
