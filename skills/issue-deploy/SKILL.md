@@ -38,6 +38,10 @@ transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`.
 2. Confirm the issue carries the **`deployment`** label
    (`vrg-gh issue view <N> --json labels`). If not, this is the wrong skill.
+   If it carries `epic` or `archive`, stop: it is an umbrella, not a task
+   (`<ref> is an epic, not a task` / `<ref> is an archive, not a task`); to
+   drive an epic's tasks, use `epic-implement`. If the labels cannot be read,
+   say so and stop.
 3. Read the issue body — a self-contained scaffold: **preconditions**, **deploy
    steps**, **acceptance criteria**, and a **results template**.
 

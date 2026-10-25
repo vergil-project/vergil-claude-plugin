@@ -27,12 +27,32 @@ never suppress a validation gate.
 
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
    not, stop — this skill runs in the user-agent session.
-2. **Not an operational task.** If the issue carries an operational label, stop —
+2. **Not an epic or archive.** Read the issue's own labels:
+
+   ```bash
+   vrg-gh issue view <N> --repo <owner>/<repo> --json labels
+   ```
+
+   If it carries `epic` or `archive`, stop — it is an umbrella, not a task, and
+   has no PR of its own. Tell the human, mirroring the PR tooling's refusal:
+
+   - epic: `--issue (<ref>) is an epic, not a task; an epic is closed by rollup
+     when its tasks complete, never by a PR. Create the task under the epic
+     first and use the task's number.` To drive an epic's tasks, use
+     **`epic-implement`**.
+   - archive: `--issue (<ref>) is an archive, not a task; an archive only holds
+     a standing epic's closed tasks. Use a task's number.`
+
+   `vrg-pr-workflow report-ready`, `vrg-submit-pr`, `vrg-epic-link --task` and
+   `vrg-issue-create --blocked-by` refuse the same issues by the same label
+   test, so implementing one would strand the work with no path to a PR. If the
+   labels cannot be read, say so and stop rather than assume it is a task.
+3. **Not an operational task.** If the issue carries an operational label, stop —
    it is **not** code-implementation. An operational task is *run*, not built:
    its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
    refuses it). Hand a `validation` issue to **`issue-validate`** and a
    `deployment` issue to **`issue-deploy`**.
-3. **Not an intake or planning item.** Check the issue's **native parent**:
+4. **Not an intake or planning item.** Check the issue's **native parent**:
 
    ```bash
    vrg-gh issue view <N> --repo <owner>/<repo> --json parent
@@ -54,7 +74,7 @@ never suppress a validation gate.
    of the queue (`intake-review` → one-off or split; `epic-create` for
    planning) is the only way to lift the refusal. If the parent cannot be read,
    say so and stop rather than assume it is not queued.
-4. **Create the worktree for this issue** from the repo root and work inside it
+5. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
    ```bash
