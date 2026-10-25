@@ -664,6 +664,8 @@
       
         
       
+        
+      
     
     
     
@@ -716,6 +718,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.41/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.41
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3944,9 +3974,9 @@ first try.</p>
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/submit-pr.md"><code>vrg-submit-pr</code></a>
 with <code>--issue</code>, <code>--summary</code>, <code>--linkage</code>, and <code>--notes</code> flags.</p>
 <h3 id="block-protected-branch-work">block-protected-branch-work<a class="headerlink" href="#block-protected-branch-work" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Denies Bash tool invocations that run <code>git commit</code> or
-<code>vrg-commit</code> when the effective working directory falls outside the
-worktree convention's allowed locations.</p>
+<p><strong>What.</strong> Denies Bash tool invocations that run raw <code>git commit</code> when
+the effective working directory falls outside the worktree
+convention's allowed locations. It does not match <code>vrg-commit</code>.</p>
 <p><strong>Why.</strong> Behavior depends on whether the target repo has adopted the
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md">worktree convention</a>.
 The hook detects adoption by looking for a <code>.worktrees/</code> line in the
@@ -3961,8 +3991,13 @@ directory. On non-adopted repos: create and check out a feature
 branch with a name matching the repo's <code>branching_model</code> prefixes.</p>
 <p>This hook complements <code>vrg-commit</code>'s own
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch">protected-branch check</a>
-— this one catches the agent-tool invocation early, before
-<code>vrg-commit</code> runs.</p>
+— that check runs inside <code>vrg-commit</code> against the branch of the
+directory it actually executes in, so it is the authoritative guard for
+<code>vrg-commit</code>. This hook only guesses the target repo from the session
+cwd and the command text, and under the sandbox that cwd is reset to
+the project root, so matching <code>vrg-commit</code> here produced false denies
+for worktree commits in sibling repos (#694). The hook therefore covers
+raw <code>git commit</code> only.</p>
 <h3 id="block-heredoc">block-heredoc<a class="headerlink" href="#block-heredoc" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that contain heredoc syntax
 (<code>&lt;&lt;EOF</code>, <code>&lt;&lt;'EOF'</code>, etc.) in CLI arguments.</p>
