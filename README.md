@@ -233,7 +233,7 @@ the **human** opens the PR:
 
 1. The USER agent runs `/vergil:issue-implement <issue>` — implement,
    validate to green, then record the PR metadata via
-   `vrg-pr-workflow report-ready`.
+   `vrg-pr-workflow report-ready`, which also pushes the branch.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
 3. Run the emitted `/vergil:pr-watch <PR_URL>` in the USER agent
    session to monitor the PR through CI and review and reconcile

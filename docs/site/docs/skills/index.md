@@ -108,9 +108,10 @@ epic", "we're done with this epic".
 **What it does.** USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via `vrg-validate`, then records
 the PR metadata (`.vergil/pr-workflow.json`) with
-`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume. A
-run-and-done hand-off: it records the metadata and the human opens the
-PR. It refuses an issue whose native parent is the intake or
+`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
+`report-ready` also pushes the branch to origin, so there is no separate
+push step. A run-and-done hand-off: it publishes the branch, records the
+metadata, and the human opens the PR. It refuses an issue whose native parent is the intake or
 planning epic (route it with `intake-review` or expand it with
 `epic-create` first), mirroring the PR tooling's refusal.
 
