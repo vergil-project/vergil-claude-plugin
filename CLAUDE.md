@@ -110,6 +110,14 @@ locally and also runs in PR CI as the `quality / custom` job (from
 vergil-actions v2.1.58). Its log is kept as `quality-custom.log` in the
 `quality / evidence` artifact.
 
+## paad usage policy
+
+How the workflow uses the paad plugin (version, report files,
+`paad/security/`, `paad/config/`, and `vergil:handoff` versus
+`paad:handoff`), and the living register of every deviation from the
+paad authors' recommendations, are in
+[`docs/paad-policy.md`](docs/paad-policy.md).
+
 ## Starting work on an issue
 
 When the user references a GitHub issue and wants work to begin on

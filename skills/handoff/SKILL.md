@@ -15,6 +15,13 @@ memory files with a disciplined, template-driven handoff protocol.
 > the `.vergil/pr-template.yml` PR handoff used by the `implement`/`audit`
 > pair.
 
+**Not `paad:handoff`.** The paad plugin ships its own `paad:handoff` skill.
+It is a separate skill and is not used in vergil workflows: `vergil:handoff`
+is the workflow's session-continuity skill. Always use the prefixed name
+(`vergil:handoff` or `paad:handoff`) so it is clear which one is meant. See
+[`docs/paad-policy.md`](../../docs/paad-policy.md) for the policy and its
+reason.
+
 Two modes:
 
 - `/handoff stop` — Capture current work state before killing the session.
