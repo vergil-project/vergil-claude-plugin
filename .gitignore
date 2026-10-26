@@ -14,6 +14,7 @@ Thumbs.db
 .worktrees/
 .vergil/
 .superpowers/
+paad/security/
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
 build/
