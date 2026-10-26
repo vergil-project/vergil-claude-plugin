@@ -4111,10 +4111,14 @@ accurate").</p>
 <p><strong>Status.</strong> Current.</p>
 <h2 id="handoff">handoff<a class="headerlink" href="#handoff" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Captures work state across sessions — preserves context
-before you stop (<code>/handoff stop</code>) and restores where you left off on resume
-(<code>/handoff start</code>).</p>
+before you stop (<code>/vergil:handoff stop</code>) and restores where you left off on
+resume (<code>/vergil:handoff start</code>).</p>
 <p><strong>When to use.</strong> When wrapping up and you want to preserve context for next
 time, or when picking work back up in a new session.</p>
+<p><strong>Not <code>paad:handoff</code>.</strong> The paad plugin ships its own <code>paad:handoff</code> skill,
+which vergil workflows do not use. Always name the skill with its prefix so it
+is clear which one is meant. See the
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md">paad usage policy</a>.</p>
 <p><strong>Status.</strong> Current.</p>
 <h2 id="planning-review">planning-review<a class="headerlink" href="#planning-review" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Decides, with the human, <strong>what to plan next</strong>. It lists the
