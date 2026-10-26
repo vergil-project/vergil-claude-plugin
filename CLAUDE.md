@@ -104,6 +104,12 @@ This is the **only** validation command. Do not run individual linters,
 formatters, or other tools outside of `vrg-validate`. If a tool is not
 invoked by `vrg-validate`, it is not part of the validation pipeline.
 
+The repo's custom validator, `scripts/bin/validate-custom` (which runs
+the hook test suites under `hooks/tests/`), is part of that pipeline
+locally and also runs in PR CI as the `quality / custom` job (from
+vergil-actions v2.1.58). Its log is kept as `quality-custom.log` in the
+`quality / evidence` artifact.
+
 ## Starting work on an issue
 
 When the user references a GitHub issue and wants work to begin on
