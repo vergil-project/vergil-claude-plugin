@@ -3435,6 +3435,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#planning-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        planning-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-skills-work-technical" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3705,6 +3716,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#planning-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        planning-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-skills-work-technical" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3839,6 +3861,11 @@ never-suppress-a-gate rules are unaffected.</p>
 <td><a href="#handoff">handoff</a></td>
 <td>Capture work state before stopping and restore it on resume, preserving context across sessions</td>
 <td>Current</td>
+</tr>
+<tr>
+<td><a href="#planning-review">planning-review</a></td>
+<td>USER agent: rank the planning queue with the human and pick what to expand next with <code>epic-create</code>; defer, drop, or leave the rest with <code>vrg-intake-route</code>. Core rule: plan only what you mean to implement soon</td>
+<td>New</td>
 </tr>
 </tbody>
 </table>
@@ -4059,6 +4086,25 @@ before you stop (<code>/handoff stop</code>) and restores where you left off on 
 <p><strong>When to use.</strong> When wrapping up and you want to preserve context for next
 time, or when picking work back up in a new session.</p>
 <p><strong>Status.</strong> Current.</p>
+<h2 id="planning-review">planning-review<a class="headerlink" href="#planning-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> Decides, with the human, <strong>what to plan next</strong>. It lists the
+planning queue with <code>vrg-queue planning</code>, surfaces <code>in-progress</code> items first
+(each with its latest progress note, offering to resume it with <code>epic-create</code>
+or defer it), then ranks the waiting items by priority and importance in
+conversation with the human. There is no scoring formula. Each item gets one
+outcome: <strong>pick</strong> (hand to <code>epic-create &lt;ref&gt;</code>), <strong>defer</strong>
+(<code>vrg-intake-route &lt;ref&gt; defer --reason … --revisit-when …</code>, refused when an
+<code>Epic:</code> marker is recorded), <strong>drop</strong> (<code>vrg-intake-route &lt;ref&gt; drop --reason …</code>),
+or <strong>leave</strong> (for items expected to be ready within days or a week).</p>
+<p>Its core rule is the planning doctrine: <strong>plan an epic only when you mean to
+implement it soon.</strong> A plan left sitting goes stale and needs a conceptual
+rebase onto everything built since, so the skill discourages picking more than
+near-term capacity allows.</p>
+<p><strong>When to use.</strong> "review planning", "what should we plan next", "prioritize the
+planning queue". To work one known item, go straight to <code>epic-create &lt;ref&gt;</code>.</p>
+<p><strong>Status.</strong> New, added in epic
+<a href="https://github.com/vergil-project/.github/issues/508">vergil-project/.github#508</a>.
+It starts simple and is expected to evolve with use.</p>
 <h2 id="how-skills-work-technical">How skills work — technical<a class="headerlink" href="#how-skills-work-technical" title="Permanent link">&para;</a></h2>
 <p>Each skill is a directory under <code>skills/</code> containing:</p>
 <ul>
