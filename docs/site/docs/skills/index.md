@@ -317,11 +317,16 @@ accurate").
 ## handoff
 
 **What it does.** Captures work state across sessions — preserves context
-before you stop (`/handoff stop`) and restores where you left off on resume
-(`/handoff start`).
+before you stop (`/vergil:handoff stop`) and restores where you left off on
+resume (`/vergil:handoff start`).
 
 **When to use.** When wrapping up and you want to preserve context for next
 time, or when picking work back up in a new session.
+
+**Not `paad:handoff`.** The paad plugin ships its own `paad:handoff` skill,
+which vergil workflows do not use. Always name the skill with its prefix so it
+is clear which one is meant. See the
+[paad usage policy](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md).
 
 **Status.** Current.
 
