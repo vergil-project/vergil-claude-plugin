@@ -37,6 +37,7 @@ never-suppress-a-gate rules are unaffected.
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
 | [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
 | [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
+| [deferred-review](#deferred-review) | Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop | Current (2.1) |
 | [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
 | [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
 | [handoff](#handoff) | Capture work state before stopping and restore it on resume, preserving context across sessions | Current |
@@ -266,6 +267,28 @@ resumable, batch-approved, human-in-the-loop.
 backlog".
 
 **Status.** Current (Vergil 2.1).
+
+## deferred-review
+
+**What it does.** Reviews the deferred queue, where evaluated items wait for
+their revival conditions. It lists the queue with `vrg-queue deferred` (least
+recently deferred first), rereads each item's latest deferral comment, and
+**actually checks** its `Revisit when:` conditions against the world — release
+pages, issue and PR states, dates, upstream status. It presents batches of 4,
+each item with what was checked, what was found, and one recommended outcome:
+**keep** (no change), **refresh** (re-defer in place with an updated reason and
+conditions), **revive** (to intake, planning, or a one-off, guided by the
+`Deferred from:` line), or **drop**. The human confirms each batch in one
+reply, and the agent applies it with `vrg-intake-route`. A condition it cannot
+verify is reported as such, with a keep recommendation. Added in epic
+[vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
+
+**When to use.** For the periodic deferred pass — "review deferred", "what's
+deferred", "revisit the backlog", "process the deferred queue".
+
+**Status.** Current (Vergil 2.1). Requires the deferred-queue tooling
+(`vrg-queue deferred`, and `vrg-intake-route` with `defer --revisit-when` and
+the `intake` route) at runtime.
 
 ## memory-init
 
