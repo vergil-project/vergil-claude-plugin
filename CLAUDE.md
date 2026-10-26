@@ -226,8 +226,10 @@ Standardized orthogonal axes: **role** (`epic`, `standing`), **kind**
 (`bug`, `feature`, `docs`, `refactor`, `chore`), **exception** (`hotfix`).
 An issue's stage is its **parent epic**, not a label: uncurated ideas and
 bugs enter the org's intake epic (`/vergil:intake-capture`), are routed by
-`/vergil:intake-review`, and items that need a full epic wait in the
-planning epic for `/vergil:epic-create`. The `triage` / `idea` /
+`/vergil:intake-review`, items that need a full epic wait in the
+planning epic for `/vergil:epic-create`, and items parked on an outside
+condition wait in the deferred epic, with a recorded reason and revival
+conditions, until `/vergil:deferred-review` revives them. The `triage` / `idea` /
 `research` labels are retired; `in-progress` marks a planning item under
 way.
 

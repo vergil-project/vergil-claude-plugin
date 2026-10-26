@@ -35,7 +35,7 @@ never-suppress-a-gate rules are unaffected.
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
-| [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
+| [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
 | [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
 | [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
 | [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
@@ -111,9 +111,10 @@ the PR metadata (`.vergil/pr-workflow.json`) with
 `vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
 `report-ready` also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
-metadata, and the human opens the PR. It refuses an issue whose native parent is the intake or
-planning epic (route it with `intake-review` or expand it with
-`epic-create` first), mirroring the PR tooling's refusal.
+metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
+planning or deferred epic (route it with `intake-review`, expand it with
+`epic-create`, or revive it with `deferred-review` first), mirroring the
+PR tooling's refusal.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR. The same
@@ -237,12 +238,15 @@ epic/task model. It lists the queue with `vrg-queue intake` (oldest first),
 checks each item's current state (an overlapping or closed issue, a bug that is
 already fixed), and presents batches of 4 with one paragraph per item and a
 recommended route. The human confirms each batch in one reply, and the agent
-applies it with `vrg-intake-route`: **drop**, **defer**, **one-off** (move into
+applies it with `vrg-intake-route`: **drop**, **defer** (move the item to the
+deferred queue with a required reason and revival conditions, for
+`deferred-review` to bring back), **one-off** (move into
 a repo's ad-hoc or finite epic, transferring the issue or recreating it when
 GitHub refuses the transfer), **split** (into tasks made with
 `vrg-issue-create`), or **planning** (hand to `epic-create`). The agent closes
-dropped and split items itself. Renamed from the triage review skill in the
-same epic.
+dropped and split items itself. Leaving an item in intake for the next review
+is also an outcome, for items that will be ready within days. Renamed from the
+triage review skill in the same epic.
 
 **When to use.** For the periodic intake pass — "review intake", "groom the
 backlog", "process the intake queue", "what's in intake" (and the older

@@ -15,7 +15,8 @@ into an **intake issue** with near-zero friction, so nothing is dropped.
 An intake item is any issue whose parent is an **intake epic** (`Epic (intake):
 <name>`, labelled `epic` + `intake`). Its membership in the intake queue *is* its
 state — there is no kind label and no category to choose. The item waits there
-until `intake-review` routes it (drop, defer, one-off, split, or planning).
+until `intake-review` routes it (drop, defer to the deferred queue, one-off,
+split, or planning).
 
 ## When to use
 
