@@ -1,6 +1,6 @@
 ---
 name: epic-create
-description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → pushback → plan → alignment → docs PR. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. Every run is tracked in a planning issue — pass a planning or intake issue, a free-text idea, or no argument to summarize the planning queue ("what's in planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
+description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → pushback → plan → alignment → docs PR. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue ("what's in planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
 ---
 
 # Epic create
@@ -205,7 +205,12 @@ record a paused session resumes from. Below, `<M>` is the planning issue and
 | `ready-to-close` | `in-progress`, all three markers present (below), and the docs task closed (its docs PR merged) |
 
 Do not invent further states (blocked, deferred, …) — put that detail in the
-progress comment.
+progress comment. A planning issue that must wait on an outside condition is
+**deferred** by moving it to the deferred queue, never by a progress-comment
+state:
+`vrg-intake-route <owner>/<repo>#<M> defer --reason "<why>" --revisit-when "<conditions>"`.
+The tool refuses once an `Epic:` marker is recorded, because the development
+epic already exists and deferring the planning issue would orphan it.
 
 ### Entry points
 
@@ -213,12 +218,14 @@ Find the planning issue before anything else. Check where an issue stands from
 its native parent:
 `vrg-gh issue view <M> --repo <owner>/<repo> --json parent`, then the parent's
 labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
-(`epic` + `planning` is the planning epic; `epic` + `intake` is the intake epic).
+(`epic` + `planning` is the planning epic; `epic` + `intake` is the intake epic;
+`epic` + `deferred` is the deferred epic).
 
 | Invocation | What to do |
 | --- | --- |
 | `epic-create <issue>`, issue is in **planning** | Start it, or **resume** it: read its progress comments (`vrg-gh issue view <M> --repo <owner>/<repo> --comments`) and pick up at the recorded resume point. |
 | `epic-create <issue>`, issue is in **intake** | Pull it into planning first — a one-item intake review: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. |
+| `epic-create <issue>`, issue is in **deferred** | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. Read its latest `Deferred <date>:` / `Revisit when:` comment first; if the conditions are plainly unmet, say so and confirm with the human before reviving it. |
 | `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning` (add `--repo <owner>/<private-repo>` for a self-homed private repo): waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on. |
 | `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <queue-home> --title "<idea>" --body-file <tmp>` (`<queue-home>` is `<owner>/.github` for a public target, the private repo itself otherwise). |
 

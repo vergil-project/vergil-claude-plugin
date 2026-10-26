@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.42] - 2026-10-26
+
+### Documentation
+
+- note that validate-custom runs in PR CI as quality / custom (#726)
+- add paad usage policy and deviations register (#736)
+
+### Features
+
+- route deferrals to the deferred queue in intake-review, epic-create and issue-implement (#733)
+- add the deferred-review skill (#734)
+- add planning-review skill to pick what to plan next (#735)
+
 ## [2.1.41] - 2026-10-25
 
 ### Bug fixes

@@ -15,10 +15,15 @@ it to exactly one of five ends:
 | Route | Effect (applied by `vrg-intake-route`) |
 | --- | --- |
 | **drop** | Comments the reason and closes the item as not planned. Closed stays searchable. "Good idea, not feasible for years" is a drop. |
-| **defer** | Adds a dated `Deferred <date>: <reason>` comment and leaves the item in intake. It keeps its age, so it comes up first next time. |
+| **defer** | Moves the item out of intake into its queue home's **deferred** queue (`Epic (deferred): <name>`) and records a `Deferred <date>: <reason>` / `Revisit when: <conditions>` comment. Both `--reason` and `--revisit-when` are required. `deferred-review` brings it back when its conditions are met. |
 | **one-off** | Moves the item into its target repo and links it under that repo's ad-hoc epic (default) or an existing finite epic. |
 | **split** | The replacement tasks already exist; comments links to them with the reason, then closes the item. |
 | **planning** | Reparents the item from the intake epic to the planning epic, where `epic-create` expands it into a full epic. |
+
+Not routing an item is also an outcome: **leave it in intake for next time.**
+That is the human's call, and it fits an item that will be ready within days or
+a week. An item parked on an outside condition that will take longer is a
+**defer**, not a leave.
 
 The human can stop at any point. Unreviewed items simply stay in intake, so
 there is nothing to resume.
@@ -88,7 +93,8 @@ many repos:
 
 ```bash
 vrg-intake-route <owner>/<repo>#<N> drop --reason "<why>"
-vrg-intake-route <owner>/<repo>#<N> defer --reason "<why now is not the time>"
+vrg-intake-route <owner>/<repo>#<N> defer --reason "<why now is not the time>" \
+  --revisit-when "<what to check to know it can come back>"
 vrg-intake-route <owner>/<repo>#<N> one-off --repo <owner>/<target-repo> [--epic adhoc|#<E>|<owner>/<repo>#<E>]
 vrg-intake-route <owner>/<repo>#<N> planning
 vrg-intake-route <owner>/<repo>#<N> split --into <ref> [--into <ref> …] --reason "<why>"
@@ -117,6 +123,15 @@ vrg-intake-route <owner>/<repo>#<N> split --into <ref> [--into <ref> …] --reas
 
   Then route the original with one `--into` per new task. A bare `#N` in
   `--into` reads against the item's repo, so qualify cross-repo tasks.
+- **defer** needs both a reason and revival conditions. `--revisit-when` is
+  free prose: a date ("re-research by 2027-01-26"), events ("Zensical 1.0
+  ships", "`<owner>/<repo>#<N>` merges"), or both. Write conditions that a later
+  `deferred-review` can actually check. The tool moves the item under the
+  deferred epic of the same queue home and records the comment, with a
+  `Deferred from:` line naming the intake epic it left. `--date YYYY-MM-DD`
+  overrides the stamped date; ordinary review leaves it off.
+- **leave** (no route): run nothing. The item stays in intake and comes up
+  again at the next review.
 - **planning** keeps the item in its repo and moves it under the planning epic
   of the same queue home. `epic-create <ref>` picks it up from there.
 - **A refusal is information, not an obstacle.** `vrg-intake-route` exits 1 with
@@ -130,17 +145,18 @@ vrg-intake-route <owner>/<repo>#<N> split --into <ref> [--into <ref> …] --reas
 Report the batch's results (including any new refs and any transfer→recreate
 fallbacks), then present the next batch. Stop when the queue is empty or the
 human stops. Finish with the tallies: dropped · deferred · one-off · split ·
-planning · remaining in intake.
+planning · left in intake · remaining unreviewed.
 
 ## Notes
 
 - **Oldest first is the pressure.** There is no stale flag or auto-close; the
-  oldest item always comes up first, and a deferred item keeps its age.
+  oldest item always comes up first. A left item comes up again next time; a
+  deferred item has left intake and is reviewed with `deferred-review`.
 - **Never apply a retired label.** `triage` / `idea` / `research` are retired;
   the parent epic is the state. A recreated item does not carry them over.
 - **Private work stays private.** Never route a private repo's item to a public
   repo or epic; the tool refuses it, and GitHub refuses private → public
   transfers anyway.
-- Intake and planning items are not PR-workable: `issue-implement`,
+- Intake, planning and deferred items are not PR-workable: `issue-implement`,
   `vrg-pr-workflow report-ready`, and `vrg-submit-pr` refuse them. Routing an
   item out of intake (one-off or split) is what makes it buildable.

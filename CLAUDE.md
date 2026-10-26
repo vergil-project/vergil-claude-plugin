@@ -104,6 +104,20 @@ This is the **only** validation command. Do not run individual linters,
 formatters, or other tools outside of `vrg-validate`. If a tool is not
 invoked by `vrg-validate`, it is not part of the validation pipeline.
 
+The repo's custom validator, `scripts/bin/validate-custom` (which runs
+the hook test suites under `hooks/tests/`), is part of that pipeline
+locally and also runs in PR CI as the `quality / custom` job (from
+vergil-actions v2.1.58). Its log is kept as `quality-custom.log` in the
+`quality / evidence` artifact.
+
+## paad usage policy
+
+How the workflow uses the paad plugin (version, report files,
+`paad/security/`, `paad/config/`, and `vergil:handoff` versus
+`paad:handoff`), and the living register of every deviation from the
+paad authors' recommendations, are in
+[`docs/paad-policy.md`](docs/paad-policy.md).
+
 ## Starting work on an issue
 
 When the user references a GitHub issue and wants work to begin on
@@ -220,8 +234,10 @@ Standardized orthogonal axes: **role** (`epic`, `standing`), **kind**
 (`bug`, `feature`, `docs`, `refactor`, `chore`), **exception** (`hotfix`).
 An issue's stage is its **parent epic**, not a label: uncurated ideas and
 bugs enter the org's intake epic (`/vergil:intake-capture`), are routed by
-`/vergil:intake-review`, and items that need a full epic wait in the
-planning epic for `/vergil:epic-create`. The `triage` / `idea` /
+`/vergil:intake-review`, items that need a full epic wait in the
+planning epic for `/vergil:epic-create`, and items parked on an outside
+condition wait in the deferred epic, with a recorded reason and revival
+conditions, until `/vergil:deferred-review` revives them. The `triage` / `idea` /
 `research` labels are retired; `in-progress` marks a planning item under
 way.
 
