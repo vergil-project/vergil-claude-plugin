@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -666,6 +666,8 @@
       
         
       
+        
+      
     
     
     
@@ -718,6 +720,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.42/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.42
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3391,6 +3421,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#deferred-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deferred-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#memory-init" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3417,6 +3458,17 @@
     <span class="md-ellipsis">
       
         handoff
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planning-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        planning-review
       
     </span>
   </a>
@@ -3650,6 +3702,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#deferred-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deferred-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#memory-init" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3676,6 +3739,17 @@
     <span class="md-ellipsis">
       
         handoff
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planning-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        planning-review
       
     </span>
   </a>
@@ -3790,12 +3864,17 @@ never-suppress-a-gate rules are unaffected.</p>
 </tr>
 <tr>
 <td><a href="#intake-review">intake-review</a></td>
-<td>Review the intake queue oldest first in batches of 4 and route each item (drop, defer, one-off, split, planning) with <code>vrg-intake-route</code></td>
+<td>Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with <code>vrg-intake-route</code></td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
 <td><a href="#migrate-repo">migrate-repo</a></td>
 <td>Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#deferred-review">deferred-review</a></td>
+<td>Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -3812,6 +3891,11 @@ never-suppress-a-gate rules are unaffected.</p>
 <td><a href="#handoff">handoff</a></td>
 <td>Capture work state before stopping and restore it on resume, preserving context across sessions</td>
 <td>Current</td>
+</tr>
+<tr>
+<td><a href="#planning-review">planning-review</a></td>
+<td>USER agent: rank the planning queue with the human and pick what to expand next with <code>epic-create</code>; defer, drop, or leave the rest with <code>vrg-intake-route</code>. Core rule: plan only what you mean to implement soon</td>
+<td>New</td>
 </tr>
 </tbody>
 </table>
@@ -3870,9 +3954,10 @@ the PR metadata (<code>.vergil/pr-workflow.json</code>) with
 <code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
 <code>report-ready</code> also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
-metadata, and the human opens the PR. It refuses an issue whose native parent is the intake or
-planning epic (route it with <code>intake-review</code> or expand it with
-<code>epic-create</code> first), mirroring the PR tooling's refusal.</p>
+metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
+planning or deferred epic (route it with <code>intake-review</code>, expand it with
+<code>epic-create</code>, or revive it with <code>deferred-review</code> first), mirroring the
+PR tooling's refusal.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR. The same
 flow runs on a cloud VM: <code>report-ready</code> pushes a world-readable <strong>relay
@@ -3969,12 +4054,15 @@ epic/task model. It lists the queue with <code>vrg-queue intake</code> (oldest f
 checks each item's current state (an overlapping or closed issue, a bug that is
 already fixed), and presents batches of 4 with one paragraph per item and a
 recommended route. The human confirms each batch in one reply, and the agent
-applies it with <code>vrg-intake-route</code>: <strong>drop</strong>, <strong>defer</strong>, <strong>one-off</strong> (move into
+applies it with <code>vrg-intake-route</code>: <strong>drop</strong>, <strong>defer</strong> (move the item to the
+deferred queue with a required reason and revival conditions, for
+<code>deferred-review</code> to bring back), <strong>one-off</strong> (move into
 a repo's ad-hoc or finite epic, transferring the issue or recreating it when
 GitHub refuses the transfer), <strong>split</strong> (into tasks made with
 <code>vrg-issue-create</code>), or <strong>planning</strong> (hand to <code>epic-create</code>). The agent closes
-dropped and split items itself. Renamed from the triage review skill in the
-same epic.</p>
+dropped and split items itself. Leaving an item in intake for the next review
+is also an outcome, for items that will be ready within days. Renamed from the
+triage review skill in the same epic.</p>
 <p><strong>When to use.</strong> For the periodic intake pass — "review intake", "groom the
 backlog", "process the intake queue", "what's in intake" (and the older
 "review triage" phrasings).</p>
@@ -3988,6 +4076,24 @@ resumable, batch-approved, human-in-the-loop.</p>
 <code>migrate &lt;repo&gt;</code>, <code>bring &lt;repo&gt; into the framework</code>, or "onboard this repo's
 backlog".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
+<h2 id="deferred-review">deferred-review<a class="headerlink" href="#deferred-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> Reviews the deferred queue, where evaluated items wait for
+their revival conditions. It lists the queue with <code>vrg-queue deferred</code> (least
+recently deferred first), rereads each item's latest deferral comment, and
+<strong>actually checks</strong> its <code>Revisit when:</code> conditions against the world — release
+pages, issue and PR states, dates, upstream status. It presents batches of 4,
+each item with what was checked, what was found, and one recommended outcome:
+<strong>keep</strong> (no change), <strong>refresh</strong> (re-defer in place with an updated reason and
+conditions), <strong>revive</strong> (to intake, planning, or a one-off, guided by the
+<code>Deferred from:</code> line), or <strong>drop</strong>. The human confirms each batch in one
+reply, and the agent applies it with <code>vrg-intake-route</code>. A condition it cannot
+verify is reported as such, with a keep recommendation. Added in epic
+<a href="https://github.com/vergil-project/.github/issues/508">vergil-project/.github#508</a>.</p>
+<p><strong>When to use.</strong> For the periodic deferred pass — "review deferred", "what's
+deferred", "revisit the backlog", "process the deferred queue".</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires the deferred-queue tooling
+(<code>vrg-queue deferred</code>, and <code>vrg-intake-route</code> with <code>defer --revisit-when</code> and
+the <code>intake</code> route) at runtime.</p>
 <h2 id="memory-init">memory-init<a class="headerlink" href="#memory-init" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Sets up or refreshes a project's memory directory —
 creates or updates <code>MEMORY.md</code> with the human-approval policy header.</p>
@@ -4010,6 +4116,25 @@ before you stop (<code>/handoff stop</code>) and restores where you left off on 
 <p><strong>When to use.</strong> When wrapping up and you want to preserve context for next
 time, or when picking work back up in a new session.</p>
 <p><strong>Status.</strong> Current.</p>
+<h2 id="planning-review">planning-review<a class="headerlink" href="#planning-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> Decides, with the human, <strong>what to plan next</strong>. It lists the
+planning queue with <code>vrg-queue planning</code>, surfaces <code>in-progress</code> items first
+(each with its latest progress note, offering to resume it with <code>epic-create</code>
+or defer it), then ranks the waiting items by priority and importance in
+conversation with the human. There is no scoring formula. Each item gets one
+outcome: <strong>pick</strong> (hand to <code>epic-create &lt;ref&gt;</code>), <strong>defer</strong>
+(<code>vrg-intake-route &lt;ref&gt; defer --reason … --revisit-when …</code>, refused when an
+<code>Epic:</code> marker is recorded), <strong>drop</strong> (<code>vrg-intake-route &lt;ref&gt; drop --reason …</code>),
+or <strong>leave</strong> (for items expected to be ready within days or a week).</p>
+<p>Its core rule is the planning doctrine: <strong>plan an epic only when you mean to
+implement it soon.</strong> A plan left sitting goes stale and needs a conceptual
+rebase onto everything built since, so the skill discourages picking more than
+near-term capacity allows.</p>
+<p><strong>When to use.</strong> "review planning", "what should we plan next", "prioritize the
+planning queue". To work one known item, go straight to <code>epic-create &lt;ref&gt;</code>.</p>
+<p><strong>Status.</strong> New, added in epic
+<a href="https://github.com/vergil-project/.github/issues/508">vergil-project/.github#508</a>.
+It starts simple and is expected to evolve with use.</p>
 <h2 id="how-skills-work-technical">How skills work — technical<a class="headerlink" href="#how-skills-work-technical" title="Permanent link">&para;</a></h2>
 <p>Each skill is a directory under <code>skills/</code> containing:</p>
 <ul>
@@ -4082,10 +4207,10 @@ the flow using whatever tools the user has granted.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.indexes", "navigation.top", "content.code.copy", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.indexes", "navigation.top", "content.code.copy", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>
