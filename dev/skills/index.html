@@ -3790,7 +3790,7 @@ never-suppress-a-gate rules are unaffected.</p>
 </tr>
 <tr>
 <td><a href="#intake-review">intake-review</a></td>
-<td>Review the intake queue oldest first in batches of 4 and route each item (drop, defer, one-off, split, planning) with <code>vrg-intake-route</code></td>
+<td>Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with <code>vrg-intake-route</code></td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -3870,9 +3870,10 @@ the PR metadata (<code>.vergil/pr-workflow.json</code>) with
 <code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
 <code>report-ready</code> also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
-metadata, and the human opens the PR. It refuses an issue whose native parent is the intake or
-planning epic (route it with <code>intake-review</code> or expand it with
-<code>epic-create</code> first), mirroring the PR tooling's refusal.</p>
+metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
+planning or deferred epic (route it with <code>intake-review</code>, expand it with
+<code>epic-create</code>, or revive it with <code>deferred-review</code> first), mirroring the
+PR tooling's refusal.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR. The same
 flow runs on a cloud VM: <code>report-ready</code> pushes a world-readable <strong>relay
@@ -3969,12 +3970,15 @@ epic/task model. It lists the queue with <code>vrg-queue intake</code> (oldest f
 checks each item's current state (an overlapping or closed issue, a bug that is
 already fixed), and presents batches of 4 with one paragraph per item and a
 recommended route. The human confirms each batch in one reply, and the agent
-applies it with <code>vrg-intake-route</code>: <strong>drop</strong>, <strong>defer</strong>, <strong>one-off</strong> (move into
+applies it with <code>vrg-intake-route</code>: <strong>drop</strong>, <strong>defer</strong> (move the item to the
+deferred queue with a required reason and revival conditions, for
+<code>deferred-review</code> to bring back), <strong>one-off</strong> (move into
 a repo's ad-hoc or finite epic, transferring the issue or recreating it when
 GitHub refuses the transfer), <strong>split</strong> (into tasks made with
 <code>vrg-issue-create</code>), or <strong>planning</strong> (hand to <code>epic-create</code>). The agent closes
-dropped and split items itself. Renamed from the triage review skill in the
-same epic.</p>
+dropped and split items itself. Leaving an item in intake for the next review
+is also an outcome, for items that will be ready within days. Renamed from the
+triage review skill in the same epic.</p>
 <p><strong>When to use.</strong> For the periodic intake pass — "review intake", "groom the
 backlog", "process the intake queue", "what's in intake" (and the older
 "review triage" phrasings).</p>
