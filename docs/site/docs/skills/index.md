@@ -41,6 +41,7 @@ never-suppress-a-gate rules are unaffected.
 | [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
 | [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
 | [handoff](#handoff) | Capture work state before stopping and restore it on resume, preserving context across sessions | Current |
+| [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | New |
 
 The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
 `epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
@@ -323,6 +324,30 @@ before you stop (`/handoff stop`) and restores where you left off on resume
 time, or when picking work back up in a new session.
 
 **Status.** Current.
+
+## planning-review
+
+**What it does.** Decides, with the human, **what to plan next**. It lists the
+planning queue with `vrg-queue planning`, surfaces `in-progress` items first
+(each with its latest progress note, offering to resume it with `epic-create`
+or defer it), then ranks the waiting items by priority and importance in
+conversation with the human. There is no scoring formula. Each item gets one
+outcome: **pick** (hand to `epic-create <ref>`), **defer**
+(`vrg-intake-route <ref> defer --reason … --revisit-when …`, refused when an
+`Epic:` marker is recorded), **drop** (`vrg-intake-route <ref> drop --reason …`),
+or **leave** (for items expected to be ready within days or a week).
+
+Its core rule is the planning doctrine: **plan an epic only when you mean to
+implement it soon.** A plan left sitting goes stale and needs a conceptual
+rebase onto everything built since, so the skill discourages picking more than
+near-term capacity allows.
+
+**When to use.** "review planning", "what should we plan next", "prioritize the
+planning queue". To work one known item, go straight to `epic-create <ref>`.
+
+**Status.** New, added in epic
+[vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
+It starts simple and is expected to evolve with use.
 
 ## How skills work — technical
 
