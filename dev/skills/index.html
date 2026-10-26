@@ -3391,6 +3391,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#deferred-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deferred-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#memory-init" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3650,6 +3661,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#deferred-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deferred-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#memory-init" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3796,6 +3818,11 @@ never-suppress-a-gate rules are unaffected.</p>
 <tr>
 <td><a href="#migrate-repo">migrate-repo</a></td>
 <td>Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#deferred-review">deferred-review</a></td>
+<td>Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -3992,6 +4019,24 @@ resumable, batch-approved, human-in-the-loop.</p>
 <code>migrate &lt;repo&gt;</code>, <code>bring &lt;repo&gt; into the framework</code>, or "onboard this repo's
 backlog".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
+<h2 id="deferred-review">deferred-review<a class="headerlink" href="#deferred-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> Reviews the deferred queue, where evaluated items wait for
+their revival conditions. It lists the queue with <code>vrg-queue deferred</code> (least
+recently deferred first), rereads each item's latest deferral comment, and
+<strong>actually checks</strong> its <code>Revisit when:</code> conditions against the world — release
+pages, issue and PR states, dates, upstream status. It presents batches of 4,
+each item with what was checked, what was found, and one recommended outcome:
+<strong>keep</strong> (no change), <strong>refresh</strong> (re-defer in place with an updated reason and
+conditions), <strong>revive</strong> (to intake, planning, or a one-off, guided by the
+<code>Deferred from:</code> line), or <strong>drop</strong>. The human confirms each batch in one
+reply, and the agent applies it with <code>vrg-intake-route</code>. A condition it cannot
+verify is reported as such, with a keep recommendation. Added in epic
+<a href="https://github.com/vergil-project/.github/issues/508">vergil-project/.github#508</a>.</p>
+<p><strong>When to use.</strong> For the periodic deferred pass — "review deferred", "what's
+deferred", "revisit the backlog", "process the deferred queue".</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires the deferred-queue tooling
+(<code>vrg-queue deferred</code>, and <code>vrg-intake-route</code> with <code>defer --revisit-when</code> and
+the <code>intake</code> route) at runtime.</p>
 <h2 id="memory-init">memory-init<a class="headerlink" href="#memory-init" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Sets up or refreshes a project's memory directory —
 creates or updates <code>MEMORY.md</code> with the human-approval policy header.</p>
