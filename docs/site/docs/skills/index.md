@@ -39,6 +39,7 @@ never-suppress-a-gate rules are unaffected.
 | [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
 | [deferred-review](#deferred-review) | Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop | Current (2.1) |
 | [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | Current (2.1) |
+| [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
 
 The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
 `epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
@@ -317,6 +318,43 @@ planning queue". To work one known item, go straight to `epic-create <ref>`.
 **Status.** Current (Vergil 2.1), added in epic
 [vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
 It starts simple and is expected to evolve with use.
+
+## steering-audit
+
+**What it does.** The judgment layer of the recurring steering review, checked
+against the
+[Claude config ownership model](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md)
+(the nightly `vrg-github-repo-config audit` is the mechanical layer). It
+inventories the files, re-verifies the model's platform facts against the live
+Claude Code docs and reports any drift first, then runs its own mechanical
+checks: the config audit (repo scope), every named path exists, every named
+command resolves, the `CLAUDE.md` line count, and the ownership rules. It runs
+`/paad:pushback` on each steering file as a findings-only review (no edits, no
+report files), then walks every finding one at a time. The human picks one
+disposition for each: **keep**, **edit**, **move** to a named managed home,
+**delete**, or (repo scope only) **file to intake**.
+
+It has two scopes:
+
+- **repo** (`/vergil:steering-audit`, the default): the repo's `CLAUDE.md`,
+  `.claude/rules/`, `.claude/settings.json`, any `AGENTS.md`, and the
+  `.claude/settings.local.json` copies Claude Code may load. Edits go through
+  the normal worktree and PR flow.
+- **user** (`/vergil:steering-audit user`): `~/.claude/CLAUDE.md` and
+  `~/.claude/settings.json`, once per cycle. Read-only and interactive only:
+  the skill writes no file of any kind, the human makes every change on the
+  host, and findings never go to GitHub or intake. The only public record is
+  the date and counts.
+
+It does not read or depend on memory, and it does not run `/doctor
+prompt-audit`, which stays an optional check the human can run by hand.
+
+**When to use.** At least quarterly, and whenever a Claude Code release changes
+settings or instruction-file behavior — "audit steering files", "review
+CLAUDE.md", "review Claude settings", "steering audit".
+
+**Status.** Current (Vergil 2.1), added in epic
+[vergil-project/.github#558](https://github.com/vergil-project/.github/issues/558).
 
 ## How skills work — technical
 
