@@ -182,9 +182,6 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `planning-review` | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create` |
 | `deferred-review` | Review the deferred queue in batches of 4 — re-check each item's revival conditions and recommend keep, refresh, revive, or drop |
 | `migrate-repo` | Migrate a repo's existing open-issue backlog into the epic/task framework |
-| `handoff` | Session-to-session continuity (capture/resume) |
-| `memory-audit` | Collaborative review of memory files |
-| `memory-init` | Initialize the memory directory with the policy header |
 
 Full reference:
 <https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md>.

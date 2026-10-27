@@ -80,19 +80,20 @@ names the paad version it was written for (section 1).
 release. Adopting it only where it solves a real problem keeps that exposure
 small, and the version line makes drift detectable.
 
-## 5. `vergil:handoff` and `paad:handoff`
+## 5. `paad:handoff`
 
 **Decision.**
 
-- `vergil:handoff` remains the workflow's session-continuity skill.
-- `paad:handoff` is not used in vergil workflows.
-- Always use the **prefixed** name (`vergil:handoff` or `paad:handoff`), never
-  a bare `handoff`, so it is clear which skill is meant.
+- `paad:handoff` is the workflow's session-continuity skill. The vergil
+  plugin's own handoff skill was removed in epic
+  [vergil-project/.github#558](https://github.com/vergil-project/.github/issues/558).
+- Always use the **prefixed** name (`paad:handoff`), never a bare `handoff`,
+  so it is clear which skill is meant.
 
-**Reason.** `vergil:handoff` writes its state into the project memory
-directory under our memory policy, which the human controls. Two skills
-covering the same job would split session state between two places. The two
-share a short name, so the prefix is what keeps instructions unambiguous.
+**Reason.** One skill per job keeps session state in one place, and paad's
+skill does the job without a vergil-specific copy. The issue's comments remain
+the workflow's durable recovery record; `paad:handoff` only carries session
+context forward.
 
 ## 6. Existing committed reports
 
@@ -119,5 +120,4 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 | paad is unpinned and follows the latest release, although D and C may rely on the experimental `paad/config/` | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. Mitigation: every config file names the version it was written for, and D detects drift. |
 | Design-review report files (pushback, alignment) are not written; the planning-issue comments are the record (spec §3.2) | The planning issue is the epic's permanent planning log, and review history must stay out of the reviewed document so the next round's reviewer has a fresh context. |
 | agentic-review results are not left as report files in the worktree; D routes them through the subagent's answer into task-issue comments (spec §3.3) | Untracked report files stop the next round's clean-state check and leave the worktree dirty at finalize. The task issue is the record of each round. |
-| `paad:handoff` is not used; `vergil:handoff` is the session-continuity skill | `vergil:handoff` writes session state into memory under our memory policy, and one skill per job keeps that state in one place. |
 | The paad usage policy lives in this one central document rather than in each repo's steering file | The authors suggest recording the policy in the steering file. A single document avoids drift between copies across the fleet. Pointing each repo's steering files at it is handed to child epic E (steering-file review). |
