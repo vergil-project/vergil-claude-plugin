@@ -3169,7 +3169,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -3197,7 +3197,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -3492,39 +3492,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#memory-init" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-init
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#memory-audit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-audit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#handoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        handoff
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#planning-review" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3773,39 +3740,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#memory-init" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-init
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#memory-audit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-audit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#handoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        handoff
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#planning-review" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3936,21 +3870,6 @@ never-suppress-a-gate rules are unaffected.</p>
 <td><a href="#deferred-review">deferred-review</a></td>
 <td>Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop</td>
 <td>Current (2.1)</td>
-</tr>
-<tr>
-<td><a href="#memory-init">memory-init</a></td>
-<td>Set up or refresh a project's memory directory — create/update <code>MEMORY.md</code> with the human-approval policy header</td>
-<td>Current</td>
-</tr>
-<tr>
-<td><a href="#memory-audit">memory-audit</a></td>
-<td>Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope</td>
-<td>Current</td>
-</tr>
-<tr>
-<td><a href="#handoff">handoff</a></td>
-<td>Capture work state before stopping and restore it on resume, preserving context across sessions</td>
-<td>Current</td>
 </tr>
 <tr>
 <td><a href="#planning-review">planning-review</a></td>
@@ -4160,32 +4079,6 @@ deferred", "revisit the backlog", "process the deferred queue".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the deferred-queue tooling
 (<code>vrg-queue deferred</code>, and <code>vrg-intake-route</code> with <code>defer --revisit-when</code> and
 the <code>intake</code> route) at runtime.</p>
-<h2 id="memory-init">memory-init<a class="headerlink" href="#memory-init" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Sets up or refreshes a project's memory directory —
-creates or updates <code>MEMORY.md</code> with the human-approval policy header.</p>
-<p><strong>When to use.</strong> When the human asks to initialize, set up, bootstrap, or
-update memory ("init memory", "set up MEMORY.md", "refresh the memory
-header").</p>
-<p><strong>Status.</strong> Current.</p>
-<h2 id="memory-audit">memory-audit<a class="headerlink" href="#memory-audit" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Reviews memory files collaboratively with the human —
-verifies each entry, assesses staleness, and routes it to the correct scope
-(repo memory, global instructions, or a tooling issue) with human approval.</p>
-<p><strong>When to use.</strong> When the human asks to audit, review, clean up, or prune
-memory ("audit my memory", "review MEMORY.md", "are these memories still
-accurate").</p>
-<p><strong>Status.</strong> Current.</p>
-<h2 id="handoff">handoff<a class="headerlink" href="#handoff" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Captures work state across sessions — preserves context
-before you stop (<code>/vergil:handoff stop</code>) and restores where you left off on
-resume (<code>/vergil:handoff start</code>).</p>
-<p><strong>When to use.</strong> When wrapping up and you want to preserve context for next
-time, or when picking work back up in a new session.</p>
-<p><strong>Not <code>paad:handoff</code>.</strong> The paad plugin ships its own <code>paad:handoff</code> skill,
-which vergil workflows do not use. Always name the skill with its prefix so it
-is clear which one is meant. See the
-<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md">paad usage policy</a>.</p>
-<p><strong>Status.</strong> Current.</p>
 <h2 id="planning-review">planning-review<a class="headerlink" href="#planning-review" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Decides, with the human, <strong>what to plan next</strong>. It lists the
 planning queue with <code>vrg-queue planning</code>, surfaces <code>in-progress</code> items first
