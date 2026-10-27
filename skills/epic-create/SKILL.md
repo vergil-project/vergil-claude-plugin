@@ -326,16 +326,30 @@ file and post it with
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
    `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
    last one is filed, post the progress comment with `Tasks filed: yes`.
-   - **Security planning issue — hand its advisory to the fix tasks.** If the
-     planning issue carries the `security` label, its body has a `Security
-     advisory: <org>/.github <GHSA-id>` line naming the private advisory that
-     tracks it. Once the task(s) that fix the problem are filed, retarget the
-     advisory to them, so their PRs close it (the scheduled sweep closes the
-     advisory once every issue it tracks is closed):
+   - **Security planning issue — hand every advisory to its fix tasks.** If
+     the planning issue carries the `security` label, its body has one or more
+     `Security advisory: <org>/.github <GHSA-id>` lines, each naming a private
+     advisory that tracks it. Once the task(s) that fix each problem are
+     filed, retarget **each** advisory to the task(s) that fix it, so their
+     PRs close it (the scheduled sweep closes an advisory once every issue it
+     tracks is closed). Run
+     one vrg-security-record retarget <GHSA-id> --to … per advisory:
      `vrg-security-record retarget <GHSA-id> --to <owner>/<repo>#<TASK> [--to
      <owner>/<repo>#<TASK> …]` (one `--to` per fix task, each a fully
-     qualified ref in the same org). Only then post `Tasks filed: yes`. If the
-     retarget fails, stop and report its error; do not post the marker.
+     qualified ref in the same org).
+     - **One after another, never in parallel.** Each retarget rewrites the
+       planning issue's body, so two at once can write back a line the other
+       removed. Wait for each to finish before starting the next.
+     - **Design-only findings go to the documentation task — only then.** A
+       finding the revised design resolves by itself (no task implements it,
+       for example because the spec now removes a mechanism) is retargeted to
+       the epic's documentation task, whose PR publishes the revised spec —
+       but **only** when the weakness exists only in the design and no
+       shipped code has it. A finding about shipped behaviour always goes to a
+       fix task that changes the code.
+     - Post `Tasks filed: yes` only after **every** retarget succeeds. If one
+       fails, stop and report its error, naming the advisories not yet
+       retargeted; do not post the marker.
    - Keep everything public neutral: the finding's details live **only** in the
      advisory. Never put them in a task title or body, a progress comment, a PR
      body or report-ready notes — refer to the problem by its issue ref and
@@ -349,14 +363,17 @@ file and post it with
     merge" and leave the item `in-progress`. It is closed on the next
     `epic-create` touch, when the planning-queue summary shows it
     `ready-to-close`.
-    - A `security` planning issue stays **held** (`in-progress`) while its
-      advisory still tracks it, even with every marker present and the docs PR
-      merged. `vrg-queue planning` says so in the item's note: `held: advisory
-      <GHSA-id> still tracks this planning issue — retarget it to the fix
-      task(s) with vrg-security-record retarget`. Run the step 9 retarget; the
-      item then shows `ready-to-close`. **Never close it by hand before the
-      retarget** — closing it would leave the advisory tracking a closed
-      planning issue instead of the work that fixes it.
+    - A `security` planning issue stays **held** (`in-progress`) while **any**
+      advisory it names still tracks it, even with every marker present and
+      the docs PR merged. `vrg-queue planning` says so in the item's note:
+      `held: <k> advisory still tracks` (one advisory) or `held: <k>
+      advisories still track` (several), followed by `this planning issue
+      (<GHSA-id>[, <GHSA-id>…]) — retarget each to the task or tasks that fix
+      it with vrg-security-record retarget`. The note names only the advisories still tracking it. Run the
+      step 9 retargets for those; once every advisory is retargeted, the item
+      shows `ready-to-close`. **Never close it by hand before every retarget**
+      — closing it would leave an advisory tracking a closed planning issue
+      instead of the work that fixes it.
 
 ## Notes
 

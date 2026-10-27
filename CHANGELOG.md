@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.1.43] - 2026-10-27
+## [2.1.44] - 2026-10-27
+
+### Documentation
+
+- list the queue skills and deferred entry points in the README and catalogue (#749)
+- note the epic-create security advisory handoff in the catalogue (#751)
+- quote the corrected planning hold note in step 10 (#765)
+
+### Features
+
+- hand off every security advisory at step 9 (#757)
+
+## [2.1.43] - 2026-10-26
 
 ### Chores
 

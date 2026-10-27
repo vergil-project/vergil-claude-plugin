@@ -41,7 +41,7 @@ never-suppress-a-gate rules are unaffected.
 | [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
 | [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
 | [handoff](#handoff) | Capture work state before stopping and restore it on resume, preserving context across sessions | Current |
-| [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | New |
+| [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | Current (2.1) |
 
 The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
 `epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
@@ -56,11 +56,17 @@ its resolved home, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
 spec + plan as a docs PR. Every run is tracked in a **planning issue** (an open
 child of the planning epic): it is entered from a planning issue, an intake
-issue (pulled into planning), a free-text idea (a new planning issue), or with
-no argument (a `vrg-queue planning` summary). It labels the item `in-progress`,
+issue (pulled into planning), a deferred issue (pulled back into planning after
+its `Revisit when:` conditions are checked), a free-text idea (a new planning
+issue), or with no argument (a `vrg-queue planning` summary). It labels the item `in-progress`,
 records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
 markers, and closes the planning issue once the epic is fully expanded (docs PR
-merged, tasks filed).
+merged, tasks filed). For a `security` planning issue, it hands each advisory
+to its fix task(s) or, for a design-only finding, the documentation task, with
+one `vrg-security-record retarget` per advisory, before posting `Tasks filed:
+yes`, and the planning issue cannot close until every advisory is handed off
+(see
+[Security items in planning](https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning)).
 
 **When to use.** At the start of significant work — "let's build X", "start an
 epic for this" — or to resume a paused planning session. If the work collapses
@@ -350,7 +356,7 @@ near-term capacity allows.
 **When to use.** "review planning", "what should we plan next", "prioritize the
 planning queue". To work one known item, go straight to `epic-create <ref>`.
 
-**Status.** New, added in epic
+**Status.** Current (Vergil 2.1), added in epic
 [vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
 It starts simple and is expected to evolve with use.
 

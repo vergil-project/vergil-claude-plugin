@@ -168,10 +168,20 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 
 | Skill | Purpose |
 |---|---|
+| `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec → plan, create the epic and seed its bookend tasks |
+| `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
+| `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
 | `issue-implement` | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human |
+| `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
+| `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
 | `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
+| `intake-capture` | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` |
+| `intake-review` | Review the intake queue oldest first in batches of 4 and route each item with `vrg-intake-route` |
+| `planning-review` | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create` |
+| `deferred-review` | Review the deferred queue in batches of 4 — re-check each item's revival conditions and recommend keep, refresh, revive, or drop |
+| `migrate-repo` | Migrate a repo's existing open-issue backlog into the epic/task framework |
 | `handoff` | Session-to-session continuity (capture/resume) |
 | `memory-audit` | Collaborative review of memory files |
 | `memory-init` | Initialize the memory directory with the policy header |
