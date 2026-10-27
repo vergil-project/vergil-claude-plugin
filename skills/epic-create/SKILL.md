@@ -366,9 +366,10 @@ file and post it with
     - A `security` planning issue stays **held** (`in-progress`) while **any**
       advisory it names still tracks it, even with every marker present and
       the docs PR merged. `vrg-queue planning` says so in the item's note:
-      `held: <k> advisory(ies) still track this planning issue (<GHSA-id>[,
-      <GHSA-id>…]) — retarget each to its fix task(s) with vrg-security-record
-      retarget`. The note names only the advisories still tracking it. Run the
+      `held: <k> advisory still tracks` (one advisory) or `held: <k>
+      advisories still track` (several), followed by `this planning issue
+      (<GHSA-id>[, <GHSA-id>…]) — retarget each to the task or tasks that fix
+      it with vrg-security-record retarget`. The note names only the advisories still tracking it. Run the
       step 9 retargets for those; once every advisory is retargeted, the item
       shows `ready-to-close`. **Never close it by hand before every retarget**
       — closing it would leave an advisory tracking a closed planning issue
