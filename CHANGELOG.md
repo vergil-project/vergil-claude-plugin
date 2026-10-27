@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.45] - 2026-10-27
+
+### Features
+
+- remove the deprecated memory-init, memory-audit and handoff skills (#769)
+- add the steering-audit skill (#770)
+
 ## [2.1.44] - 2026-10-27
 
 ### Documentation
