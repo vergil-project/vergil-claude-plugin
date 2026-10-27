@@ -30,8 +30,8 @@ that is code-implementation; use `issue-implement`.
 If you cannot actually run a check, say so and stop — **never fabricate or
 partially fake a result.** Use whatever means are efficient to run it (sub-agents
 encouraged); oversight is front-loaded and at the hard gates, not in a live
-transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see
-`CLAUDE.md`). If you hit a problem you cannot resolve, stop and ask.
+transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
+[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine-front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
 
 ## Preflight
 
@@ -110,4 +110,5 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 - **Discovered problems are out of band.** If you discover unrelated problems
   while running, capture them as their own issues (`intake-capture` /
   `vrg-issue-create`) — do not fold them into this task's result.
-- `/vergil:handoff` remains the recovery net if a session is lost mid-run.
+- The issue's comments are the recovery record if a session is lost mid-run;
+  `paad:handoff` is available for session continuity.

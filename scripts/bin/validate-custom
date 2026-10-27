@@ -1,11 +1,91 @@
 #!/usr/bin/env bash
 # validate-custom — repo-local validation hook discovered by
-# vrg-validate. Runs the hook test suites under hooks/tests/.
+# vrg-validate. Checks every skill's SKILL.md frontmatter, then runs the
+# hook test suites under hooks/tests/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 status=0
+
+# Print the value of top-level frontmatter key $2 in file $1, with
+# surrounding quotes removed. A block scalar (`key: >` or `key: |`) yields
+# its first non-empty indented line. Prints nothing when the key is absent
+# or empty.
+frontmatter_value() {
+	awk -v key="$2" '
+		NR == 1 { next }
+		/^---[[:space:]]*$/ { exit }
+		block {
+			if ($0 ~ /^[[:space:]]+[^[:space:]]/) {
+				sub(/^[[:space:]]+/, "")
+				print
+				exit
+			}
+			if ($0 ~ /^[^[:space:]]/) { exit }
+			next
+		}
+		index($0, key ":") == 1 {
+			v = substr($0, length(key) + 2)
+			sub(/^[[:space:]]+/, "", v)
+			sub(/[[:space:]]+$/, "", v)
+			if (v ~ /^[>|][-+]?$/) { block = 1; next }
+			if (v ~ /^".*"$/ || v ~ /^'"'"'.*'"'"'$/) {
+				v = substr(v, 2, length(v) - 2)
+			}
+			if (v != "") { print v }
+			exit
+		}
+	' "$1"
+}
+
+# Every skills/<dir>/ must hold a SKILL.md whose YAML frontmatter has a
+# non-empty `name` equal to <dir> and a non-empty `description`.
+check_skill_frontmatter() {
+	local dir skill file name description rc=0 count=0
+	for dir in "$ROOT"/skills/*/; do
+		[[ -d "$dir" ]] || continue # unmatched glob: no skill directories
+		skill="$(basename "$dir")"
+		file="skills/$skill/SKILL.md"
+		count=$((count + 1))
+		if [[ ! -f "$ROOT/$file" ]]; then
+			echo "ERROR: $file: missing" >&2
+			rc=1
+			continue
+		fi
+		if [[ "$(head -n 1 "$ROOT/$file")" != "---" ]] ||
+			[[ "$(tail -n +2 "$ROOT/$file" | grep -c '^---[[:space:]]*$' || true)" -lt 1 ]]; then
+			echo "ERROR: $file: no YAML frontmatter (must open and close with ---)" >&2
+			rc=1
+			continue
+		fi
+		name="$(frontmatter_value "$ROOT/$file" name)"
+		description="$(frontmatter_value "$ROOT/$file" description)"
+		if [[ -z "$name" ]]; then
+			echo "ERROR: $file: frontmatter 'name' is missing or empty" >&2
+			rc=1
+		elif [[ "$name" != "$skill" ]]; then
+			echo "ERROR: $file: frontmatter name '$name' does not match directory '$skill'" >&2
+			rc=1
+		fi
+		if [[ -z "$description" ]]; then
+			echo "ERROR: $file: frontmatter 'description' is missing or empty" >&2
+			rc=1
+		fi
+	done
+	if [[ "$count" -eq 0 ]]; then
+		echo "ERROR: no skill directories found under skills/" >&2
+		rc=1
+	fi
+	if [[ "$rc" -eq 0 ]]; then
+		echo "Skill frontmatter: $count skills OK"
+	fi
+	return "$rc"
+}
+
+echo "Running: skill frontmatter check"
+check_skill_frontmatter || status=1
+
 for t in "$ROOT"/hooks/tests/*.test.sh; do
 	echo "Running: $t"
 	bash "$t" || status=1

@@ -44,4 +44,5 @@ kind-specific concerns.
 
 Capture discovered problems as their own issues (`intake-capture` /
 `vrg-issue-create`) — do not fold them into this task's result.
-`/vergil:handoff` is the recovery net if a session is lost mid-run.
+The issue's comments are the recovery record if a session is lost mid-run;
+`paad:handoff` is available for session continuity.
