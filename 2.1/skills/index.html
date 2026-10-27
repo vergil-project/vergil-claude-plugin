@@ -672,6 +672,8 @@
       
         
       
+        
+      
     
     
     
@@ -724,6 +726,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.45/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.45
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3169,7 +3199,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -3197,7 +3227,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -3492,43 +3522,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#memory-init" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-init
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#memory-audit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-audit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#handoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        handoff
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#planning-review" class="md-nav__link">
     <span class="md-ellipsis">
       
         planning-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steering-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        steering-audit
       
     </span>
   </a>
@@ -3773,43 +3781,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#memory-init" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-init
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#memory-audit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        memory-audit
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#handoff" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        handoff
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#planning-review" class="md-nav__link">
     <span class="md-ellipsis">
       
         planning-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#steering-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        steering-audit
       
     </span>
   </a>
@@ -3938,23 +3924,13 @@ never-suppress-a-gate rules are unaffected.</p>
 <td>Current (2.1)</td>
 </tr>
 <tr>
-<td><a href="#memory-init">memory-init</a></td>
-<td>Set up or refresh a project's memory directory — create/update <code>MEMORY.md</code> with the human-approval policy header</td>
-<td>Current</td>
-</tr>
-<tr>
-<td><a href="#memory-audit">memory-audit</a></td>
-<td>Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope</td>
-<td>Current</td>
-</tr>
-<tr>
-<td><a href="#handoff">handoff</a></td>
-<td>Capture work state before stopping and restore it on resume, preserving context across sessions</td>
-<td>Current</td>
-</tr>
-<tr>
 <td><a href="#planning-review">planning-review</a></td>
 <td>USER agent: rank the planning queue with the human and pick what to expand next with <code>epic-create</code>; defer, drop, or leave the rest with <code>vrg-intake-route</code>. Core rule: plan only what you mean to implement soon</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#steering-audit">steering-audit</a></td>
+<td>Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only <code>/paad:pushback</code>, then walk each finding with the human. <code>steering-audit user</code> reviews the user-level files read-only</td>
 <td>Current (2.1)</td>
 </tr>
 </tbody>
@@ -4160,32 +4136,6 @@ deferred", "revisit the backlog", "process the deferred queue".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the deferred-queue tooling
 (<code>vrg-queue deferred</code>, and <code>vrg-intake-route</code> with <code>defer --revisit-when</code> and
 the <code>intake</code> route) at runtime.</p>
-<h2 id="memory-init">memory-init<a class="headerlink" href="#memory-init" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Sets up or refreshes a project's memory directory —
-creates or updates <code>MEMORY.md</code> with the human-approval policy header.</p>
-<p><strong>When to use.</strong> When the human asks to initialize, set up, bootstrap, or
-update memory ("init memory", "set up MEMORY.md", "refresh the memory
-header").</p>
-<p><strong>Status.</strong> Current.</p>
-<h2 id="memory-audit">memory-audit<a class="headerlink" href="#memory-audit" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Reviews memory files collaboratively with the human —
-verifies each entry, assesses staleness, and routes it to the correct scope
-(repo memory, global instructions, or a tooling issue) with human approval.</p>
-<p><strong>When to use.</strong> When the human asks to audit, review, clean up, or prune
-memory ("audit my memory", "review MEMORY.md", "are these memories still
-accurate").</p>
-<p><strong>Status.</strong> Current.</p>
-<h2 id="handoff">handoff<a class="headerlink" href="#handoff" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Captures work state across sessions — preserves context
-before you stop (<code>/vergil:handoff stop</code>) and restores where you left off on
-resume (<code>/vergil:handoff start</code>).</p>
-<p><strong>When to use.</strong> When wrapping up and you want to preserve context for next
-time, or when picking work back up in a new session.</p>
-<p><strong>Not <code>paad:handoff</code>.</strong> The paad plugin ships its own <code>paad:handoff</code> skill,
-which vergil workflows do not use. Always name the skill with its prefix so it
-is clear which one is meant. See the
-<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md">paad usage policy</a>.</p>
-<p><strong>Status.</strong> Current.</p>
 <h2 id="planning-review">planning-review<a class="headerlink" href="#planning-review" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Decides, with the human, <strong>what to plan next</strong>. It lists the
 planning queue with <code>vrg-queue planning</code>, surfaces <code>in-progress</code> items first
@@ -4205,6 +4155,38 @@ planning queue". To work one known item, go straight to <code>epic-create &lt;re
 <p><strong>Status.</strong> Current (Vergil 2.1), added in epic
 <a href="https://github.com/vergil-project/.github/issues/508">vergil-project/.github#508</a>.
 It starts simple and is expected to evolve with use.</p>
+<h2 id="steering-audit">steering-audit<a class="headerlink" href="#steering-audit" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> The judgment layer of the recurring steering review, checked
+against the
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md">Claude config ownership model</a>
+(the nightly <code>vrg-github-repo-config audit</code> is the mechanical layer). It
+inventories the files, re-verifies the model's platform facts against the live
+Claude Code docs and reports any drift first, then runs its own mechanical
+checks: the config audit (repo scope), every named path exists, every named
+command resolves, the <code>CLAUDE.md</code> line count, and the ownership rules. It runs
+<code>/paad:pushback</code> on each steering file as a findings-only review (no edits, no
+report files), then walks every finding one at a time. The human picks one
+disposition for each: <strong>keep</strong>, <strong>edit</strong>, <strong>move</strong> to a named managed home,
+<strong>delete</strong>, or (repo scope only) <strong>file to intake</strong>.</p>
+<p>It has two scopes:</p>
+<ul>
+<li><strong>repo</strong> (<code>/vergil:steering-audit</code>, the default): the repo's <code>CLAUDE.md</code>,
+  <code>.claude/rules/</code>, <code>.claude/settings.json</code>, any <code>AGENTS.md</code>, and the
+  <code>.claude/settings.local.json</code> copies Claude Code may load. Edits go through
+  the normal worktree and PR flow.</li>
+<li><strong>user</strong> (<code>/vergil:steering-audit user</code>): <code>~/.claude/CLAUDE.md</code> and
+  <code>~/.claude/settings.json</code>, once per cycle. Read-only and interactive only:
+  the skill writes no file of any kind, the human makes every change on the
+  host, and findings never go to GitHub or intake. The only public record is
+  the date and counts.</li>
+</ul>
+<p>It does not read or depend on memory, and it does not run <code>/doctor
+prompt-audit</code>, which stays an optional check the human can run by hand.</p>
+<p><strong>When to use.</strong> At least quarterly, and whenever a Claude Code release changes
+settings or instruction-file behavior — "audit steering files", "review
+CLAUDE.md", "review Claude settings", "steering audit".</p>
+<p><strong>Status.</strong> Current (Vergil 2.1), added in epic
+<a href="https://github.com/vergil-project/.github/issues/558">vergil-project/.github#558</a>.</p>
 <h2 id="how-skills-work-technical">How skills work — technical<a class="headerlink" href="#how-skills-work-technical" title="Permanent link">&para;</a></h2>
 <p>Each skill is a directory under <code>skills/</code> containing:</p>
 <ul>
