@@ -55,8 +55,8 @@ task by its kind label:
 | `validation` | `issue-validate` |
 | `deployment` | `issue-deploy` |
 
-**Dispatch parallel efforts as sub-agents using the "Agent prompt contract" in
-`CLAUDE.md`** (the worktree convention). Each sub-agent gets one issue, its
+**Dispatch parallel efforts as sub-agents using the
+[Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract)** (the worktree convention). Each sub-agent gets one issue, its
 worktree instruction, and runs the routed skill; it reports its
 `report-ready` outcome back to you for the batch. Per-issue worktrees
 (`.worktrees/issue-<N>-<slug>`) and branches (`feature/<N>-<slug>`) are naturally
@@ -131,5 +131,5 @@ When only the closing bookends remain, drive them **in order**:
 
 - You never open a PR, never merge, and never cut a release. Those are human
   gates. You draft the retrospective but never submit or merge its PR.
-- `/vergil:handoff` remains the recovery net, but is not required — the epic
-  issue and its plan are the durable state.
+- The issue's comments are the recovery record — the epic issue and its plan
+  are the durable state; `paad:handoff` is available for session continuity.

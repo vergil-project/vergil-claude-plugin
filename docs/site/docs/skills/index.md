@@ -38,9 +38,6 @@ never-suppress-a-gate rules are unaffected.
 | [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
 | [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
 | [deferred-review](#deferred-review) | Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop | Current (2.1) |
-| [memory-init](#memory-init) | Set up or refresh a project's memory directory — create/update `MEMORY.md` with the human-approval policy header | Current |
-| [memory-audit](#memory-audit) | Review memory files collaboratively with the human — verify each entry, assess staleness, route to the correct scope | Current |
-| [handoff](#handoff) | Capture work state before stopping and restore it on resume, preserving context across sessions | Current |
 | [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | Current (2.1) |
 
 The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
@@ -296,45 +293,6 @@ deferred", "revisit the backlog", "process the deferred queue".
 **Status.** Current (Vergil 2.1). Requires the deferred-queue tooling
 (`vrg-queue deferred`, and `vrg-intake-route` with `defer --revisit-when` and
 the `intake` route) at runtime.
-
-## memory-init
-
-**What it does.** Sets up or refreshes a project's memory directory —
-creates or updates `MEMORY.md` with the human-approval policy header.
-
-**When to use.** When the human asks to initialize, set up, bootstrap, or
-update memory ("init memory", "set up MEMORY.md", "refresh the memory
-header").
-
-**Status.** Current.
-
-## memory-audit
-
-**What it does.** Reviews memory files collaboratively with the human —
-verifies each entry, assesses staleness, and routes it to the correct scope
-(repo memory, global instructions, or a tooling issue) with human approval.
-
-**When to use.** When the human asks to audit, review, clean up, or prune
-memory ("audit my memory", "review MEMORY.md", "are these memories still
-accurate").
-
-**Status.** Current.
-
-## handoff
-
-**What it does.** Captures work state across sessions — preserves context
-before you stop (`/vergil:handoff stop`) and restores where you left off on
-resume (`/vergil:handoff start`).
-
-**When to use.** When wrapping up and you want to preserve context for next
-time, or when picking work back up in a new session.
-
-**Not `paad:handoff`.** The paad plugin ships its own `paad:handoff` skill,
-which vergil workflows do not use. Always name the skill with its prefix so it
-is clear which one is meant. See the
-[paad usage policy](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md).
-
-**Status.** Current.
 
 ## planning-review
 

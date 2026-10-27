@@ -158,5 +158,6 @@ On approval:
   label-matching is more robust than string-matching a title — with the title
   convention (`Retrospective: <epic-slug>`) kept as a fallback for epics created
   before the label existed.
-- `/vergil:handoff` remains the recovery net; the epic issue, its plan, and the
-  sub-issue states are the durable source of position.
+- The issue's comments are the recovery record; the epic issue, its plan, and
+  the sub-issue states are the durable source of position. `paad:handoff` is
+  available for session continuity.

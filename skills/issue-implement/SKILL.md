@@ -18,7 +18,8 @@ encouraged** wherever they make the work faster or keep your context clean —
 research fan-out, parallel sub-tasks, isolated exploration. You need not narrate
 every step for the human to watch: oversight lives in the front-loaded plan and
 at the hard gates (PR submit, merge, release), not in a live transcript. This is
-the **Front-Loaded Judgment, Trusted Execution** doctrine (see `CLAUDE.md`).
+the **Front-Loaded Judgment, Trusted Execution** doctrine (see the
+[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine-front-loaded-judgment-trusted-execution)).
 
 The one thing that pulls the human back mid-flight is a **problem you cannot
 resolve**: stop and ask rather than thrash or guess. Never fabricate a result and
@@ -238,4 +239,5 @@ there is legitimate). Reopening earlier requires a deliberate
 - `vrg-submit-pr` reads the PR metadata from the state file `report-ready` wrote
   (`.vergil/pr-workflow.json`); you never write a PR template by hand.
 - You never open the PR and never post checks.
-- `/vergil:handoff` remains the recovery net if a session is lost mid-task.
+- The issue's comments are the recovery record if a session is lost mid-task;
+  `paad:handoff` is available for session continuity.
