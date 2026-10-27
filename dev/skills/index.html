@@ -3139,7 +3139,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -3167,7 +3167,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -3945,9 +3945,10 @@ its <code>Revisit when:</code> conditions are checked), a free-text idea (a new 
 issue), or with no argument (a <code>vrg-queue planning</code> summary). It labels the item <code>in-progress</code>,
 records progress comments with the <code>Epic:</code> / <code>Docs task:</code> / <code>Tasks filed: yes</code>
 markers, and closes the planning issue once the epic is fully expanded (docs PR
-merged, tasks filed). For a <code>security</code> planning issue, it first hands the
-private advisory to the fix task(s) with <code>vrg-security-record retarget</code> before
-posting <code>Tasks filed: yes</code>, and the planning issue cannot close until it has
+merged, tasks filed). For a <code>security</code> planning issue, it hands each advisory
+to its fix task(s) or, for a design-only finding, the documentation task, with
+one <code>vrg-security-record retarget</code> per advisory, before posting <code>Tasks filed:
+yes</code>, and the planning issue cannot close until every advisory is handed off
 (see
 <a href="https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning">Security items in planning</a>).</p>
 <p><strong>When to use.</strong> At the start of significant work — "let's build X", "start an
