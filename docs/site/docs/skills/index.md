@@ -61,9 +61,10 @@ its `Revisit when:` conditions are checked), a free-text idea (a new planning
 issue), or with no argument (a `vrg-queue planning` summary). It labels the item `in-progress`,
 records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
 markers, and closes the planning issue once the epic is fully expanded (docs PR
-merged, tasks filed). For a `security` planning issue, it first hands the
-private advisory to the fix task(s) with `vrg-security-record retarget` before
-posting `Tasks filed: yes`, and the planning issue cannot close until it has
+merged, tasks filed). For a `security` planning issue, it hands each advisory
+to its fix task(s) or, for a design-only finding, the documentation task, with
+one `vrg-security-record retarget` per advisory, before posting `Tasks filed:
+yes`, and the planning issue cannot close until every advisory is handed off
 (see
 [Security items in planning](https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning)).
 
