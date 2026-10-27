@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.43] - 2026-10-27
+
+### Chores
+
+- sync the vergil-managed .gitignore block (#742)
+
+### Documentation
+
+- name vergil:handoff with its prefix and note paad:handoff (#744)
+
+### Features
+
+- hand a security planning issue's advisory to its fix tasks (#740)
+
 ## [2.1.42] - 2026-10-26
 
 ### Documentation
