@@ -3925,7 +3925,7 @@ never-suppress-a-gate rules are unaffected.</p>
 <tr>
 <td><a href="#planning-review">planning-review</a></td>
 <td>USER agent: rank the planning queue with the human and pick what to expand next with <code>epic-create</code>; defer, drop, or leave the rest with <code>vrg-intake-route</code>. Core rule: plan only what you mean to implement soon</td>
-<td>New</td>
+<td>Current (2.1)</td>
 </tr>
 </tbody>
 </table>
@@ -3940,8 +3940,9 @@ its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
 documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
 spec + plan as a docs PR. Every run is tracked in a <strong>planning issue</strong> (an open
 child of the planning epic): it is entered from a planning issue, an intake
-issue (pulled into planning), a free-text idea (a new planning issue), or with
-no argument (a <code>vrg-queue planning</code> summary). It labels the item <code>in-progress</code>,
+issue (pulled into planning), a deferred issue (pulled back into planning after
+its <code>Revisit when:</code> conditions are checked), a free-text idea (a new planning
+issue), or with no argument (a <code>vrg-queue planning</code> summary). It labels the item <code>in-progress</code>,
 records progress comments with the <code>Epic:</code> / <code>Docs task:</code> / <code>Tasks filed: yes</code>
 markers, and closes the planning issue once the epic is fully expanded (docs PR
 merged, tasks filed).</p>
@@ -4166,7 +4167,7 @@ rebase onto everything built since, so the skill discourages picking more than
 near-term capacity allows.</p>
 <p><strong>When to use.</strong> "review planning", "what should we plan next", "prioritize the
 planning queue". To work one known item, go straight to <code>epic-create &lt;ref&gt;</code>.</p>
-<p><strong>Status.</strong> New, added in epic
+<p><strong>Status.</strong> Current (Vergil 2.1), added in epic
 <a href="https://github.com/vergil-project/.github/issues/508">vergil-project/.github#508</a>.
 It starts simple and is expected to evolve with use.</p>
 <h2 id="how-skills-work-technical">How skills work — technical<a class="headerlink" href="#how-skills-work-technical" title="Permanent link">&para;</a></h2>
