@@ -103,7 +103,7 @@ and its closure **is** the "deployed" signal:
 
 ```text
 impl tasks ──Blocked-by──▶ deployment ──Blocked-by──▶ validation / next impl
-  merged                      deployed (= task closed)     runs against deployed
+ merged                      deployed (= task closed)     runs against deployed
 ```
 
 A downstream task that needs the thing deployed depends on the **deployment
