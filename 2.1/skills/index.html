@@ -682,6 +682,8 @@
       
         
       
+        
+      
     
     
     
@@ -734,6 +736,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.50/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.50
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3996,7 +4026,7 @@ never-suppress-a-gate rules are unaffected.</p>
 </tr>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
-<td>USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human</td>
+<td>USER agent: implement an issue (locally or on a cloud VM), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4108,7 +4138,10 @@ Judgment, Trusted Execution doctrine.</p>
 <h2 id="epic-retrospective">epic-retrospective<a class="headerlink" href="#epic-retrospective" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>terminal finishing gate</strong> of the
 epic lifecycle. Run once, at the end: its preflight refuses to run until every
-other child of the epic is closed, then it drafts <code>retrospective.md</code> — the
+other child of the epic is closed, then it sweeps the epic's tasks, their PR
+reviews and the planning issue for review findings that were never tracked
+(each is found, filed with <code>vrg-intake-create</code> or dropped by the human, and
+the result goes in §4), then it drafts <code>retrospective.md</code> — the
 backward-looking record that partners the spec and plan (spec → plan →
 retrospective) — from the execution history, runs a draft → review loop with the
 human, and hands off the closing docs PR whose merge <strong>closes the epic</strong>.</p>
@@ -4117,7 +4150,12 @@ epic", "we're done with this epic".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via <code>vrg-validate</code>, then records
+its feature branch, validates to green via <code>vrg-validate</code>, runs the
+<strong>agentic-review gate</strong> — up to three rounds of <code>paad:agentic-review</code> on
+its own branch, fixing what each finds, recorded on the task issue, and
+pausing for the human only when the
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement">paad review doctrine</a>
+says so — then records
 the PR metadata (<code>.vergil/pr-workflow.json</code>) with
 <code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
 <code>report-ready</code> also pushes the branch to origin, so there is no separate
