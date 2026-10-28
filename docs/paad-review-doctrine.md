@@ -1001,24 +1001,25 @@ lands instead:
 
 ```bash
 find /tmp /var/tmp "$HOME" \
-  \( -path "$HOME/.claude" -o -path <worktree>/paad -o -path <exclusion> … \) -prune \
+  \( -path "$HOME/.claude" -o -path "$HOME/.claude.json" -o -path <worktree>/paad -o -path <exclusion> … \) -prune \
   -o -type f -newer <round-dir>/marker -print
 ```
 
-It must print nothing. Exclude (one `-path <dir>` each, inside the brackets):
+It must print nothing. Exclude (one `-path <path>` each, inside the brackets):
 
-- the harness's own session state: in Claude Code, `$HOME/.claude`, which
-  holds the session transcripts and history the harness writes while the
-  reviewer runs;
+- the harness's own session state: in Claude Code, the `$HOME/.claude`
+  directory, which holds the session transcripts, history and backups the
+  harness writes while the reviewer runs, and the `$HOME/.claude.json` file,
+  which the harness rewrites during every run;
 - this worktree's `paad/`, where paad writes, and the task repo's git
   directory (`<main checkout>/.git`), where `vrg-git` refreshes its index,
   when they are under a swept directory;
 - unrelated activity on a shared machine. In the re-spike an unscoped sweep
   caught container-runtime files, tool caches and other sessions'
-  scratchpads, so exclude the container runtime's storage (such as
-  `$HOME/.local/share/containers`), tool caches (such as `$HOME/.cache`), and
-  the temporary directories and worktrees of every other session, by their
-  own paths.
+  scratchpads, so exclude the container runtime's storage (on the agent VM,
+  `$HOME/.local/share/containerd`, `$HOME/.local/share/nerdctl` and
+  `$HOME/.local/share/cni`), tool caches (`$HOME/.cache`), and the temporary
+  directories and worktrees of every other session, by their own paths.
 
 Never exclude this session's own temporary directory or scratchpad: a
 reviewer subagent shares them, and they are where a stray scratch file is
