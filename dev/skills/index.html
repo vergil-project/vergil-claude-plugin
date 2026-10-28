@@ -4108,7 +4108,10 @@ Judgment, Trusted Execution doctrine.</p>
 <h2 id="epic-retrospective">epic-retrospective<a class="headerlink" href="#epic-retrospective" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>terminal finishing gate</strong> of the
 epic lifecycle. Run once, at the end: its preflight refuses to run until every
-other child of the epic is closed, then it drafts <code>retrospective.md</code> — the
+other child of the epic is closed, then it sweeps the epic's tasks, their PR
+reviews and the planning issue for review findings that were never tracked
+(each is found, filed with <code>vrg-intake-create</code> or dropped by the human, and
+the result goes in §4), then it drafts <code>retrospective.md</code> — the
 backward-looking record that partners the spec and plan (spec → plan →
 retrospective) — from the execution history, runs a draft → review loop with the
 human, and hands off the closing docs PR whose merge <strong>closes the epic</strong>.</p>
