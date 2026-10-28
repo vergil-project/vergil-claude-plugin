@@ -253,7 +253,7 @@ feature/bugfix PRs manually.
 
 ### Cut a release
 
-Releases are cut via `vrg-publish`, a standalone CLI in
+Releases are cut via `vrg-release`, a standalone CLI in
 vergil-tooling. See the
 [vergil-tooling documentation](https://github.com/vergil-project/vergil-tooling)
 for usage.
