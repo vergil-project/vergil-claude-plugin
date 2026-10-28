@@ -105,7 +105,10 @@ Judgment, Trusted Execution doctrine.
 
 **What it does.** USER-identity skill and the **terminal finishing gate** of the
 epic lifecycle. Run once, at the end: its preflight refuses to run until every
-other child of the epic is closed, then it drafts `retrospective.md` — the
+other child of the epic is closed, then it sweeps the epic's tasks, their PR
+reviews and the planning issue for review findings that were never tracked
+(each is found, filed with `vrg-intake-create` or dropped by the human, and
+the result goes in §4), then it drafts `retrospective.md` — the
 backward-looking record that partners the spec and plan (spec → plan →
 retrospective) — from the execution history, runs a draft → review loop with the
 human, and hands off the closing docs PR whose merge **closes the epic**.
