@@ -680,6 +680,8 @@
       
         
       
+        
+      
     
     
     
@@ -732,6 +734,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.49/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.49
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3930,8 +3960,9 @@ skills are namespaced under <code>vergil</code> and invoked as
 its current status — including any tracked work that will
 substantially change it.</p>
 <h2 id="execution-doctrine-front-loaded-judgment-trusted-execution">Execution doctrine — Front-Loaded Judgment, Trusted Execution<a class="headerlink" href="#execution-doctrine-front-loaded-judgment-trusted-execution" title="Permanent link">&para;</a></h2>
-<p>Human judgment is spent <strong>up front</strong> (brainstorm → pushback → alignment)
-and at the <strong>hard gates</strong> (PR submit, merge, release). Between those,
+<p>Human judgment is spent <strong>up front</strong> (brainstorm → spec pushback rounds →
+plan → plan pushback rounds → alignment rounds) and at the <strong>hard gates</strong>
+(PR submit, merge, release). Between those,
 agents run these skills by the most efficient means available —
 <strong>sub-agents are encouraged</strong> for research fan-out and parallel work —
 and only stop mid-flight for a problem they cannot resolve. The plugin
@@ -3950,7 +3981,7 @@ never-suppress-a-gate rules are unaffected.</p>
 <tbody>
 <tr>
 <td><a href="#epic-create">epic-create</a></td>
-<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec → plan, create the epic and seed its bookend tasks</td>
+<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4031,10 +4062,15 @@ gate that closes the epic).</p>
 <h2 id="epic-create">epic-create<a class="headerlink" href="#epic-create" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>entry point</strong> for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
-(brainstorm → pushback → writing-plans → alignment), creates the finite epic in
-its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
+(brainstorm → spec pushback rounds → writing-plans → plan pushback rounds →
+alignment rounds), creates the finite epic in its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
 documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
-spec + plan as a docs PR. Every run is tracked in a <strong>planning issue</strong> (an open
+spec + plan as a docs PR. Each design-review round is a fresh review-only
+subagent; the main session walks the human through its findings and records the
+round on the planning issue, and the human decides every further round. The
+rules are mode 1 of the
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#2-mode-1-human-gated-design-review">paad review doctrine</a>.
+Every run is tracked in a <strong>planning issue</strong> (an open
 child of the planning epic): it is entered from a planning issue, an intake
 issue (pulled into planning), a deferred issue (pulled back into planning after
 its <code>Revisit when:</code> conditions are checked), a free-text idea (a new planning
