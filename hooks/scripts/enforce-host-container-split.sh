@@ -13,18 +13,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 # shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/hook-input.sh"
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/host-container-tools.sh"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/command-match.sh"
 
-input=$(cat)
-cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
-
+hook_input_read gated
+hook_input_scope_dir
+cwd="$HOOK_SCOPE_DIR"
 if ! is_managed_repo "$cwd"; then
   exit 0
 fi
 
-command=$(echo "$input" | jq -r '.tool_input.command')
+hook_input_command
+command="$HOOK_COMMAND"
 stripped=$(strip_quoted_segments "$command")
 
 # Check for host tools wrapped in vrg-container-run -- (DENY)

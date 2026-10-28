@@ -60,10 +60,10 @@ issue), or with no argument (a `vrg-queue planning` summary). It labels the item
 records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
 markers, and closes the planning issue once the epic is fully expanded (docs PR
 merged, tasks filed). For a `security` planning issue, it hands each advisory
-to its fix task(s) or, for a design-only finding, the documentation task, with
-one `vrg-security-record retarget` per advisory, before posting `Tasks filed:
-yes`, and the planning issue cannot close until every advisory is handed off
-(see
+to the task or tasks that fix it or, for a design-only finding, the
+documentation task, with one `vrg-security-record retarget` per advisory,
+before posting `Tasks filed: yes`, and the planning issue cannot close until
+every advisory is handed off (see
 [Security items in planning](https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning)).
 
 **When to use.** At the start of significant work — "let's build X", "start an

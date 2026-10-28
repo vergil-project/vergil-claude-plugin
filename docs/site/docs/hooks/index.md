@@ -57,6 +57,40 @@ Canonical rule, accepted gaps, and the shared test vectors:
 [`docs/specs/2026-06-05-450-command-matcher-quoting-design.md`](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/specs/2026-06-05-450-command-matcher-quoting-design.md).
 See [issue #450](https://github.com/vergil-project/vergil-claude-plugin/issues/450).
 
+## Malformed input fails closed
+
+Every PreToolUse hook below refuses a tool call it cannot check
+rather than letting it through. That covers empty stdin, input that
+is not valid JSON or is not a single JSON object, a missing `jq`,
+and a payload without the hook's required field
+(`tool_input.command` for the Bash hooks, `tool_input.file_path` for
+`block-worktree-bypass-write`). The hook exits with code 2, the
+PreToolUse blocking exit code, so Claude Code refuses the call and
+shows the agent a stderr message naming the problem:
+
+```text
+block-agent-merge.sh: blocked: the hook input is not valid JSON. This hook cannot check the tool call, so it fails closed and refuses it. This is a hook-protocol problem, not a problem with the command itself.
+```
+
+Behaviour on well-formed input is unchanged, including an empty
+command string, which is allowed. Scope matches the
+[managed-repo gating](#managed-repo-gating): a gated hook still
+allows everything outside a managed repo. Unparseable input names no
+usable `cwd`, so the gate then checks the hook process's own working
+directory. `block-heredoc` is not gated, so it refuses unparseable
+input everywhere. `guard-audit-writes` refuses it everywhere for the
+audit identity and still ignores other identities; its missing-path
+case keeps its JSON deny. The shared reader is
+`hooks/scripts/lib/hook-input.sh`; tests are in
+`hooks/tests/hook-input.test.sh`. `vrg-hook-guard` and the per-repo
+`guard.sh` shim follow the same rule
+([vergil-tooling#3773](https://github.com/vergil-project/vergil-tooling/issues/3773)).
+See [issue #776](https://github.com/vergil-project/vergil-claude-plugin/issues/776).
+
+The PostToolUse hook `detect-deprecation-warnings` is advisory and is
+not changed: a PostToolUse hook runs after the tool call, so it has
+nothing to refuse.
+
 ## PreToolUse Hooks — Bash
 
 ### block-raw-git-commit
@@ -276,8 +310,8 @@ the guard simple is the accepted trade-off. Bash-command writes
 (`>`, `tee`, `sed -i` …) are a documented gap for the same reason.
 
 **Failure mode.** Fail-closed inside the audit identity (no path,
-unresolvable path, or path escaping the worktree → deny);
-fail-open outside it.
+unresolvable path, or path escaping the worktree → deny; input that
+cannot be parsed → blocked with exit 2); fail-open outside it.
 
 **Alternative.** Write audit findings to
 `.vergil/audit-feedback.yml`; use `build/` for scratch. Tests:
@@ -384,8 +418,11 @@ exiting 0:
 }
 ```
 
-Exit 0 with no JSON = allow. Exit 2 = hook errored; Claude Code
-surfaces the error to the user.
+Exit 0 with no JSON = allow. Exit 2 = block: Claude Code refuses the
+call and feeds stderr to the agent. The plugin uses exit 2 for input
+it cannot parse (see
+[Malformed input fails closed](#malformed-input-fails-closed)). Any
+other non-zero exit is a non-blocking error, and the call goes ahead.
 
 ### PostToolUse response
 
