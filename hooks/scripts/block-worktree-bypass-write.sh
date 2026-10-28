@@ -9,11 +9,25 @@
 # vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
-input=$(cat)
-file_path=$(echo "$input" | jq -r '.tool_input.file_path')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/hook-input.sh"
 
-if [ -z "$file_path" ] || [ "$file_path" = "null" ]; then
-  exit 0
+hook_input_read gated
+file_path=$(printf '%s' "$HOOK_INPUT" \
+  | jq -r '.tool_input | objects | .file_path | strings')
+
+# Write and Edit always carry a file_path. Without one the target cannot
+# be checked, so the call fails closed (#776) — unless the payload's cwd
+# (the only scope signal left) is outside a managed repo.
+if [ -z "$file_path" ]; then
+  hook_input_scope_dir
+  if ! is_managed_repo "$HOOK_SCOPE_DIR"; then
+    exit 0
+  fi
+  hook_input_fail_closed "the hook input has no tool_input.file_path string"
 fi
 
 # Best-effort symlink resolution. If the file exists, resolve to its real
@@ -35,10 +49,6 @@ done
 if [ -z "$check_dir" ] || [ "$check_dir" = "/" ]; then
   exit 0
 fi
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=/dev/null
-source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 
 # Early exit for non-managed repos. Pure shell, no subprocess — fast for
 # writes to /tmp, non-repo paths, and unmanaged repos.

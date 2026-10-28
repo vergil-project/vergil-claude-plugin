@@ -18,25 +18,21 @@ ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 NL='
 '
 
-# block-raw-git-commit.sh delegates to vrg-hook-guard when it is on
-# PATH; mask it so the fallback regex path is what's tested.
-CLEAN_PATH=""
-old_ifs="$IFS"
-IFS=':'
-for dir in $PATH; do
-  if [ -x "$dir/vrg-hook-guard" ]; then
-    continue
-  fi
-  CLEAN_PATH="${CLEAN_PATH:+$CLEAN_PATH:}$dir"
-done
-IFS="$old_ifs"
-
 # Scratch managed repo that has adopted the worktree convention, for
 # block-protected-branch-work.sh rows. Using a scratch repo keeps
 # those rows deterministic whether this suite runs from the main
 # checkout or from inside a worktree.
 SCRATCH=$(mktemp -d)
 trap 'rm -rf "$SCRATCH"' EXIT
+
+# block-raw-git-commit.sh delegates to vrg-hook-guard when it is on
+# PATH; mask it so the fallback regex path is what's tested. The
+# PATH mirror lives outside $SCRATCH so the repo stays clean.
+MASK_DIR=$(mktemp -d)
+trap 'rm -rf "$SCRATCH" "$MASK_DIR"' EXIT
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/mask-hook-guard.sh"
+mask_hook_guard_path "$MASK_DIR"
 git -C "$SCRATCH" init --quiet
 printf '[project]\n' > "$SCRATCH/vergil.toml"
 printf '.worktrees/\n' > "$SCRATCH/.gitignore"
@@ -46,7 +42,7 @@ printf '.worktrees/\n' > "$SCRATCH/.gitignore"
 # legacy protected-branch rows (#694). An unborn branch still reports
 # its name via `git branch --show-current`.
 PROTECTED=$(mktemp -d)
-trap 'rm -rf "$SCRATCH" "$PROTECTED"' EXIT
+trap 'rm -rf "$SCRATCH" "$MASK_DIR" "$PROTECTED"' EXIT
 git -C "$PROTECTED" init --quiet
 git -C "$PROTECTED" symbolic-ref HEAD refs/heads/develop
 printf '[project]\n' > "$PROTECTED/vergil.toml"
