@@ -25,6 +25,13 @@ The one thing that pulls the human back mid-flight is a **problem you cannot
 resolve**: stop and ask rather than thrash or guess. Never fabricate a result and
 never suppress a validation gate.
 
+**File follow-ups at once.** When a follow-up surfaces — a concern a sub-agent
+reports, a gap you hit, a "we should also…" — file it now; do not offer to file
+it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
+[--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
+otherwise, and tell the human what you filed. A filed issue survives compaction
+and session loss; one held in context does not.
+
 ## Preflight
 
 1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If

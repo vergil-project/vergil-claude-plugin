@@ -103,6 +103,13 @@ The only reason to pull the human in mid-flight is a **problem you cannot
 resolve.** Stop and ask, with what you tried and where you're stuck. Never thrash,
 never fabricate, never suppress a validation gate.
 
+**File follow-ups at once.** When a follow-up surfaces — a concern a sub-agent
+reports, a gap you hit, a "we should also…" — file it now; do not offer to file
+it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
+[--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
+otherwise, and tell the human what you filed. A filed issue survives compaction
+and session loss; one held in context does not.
+
 ## 6. Terminal handoff (hybrid)
 
 When only the closing bookends remain, drive them **in order**:
