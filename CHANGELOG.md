@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.47] - 2026-10-28
+
+### Documentation
+
+- drop the parenthesised plural in the operational-task diagram (#785)
+- steering and settings sweep (epic 558) (#788)
+- file follow-ups immediately instead of carrying them in context (#789)
+
 ## [2.1.46] - 2026-10-28
 
 ### Bug fixes

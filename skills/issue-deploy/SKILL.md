@@ -103,8 +103,12 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   the environment, not the code; the PR tooling refuses it, and cutting a release
   is a human action. If you find yourself wanting to open a PR or run a release,
   you are outside this skill's remit — stop.
-- **Discovered problems are out of band.** Capture unrelated problems as their
-  own issues (`intake-capture` / `vrg-issue-create`), not in this task's
-  result.
+- **Discovered problems are out of band — file them at once.** When a
+  follow-up surfaces — a concern a sub-agent reports, a gap you hit, a "we
+  should also…" — file it now as its own issue; do not offer to file it later,
+  ask whether to, or fold it into this task's result. Use `vrg-issue-create
+  --epic <epic|adhoc> [--blocked-by REF]` for a task that will clearly be done,
+  `vrg-intake-create` otherwise, and tell the human what you filed. A filed
+  issue survives compaction and session loss; one held in context does not.
 - The issue's comments are the recovery record if a session is lost mid-run;
   `paad:handoff` is available for session continuity.
