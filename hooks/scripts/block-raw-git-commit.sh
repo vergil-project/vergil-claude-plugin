@@ -12,20 +12,32 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 # shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/hook-input.sh"
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/command-match.sh"
 
-input=$(cat)
-cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
-
+hook_input_read gated
+hook_input_scope_dir
+cwd="$HOOK_SCOPE_DIR"
 if ! is_managed_repo "$cwd"; then
   exit 0
 fi
 
+# Check the input before delegating, so malformed input fails closed
+# even under a vrg-hook-guard that predates its own fail-closed check.
+hook_input_command
+command="$HOOK_COMMAND"
+
+# Delegate and stop. The guard's verdict is final: the regex fallback
+# below must not also run, or a raw git commit would emit two JSON
+# documents on stdout (#776). The guard's exit code, including its
+# blocking exit 2, is passed through.
 if command -v vrg-hook-guard &>/dev/null; then
-  printf '%s' "$input" | exec vrg-hook-guard
+  guard_rc=0
+  printf '%s' "$HOOK_INPUT" | vrg-hook-guard || guard_rc=$?
+  exit "$guard_rc"
 fi
 
-command=$(echo "$input" | jq -r '.tool_input.command')
 stripped=$(strip_quoted_segments "$command")
 
 if echo "$stripped" | grep -qE '(^|[;&|({]\s*)git\s+commit(\s|$)'; then

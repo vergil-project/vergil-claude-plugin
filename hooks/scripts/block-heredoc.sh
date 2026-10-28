@@ -5,8 +5,15 @@
 # and special characters. Write to a temp file and use --body-file instead.
 set -euo pipefail
 
-input=$(cat)
-command=$(echo "$input" | jq -r '.tool_input.command')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/hook-input.sh"
+
+# Not gated on managed-repo detection, so input it cannot parse is
+# refused everywhere (#776).
+hook_input_read ungated
+hook_input_command
+command="$HOOK_COMMAND"
 
 # Match heredoc operators: <<EOF, <<'EOF', <<"EOF", <<-EOF, etc.
 # But not << used in other contexts (e.g., bitshift in Python/etc.).

@@ -23,10 +23,22 @@ if [ "${VRG_IDENTITY_MODE:-}" != "audit" ]; then
   exit 0
 fi
 
-input=$(cat)
-file_path=$(echo "$input" \
-  | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty')
-cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/hook-input.sh"
+
+# Inside the audit identity, input that cannot be parsed is refused
+# (exit 2) wherever the hook runs — it is fail-closed throughout (#776).
+hook_input_read ungated
+file_path=$(printf '%s' "$HOOK_INPUT" \
+  | jq -r '.tool_input | objects
+      | ((.file_path | strings | select(. != ""))
+         // (.notebook_path | strings | select(. != "")))
+      // empty')
+hook_input_scope_dir
+cwd="$HOOK_SCOPE_DIR"
 
 deny() {
   jq -n --arg reason "$1" '{
@@ -79,10 +91,6 @@ done
 if [ -z "$check_dir" ]; then
   check_dir="/"
 fi
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=/dev/null
-source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 
 # Outside managed repos the guard does not apply (standard gating —
 # scratch in /tmp etc. is not repo content).

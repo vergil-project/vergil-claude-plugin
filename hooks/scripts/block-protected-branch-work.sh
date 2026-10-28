@@ -23,19 +23,23 @@
 # vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
-input=$(cat)
-cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 # shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/hook-input.sh"
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/command-match.sh"
+
+hook_input_read gated
+hook_input_scope_dir
+cwd="$HOOK_SCOPE_DIR"
 if ! is_managed_repo "$cwd"; then
   exit 0
 fi
 
-command=$(echo "$input" | jq -r '.tool_input.command')
+hook_input_command
+command="$HOOK_COMMAND"
 stripped=$(strip_quoted_segments "$command")
 
 # Only check commands that could create commits on the current branch.
@@ -54,14 +58,14 @@ if ! echo "$stripped" | grep -qE '(^|[;&|({]\s*)git\s+commit(\s|$)'; then
   exit 0
 fi
 
-# Resolve the bash session's working directory. Two fields can carry it:
+# $cwd is the bash session's working directory, resolved above by
+# hook_input_scope_dir. Two fields can carry it:
 #   .tool_input.cwd  — set when the Bash tool call passes cwd explicitly.
 #   .cwd             — top-level hook input field; the session CWD that
 #                      Claude Code itself reports.
 # The current Bash tool typically populates the top-level `.cwd` only,
 # so falling back to "." (the previous behavior) misclassified every
 # commit as originating from the project root.
-cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
 
 # Determine the effective directory where the commit will actually run.
 # Handles two common patterns that redirect the commit to a different dir:
