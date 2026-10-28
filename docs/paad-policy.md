@@ -119,6 +119,19 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 | Mode 2 (agentic-review in `issue-implement`) caps autonomous rounds at 3, then pauses for the human | The authors say "repeat" with a human present. Unattended, an unbounded loop is unsafe. |
 | paad is unpinned and follows the latest release, although D and C may rely on the experimental `paad/config/` | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. Mitigation: every config file names the version it was written for, and D detects drift. |
 | Design-review report files (pushback, alignment) are not written; the planning-issue comments are the record (spec §3.2) | The planning issue is the epic's permanent planning log, and review history must stay out of the reviewed document so the next round's reviewer has a fresh context. |
+| pushback and alignment run review-only in a fresh subagent, and the main session presents the findings and edits the document; paad runs them interactively in the session that edits | Each round needs a context that has not seen earlier rounds (umbrella §3.1). The human still sees one finding at a time with options. |
+| alignment's TDD rewrite step is skipped | `superpowers:writing-plans` writes tasks in red/green/refactor form. The reviewer reports each code task that is not as a minor finding ([doctrine §2.3](paad-review-doctrine.md#23-the-reviewer-prompt)), and it is fixed in the walk-through. |
+| The reviewer's reality check does not read the history of the document under review | Commit history of earlier rounds carries the provenance that umbrella §3.1 keeps out of the reviewer's context. |
+| Design-review rounds are repeated under explicit stop and continue signals, with the human deciding each round | The authors say "revise and repeat as needed" without stop rules. The experiment behind vergil-project/.github#469 showed that unruled repetition compounds complexity. |
 | agentic-review results are not left as report files in the worktree; D routes them through the subagent's answer into task-issue comments (spec §3.3) | Untracked report files stop the next round's clean-state check and leave the worktree dirty at finalize. The task issue is the record of each round. |
 | The paad usage policy lives in this one central document rather than in each repo's steering file | The authors suggest recording the policy in the steering file. A single document avoids drift between copies across the fleet. Pointing each repo's steering files at it is handed to child epic E (steering-file review). |
 | `steering-audit` runs pushback findings-only: it collects and returns the findings instead of walking them one at a time, does not edit the reviewed file, and writes no report or other file | `steering-audit` walks the findings itself against the Claude config ownership model. In user scope it must write nothing at all, because the user-level files are personal and have no change control. |
+
+## 8. Review doctrine
+
+The rules for running a paad review more than once on the same artifact are
+in the [paad review doctrine](paad-review-doctrine.md): the common core for
+every repeated review, mode 1 (human-gated design review in `epic-create`),
+and mode 2 (autonomous review in `issue-implement`). The doctrine also holds
+the only copy of the table that maps paad's severity scales onto one
+canonical scale; other documents link to it.
