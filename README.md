@@ -63,7 +63,9 @@ walkthrough documented in vergil-tooling:
 
 The short version: the plugin is installed per user, not per repo. Add
 the marketplace definition and the plugin enable to your user-level
-`~/.claude/settings.json`:
+`~/.claude/settings.json`. If that file already has `extraKnownMarketplaces`
+or `enabledPlugins` objects, merge these entries into them rather than
+adding a second copy of either key:
 
 ```json
 {

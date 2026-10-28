@@ -35,7 +35,9 @@ tools available to run.
 
 The plugin ships through a single released channel on `main`. It is installed
 per user: add the marketplace definition and the plugin enable to your
-user-level `~/.claude/settings.json`, and the enable installs the plugin:
+user-level `~/.claude/settings.json`, and the enable installs the plugin. If
+that file already has `extraKnownMarketplaces` or `enabledPlugins` objects,
+merge these entries into them rather than adding a second copy of either key:
 
 ```json
 {
