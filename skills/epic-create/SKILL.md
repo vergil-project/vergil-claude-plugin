@@ -329,10 +329,10 @@ file and post it with
    - **Security planning issue — hand every advisory to its fix tasks.** If
      the planning issue carries the `security` label, its body has one or more
      `Security advisory: <org>/.github <GHSA-id>` lines, each naming a private
-     advisory that tracks it. Once the task(s) that fix each problem are
-     filed, retarget **each** advisory to the task(s) that fix it, so their
-     PRs close it (the scheduled sweep closes an advisory once every issue it
-     tracks is closed). Run
+     advisory that tracks it. Once the task or tasks that fix each problem
+     are filed, retarget **each** advisory to the task or tasks that fix it,
+     so their PRs close it (the scheduled sweep closes an advisory once every
+     issue it tracks is closed). Run
      one vrg-security-record retarget <GHSA-id> --to … per advisory:
      `vrg-security-record retarget <GHSA-id> --to <owner>/<repo>#<TASK> [--to
      <owner>/<repo>#<TASK> …]` (one `--to` per fix task, each a fully
