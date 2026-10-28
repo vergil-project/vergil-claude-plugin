@@ -251,8 +251,10 @@ within each stage.
 Every reviewer prompt is this template, with its placeholders filled in. It
 was validated in the spike for this mode
 ([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
-and is copied here verbatim from its outcome. Do not reword it: changing the
-prompt is a doctrine change.
+and is copied here verbatim from its outcome, with one later addition: the
+`Temporary directory:` paragraph, which the stray-write check in
+[§2.4](#24-output-checks-and-broken-rounds) needs and the spike did not run.
+Do not reword it: changing the prompt is a doctrine change.
 
 ````text
 You are a review-only reviewer. Invoke the skill `paad:{{SKILL}}` with the Skill tool, with this argument:
@@ -262,6 +264,8 @@ You are a review-only reviewer. Invoke the skill `paad:{{SKILL}}` with the Skill
 {{DOCUMENT_ROLES}}
 
 Working directory: every Bash command you run starts with `cd {{DOCS_WORKTREE}} && …`. Any subagent you or the skill dispatches must be told the same. Use `vrg-git` instead of `git` (raw git is blocked) and `vrg-gh` instead of `gh`.
+
+Temporary directory: every Bash command you run also sets `TMPDIR` to `{{REVIEW_TMPDIR}}` (`cd {{DOCS_WORKTREE}} && export TMPDIR={{REVIEW_TMPDIR}} && …`), and any subagent you or the skill dispatches must be told the same. It is the only place a temporary file may go, and you should need none: leave it empty.
 
 Review-only directives (these override the skill where they conflict):
 - Collect every finding. Do not walk anyone through them one at a time.
@@ -294,6 +298,7 @@ Fill the placeholders as follows:
 | `{{SKILL_ARGS}}` | Absolute paths in the docs worktree: the spec (spec pushback), the plan (plan pushback), or the spec and the plan (alignment). |
 | `{{DOCUMENT_ROLES}}` | Which document is under review and which is context. For plan pushback, the plan is under review and the spec is named as context only. For alignment, both are under review. |
 | `{{DOCS_WORKTREE}}` | The absolute path of the docs worktree. |
+| `{{REVIEW_TMPDIR}}` | The absolute path of the round's empty temporary directory, created before dispatch ([§2.4](#24-output-checks-and-broken-rounds)). |
 | `{{TOPIC}}` | A short kebab-case name for the reviewed artifact, such as the epic directory's slug. |
 | `{{SCALE}}` | The skill's own severity scale, from its column in [§1.3](#13-severity): for pushback, `critical, serious, moderate, minor`; for alignment, `Critical, Important, Minor`. |
 | `{{MEMBER_REPOS}}` | The absolute local path of each member repo the artifact names, each fetched before dispatch. |
@@ -309,8 +314,10 @@ Rules the template carries, and why:
   files under the docs worktree's `paad/security/`. That includes temporary
   files and copies: a reviewer that needs an old version of a file reads
   `vrg-git show <sha>:<path>`. In the spike, a reviewer wrote and deleted
-  temporary files outside the worktree even so; see the stray-write
-  requirement in [§2.4](#24-output-checks-and-broken-rounds).
+  temporary files outside the worktree even so. So the prompt also names one
+  empty directory as the reviewer's `TMPDIR`, the only place a temporary
+  file may go, and the stray-write check in
+  [§2.4](#24-output-checks-and-broken-rounds) inspects it.
 - **Work in the docs worktree.** Every Bash command starts with `cd` into
   it, and every subagent the reviewer or the skill dispatches is told the
   same. paad then writes its default `paad/security/` path in the worktree,
@@ -346,7 +353,8 @@ different version is a warning in the round comment, not a failure.
   reviewer sees only committed text;
 - confirm that the worktree's `paad/security/` holds nothing but its
   `.gitignore`, so every security file found afterwards is this round's;
-- fetch each member repo the prompt names.
+- fetch each member repo the prompt names;
+- create the round's temporary directory for the stray-write check (below).
 
 A dirty worktree at this point (for example, a session resumed partway
 through a walk-through) is shown to the human as a diff. The human either
@@ -374,18 +382,56 @@ discards it.
   committed nor moved HEAD;
 - `vrg-git status --porcelain` in the worktree is empty. `paad/security/` is
   ignored by the managed `.gitignore` block, so the security file does not
-  show.
+  show;
+- the round's temporary directory passes the stray-write check (below).
 
-**Stray writes need a structural check.** The checks above miss a reviewer
-that writes a file outside the worktree and deletes it again. In the spike,
-that happened once even with the "write nothing, anywhere" directive, and
-only the reviewer's own list of files written showed it; a before-and-after
-comparison of the scratchpad did not. A structural check that detects any
-reviewer write outside the docs worktree's `paad/security/`, independent of
-the reviewer's self-report, is required. This doctrine does not yet specify
-its mechanism. Until one is adopted, the self-reported file list is the only
-signal, and the file-path check above treats any write it reports outside
-`paad/security/` as a broken round.
+**The stray-write check.** The checks above miss a reviewer that writes a
+file outside the worktree and deletes it again. In the spike, that happened
+once even with the "write nothing, anywhere" directive, and only the
+reviewer's own list of files written showed it; a before-and-after
+comparison of the scratchpad did not. So every round gives the reviewer an
+empty directory of its own as `TMPDIR` and checks it afterwards, without
+relying on the reviewer's self-report:
+
+1. **Before dispatch,** create a fresh, empty directory that the main
+   session owns, with mode 700, outside every repo, and set its modification
+   time to a fixed past time:
+
+   ```bash
+   mktemp -d
+   chmod 700 <dir> && touch -t 200001010000 <dir>
+   ```
+
+   `<dir>` is the absolute path `mktemp -d` printed. Record it, and fill
+   `{{REVIEW_TMPDIR}}` in the reviewer prompt
+   ([§2.3](#23-the-reviewer-prompt)) with it. The prompt names it as the
+   only place temporary files may go, and asks for none.
+2. **After the review,** the round is broken if the directory holds any
+   entry, or if its modification time has changed. Both commands must print
+   nothing, and a command that fails is also a broken round:
+
+   ```bash
+   ls -A <dir>
+   find <dir> -maxdepth 0 -newermt 2000-01-02
+   ```
+
+   Creating, renaming or deleting an entry updates a directory's
+   modification time, so the second command catches a file that was written
+   and then deleted again: the case the spike's before-and-after comparison
+   missed. Backdating the directory first makes any change show, however
+   soon after creation it happens. An entry counts whoever wrote it: a tool
+   the reviewer ran writes on the reviewer's behalf.
+3. **Remove the directory** after the check, broken round or not, without
+   reading what is in it: `rm -rf -- <dir>`, with the recorded absolute
+   path.
+
+**Its limits.** The check sees only writes that go through the directory. A
+reviewer that ignores `TMPDIR` and writes somewhere else (or writes with a
+tool that does not read `TMPDIR`), then deletes the file, is still caught
+only by its own list of files written; the file-path check above treats any
+write that list names outside `paad/security/` as a broken round. A reviewer
+that writes elsewhere, deletes the file and does not report it is not
+caught at all.
 
 **A failed check is a broken round.** The reviewer did not produce a usable
 review, which says nothing about the design. A broken round is never treated
