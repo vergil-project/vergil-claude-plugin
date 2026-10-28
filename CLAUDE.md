@@ -2,326 +2,119 @@
 
 This file provides guidance to Claude Code when working in this repository.
 
-## Memory management
+<!-- vergil:template:claude-md:begin -->
+## Memory
 
-Memory is allowed with human approval. The authoritative policy is in
-the user's global `~/.claude/CLAUDE.md` — agents must propose memory
-writes and suggest a destination (repo memory, global CLAUDE.md, or
-plugin/skill issue) before writing. See that file for the full
-workflow.
+Never write, edit or delete memory files without explicit human approval.
+Propose the entry and where it belongs first, then wait for the decision.
 
-Available skills:
-- `/vergil:memory-init` — set up or update the policy header
-  in a project's `MEMORY.md`.
-- `/vergil:memory-audit` — structured collaborative review
-  of memory files.
+## Worktrees
 
-## Parallel AI agent development
+- Sessions always start at the project root, never inside `.worktrees/`.
+- One worktree per issue: `.worktrees/issue-<N>-<slug>/` on branch
+  `feature/<N>-<slug>`. Remove it once its branch lands.
+- The main worktree is read-only; every edit goes through a worktree.
+- Read, Edit and Write use the worktree's absolute path. Bash commands `cd`
+  into the worktree first or use absolute paths.
+- The full convention: <https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md>.
+- Brief each parallel sub-agent with its [Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract).
 
-This repository supports running multiple Claude Code agents in parallel via
-git worktrees. The convention keeps parallel agents' working trees isolated
-while preserving shared project memory (which Claude Code derives from the
-session's starting CWD).
+## Git and GitHub
 
-**Canonical spec:**
-[`vergil-tooling/docs/specs/worktree-convention.md`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md)
-— full rationale, trust model, failure modes, and memory-path implications.
-The canonical text lives in `vergil-tooling`; this section is the local
-on-ramp.
-
-### Structure
-
-```text
-<project-root>/                              ← sessions ALWAYS start here
-  .git/
-  CLAUDE.md, …                               ← main worktree (usually `develop`)
-  .worktrees/                                ← container for parallel worktrees
-    issue-<N>-<short-slug>/                  ← worktree on feature/<N>-<short-slug>
-    …
-```
-
-### Rules
-
-1. **Sessions always start at the project root.**
-   Never start Claude from inside `.worktrees/<name>/`. This keeps the
-   memory-path slug stable and shared.
-2. **Each parallel agent is assigned exactly one worktree.** The session
-   prompt names the worktree (see Agent prompt contract below).
-   - For Read / Edit / Write tools: use the worktree's absolute path.
-   - For Bash commands that touch files: `cd` into the worktree first,
-     or use absolute paths.
-3. **The main worktree is read-only.** All edits flow through a worktree
-   on a feature branch — the logical endpoint of the standing
-   "no direct commits to develop" policy.
-4. **One worktree per issue.** Don't stack in-flight issues. When a
-   branch lands, remove the worktree before starting the next.
-5. **Naming: `issue-<N>-<short-slug>`.** `<N>` is the GitHub issue
-   number; `<short-slug>` is 2–4 kebab-case tokens.
-
-### Agent prompt contract
-
-When launching a parallel-agent session, use this template (fill in the
-placeholders):
-
-```text
-You are working on issue #<N>: <issue title>.
-
-Your worktree is: <project-root>/.worktrees/issue-<N>-<slug>/
-Your branch is:   feature/<N>-<slug>
-
-Rules for this session:
-- Do all git operations from inside your worktree:
-    cd <absolute-worktree-path> && vrg-git <command>
-- For Read / Edit / Write tools, use the absolute worktree path.
-- For Bash commands that touch files, cd into the worktree first
-  or use absolute paths.
-- Do not edit files at the project root. The main worktree is
-  read-only — all changes flow through your worktree on your
-  feature branch.
-- When you need to run validation, run it from inside your worktree
-  (vrg-container-run mounts the current directory).
-```
-
-All fields are required.
-
-## Shell command policy
-
-Use `vrg-git` instead of `git` for all git operations. Use `vrg-gh`
-instead of `gh` for all GitHub CLI operations. These wrappers enforce
-subcommand allowlists, flag deny lists, and credential selection.
-
-Raw `git` and `gh` are denied by the permission model. If a command
-is not available through the wrappers, explain the situation to the
-human who can run it directly via `! <command>` in the prompt.
+Use `vrg-git` and `vrg-gh` only; the hook guard blocks raw `git` and `gh`. If a
+command is not available through the wrappers, explain why and ask the human to
+run it with `! <command>` in the prompt.
 
 ## Validation
 
-```bash
-vrg-container-run -- vrg-validate
-```
+`vrg-container-run -- vrg-validate` is the only validation command. Don't run
+linters, formatters or tests outside it; a tool it doesn't invoke is not part
+of the pipeline.
 
-This is the **only** validation command. Do not run individual linters,
-formatters, or other tools outside of `vrg-validate`. If a tool is not
-invoked by `vrg-validate`, it is not part of the validation pipeline.
+## PR handoff
+
+- Agents never run `vrg-submit-pr`. Submitting, merging and finalizing a PR are
+  human actions.
+- Hand off with `vrg-pr-workflow report-ready --issue <N> --title --summary
+  --notes`. It pushes the branch itself. Leave `--linkage` at its default (`Ref`).
+- A delta touching `.github/workflows/**` makes GitHub refuse the agent push.
+  That is expected: report-ready records the state anyway and the human's
+  `vrg-submit-pr` pushes the branch.
+- After report-ready the branch is frozen: no new commits and no push that
+  advances it; more work is a new follow-up issue. Re-running report-ready to
+  fix the prose is allowed. `vrg-pr-workflow unfreeze` is the only way to lift it.
+- The report-ready title, summary and notes are public (the relay ref is
+  world-readable): never put secrets in them.
+
+## Local settings
+
+`.claude/settings.local.json` must stay absent or exactly `{}`; the agent tools
+refuse otherwise. See the [ownership model](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md).
+
+## Engineering principles
+
+- Correctness over cost over speed. Never ship known-broken code with a
+  follow-up fix; if something is wrong, fix it now.
+- No silent failures: no swallowed exceptions, no `except: return ""`, no
+  fallbacks that hide errors. A failure hidden in code becomes a hallucination
+  at the AI layer.
+
+## paad
+
+paad usage policy and deviations:
+<https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md>.
+<!-- vergil:template:claude-md:end -->
+
+## Validation in this repo
 
 The repo's custom validator, `scripts/bin/validate-custom` (which runs
-the hook test suites under `hooks/tests/`), is part of that pipeline
-locally and also runs in PR CI as the `quality / custom` job (from
+the hook test suites under `hooks/tests/`), is part of the `vrg-validate`
+pipeline locally and also runs in PR CI as the `quality / custom` job (from
 vergil-actions v2.1.58). Its log is kept as `quality-custom.log` in the
 `quality / evidence` artifact.
 
-## paad usage policy
-
-How the workflow uses the paad plugin (version, report files,
-`paad/security/`, `paad/config/`, and `paad:handoff` for session
-continuity), and the living register of every deviation from the
-paad authors' recommendations, are in
-[`docs/paad-policy.md`](docs/paad-policy.md).
-
-## Starting work on an issue
-
-When the user references a GitHub issue and wants work to begin on
-it, follow the procedure in
-[`docs/development/starting-work-on-an-issue.md`](docs/development/starting-work-on-an-issue.md).
-It covers: resolving project / cross-repo / repo-local issue
-inputs to a repo-local issue number, sub-issue creation when work
-spans repos, existing-worktree and existing-remote-branch
-detection, and the canonical `git worktree add` invocation that
-honors the worktree convention.
-
-This replaces the former `branch-workflow` skill. The substance is
-the same; the format is now agent-instruction documentation rather
-than a slash-command, since the procedure was rarely invoked
-cold and is most useful as a reference at the moment work begins.
-
-## Epic / task issue convention
-
-Work is organized as a two-tier hierarchy invented on GitHub's flat
-model. The canonical spec and plan live in the epic's folder under the
-org `.github` repo (`.github/epics/<N>-<slug>/`); this section is the
-local on-ramp.
-
-### The model
-
-- **Finite epics** live in the org `.github` repo — one roadmap view of
-  every cross-cutting initiative. **Tasks** live in the member repo
-  where the work happens, each **1:1 with a single finalizing PR**.
-- **Standing epics** (`epic` + `standing` labels) are perpetual,
-  per-repo buckets for ad-hoc work — one `Ad-hoc maintenance` per repo;
-  they never auto-close.
-- Every task belongs to exactly one epic. There are no standalone tasks.
-
-### Creating an epic from a brainstorm
-
-When a brainstormed spec represents a finite epic (a cross-cutting, multi-PR
-initiative), promote it with **`/vergil:epic-create`** — it creates the epic in
-`.github`, publishes the spec/plan into `epics/<N>-<slug>/`, and returns the
-`vrg-epic-link` template for the tasks. A single-PR change is a **task**, not an
-epic: file it under an existing or standing epic instead. Brainstormed epic
-specs go to `.github`, not the member repo's `docs/specs/`.
-
-### The three-skill lifecycle and the retrospective bookend
-
-Epic work runs through three skills with distinct invocation cardinality:
-
-- **`/vergil:epic-create`** — run **once**: brainstorm → spec → plan, create the
-  epic and seed its bookends.
-- **`/vergil:epic-implement`** — run **N times**: drive the runnable frontier,
-  pause on blockers, resume later. Epics commonly sit parked between runs.
-- **`/vergil:epic-retrospective`** — run **once**: the terminal finishing gate.
-
-Every epic closes with a mandatory, **single retrospective** — the
-backward-looking record that partners the spec and plan
-(`epics/<N>-<slug>/retrospective.md`), so a later reader follows **spec → plan →
-retrospective**. It is the **final gate**: `epic-retrospective`'s preflight
-refuses to run until every other child of the epic is closed, and its docs PR
-merge closes the epic. The documentation-review sweep runs **before** it; the
-follow-on brainstorm is **semi-optional** — a forward-axis concern that no longer
-defines the end of an epic.
-
-### Plans evolve append-only
-
-A plan is **frozen at execution start** (when the first task ships). Don't
-rewrite the planned task list to absorb later changes — that hides how the plan
-actually evolved. Append instead to an `## Evolution during execution` section
-at the bottom of `plan.md`: dated entries of what was added, dropped, or
-rescoped, and **why**. The epic's GitHub sub-issues stay the authoritative live
-task list; the addendum captures the *reasoning* for deltas, so a reader sees
-what was foreseen up front versus adapted in flight. Log meaningful deviations
-only — a new/dropped task, a discovered dependency, a scope shift — not trivial
-mechanics. Before execution begins, plans are edited freely.
-
-When the epic reaches its terminal retrospective bookend, this `Evolution during
-execution` log is the **raw feedstock for the retrospective's "How the plan
-evolved" section** — the retrospective synthesizes it into narrative rather than
-copying it (see the three-skill lifecycle above).
-
-### Linking a task to its epic
-
-Link each task under its epic as a **native GitHub sub-issue** at
-creation:
-
-```bash
-vrg-epic-link --epic vergil-project/.github#<EPIC> --task <owner>/<repo>#<TASK>
-```
-
-The native link is what makes epic rollup reliable; a `Parent:
-<owner>/<repo>#<N>` line in the task body is only a portable fallback
-for forges without sub-issues.
-
-### Closing — mechanical, never manual
-
-- PRs use **`Ref`-only** linkage; auto-close keywords stay forbidden,
-  and **a PR links a task, never an epic** (enforced at `vrg-submit-pr`).
-- `vrg-finalize-pr` closes the task **after** merge and post-merge
-  checks pass, then rolls the epic up (closing it when its last child
-  closes). Both are **gated on an `epic`-labeled parent**, so the
-  existing legacy backlog is left untouched — the model turns on
-  per-issue as repos migrate.
-
-### Invariants
-
-- **Only epics reopen.** A task is never reopened; a revert or follow-up
-  is a **new `bug`** (optionally `Ref`-linked to the culprit change).
-- Adding a task to a closed epic **reopens** it (`vrg-epic-link` does
-  this automatically).
-- **`hotfix`**: an emergency fix may skip planning — file it under the
-  repo's standing epic, label `hotfix` (flagged for retroactive review).
-
-### Labels
-
-Standardized orthogonal axes: **role** (`epic`, `standing`), **kind**
-(`bug`, `feature`, `docs`, `refactor`, `chore`), **exception** (`hotfix`).
-An issue's stage is its **parent epic**, not a label: uncurated ideas and
-bugs enter the org's intake epic (`/vergil:intake-capture`), are routed by
-`/vergil:intake-review`, items that need a full epic wait in the
-planning epic, where `/vergil:planning-review` picks what to plan next
-for `/vergil:epic-create`, and items parked on an outside
-condition wait in the deferred epic, with a recorded reason and revival
-conditions, until `/vergil:deferred-review` revives them. The `triage` / `idea` /
-`research` labels are retired; `in-progress` marks a planning item under
-way.
-
-## Shell command policy — additional rules
-
-**Do NOT use heredocs** (`<<EOF` / `<<'EOF'`) for multi-line arguments to CLI
-tools such as `gh`, `git commit`, or `curl`. Always write multi-line content
-to a temporary file and pass it via `--body-file` or `--file` instead.
-
-## Project Overview
+## Project overview
 
 This is a Claude Code plugin that delivers shared hooks, skills, agents, and
 commands to all managed repositories in the vergil-tooling ecosystem. It is
 the behavioral counterpart to the `vergil-tooling` Python package (which
-delivers runtime CLI tools via PATH).
+delivers runtime CLI tools via PATH). The plugin namespace is `vergil`
+(skills are invoked as `/vergil:<skill-name>`). Install, update and component
+details are in [`README.md`](README.md).
 
-**Project name**: vergil-claude-plugin
+## Working on this repo
 
-**Plugin namespace**: `vergil` (skills invoked as
-`/vergil:<skill-name>`)
-
-**Status**: Pre-release (0.x)
-
-## Execution doctrine — Front-Loaded Judgment, Trusted Execution
-
-Human judgment is spent **up front** (brainstorm → pushback → alignment) and at
-the **hard gates** (PR submit, merge, release). Between those, agents execute by
-the **most efficient means available — sub-agents encouraged** (research
-fan-out, parallel implementation). The only mid-flight interrupt is a **problem
-the agent cannot resolve**: it stops and asks. We do **not** tune agent behavior
-for continuous human observability; that older "Continuous Oversight" invariant
-(inline/foreground, narrate everything, never spawn sub-agents) is **retired**.
-The never-fabricate and never-suppress-a-gate rules are unaffected.
+- Start work on an issue with `/vergil:issue-implement`.
+- The ship-a-change flow and worktree setup are in
+  [`README.md` → Development and deployment](README.md#development-and-deployment).
+  Releases are cut with `vrg-release` (vergil-tooling).
+- To refresh a local install after a release, follow the README's
+  [Update section](README.md#update) exactly; don't improvise the sequence.
+- Agents follow the
+  [execution doctrine](docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)
+  (Front-Loaded Judgment, Trusted Execution).
 
 ## Architecture
 
-### Plugin Manifest (`.claude-plugin/plugin.json`)
-
-Defines the plugin identity, version, and metadata. The `name` field
-(`vergil`) determines the skill namespace prefix.
-
-### Hooks (`hooks/hooks.json`)
-
-PreToolUse and PostToolUse hooks that enforce guardrails mechanically rather
-than relying on CLAUDE.md prose. These replace duplicated documentation rules
-across all consuming repos.
-
-### Skills (`skills/`)
-
-Shared workflow skills migrated from `standards-and-conventions`. Each skill
-is a directory containing a `SKILL.md` file with frontmatter and instructions.
-
-### Agents (`agents/`)
-
-Custom subagents including the bootstrap agent for session-start context
-loading, PATH discovery, and preflight validation.
-
-### Commands (`commands/`)
-
-User-invokable slash commands (Markdown files).
+- `.claude-plugin/plugin.json` — plugin identity and version; its `name`
+  (`vergil`) sets the skill namespace. `marketplace.json` publishes it.
+- `hooks/hooks.json` — PreToolUse and PostToolUse hooks that enforce
+  guardrails mechanically; scripts in `hooks/scripts/`, tests in
+  `hooks/tests/`.
+- `skills/` — one directory per workflow skill, each with a `SKILL.md`.
+- `agents/` — custom subagents (the session `bootstrap` agent).
+- `commands/` — user-invokable slash commands (Markdown files); none ship
+  today.
 
 ## Two-Repo Model
 
-| Repo                       | Delivers                  | Via    |
-| -------------------------- | ------------------------- | ------ |
-| `vergil-tooling`         | Python CLIs, bash, hooks  | PATH   |
-| `vergil-claude-plugin`  | Skills, agents, commands  | Plugin |
+| Repo | Delivers | Via |
+| --- | --- | --- |
+| `vergil-tooling` | Python CLIs, bash, hooks | PATH |
+| `vergil-claude-plugin` | Hooks, skills, agents, commands | Plugin |
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the
 tools available to run.
-
-## Branching and PR Workflow
-
-- **Protected branches**: `main`, `develop` — no direct commits
-- **Branch naming**: `feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`, or
-  `release/*` only
-- **Feature/bugfix PRs** target `develop` with squash merge
-- **Release PRs** target `main` with regular merge
-
-## Commit and PR Scripts
-
-**NEVER use raw `git commit`** — always use `vrg-commit`.
-**NEVER use raw `gh pr create`** — always use `vrg-submit-pr`.
 
 ## Plugin distribution model
 
@@ -331,45 +124,3 @@ released line. No SemVer, no per-version pinning, no dev marketplace; releasing
 to `main` is what makes a skill/hook live for everyone. To run unreleased
 `develop` behavior, load the source tree with `claude --plugin-dir` or tell the
 agent to read the file directly. Rationale: `vergil-project/.github` epic #45.
-
-## Refreshing the plugin locally
-
-When the user asks how to refresh / update / reinstall this plugin
-after a new release, the canonical sequence is in the README's
-[Update section](README.md#update). Do **not** guess or improvise —
-the sequence is two steps (`marketplace update` → `reload-plugins`)
-and both are required.
-
-## Development and deployment of this repo
-
-Working on the plugin itself (vs. consuming it) has its own
-canonical procedure. See
-[`README.md` → Development and deployment](README.md#development-and-deployment)
-for: worktree setup and the 2.1 ship-a-change flow
-(`/vergil:issue-implement` → human `vrg-submit-pr` → `/vergil:pr-watch`).
-Releases are cut via `vrg-publish` (a standalone CLI in
-vergil-tooling).
-
-## Cloud sessions and the relay handoff
-
-A session may run on a cloud VM rather than the Mac. With the relay
-tooling (epic
-[vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),
-**the cloud can do PR-development end to end** — the agent runs
-`/vergil:issue-implement`, validates green, and records the PR metadata
-with `vrg-pr-workflow report-ready`, which pushes the feature branch and
-then a **relay ref** to origin carrying the ready-state (no separate
-`vrg-git push` is needed). Only PR **submission and merge** stay
-human-on-Mac:
-
-- On the Mac the human runs `vrg-submit-pr <branch> [<branch> …]` with a
-  **positional branch list**; it opens the PR(s) **worktree-free** from
-  the relayed ready-state — no shared filesystem with the VM is needed.
-- **`--notes` (and title/summary) must not carry secrets.** The relay
-  ref is **world-readable** on a public repo — keep tokens, credentials,
-  and internal-only URLs out of the metadata.
-
-This replaces the former `/issue-localize` skill, which reconstructed
-the ready-state locally before the relay existed. The authoritative
-cloud-session contract lives in `vergil-tooling`; this section is the
-local on-ramp.
