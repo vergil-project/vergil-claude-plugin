@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.48] - 2026-10-28
+
+### Chores
+
+- sync the vergil-managed .gitignore block (#794)
+
+### Documentation
+
+- add the paad review doctrine (common core and mode 1) (#795)
+
 ## [2.1.47] - 2026-10-28
 
 ### Documentation
