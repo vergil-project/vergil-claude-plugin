@@ -29,7 +29,7 @@ never-suppress-a-gate rules are unaffected.
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue (locally or on a cloud VM), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
@@ -121,7 +121,12 @@ epic", "we're done with this epic".
 ## issue-implement
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via `vrg-validate`, then records
+its feature branch, validates to green via `vrg-validate`, runs the
+**agentic-review gate** — up to three rounds of `paad:agentic-review` on
+its own branch, fixing what each finds, recorded on the task issue, and
+pausing for the human only when the
+[paad review doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)
+says so — then records
 the PR metadata (`.vergil/pr-workflow.json`) with
 `vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
 `report-ready` also pushes the branch to origin, so there is no separate

@@ -70,6 +70,18 @@ present everything needing the human:
 
 - PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
 - operational tasks needing a human-gated release;
+- tasks paused at the agentic-review gate, each with its reason (the
+  `Paused: <reason>.` its run reported;
+  [doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)). When the
+  human rules on one, pass **every** ruling the human has made on that task in
+  this session (not only the latest) to a new `issue-implement` run for that
+  task, which continues in its existing worktree. A paused task re-dispatched
+  with no ruling simply stops again and is listed here again; it needs no
+  special handling;
+- tasks split out for out-of-scope additions the gate removed, each listed as
+  **needs scheduling**: they are not in the epic's plan, so the human decides
+  when they run
+  ([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff));
 - any problems you got stuck on (see step 5).
 
 **Batch PRs per repository, not across repos.** `vrg-submit-pr` operates on one
