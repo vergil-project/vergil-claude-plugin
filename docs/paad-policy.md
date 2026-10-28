@@ -25,14 +25,20 @@ visible and can be revisited.
 - The managed repo-level Claude settings template (`claude_settings.json` in
   vergil-tooling) does not enable or pin paad, and this policy does not
   change it.
-- Every `paad/config/` file names the paad version it was written for. Child
-  epic D (agentic review in `issue-implement`) detects drift between that
-  version and the installed one.
+- Child epic D (agentic review in `issue-implement`) adopts no `paad/config/`
+  file. Any config file child epic C adds (its fallback for design review)
+  names the paad version it was written for.
+- For now nobody detects drift between paad releases and the workflow's
+  expectations: D left drift detection out until real use shows it is needed
+  (`epics/568-agentic-review-gate/spec.md` §5). The output checks in the
+  [review doctrine](paad-review-doctrine.md) expect a paad version and treat
+  a different one as a warning.
 
 **Reason.** A pin would not hold where agents run: `vrg-vm update` moves every
-enabled plugin to its latest version. Recording the version in each config
-file, and detecting drift, is the mitigation for depending on paad's
-experimental config mechanism while unpinned.
+enabled plugin to its latest version. Recording the version in any config
+file is the mitigation for depending on paad's experimental config mechanism
+while unpinned, and it leaves drift detectable once someone needs to detect
+it.
 
 ## 2. Report files
 
@@ -41,18 +47,23 @@ experimental config mechanism while unpinned.
 - **Design-review reports (pushback, alignment) are not written.** The
   planning issue's comments are the record of every design-review round
   (spec §3.2).
-- **agentic-review output** is routed by child epic D (spec §3.3): results
-  reach the implementer through the subagent's answer and are recorded in
-  task-issue comments, and no paad output is left untracked in the worktree.
+- **agentic-review output** in `issue-implement`'s gate (child epic D): paad
+  writes its usual files in the task's worktree, where `paad/code-reviews/` is
+  ignored like `paad/security/`. The implementer reads the report from its
+  file, posts it to the task issue, and empties the directory after each
+  round; paad's code-review backlog does not persist
+  ([doctrine §3](paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)).
 - **All other paad reports** (architecture, test-roadmap and so on) are
   committed under `paad/`, as the authors recommend.
 
 **Reason.** The planning issue is the epic's permanent planning log, and
 review history must stay out of the reviewed document so that each round's
 reviewer starts with a fresh context. A report file would be a second, weaker
-copy of that record. For agentic-review, untracked report files break the next
-round's clean-state check and leave the worktree dirty at finalize. Reports
-with no issue-based record keep the authors' default.
+copy of that record. For agentic-review, the task issue is the record of each
+round: ignoring `paad/code-reviews/` keeps the worktree clean for the
+clean-state check and for finalize, and emptying it keeps earlier rounds out of
+the next reviewer's context. Reports with no issue-based record keep the
+authors' default.
 
 ## 3. `paad/security/`
 
@@ -71,14 +82,22 @@ findings only as counts.
 ## 4. `paad/config/`
 
 **Decision.** paad's per-project config (`paad/config/`) is adopted **only
-where a child epic needs it**: D for running agentic-review unattended, and C
-(iterating design review in `epic-create`) as the fallback if prompting alone
-cannot make pushback and alignment run in review-only mode. Every adopted file
-names the paad version it was written for (section 1).
+where a child epic needs it**.
+
+- **D adopts no config file.** The reviewer prompt alone runs agentic-review
+  unattended, and the gate's output checks fail a round whose answer has a
+  `Config:` line, since one means a stray `paad/config/` in the reviewed
+  branch changed the review
+  ([doctrine §3.4](paad-review-doctrine.md#34-output-checks)).
+- **C** (iterating design review in `epic-create`) may add config files as
+  its fallback, if prompting alone cannot make pushback and alignment run in
+  review-only mode; that fallback is not adopted
+  ([doctrine §2.10](paad-review-doctrine.md#210-fallback)). Any config file C
+  adds names the paad version it was written for (section 1).
 
 **Reason.** The config mechanism is experimental and can change in any paad
 release. Adopting it only where it solves a real problem keeps that exposure
-small, and the version line makes drift detectable.
+small, and the version line keeps drift detectable.
 
 ## 5. `paad:handoff`
 
@@ -117,15 +136,26 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 | Deviation from paad | Reason |
 |---|---|
 | Mode 2 (agentic-review in `issue-implement`) caps autonomous rounds at 3, then pauses for the human | The authors say "repeat" with a human present. Unattended, an unbounded loop is unsafe. |
-| paad is unpinned and follows the latest release, although D and C may rely on the experimental `paad/config/` | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. Mitigation: every config file names the version it was written for, and D detects drift. |
+| paad is unpinned and follows the latest release, although C's fallback may rely on the experimental `paad/config/` (D adopts no config file) | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. Mitigation: any config file C adds names the version it was written for. For now nobody detects paad drift (epic 568 spec §5). |
 | Design-review report files (pushback, alignment) are not written; the planning-issue comments are the record (spec §3.2) | The planning issue is the epic's permanent planning log, and review history must stay out of the reviewed document so the next round's reviewer has a fresh context. |
 | pushback and alignment run review-only in a fresh subagent, and the main session presents the findings and edits the document; paad runs them interactively in the session that edits | Each round needs a context that has not seen earlier rounds (umbrella §3.1). The human still sees one finding at a time with options. |
 | alignment's TDD rewrite step is skipped | `superpowers:writing-plans` writes tasks in red/green/refactor form. The reviewer reports each code task that is not as a minor finding ([doctrine §2.3](paad-review-doctrine.md#23-the-reviewer-prompt)), and it is fixed in the walk-through. |
 | The reviewer's reality check does not read the history of the document under review | Commit history of earlier rounds carries the provenance that umbrella §3.1 keeps out of the reviewer's context. |
 | Design-review rounds are repeated under explicit stop and continue signals, with the human deciding each round | The authors say "revise and repeat as needed" without stop rules. The experiment behind vergil-project/.github#469 showed that unruled repetition compounds complexity. |
-| agentic-review results are not left as report files in the worktree; D routes them through the subagent's answer into task-issue comments (spec §3.3) | Untracked report files stop the next round's clean-state check and leave the worktree dirty at finalize. The task issue is the record of each round. |
+| agentic-review writes its usual files, but `paad/code-reviews/` is ignored rather than committed; the implementer posts the report to the task issue and empties the directory after each round | The task issue is the record of each round. Adapting to paad's defaults is more reliable than redirecting them. Emptying the directory keeps earlier rounds out of the next reviewer's context. |
+| paad's code-review backlog does not persist; out-of-scope bugs go to intake | Intake is the system of record for follow-on work (umbrella §2.4). |
+| Out-of-scope additions are removed and filed as tasks, and out-of-scope bugs filed in intake, by the implementer rather than decided by the user | The run is unattended until it pauses (umbrella §3.3). |
+| The Spec Compliance intent source is a requirements file named in the prompt, not a spec-file argument | The skill's arguments take only a base and a path. Raise with the paad authors. |
 | The paad usage policy lives in this one central document rather than in each repo's steering file | The authors suggest recording the policy in the steering file. A single document avoids drift between copies across the fleet. Pointing each repo's steering files at it is handed to child epic E (steering-file review). |
 | `steering-audit` runs pushback findings-only: it collects and returns the findings instead of walking them one at a time, does not edit the reviewed file, and writes no report or other file | `steering-audit` walks the findings itself against the Claude config ownership model. In user scope it must write nothing at all, because the user-level files are personal and have no change control. |
+
+The first agentic-review row above refines umbrella §3.3's "results reach the
+implementer through the subagent's answer": the implementer reads paad's
+report from its file in the worktree. That refinement is the human's decision,
+made in the design review of epic
+[vergil-project/.github#568](https://github.com/vergil-project/.github/issues/568),
+to adapt to paad's defaults rather than redirect them; the task issue remains
+the record of every round.
 
 ## 8. Review doctrine
 

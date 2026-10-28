@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.50] - 2026-10-28
+
+### Documentation
+
+- doctrine section 3 for agentic review in issue-implement, and the paad policy to match (#803)
+
+### Features
+
+- sweep the epic for review findings that were never tracked (#804)
+- add the agentic-review gate, and list paused and split-out tasks in epic-implement (#805)
+
 ## [2.1.49] - 2026-10-28
 
 ### Features
