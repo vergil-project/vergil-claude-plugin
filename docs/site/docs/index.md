@@ -33,8 +33,11 @@ tools available to run.
 
 ### From marketplace
 
-The plugin ships through a single released channel on `main`. Configure your
-project's `.claude/settings.json`:
+The plugin ships through a single released channel on `main`. It is installed
+per user: add the marketplace definition and the plugin enable to your
+user-level `~/.claude/settings.json`, and the enable installs the plugin. If
+that file already has `extraKnownMarketplaces` or `enabledPlugins` objects,
+merge these entries into them rather than adding a second copy of either key:
 
 ```json
 {
@@ -52,6 +55,15 @@ project's `.claude/settings.json`:
   }
 }
 ```
+
+Do not put the marketplace definition in a repo's `.claude/settings.json`. A
+managed repo's file comes from the vergil-tooling template, which only enables
+`vergil@vergil-marketplace`: a second `vergil-marketplace` definition there
+would replace the user-level entry whole, and the nightly config audit requires
+the repo file to equal the template. See vergil-tooling's
+[Claude Config Ownership](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md)
+model and
+[Consuming Repo Setup](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#claudesettingsjson).
 
 ### Local development
 

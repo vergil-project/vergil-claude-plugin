@@ -61,7 +61,11 @@ walkthrough documented in vergil-tooling:
 - Detailed walkthrough with rationale:
   <https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md>
 
-The short version: add this to your repo's `.claude/settings.json`:
+The short version: the plugin is installed per user, not per repo. Add
+the marketplace definition and the plugin enable to your user-level
+`~/.claude/settings.json`. If that file already has `extraKnownMarketplaces`
+or `enabledPlugins` objects, merge these entries into them rather than
+adding a second copy of either key:
 
 ```json
 {
@@ -80,11 +84,22 @@ The short version: add this to your repo's `.claude/settings.json`:
 }
 ```
 
-Commit that file. Claude Code discovers and enables the plugin on
-session start. The `"ref": "main"` pins the marketplace to the
-**release** branch, so `marketplace update` tracks the latest
-released version (not the `develop` bleeding edge). The plugin loads
-directly from that checkout — there is no separate clone to fail.
+The user-level enable is what installs the plugin. The
+`"ref": "main"` pins the marketplace to the **release** branch, so
+`marketplace update` tracks the latest released version (not the
+`develop` bleeding edge). The plugin loads directly from that
+checkout — there is no separate clone to fail.
+
+A managed repo's `.claude/settings.json` is not where this goes. It
+comes from the vergil-tooling template, which only enables
+`vergil@vergil-marketplace` and never defines the marketplace: a
+second `vergil-marketplace` definition in the repo file would replace
+your user-level entry whole. The nightly config audit requires the
+repo file to equal that template. See vergil-tooling's
+[Claude Config Ownership](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md)
+model for which file owns each setting, and
+[Consuming Repo Setup](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#claudesettingsjson)
+for the repo file.
 
 **Prerequisite:** this plugin's commands and skills shell out to
 `vrg-commit`, `vrg-submit-pr`, `vrg-await`, and friends from
