@@ -102,8 +102,8 @@ just *merged* but *deployed and usable*. A deployment task makes that explicit,
 and its closure **is** the "deployed" signal:
 
 ```text
-impl task(s) ──Blocked-by──▶ deployment ──Blocked-by──▶ validation / next impl
-   merged                      deployed (= task closed)     runs against deployed
+impl tasks ──Blocked-by──▶ deployment ──Blocked-by──▶ validation / next impl
+  merged                      deployed (= task closed)     runs against deployed
 ```
 
 A downstream task that needs the thing deployed depends on the **deployment
