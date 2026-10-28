@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.46] - 2026-10-28
+
+### Bug fixes
+
+- fail closed when a hook script can't parse its input (#777)
+
+### Documentation
+
+- say the task or tasks that fix it in the advisory handoff (#775)
+
 ## [2.1.45] - 2026-10-27
 
 ### Features
