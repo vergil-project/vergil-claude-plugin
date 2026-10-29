@@ -264,9 +264,21 @@ within each stage.
 Every reviewer prompt is this template, with its placeholders filled in. It
 was validated in the spike for this mode
 ([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
-and is copied here verbatim from its outcome, with one later addition: the
-`Temporary directory:` paragraph, which the stray-write check in
-[§2.4](#24-output-checks-and-broken-rounds) needs and the spike did not run.
+and is copied here verbatim from its outcome, with two later changes:
+
+- the `Temporary directory:` paragraph, which the stray-write check in
+  [§2.4](#24-output-checks-and-broken-rounds) needs and the spike did not
+  run;
+- **2026-10-28, the security failure signal**
+  ([vergil-project/vergil-claude-plugin#812](https://github.com/vergil-project/vergil-claude-plugin/issues/812)).
+  The prompt used "hold" both for the routing answer and for the failure
+  signal ("security hold"). In a dogfood alignment stage, two reviewers in a
+  row echoed the routing answer as a "security hold" annotation on their
+  `Security:` line, although every check had passed, and §2.4 read both
+  rounds as broken. The failure signal is now the `SECURITY-CHECK-FAILED`
+  line, the `Security:` line takes no annotations, and the routing directive
+  no longer uses the word "hold".
+
 Do not reword it: changing the prompt is a doctrine change.
 
 ````text
@@ -283,12 +295,12 @@ Temporary directory: every Bash command you run also sets `TMPDIR` to `{{REVIEW_
 Review-only directives (these override the skill where they conflict):
 - Collect every finding. Do not walk anyone through them one at a time.
 - Edit nothing and write nothing, anywhere, except security findings as described below. That includes temporary files and copies: to read a file as it was at an older commit, use `vrg-git show <sha>:<path>` and read the output.
-- Ask nothing. Where the skill would ask (input confirmation, a source-control conflict, a scope split, which update to make), report it as a finding or state the assumption you used. If the skill's "hold or ordinary report" security question arises, the answer is always **hold**: security details never go into the ordinary findings.
+- Ask nothing. Where the skill would ask (input confirmation, a source-control conflict, a scope split, which update to make), report it as a finding or state the assumption you used. If the skill asks whether to keep security findings out of the ordinary report, keep them out: security details never go into the ordinary findings.
 - Skip the skill's report file (`paad/pushback-reviews/…`, `paad/alignment-reviews/…`).
 - Skip alignment's TDD rewrite step. Instead, report each code task in the plan that is not in red/green/refactor form as a minor finding.
 - Return the full ranked list with its discards.
 
-Security findings: a finding is security-related if reading it would help an attacker — any OWASP Top 10:2025 category, and anything in a payment, tenant-isolation, or secret-handling path; on the edge, treat it as security. Before you report any finding as ordinary, test it against that definition. A gap, contradiction, missing task or drift is still a security finding if it concerns who can read private data, or who can trigger an action or a state change. How you would otherwise frame it does not make it ordinary. Write security findings only to `paad/security/{{SKILL}}-<YYYY-MM-DD>-{{TOPIC}}.md` (relative to the working directory above). Give each one a `### ` heading, followed by a `Severity:` line (from the skill's scale) and a `Section:` line. Before the first write, make sure `paad/security/.gitignore` exists and contains the single line `*` (create it if absent, never rewrite it if present) and that `vrg-git ls-files paad/security/` lists nothing. If either check fails, write no security file, and report "security hold" with the count only. Never put any security detail (path, severity, symbol, description) in your returned answer: return only the count.
+Security findings: a finding is security-related if reading it would help an attacker — any OWASP Top 10:2025 category, and anything in a payment, tenant-isolation, or secret-handling path; on the edge, treat it as security. Before you report any finding as ordinary, test it against that definition. A gap, contradiction, missing task or drift is still a security finding if it concerns who can read private data, or who can trigger an action or a state change. How you would otherwise frame it does not make it ordinary. Write security findings only to `paad/security/{{SKILL}}-<YYYY-MM-DD>-{{TOPIC}}.md` (relative to the working directory above). Give each one a `### ` heading, followed by a `Severity:` line (from the skill's scale) and a `Section:` line. Before the first write, make sure `paad/security/.gitignore` exists and contains the single line `*` (create it if absent, never rewrite it if present) and that `vrg-git ls-files paad/security/` lists nothing. If either check fails, write no security file, and put the line `SECURITY-CHECK-FAILED` in your returned answer, on a line of its own, directly before the `Security:` line that gives the count. Never put any security detail (path, severity, symbol, description) in your returned answer: return only the count.
 
 Review the **whole** document, including mechanisms that look like recent additions. Removing a mechanism, step or task is a legitimate finding.
 
@@ -299,7 +311,7 @@ Return format, exactly:
 2. A `Config:` line only if a paad config file was followed.
 3. One block per finding, ranked by severity: its paad severity, using exactly the word from the skill's own scale ({{SCALE}}) and no other scale, its section reference, the "If this ships as written, Y happens, because Z" claim, and its options from best to worst with a recommendation.
 4. `Discards: <k>` followed by one line each.
-5. `Security: <k> finding(s)` or `Security: 0`.
+5. `Security: <k> finding(s)` or `Security: 0`, exactly, with nothing else on the line. If a security check failed, the line `SECURITY-CHECK-FAILED` comes directly before it, on a line of its own.
 6. Every file you or paad wrote, each as an absolute path (or `Files written: none`).
 ````
 
@@ -383,8 +395,14 @@ discards it.
 - every finding carries a paad severity and a section reference, and the
   severity is a word in that skill's column of the [§1.3](#13-severity)
   table;
-- the reviewer did not report a security hold;
-- the `Discards:` and `Security:` lines are present;
+- no line of the answer is `SECURITY-CHECK-FAILED`. That token is the
+  reviewer's only signal that a security check failed; the word "hold"
+  elsewhere in the answer is not one;
+- the `Discards:` line is present;
+- the `Security:` line is present and is exactly `Security: <k> finding(s)`
+  or `Security: 0`, with nothing else on the line (it matches
+  `^Security: (0|[1-9][0-9]* finding\(s\))$`). An annotation on it fails
+  this check;
 - every file the reviewer or paad wrote, as an absolute path, is under the
   docs worktree's `paad/security/`, and when `Security:` reports findings,
   that file exists. A reported write anywhere else, even of a file that was
@@ -476,8 +494,8 @@ as a pass, and its findings are not acted on.
    A skip is recorded in the round comment with the human's reason.
 
 Repeated broken rounds are evidence for the fallback ([§2.10](#210-fallback)).
-A security hold keeps its details only in the terminal conversation with
-the human.
+A round that reports `SECURITY-CHECK-FAILED` keeps its details only in the
+terminal conversation with the human.
 
 ### 2.5 The recommendation
 
