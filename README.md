@@ -183,7 +183,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 
 | Skill | Purpose |
 |---|---|
-| `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec → plan, create the epic and seed its bookend tasks |
+| `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
 | `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
 | `issue-implement` | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human |
