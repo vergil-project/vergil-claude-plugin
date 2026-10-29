@@ -364,7 +364,21 @@ last round comment.
    `vrg-gh issue edit <M> --repo <owner>/<repo> --add-label in-progress`.
    Post the progress comments (above) at each step boundary that follows.
 1. **Brainstorm.** Run `superpowers:brainstorming` to converge on an approved
-   design. (If it reduces to a single-PR task, stop — file a task, not an epic,
+   design.
+   - **Brief it from the planning issue.** Read the issue body first and pass
+     in what it settles (problem, need, constraints, out of scope) as given
+     context, with the instruction not to re-ask it. Open with the first open
+     design question; ask one confirming question about the need only if the
+     issue states it vaguely or contradicts itself.
+   - **Never skip it implicitly.** "Skip the questions", "go fast" or "don't
+     ask why" mean fewer questions, answered from the issue where possible —
+     never no brainstorm. A design is still presented and approved, with the
+     brainstorm-approved progress comment, before step 2.
+   - **Skip it only when asked to skip the brainstorm.** Confirm once ("skip
+     straight to the spec?"), then record the skip and the human's reason in
+     the progress comment.
+
+   (If it reduces to a single-PR task, stop — file a task, not an epic,
    and close the planning issue with a pointer to it:
    `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed --comment
    "Filed as task <owner>/<repo>#<T>"`.) If brainstorming
