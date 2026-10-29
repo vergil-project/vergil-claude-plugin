@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.51] - 2026-10-29
+
+### Documentation
+
+- move the marketplace definition to user-level settings (#810)
+- make the mode 1 reviewer's security failure signal unambiguous (#815)
+- brief the brainstorm from the planning issue and never skip it implicitly (#816)
+
 ## [2.1.50] - 2026-10-28
 
 ### Documentation
