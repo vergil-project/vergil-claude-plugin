@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -864,6 +866,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="releases/v2.1.51/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.51
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3806,8 +3836,11 @@ that enforces workflow compliance mechanically.</p>
 tools available to run.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <h3 id="from-marketplace">From marketplace<a class="headerlink" href="#from-marketplace" title="Permanent link">&para;</a></h3>
-<p>The plugin ships through a single released channel on <code>main</code>. Configure your
-project's <code>.claude/settings.json</code>:</p>
+<p>The plugin ships through a single released channel on <code>main</code>. It is installed
+per user: add the marketplace definition and the plugin enable to your
+user-level <code>~/.claude/settings.json</code>, and the enable installs the plugin. If
+that file already has <code>extraKnownMarketplaces</code> or <code>enabledPlugins</code> objects,
+merge these entries into them rather than adding a second copy of either key:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"extraKnownMarketplaces"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">"vergil-marketplace"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -3823,6 +3856,14 @@ project's <code>.claude/settings.json</code>:</p>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">}</span>
 </code></pre></div>
+<p>Do not put the marketplace definition in a repo's <code>.claude/settings.json</code>. A
+managed repo's file comes from the vergil-tooling template, which only enables
+<code>vergil@vergil-marketplace</code>: a second <code>vergil-marketplace</code> definition there
+would replace the user-level entry whole, and the nightly config audit requires
+the repo file to equal the template. See vergil-tooling's
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md">Claude Config Ownership</a>
+model and
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#claudesettingsjson">Consuming Repo Setup</a>.</p>
 <h3 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w"> </span>--plugin-dir<span class="w"> </span>/path/to/vergil-claude-plugin
 </code></pre></div>
