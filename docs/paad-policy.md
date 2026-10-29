@@ -126,9 +126,9 @@ Section 2 governs new reports only; rewriting history gains nothing.
 
 ## 7. Other paad skills
 
-**Decision.** The remaining paad skills were evaluated one by one with the
-human (child F of the epic). Each is adopted with a place in the workflow, or
-recorded as a deviation with its reason.
+**Decision.** The paad skills listed for child F of the epic (umbrella spec
+§4.F) were evaluated one by one with the human. Each is adopted, used by hand
+in a stated place in the workflow, or recorded as a deviation with its reason.
 
 | Skill | Decision | Place in the workflow |
 |---|---|---|
@@ -140,9 +140,9 @@ recorded as a deviation with its reason.
 | `agentic-dedup` | Interesting, used by hand | Run by hand in the periodic review. Results feed planning. |
 | `backlog` | **Not adopted: deviation** | paad's code-review backlog is not kept (existing register row), so there is nothing for it to work on. Intake is the system of record; `intake-review` and `deferred-review` cover clean, and routing an intake item to a task covers fix. |
 
-**Reason.** `agentic-owasp`, `agentic-dedup` and `backlog` are marked
-EXPERIMENTAL by paad, which is a further reason to use them by hand rather
-than build on them.
+**Reason.** `agentic-owasp` and `agentic-dedup` are marked EXPERIMENTAL by
+paad, which is a further reason to use them by hand rather than build on them.
+`backlog` is marked EXPERIMENTAL too.
 
 ## 8. Deviations register
 
