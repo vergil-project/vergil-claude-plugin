@@ -13,7 +13,7 @@ Propose the entry and where it belongs first, then wait for the decision.
 - Sessions always start at the project root, never inside `.worktrees/`.
 - One worktree per issue: `.worktrees/issue-<N>-<slug>/` on branch
   `feature/<N>-<slug>`. Remove it once its branch lands.
-- The main worktree is read-only; every edit goes through a worktree.
+- The main worktree is read-only, bar ignored `build/` scratch; every edit goes through a worktree.
 - Read, Edit and Write use the worktree's absolute path. Bash commands `cd`
   into the worktree first or use absolute paths.
 - The full convention: <https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md>.
