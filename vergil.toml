@@ -6,11 +6,13 @@ release-model = "tagged-release"
 
 [publish]
 consumer-refresh = """\
-# Refresh the marketplace metadata so the just-released version is visible,
-# then advance the installed plugin to it. The next Claude Code session start
-# loads the updated plugin, so no in-session reload step is needed.
-claude plugin marketplace update vergil-marketplace
-claude plugin update vergil@vergil-marketplace
+# Refresh the host's plugins: re-add each declared marketplace at its declared ref,
+# update every install, and verify the registered repo and ref
+vrg-host plugins
+# Refresh the plugins in every running dev VM
+vrg-vm update --all
+# The next Claude Code session start loads the updated plugin, so no
+# in-session reload step is needed.
 """
 
 [ci]
