@@ -32,10 +32,11 @@ validation through the dev container, and so on.
 
 ## Distribution model
 
-The plugin ships through a **single channel**: every consumer — every
-`vergil-project` repo, the host and every agent VM — registers
-`vergil-marketplace@v2.1` and follows the floating `v2.1` rolling tag. There is
-no per-version pinning: the plugin is *behavioral guidance* (skills, hooks,
+The plugin ships through a **single channel**: every consumer — the host and
+every agent VM — registers `vergil-marketplace@v2.1` in its user-level
+settings and follows the floating `v2.1` rolling tag; each `vergil-project`
+repo only enables `vergil@vergil-marketplace`. There is no per-version
+pinning: the plugin is *behavioral guidance* (skills, hooks,
 agents), not a versioned API that code links against, so every consumer runs
 whatever release `v2.1` points at.
 
@@ -101,8 +102,8 @@ adding a second copy of either key:
 ```
 
 The user-level enable is what installs the plugin. The
-`"ref": "v2.1"` points the marketplace at the floating `v2.1` tag, so
-`marketplace update` picks up the release `v2.1` points at: the latest
+`"ref": "v2.1"` points the marketplace at the floating `v2.1` tag, so an
+[update](#update) installs the release `v2.1` points at: the latest
 release, or an earlier one after a
 [rollback](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release),
 never the `develop` bleeding edge. The plugin loads directly from that
@@ -133,22 +134,35 @@ PATH first — see the Getting Started guide above.
 
 ## Update
 
-After a new release ships, refresh the local install with this
-two-step sequence:
+A release or a rollback moves `v2.1`; each machine picks the move up when
+its plugins are next updated. On the vergil fleet, run in a human shell:
+
+```bash
+vrg-host plugins        # the host
+vrg-vm update --all     # every running agent VM
+```
+
+Then restart Claude Code: a running session keeps the plugin version it
+loaded. See vergil-tooling's
+[Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine).
+
+To refresh a single install from inside Claude Code instead:
 
 ```text
 /plugin marketplace update vergil-marketplace
+/plugin update vergil@vergil-marketplace
 /reload-plugins
 ```
 
 What each step does:
 
 1. **`/plugin marketplace update <marketplace>`** — refreshes the
-   marketplace index and downloads the new plugin version into the
+   marketplace clone, so the release `v2.1` now points at is visible.
+2. **`/plugin update <plugin>`** — installs that release into the
    local cache at `~/.claude/plugins/cache/<plugin-id>/<version>/`.
    The previous version stays on disk for 7 days as a grace window
    for concurrent sessions, then is removed automatically.
-2. **`/reload-plugins`** — applies the new skills / hooks / agents
+3. **`/reload-plugins`** — applies the new skills / hooks / agents
    to the **current** Claude Code session without restarting.
    Without this, the running session keeps using the old in-memory
    plugin state.
@@ -156,12 +170,16 @@ What each step does:
 ### Verify the update
 
 ```bash
-ls -1 ~/.claude/plugins/cache/vergil-marketplace/vergil/
+claude plugin list --json
 ```
 
-You should see one directory per cached version. The newest
-version should match the latest tag on
-[GitHub Releases](https://github.com/vergil-project/vergil-claude-plugin/releases).
+`vergil@vergil-marketplace` should be at the release `v2.1` points at:
+normally the latest tag on
+[GitHub Releases](https://github.com/vergil-project/vergil-claude-plugin/releases),
+or the earlier release after a rollback. Don't judge by the newest
+directory under `~/.claude/plugins/cache/vergil-marketplace/vergil/`:
+after a rollback the newer, rolled-back-from version stays cached there
+for up to 7 days.
 
 ### References
 

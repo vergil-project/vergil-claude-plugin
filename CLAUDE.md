@@ -118,9 +118,9 @@ tools available to run.
 
 ## Plugin distribution model
 
-The plugin ships through a **single channel**: every consumer (the
-`vergil-project` repos, the host and every agent VM) registers
-`vergil-marketplace@v2.1`, the floating `v2.1` rolling tag. No per-version
+The plugin ships through a **single channel**: every consumer (the host and
+every agent VM, in user-level settings) registers `vergil-marketplace@v2.1`,
+the floating `v2.1` rolling tag; repos only enable `vergil@vergil-marketplace`. No per-version
 pinning, no dev marketplace. A release makes a skill/hook live for everyone by
 moving `v2.1` forward to the new `v2.1.Z`; a rollback (`vrg-promote`, a human
 act) moves it back to an earlier one. `main` stays the release branch, but
