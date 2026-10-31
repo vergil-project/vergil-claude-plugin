@@ -49,9 +49,11 @@ it.
   (spec §3.2).
 - **agentic-review output** in `issue-implement`'s gate (child epic D): paad
   writes its usual files in the task's worktree, where `paad/code-reviews/` is
-  ignored like `paad/security/`. The implementer reads the report from its
-  file, posts it to the task issue, and empties the directory after each
-  round; paad's code-review backlog does not persist
+  ignored like `paad/security/`. After each round the implementer moves the
+  report, and paad's other output, into the task's private state directory,
+  which empties the worktree's `paad/code-reviews/` and `paad/security/`
+  (but its `.gitignore`), and posts its findings, sorted, to
+  the task issue; paad's code-review backlog does not persist
   ([doctrine §3](paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)).
 - **All other paad reports** (architecture, test-roadmap and so on) are
   committed under `paad/`, as the authors recommend.
@@ -162,10 +164,9 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 | alignment's TDD rewrite step is skipped | `superpowers:writing-plans` writes tasks in red/green/refactor form. The reviewer reports each code task that is not as a minor finding ([doctrine §2.3](paad-review-doctrine.md#23-the-reviewer-prompt)), and it is fixed in the walk-through. |
 | The reviewer's reality check does not read the history of the document under review | Commit history of earlier rounds carries the provenance that umbrella §3.1 keeps out of the reviewer's context. |
 | Design-review rounds are repeated under explicit stop and continue signals, with the human deciding each round | The authors say "revise and repeat as needed" without stop rules. The experiment behind vergil-project/.github#469 showed that unruled repetition compounds complexity. |
-| agentic-review writes its usual files, but `paad/code-reviews/` is ignored rather than committed; the implementer posts the report to the task issue and empties the directory after each round | The task issue is the record of each round. Adapting to paad's defaults is more reliable than redirecting them. Emptying the directory keeps earlier rounds out of the next reviewer's context. |
-| paad's code-review backlog does not persist; out-of-scope bugs go to intake | Intake is the system of record for follow-on work (umbrella §2.4). |
+| agentic-review writes its usual files, but `paad/code-reviews/` is ignored rather than committed; the implementer moves the report into the task's private state directory after each round and posts its findings to the task issue | The task issue is the record of each round, and a paused round keeps its material privately. Adapting to paad's defaults is more reliable than redirecting them. Emptying the directory keeps earlier rounds out of the next reviewer's context. |
+| paad's code-review backlog does not persist; an out-of-scope bug goes to intake when the human rules it filed | Intake is the system of record for follow-on work (umbrella §2.4). |
 | `paad:backlog` is not used | paad's code-review backlog does not persist and intake is the system of record. The queue-review skills (`intake-review`, `deferred-review`) and the task model cover its clean and fix modes. |
-| Out-of-scope additions are removed and filed as tasks, and out-of-scope bugs filed in intake, by the implementer rather than decided by the user | The run is unattended until it pauses (umbrella §3.3). |
 | The Spec Compliance intent source is a requirements file named in the prompt, not a spec-file argument | The skill's arguments take only a base and a path. Raise with the paad authors. |
 | The paad usage policy lives in this one central document rather than in each repo's steering file | The authors suggest recording the policy in the steering file. A single document avoids drift between copies across the fleet. Pointing each repo's steering files at it is handed to child epic E (steering-file review). |
 | `steering-audit` runs pushback findings-only: it collects and returns the findings instead of walking them one at a time, does not edit the reviewed file, and writes no report or other file | `steering-audit` walks the findings itself against the Claude config ownership model. In user scope it must write nothing at all, because the user-level files are personal and have no change control. |
