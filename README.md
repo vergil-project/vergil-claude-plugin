@@ -173,17 +173,28 @@ unless a rollback has moved `v2.1` back to an earlier release, so check the
 tag, not the newest release. From a vergil-claude-plugin checkout:
 
 ```bash
-vrg-git ls-remote --tags origin | grep "^$(vrg-git ls-remote origin refs/tags/v2.1 | cut -f1)"
+sha=$(vrg-git ls-remote origin refs/tags/v2.1 | cut -f1) && [ -n "$sha" ] \
+  && vrg-git ls-remote --tags origin | grep "^$sha"
 ```
 
-It prints the `v2.1` line and the `v2.1.Z` tag it points at; that `2.1.Z`
-is the version to expect. On any machine that does not show it, run
-`vrg-host plugins` or `vrg-vm update` again.
+It prints two lines with the same object ID: `v2.1` and the `v2.1.Z` tag it
+points at. That `2.1.Z` is the version to expect. Any other output, or
+none, means the lookup failed; do not read a version from it. On any
+machine that does not show the expected version, run `vrg-host plugins` or
+`vrg-vm update` again.
+
+A Lima `vrg-vm session` that loads a vergil plugin tree with
+`--plugin-dir` (listed in the host's `~/.config/vergil/plugin-dirs.toml`)
+runs that tree, not the installed plugin, so neither a release nor a
+rollback reaches it; see the
+[runbook](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine).
 
 ### References
 
 - [Rolling back a release](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
   — vergil-tooling's rollback runbook.
+- [Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
+  — the runbook's pick-up and verification steps.
 - [Plugins reference — CLI commands](https://code.claude.com/docs/en/plugins-reference.md)
   — the official Claude Code documentation.
 
