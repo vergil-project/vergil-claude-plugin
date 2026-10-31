@@ -54,10 +54,12 @@ kind-specific concerns.
 
 **A run given rulings only.** When `epic-implement` dispatches a run with
 rulings on items an earlier run listed, skip steps 2–5: take each item only
-from the dispatch prompt, skip any ruling whose line is already on the
-issue, carry out the rest, record each one, and stop, even on a closed
-task. It never runs alongside another run of the same task. A ruling that could not be carried out gets no
-ruling line: keep its details and report it as still waiting
+from the dispatch prompt, skip any ruling whose line (for a `record`,
+whose `Recorded:` line) a trusted author has already posted on the issue,
+carry out the rest, record each one, and stop, even on a closed task. It
+never runs alongside another run of the same task. A ruling that could not
+be carried out gets no ruling line: keep its details and report it as
+still waiting
 ([doctrine §1.7](../../../docs/paad-review-doctrine.md#17-creating-issues)).
 
 ## Out of band
@@ -81,11 +83,14 @@ task is filed in, under the state-directory rules
 and post a `Kept: <file> sha256:<hash>` line for it in the comment that
 lists the item. Present it in the terminal only (under `epic-implement`, in
 your final message to the main session, never posted). On a `record`
-ruling, record it with `vrg-security-record`
-([doctrine §3.6](../../../docs/paad-review-doctrine.md#36-security-findings));
-on `reject`, record nothing. Delete its details once the ruling is carried
-out, and record the ruling only as §1.7's counts line (`Human ruling:
-security: <k> items: …`), never per item.
+ruling, first check for a trusted author's `Recorded: <ID>` line for it
+(if there is one, it is already recorded), then record it with
+`vrg-security-record`
+([doctrine §3.6](../../../docs/paad-review-doctrine.md#36-security-findings))
+and post `Recorded: <ID>`, the ID only; on `reject`, record nothing. Delete
+its details once the ruling is carried out, and record the ruling only as
+§1.7's counts line (`Human ruling: security: <k> findings: …`), never per
+item.
 
 The issue's comments are the recovery record if a session is lost mid-run;
 `paad:handoff` is available for session continuity.

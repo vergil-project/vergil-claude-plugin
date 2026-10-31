@@ -100,7 +100,8 @@ present everything needing the human:
   special handling;
 - every run's items **awaiting a ruling**, paused or not, as its final
   report gives them, security details included and shown only here. File
-  and post none of them: pass a task's rulings with no ruling line yet
+  and post none of them: pass a task's rulings with no trusted author's
+  ruling or `Recorded:` line yet
   together, with each
   item's text, the approved form, any security details and the human's
   confirmation of the listing of any `operational/<N>/` state directory the
@@ -162,7 +163,7 @@ it at the gate with the runs' items; file it only as the human approves,
 then record the ruling in that comment as §1.7 says. A
 security item is posted only as a count, its details kept in this
 conversation, and is ruled on in this session; its ruling is recorded only
-as §1.7's counts line (`Human ruling: security: <k> items: …`). The
+as §1.7's counts line (`Human ruling: security: <k> findings: …`). The
 per-repo doc tasks the
 documentation-review sweep spawns (step 6) are exempt.
 

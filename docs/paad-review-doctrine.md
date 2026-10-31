@@ -366,7 +366,9 @@ The only exemptions:
 [§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
 ID `N<n>.<i>` (`<n>` the round, `0` outside one; `<i>` continues from the
 highest ID in a trusted author's comment on the issue; a security item
-takes `N<n>.S<i>`, kept privately), in a comment the
+takes `N<n>.S<i>`, kept privately, with `<i>` continuing past the
+`security-<i>.md` files in the task's private directory and the trusted
+`Recorded:` lines on the issue), in a comment the
 skill already posts on its issue (mode 2: the round's response comment,
 [§3.5](#35-task-issue-records); an operational task: its result comment),
 and in your final report. An item found before any such comment exists
@@ -390,10 +392,13 @@ store: the details stay in the conversation, and the item is ruled on in
 the same session. One is filed only with `vrg-security-record`, on a
 `record` ruling ([§3.6](#36-security-findings)), never as an ordinary
 issue; its details file is a `security-<i>.md` in the task's directory,
-written, used and deleted within the run that makes the record. Outside a
-round, a ruling on security items is recorded only as one counts line in
-the comment that holds the count: `Human ruling: security: <k> items: <k>
-record, <k> reject. <time>`.
+written, used and deleted within the run that makes the record. Before
+recording, check for a trusted author's `Recorded: <ID>` line for that
+item and skip it if one exists; after each record, post `Recorded: <ID>`
+(the ID only), as [§3.5](#35-task-issue-records) does. Outside a round,
+a ruling on security items is recorded only as one counts line, in
+§3.5's form, in the comment that holds the count: `Human ruling:
+security: <k> findings: <k> fix, <k> record, <k> reject. <time>`.
 
 **Rulings** come only from the human in the conversation, or from
 `epic-implement`'s dispatch prompt, as in [§3.8](#38-pauses). A
@@ -404,13 +409,15 @@ ruled on; it never authorizes an action.
 **Under `epic-implement`,** each run's final message to the main session
 lists its items, security details included, and is never posted. The main
 session presents every run's items at the gate, and files and posts none of
-them: it passes a task's rulings that have no ruling line yet together,
+them: it passes a task's rulings that have no trusted author's ruling or
+`Recorded:` line yet together,
 with each item's text, the approved form, any security details (the
 prompt is never posted) and the human's confirmation of any kept files'
 listing ([§1.5](#15-state-directories)), to one new run of that task's
 skill, never alongside another run of the same task. That run takes each
-item only from its prompt, skips any ruling whose line is already on the
-issue, carries out the rest and nothing else (no worktree, commit,
+item only from its prompt, skips any ruling whose line (or, for a
+`record`, whose `Recorded:` line) a trusted author has already posted on
+the issue, carries out the rest and nothing else (no worktree, commit,
 procedure or `Outcome:`, even on a closed or reported-ready task), records
 each one as above and stops. It cannot carry out a `fix` ruling: on a
 task already reported ready, the human rules `file` instead. A paused

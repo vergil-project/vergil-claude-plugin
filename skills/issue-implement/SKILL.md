@@ -45,9 +45,13 @@ worktree and makes no commit, even on a reported-ready task. It takes each
 item, and any security details, only from its prompt; for a `record`
 ruling it writes the details as a `security-<i>.md` in the task's
 `agentic-review/<N>/` directory, uses it and deletes it within the run. It
-records each ruling it carried out as §1.7 says (security rulings as the
-counts line only); one it could not carry out gets no ruling line and is
-reported as still waiting.
+never runs alongside another run of the same task, and skips any ruling
+whose line (for a `record`, whose `Recorded:` line) a trusted author has
+already posted. It cannot carry out a `fix` ruling: on a reported-ready
+task the human rules `file` instead. It records each ruling it carried
+out as §1.7 says (security rulings as `Recorded: <ID>` and the counts line
+only); one it could not carry out gets no ruling line and is reported as
+still waiting (§1.7, "Under `epic-implement`").
 
 ## Preflight
 

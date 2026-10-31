@@ -87,7 +87,8 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 
 For a failure screened as security-class, the comment gives `Outcome:
 FAILURE`, neutral evidence that does not describe the weakness, and the
-security count only; the details go to `operational/<N>/`
+security count only; the details go to `operational/<N>/`, with a `Kept:`
+line
 ([lifecycle step 4](references/operational-task-lifecycle.md#lifecycle)).
 
 - **SUCCESS →** close the issue, citing the result; closing it lets the epic roll
