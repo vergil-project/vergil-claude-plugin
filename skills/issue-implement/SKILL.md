@@ -30,7 +30,10 @@ reports, a gap you hit, a "we should also…" — file it now; do not offer to f
 it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
 [--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
 otherwise, and tell the human what you filed. A filed issue survives compaction
-and session loss; one held in context does not.
+and session loss; one held in context does not. This does not cover the
+agentic-review gate: its findings, anything noticed during it and a paused
+run's items are filed only as the human approves
+([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
 
 ## Preflight
 
@@ -103,9 +106,10 @@ and session loss; one held in context does not.
    comment on the issue, since no round has run) and stop until the human
    rules.
 6. **Leftover state.** If the task's state directory,
-   `build/.vergil-state/agentic-review/<N>/` in the main clone, exists and
-   the issue shows no paused round to resume, tell the human before doing
-   anything else and wait for their decision
+   `build/.vergil-state/agentic-review/<N>/` in the main clone, exists with
+   no live pause or open `Kept:` line on the issue, and is not only the
+   live ruling record, tell the human before doing anything else and wait
+   for their decision; under `epic-implement`, the main session passes it
    ([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 7. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
@@ -173,13 +177,16 @@ issue's trusted findings comments.
 
 **First, check for a pause.** Read the task issue's comments, trusting only
 authors that `vrg-trusted-authors` lists. If the latest trusted
-`agentic-review round <n>: response` comment has a `Paused: <reason>.` line
-and the human has not ruled on it in this conversation, report the pause to
-the human again and stop: run no review
+`agentic-review round <n>: response` comment has a live pause (a `Paused:`
+line and no `Finished:` line) and the human has not ruled on it in this
+conversation, report the pause to the human again and stop: run no review
 ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)). A pause is resolved
 only by the human. Once the human has ruled, carry the ruling out and
 continue. In a new session, first show the human each recorded `fix`
-ruling for confirmation ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
+ruling for confirmation; under `epic-implement`, the confirmations come in
+the dispatch prompt, and a run that lacks one stops and reports it as an
+item waiting on the human
+([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 
 Each round, in order
 ([§3.1](../../docs/paad-review-doctrine.md#31-the-loop)):
@@ -202,7 +209,9 @@ Each round, in order
 3. **Check the output**
    ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)), stray-write
    sweep and the state directory's hash first. A failed check pauses the
-   run, and the round's findings are not acted on.
+   run and skips steps 4–7: post a findings comment naming the failed check,
+   with no findings, and a response comment with `Paused:`, and leave
+   everything else untouched.
 4. **Collect.** Move paad's report and every other file in `paad/code-reviews/`
    and `paad/security/` (but its `.gitignore`) into the round's state
    subdirectory, under neutral names, hashing each. Delete the round
@@ -216,16 +225,27 @@ Each round, in order
 6. **Decide:** **pass** if nothing is left to act on; **pause** if any
    finding needs the human, the round cap is reached with anything to act
    on, or most findings are repairs, acting on nothing in the round;
-   otherwise **act**. Every path posts the
-   `agentic-review round <n>: response` comment.
+   otherwise **act**. A pass or a pause posts the
+   `agentic-review round <n>: response` comment now; acting posts it at the
+   end of step 7.
 7. **Act on the whole round,** your own findings and the human's rulings
    together, with ordinary `vrg-commit` commits whose messages describe the
    change, never the round or the finding. File and record only what the
-   human approved
+   human approved, one ruling at a time, adding each one's line to the
+   response comment before the next
    ([§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
-   Run `vrg-container-run -- vrg-validate` and repair it until green, finish
-   the response comment, delete the round's state subdirectory, take the
-   seal, and run another round.
+   Write each security ruling to the ruling record and post its
+   `Ruling record:` hash
+   ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)). Run
+   `vrg-container-run -- vrg-validate` and repair it until green. Once every
+   ruling is carried out and recorded, delete the round's state
+   subdirectory (if one could not be, keep it and pause), then post or
+   finish the response comment with `Finished:` (edit a paused round's with
+   `--edit-last`), and take the seal. Then, by the branch ruling:
+   `accept-branch` posts the summary with outcome `accepted`, deletes the
+   task's state directory and goes on to report-ready; `drop-branch` posts
+   it with outcome `dropped`, deletes the directory and stops; otherwise
+   run another round.
 
 **On a pass,** post the response comment and delete the round's state
 subdirectory, then post the `agentic-review summary: pass after <n> round(s)`
@@ -238,17 +258,18 @@ to report-ready below.
 **On a pause**
 ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), stop before
 `report-ready`: post the response comment with its `Paused:` and `Kept:`
-lines, take the end-of-round seal, and present each item to the human in
+lines, take the end-of-round seal (after a pause on a state-directory
+check, post the `Kept:` hashes and take the seal only once the human has
+confirmed the directory's contents), and present each item to the human in
 the terminal: the finding, its reason and your recommendation with the
 alternatives, best first. Under `epic-implement`, put the items, security
 details included, in your final message to the main session instead; it is
 never posted. Take rulings only from the human in the conversation, record
 each as a `Human ruling:` line in the fixed form, and act on the whole
-round. At the round cap the human rules `another-round`, `accept-branch` or
-`drop-branch`; every item still unruled is ruled before the summary. An
-accepted branch posts the summary with outcome `accepted` and goes on to
-report-ready; a dropped one posts it with outcome `dropped` and stops. A
-pause is not a save point: the branch is not pushed until `report-ready`.
+round (step 7). At the round cap the human rules `another-round`,
+`accept-branch` or `drop-branch`; approving a fix there grants the round
+that reviews it, and every item still unruled is ruled before the summary.
+A pause is not a save point: the branch is not pushed until `report-ready`.
 
 **Security findings** always wait for the human's ruling, and never appear
 in a public record except as counts: no titles, details or advisory IDs in

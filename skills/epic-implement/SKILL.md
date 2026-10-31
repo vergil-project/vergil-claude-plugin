@@ -83,7 +83,10 @@ present everything needing the human:
   task's state-directory listing
   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), to a new
   `issue-implement` run for that task, which continues in its existing
-  worktree. A paused task re-dispatched
+  worktree. That run is a new session with no human, so first show the
+  human each recorded `fix` ruling on the task and any leftover state
+  directory, and pass the answers with the rulings
+  ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)). A paused task re-dispatched
   with no ruling simply stops again and is listed here again; it needs no
   special handling;
 - tasks split out for out-of-scope additions the gate removed, each listed as
@@ -128,7 +131,10 @@ reports, a gap you hit, a "we should also…" — file it now; do not offer to f
 it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
 [--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
 otherwise, and tell the human what you filed. A filed issue survives compaction
-and session loss; one held in context does not.
+and session loss; one held in context does not. This does not cover the
+agentic-review gate: its findings and a paused run's items are filed only as
+the human approves
+([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
 
 ## 6. Terminal handoff (hybrid)
 
