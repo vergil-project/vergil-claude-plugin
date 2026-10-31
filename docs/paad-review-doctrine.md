@@ -82,8 +82,8 @@ session of `epic-create`; in mode 2 it is the implementer.
 - **Security findings** are judged by one definition
   ([§1.6](#16-security-findings)). Public records show them only as counts
   and advisory IDs (mode 1: [§2.7](#27-security-findings)), or as counts
-  alone (mode 2: [§3.6](#36-security-findings)). In mode 2, every one waits
-  for the human's ruling.
+  alone (mode 2: [§3.6](#36-security-findings)). In mode 2, each needs
+  the human's ruling unless a ruling already ended it.
 - **Precedence:** continue signals override stop signals
   ([§1.4](#14-signals)), and a mode's own rules override this section where
   that mode says so.
@@ -1013,9 +1013,10 @@ Each round:
    findings comment ([§3.5](#35-task-issue-records)).
 6. **Decide:**
    - **pass** if the round has nothing left to act on: no findings, or only
-     known findings whose ruling ended them (below). Post the response
-     comment, delete the round's state subdirectory, then post the summary
-     ([§3.5](#35-task-issue-records)), confirm that
+     known findings whose ruling ended them (below). Delete the round's
+     state subdirectory, check that no round subdirectory remains (if one
+     does, pause instead, [§3.5](#35-task-issue-records)), post the
+     response comment with `Finished:`, then the summary, confirm that
      `vrg-container-run -- vrg-validate` is green at the final commit, and
      run `report-ready` with the handoff notes
      ([§3.7](#37-intake-and-the-handoff));
@@ -1029,7 +1030,8 @@ Each round:
    - otherwise **act** (step 7).
 7. **Act on the whole round,** your own findings and the human's rulings
    together:
-   - fix your own findings;
+   - fix your own findings, except under `accept-branch` or `drop-branch`,
+     which make no further change on the branch;
    - carry out each ruling: `fix` as directed; `file` as approved
      ([§3.7](#37-intake-and-the-handoff)); `record` and the other security
      rulings as [§3.6](#36-security-findings) says; nothing for `decline`
@@ -1037,8 +1039,10 @@ Each round:
 
    Carry out rulings one at a time. After each one that creates something
    (an issue, a task or a record), add its line to the response comment
-   before the next, so a replay after a failure skips every ruling whose
-   line is already there.
+   before the next: the issue or task it created, or `Recorded: <ID>`
+   ([§3.5](#35-task-issue-records)). A replay after a failure skips every
+   ruling whose line is already there, and searches for an existing issue
+   before it files anything ([§3.7](#37-intake-and-the-handoff)).
 
    Fixes are ordinary commits under `issue-implement`'s normal discipline.
    Their messages describe the change, never the round or the finding:
@@ -1046,11 +1050,17 @@ Each round:
    naming the review would tell the next reviewer about earlier rounds. A
    security fix gets a neutral message. Then
    `vrg-container-run -- vrg-validate` must pass: repair what it finds
-   before anything else. Once every ruling is carried out and recorded,
-   delete the round's state subdirectory; if a ruling could not be carried
-   out, keep it and pause. Then post the response comment, or finish the
-   paused round's, with `Finished:` ([§3.5](#35-task-issue-records)), and
-   take the end-of-round hash that seals the task's state directory
+   before anything else.
+
+   If a ruling could not be carried out, keep the round's state
+   subdirectory and pause: add the `Paused:` and `Kept:` lines to the
+   response comment, with no `Finished:`, take the seal and stop.
+   Otherwise, once every ruling is carried out and recorded, delete the
+   round's state subdirectory. Under `accept-branch` or `drop-branch`,
+   check now that no round subdirectory remains (if one does, pause the
+   same way). Then post the response comment, or finish the paused
+   round's, with `Finished:` ([§3.5](#35-task-issue-records)), and take the
+   end-of-round hash that seals the task's state directory
    ([§1.5](#15-state-directories)). Then, by the branch ruling:
    - `accept-branch`: post the summary with outcome `accepted`, delete the
      task's state directory and run `report-ready`;
@@ -1415,8 +1425,11 @@ ISO 8601.
 - **`agentic-review round <n>: findings`:** `Dispatched: <time>` and
   `Returned: <time>`; the review's cost, `Review cost: totalTokens <t>,
   toolUses <u>, durationMs <d>`, or `Review cost: not reported` when the
-  completion notice does not give them; paad's version and counts line; then
-  each finding with an ID `R<n>.<i>`, its paad and mapped severity
+  completion notice does not give them; paad's version, and a counts line
+  in paad's form recomputed over the ordinary findings left after
+  screening and the hold-back, so it reveals nothing withheld; then each
+  of those findings with an ID `R<n>.<i>`, numbered after screening so
+  the numbering has no gaps, its paad and mapped severity
   ([§1.3](#13-severity)), its scope bucket (in scope, out-of-scope bug,
   out-of-scope addition), its classification, its sorting (`agent`, or
   `human` with its reason, 1–5), and its location by file and symbol with a
@@ -1428,17 +1441,24 @@ ISO 8601.
   ([§3.6](#36-security-findings)), any version warning, and the result of
   the output checks; a failed check is noted here.
 - **`agentic-review round <n>: response`:** posted in **every** round,
-  including a pass, a pause and a failed check. It says what was done with
-  each finding (fixed; ended by its ruling, with the ruling; filed, with its
-  issue), lists under `Awaiting a ruling` each item paused for the human,
-  with its reason, gives the security counts and says what happens next. It
+  including a pass, a pause and a failed check, and alone for a round whose
+  pre-dispatch checks failed. It says what was done with each finding
+  (fixed; ended by its ruling, with the ruling; filed, with its issue;
+  `Recorded: R<n>.S<i>`, the ID only, once a security record is made),
+  lists under `Awaiting a ruling` each item paused for the human, with its
+  reason (a security item only as a count), gives the security counts and
+  says what happens next. It
   ends with `Finished: <time>`, when you finished acting on the round; a
   paused round, including one paused on a failed check, gets it once its
   rulings are carried out. Finish a paused round's comment by editing it
   with `vrg-gh issue comment <n> --repo <owner>/<repo> --edit-last
   --body-file <file>`, which edits only your latest comment on the issue.
-  If you posted anything after it, delete it with `--delete-last` and post
-  it again below, with every line it had kept unchanged.
+  Add every later line (`Human ruling:`, `Recorded:`, `Ruling record:`,
+  `Finished:`) the same way, and post nothing else on the issue while the
+  comment is unfinished. If you must, first post the comment again below,
+  with every line kept unchanged, and only then delete the old one, never
+  the reverse (`--delete-last --yes` deletes only your latest comment, so
+  delete before reposting only when the old one is your latest).
 
 **Pause and ruling lines.** A pause adds these to the round's response
 comment, in this fixed form, one per line:
@@ -1466,9 +1486,11 @@ comment, in this fixed form, one per line:
     `accept-branch`, `drop-branch` or `another-round`;
   - for a pause not about a finding (a failed check and the like), with
     `check` or `pause` as the ID and no sorting: `dismiss` (its cause is
-    not a problem; continue) or `another-round` (run the round again). The
-    direction says what happens to anything left unread, such as the
-    worktree's `paad/`.
+    not a problem: the round's output is used, and its steps 4–7 run) or
+    `another-round` (the round's output is discarded as the human directs,
+    and the next round takes the next number). The direction says what
+    happens to anything left unread, such as the worktree's `paad/`. The
+    paused round gets `Finished:` once the ruling is carried out.
 
   Security rulings take one line of counts only, by word:
   `Human ruling: security: <k> findings: <k> fix, <k> record, <k> reject. <time>`.
@@ -1476,7 +1498,8 @@ comment, in this fixed form, one per line:
   record ([§3.6](#36-security-findings)), its new hash. The latest one on
   the issue from a trusted author is the record's hash.
 
-- **`agentic-review summary: <outcome> after <n> round(s)`:** first check
+- **`agentic-review summary: <outcome> after <n> round(s)`:** first check,
+  before the last round's `Finished:` is posted ([§3.1](#31-the-loop)),
   that no round subdirectory remains in the task's state directory. One
   that remains may hold unruled or unrecorded material: pause
   ([§3.8](#38-pauses)) instead, post no summary, and leave the directory for
@@ -1617,8 +1640,10 @@ ruling record.
 [§3.1](#31-the-loop)), unless it is known under a ruling that ended it.
 A held-back finding that only reports an approved fix (an unplanned
 addition or behaviour change at that fix's file and symbol) is ended by
-that approval: no pause and no action. Present every other one in the
-terminal only ([§3.8](#38-pauses)). The human approves or rejects it:
+that approval, with no pause and no action, but only in the session that
+holds the approved fix's details, so you can judge that it is the fix.
+In any other session, present it. Present every other one in the terminal
+only ([§3.8](#38-pauses)). The human approves or rejects it:
 
 - **approved, fixed on the branch** (`fix`): fix it with a neutral commit
   message. It is not recorded: the bug never reached `develop`, so it needs
@@ -1635,16 +1660,20 @@ task's ruling record, `<N>/rulings.md` in the task's state directory. When
 you create it, its first line is a random nonce (`openssl rand -hex 16`),
 so the public hash of this short file cannot be found by trying
 candidates. Then one tab-separated line per finding and location:
-`<ID>`, `<word>`, `<file>`, `<symbol>`, and nothing else. The file and
-symbol drive the hold-back. Hash it as a details file after each write, and
+`<ID>`, `<word>`, `<file>`, `<symbol>`, and nothing else. The symbol is
+the narrowest one that holds the finding (a function, or a heading or
+paragraph label in prose), never a whole section when less will do. The
+file and symbol drive the hold-back. Hash it as a details file after each write, and
 post the hash as a `Ruling record:` line ([§3.5](#35-task-issue-records)).
 Later rounds and sessions read it to know which security findings are
 already ruled on. A match on file and symbol alone does not make a finding
 known: it is known only when you judge it the same problem; when unsure,
 present it (reason 5). It is never restated into the requirements file.
 
-**Recording** (`record` only). Use the details file in the round's state
-subdirectory, checked against its hash immediately before you pass it on
+**Recording** (`record` only). paad's security file can hold several
+findings, so first write the one finding's own section to a details file
+of its own in the round's state subdirectory, numbered as above, and hash
+it. Check it against that hash immediately before you pass it on
 ([§1.5](#15-state-directories)), and run:
 
 ```bash
@@ -1659,9 +1688,11 @@ home. Use no `--issue`: attaching the advisory to the task issue would mark
 the task publicly. `--severity` is the finding's mapped severity
 ([§1.3](#13-severity)). The title and body are neutral: they name no file,
 symbol, weakness or task. This is the **only** way a security finding is
-filed: none ever becomes an ordinary intake issue or task. Delete the
-details file once its record is made, and add the record's count line to
-the response comment ([§3.1](#31-the-loop) step 7). A known finding
+filed: none ever becomes an ordinary intake issue or task. Once its record
+is made, add `Recorded: R<n>.S<i>` to the response comment
+([§3.1](#31-the-loop) step 7) and delete that finding's own details file.
+Never delete a security file or details file while a finding in it is
+unruled or unrecorded. A known finding
 already recorded is not recorded again. If `create` fails after the
 advisory exists, it prints the exact command that finishes the pair
 (`--resume <GHSA-id>`); run it. If recording still fails, pause
@@ -1679,7 +1710,8 @@ pauses, any details stay in the conversation with the human, and the issue
 shows only that the check failed.
 
 **Public records carry counts only:** how many security findings the round
-found, and how many were fixed on the branch, recorded and rejected. No
+found, and how many were fixed on the branch, recorded and rejected, with
+held-back findings ended by an approved fix counted separately. No
 titles, details, reasons or advisory IDs. That covers the comments, the
 `Human ruling:` lines, commit messages, the intake issues and tasks the gate
 files, the PR text and the `report-ready` notes.
@@ -1691,15 +1723,19 @@ An intake issue, a task for a removed addition or a security record
 ([§3.6](#36-security-findings)) is created only on the human's approving
 ruling, in the form approved, when the round is acted on
 ([§3.1](#31-the-loop) step 7). Anything you notice outside the review's
-findings is an expansion of work (reason 2): list it under
-`Awaiting a ruling` in the round's response comment and pause for it; never
-file it yourself.
+findings is an expansion of work (reason 2): screen it first against
+[§1.6](#16-security-findings), and handle one that qualifies as security
+material ([§3.6](#36-security-findings)), shown only as a count. List the
+rest under `Awaiting a ruling` in the round's response comment and pause
+for them; never file anything yourself. Neither `Awaiting a ruling` nor a
+`Paused:` reason ever describes a security item.
 
 - **Intake:** `vrg-intake-create --title <title> --body-file <file>`. The
   issue names the task and the round (for example, "Found by agentic review
   of example-org/example-repo#9001, round 2, R2.3"). Search for an existing
   open issue first, and comment there instead of filing a duplicate.
-- **A removed addition, filed as a task:** under the same epic, or under the
+- **A removed addition, filed as a task:** search for an existing open task
+  first, as for intake; then file it under the same epic, or under the
   repo's ad-hoc epic for a task with no epic:
 
   ```bash
@@ -1726,7 +1762,8 @@ when:
   [§3.3](#33-the-requirements-file));
 - a pre-dispatch check fails ([§3.4](#34-output-checks)): a `paad/` check,
   or the state directory's seal, first-round listing or mode
-  ([§1.5](#15-state-directories)). Nothing is dispatched;
+  ([§1.5](#15-state-directories)). Nothing is dispatched; the round about
+  to run posts only its response comment, with the `Paused:` line;
 - an output check fails ([§3.4](#34-output-checks)), including a security
   hold, a state-directory hash that differs after the review, and the repo
   without a managed `.gitignore` block;
@@ -1747,8 +1784,9 @@ On a pause:
 
 - **Stop before `report-ready`.** Post the round's response comment with its
   `Paused:` and `Kept:` lines ([§3.5](#35-task-issue-records)), and tell the
-  human. A pause in Preflight, before any round, is reported the same way,
-  with no comment.
+  human. After a pause on a state-directory check, add the `Kept:` lines
+  only once the human has confirmed the directory's contents. A pause in
+  Preflight, before any round, is reported the same way, with no comment.
 - **Present each item,** in the terminal: the finding and where it is; the
   reason (1–5) that sent it to the human; your recommendation and the
   alternatives, best first. Security items appear in the terminal only.
@@ -1785,13 +1823,16 @@ On a pause:
 - **A new session confirms recorded `fix` rulings.** A new session is any
   fresh conversation that resumes a task partway through its loop: after a
   reboot, `/clear`, a crash or a VM rebuild. Before its next round, show the
-  human each recorded `fix` ruling ("Recorded earlier: R2.1, fix: cap
-  retries at 3. Still stands?"). The answer is a ruling given in this
+  human each recorded `fix` ruling from a trusted author
+  (`vrg-trusted-authors`), with the comment's author and time ("Recorded
+  earlier by <login> at <time>: R2.1, fix: cap retries at 3. Still
+  stands?"). The answer is a ruling given in this
   conversation, so it goes into the requirements file. Security rulings are
   read from the ruling record instead ([§3.6](#36-security-findings)). A run
-  dispatched by `epic-implement` has no human: the main session asks these
-  questions, and the leftover-state one below, and passes the answers in
-  the dispatch prompt. A run that needs an answer it was not given stops
+  dispatched by `epic-implement` has no human: for every task it
+  dispatches, paused or not, the main session asks these questions, and
+  the leftover-state one below, and passes the answers in the dispatch
+  prompt. A run that needs an answer it was not given stops
   and reports the question as an item waiting on the human.
 - **Leftover state.** A session that touches a task whose state directory
   exists, with no live pause and no open `Kept:` line, tells the human the

@@ -225,32 +225,37 @@ Each round, in order
 6. **Decide:** **pass** if nothing is left to act on; **pause** if any
    finding needs the human, the round cap is reached with anything to act
    on, or most findings are repairs, acting on nothing in the round;
-   otherwise **act**. A pass or a pause posts the
-   `agentic-review round <n>: response` comment now; acting posts it at the
-   end of step 7.
+   otherwise **act**. A pause posts the
+   `agentic-review round <n>: response` comment now; a pass posts it as
+   below; acting posts it at the end of step 7.
 7. **Act on the whole round,** your own findings and the human's rulings
    together, with ordinary `vrg-commit` commits whose messages describe the
-   change, never the round or the finding. File and record only what the
-   human approved, one ruling at a time, adding each one's line to the
-   response comment before the next
+   change, never the round or the finding; under `accept-branch` or
+   `drop-branch`, make no fixes. File and record only what the human
+   approved, one ruling at a time, adding each one's line (its issue, or
+   `Recorded: R<n>.S<i>`) to the response comment before the next, and
+   searching for an existing issue before filing on a replay
    ([§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
-   Write each security ruling to the ruling record and post its
-   `Ruling record:` hash
+   Write each security ruling to the ruling record and add its
+   `Ruling record:` hash to the response comment
    ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)). Run
-   `vrg-container-run -- vrg-validate` and repair it until green. Once every
-   ruling is carried out and recorded, delete the round's state
-   subdirectory (if one could not be, keep it and pause), then post or
-   finish the response comment with `Finished:` (edit a paused round's with
+   `vrg-container-run -- vrg-validate` and repair it until green. If a
+   ruling could not be carried out, keep the round's state subdirectory,
+   add `Paused:` and `Kept:` lines with no `Finished:`, take the seal and
+   stop. Otherwise delete the round's state subdirectory (under
+   `accept-branch` or `drop-branch`, then check that none remains), finish
+   the response comment with `Finished:` (edit a paused round's with
    `--edit-last`), and take the seal. Then, by the branch ruling:
    `accept-branch` posts the summary with outcome `accepted`, deletes the
    task's state directory and goes on to report-ready; `drop-branch` posts
    it with outcome `dropped`, deletes the directory and stops; otherwise
    run another round.
 
-**On a pass,** post the response comment and delete the round's state
-subdirectory, then post the `agentic-review summary: pass after <n> round(s)`
-comment, after checking that no round subdirectory remains (if one does,
-pause instead), delete the task's state directory
+**On a pass,** delete the round's state subdirectory and check that no
+round subdirectory remains (if one does, pause instead), then post the
+response comment with `Finished:`, then the
+`agentic-review summary: pass after <n> round(s)` comment, delete the
+task's state directory
 ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
 `vrg-container-run -- vrg-validate` is green at the final commit, and go on
 to report-ready below.
@@ -271,10 +276,10 @@ round (step 7). At the round cap the human rules `another-round`,
 that reviews it, and every item still unruled is ruled before the summary.
 A pause is not a save point: the branch is not pushed until `report-ready`.
 
-**Security findings** always wait for the human's ruling, and never appear
-in a public record except as counts: no titles, details or advisory IDs in
-comments, commit messages, intake issues, tasks, the PR text or the
-`report-ready` notes
+**Security findings** need the human's ruling unless a ruling already
+ended them, and never appear in a public record except as counts: no
+titles, details or advisory IDs in comments, commit messages, intake
+issues, tasks, the PR text or the `report-ready` notes
 ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)).
 
 ## Record the PR metadata and hand off

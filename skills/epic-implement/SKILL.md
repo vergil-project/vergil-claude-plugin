@@ -62,6 +62,13 @@ worktree instruction, and runs the routed skill; it reports its
 (`.worktrees/issue-<N>-<slug>`) and branches (`feature/<N>-<slug>`) are naturally
 unique, so parallel efforts never collide.
 
+Each `issue-implement` run you dispatch, paused before or not, is a new
+session with no human. Before dispatching it, show the human each recorded
+`fix` ruling on the task from a trusted author (`vrg-trusted-authors`),
+with the comment's author and time, and any leftover state directory, and
+pass the answers in the dispatch prompt
+([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
+
 ## 4. Batch at the gate, then stop
 
 The **gate** is the general boundary where you can no longer proceed without the
@@ -83,10 +90,7 @@ present everything needing the human:
   task's state-directory listing
   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), to a new
   `issue-implement` run for that task, which continues in its existing
-  worktree. That run is a new session with no human, so first show the
-  human each recorded `fix` ruling on the task and any leftover state
-  directory, and pass the answers with the rulings
-  ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)). A paused task re-dispatched
+  worktree. A paused task re-dispatched
   with no ruling simply stops again and is listed here again; it needs no
   special handling;
 - tasks split out for out-of-scope additions the gate removed, each listed as

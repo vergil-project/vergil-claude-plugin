@@ -123,10 +123,12 @@ epic", "we're done with this epic".
 **What it does.** USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via `vrg-validate`, runs the
 **agentic-review gate** — up to three rounds of `paad:agentic-review` on
-its own branch, fixing what each finds, recorded on the task issue, and
-pausing for the human only when the
+its own branch, recorded on the task issue: it acts alone only on findings
+that are its own, pauses the whole round for the human on anything else
+(every security finding included), and reviews every change it makes, as
+the
 [paad review doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)
-says so — then records
+sets out — then records
 the PR metadata (`.vergil/pr-workflow.json`) with
 `vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
 `report-ready` also pushes the branch to origin, so there is no separate

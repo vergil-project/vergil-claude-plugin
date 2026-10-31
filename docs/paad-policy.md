@@ -51,7 +51,8 @@ it.
   writes its usual files in the task's worktree, where `paad/code-reviews/` is
   ignored like `paad/security/`. After each round the implementer moves the
   report, and paad's other output, into the task's private state directory,
-  which empties the worktree's `paad/`, and posts its findings, sorted, to
+  which empties the worktree's `paad/code-reviews/` and `paad/security/`
+  (but its `.gitignore`), and posts its findings, sorted, to
   the task issue; paad's code-review backlog does not persist
   ([doctrine §3](paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)).
 - **All other paad reports** (architecture, test-roadmap and so on) are
