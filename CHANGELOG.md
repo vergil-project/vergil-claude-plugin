@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.52] - 2026-10-31
+
+### Bug fixes
+
+- state directories and their guards for the review gate (#859)
+- mode 2 findings that need the human pause the round, and every fix is reviewed (#862)
+
+### Documentation
+
+- show the design-review rounds in the epic-create skills row (#822)
+- record child F's decisions on the remaining paad skills (#826)
+- sync the template's build/ exception line (#855)
+- consumers follow the floating v2.1 tag (#863)
+
 ## [2.1.51] - 2026-10-29
 
 ### Documentation
