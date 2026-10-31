@@ -4181,11 +4181,14 @@ epic", "we're done with this epic".</p>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via <code>vrg-validate</code>, runs the
-<strong>agentic-review gate</strong> — up to three rounds of <code>paad:agentic-review</code> on
-its own branch, fixing what each finds, recorded on the task issue, and
-pausing for the human only when the
+<strong>agentic-review gate</strong> — three rounds of <code>paad:agentic-review</code> on its
+own branch before the human decides whether to allow more, recorded on the
+task issue: it acts alone only on findings
+that are its own, pauses the whole round for the human on anything else
+(every security finding included), and reviews every change it makes, as
+the
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement">paad review doctrine</a>
-says so — then records
+sets out — then records
 the PR metadata (<code>.vergil/pr-workflow.json</code>) with
 <code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
 <code>report-ready</code> also pushes the branch to origin, so there is no separate
