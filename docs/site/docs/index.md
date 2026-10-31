@@ -60,11 +60,6 @@ merge these entries into them rather than adding a second copy of either key:
 }
 ```
 
-Already registered `vergil-marketplace` at another `ref`, such as `main`?
-Editing the `ref` is a change of source, not an update, so
-`marketplace update` alone keeps the old registration. Follow
-[Switching an existing machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#switching-an-existing-machine).
-
 Do not put the marketplace definition in a repo's `.claude/settings.json`. A
 managed repo's file comes from the vergil-tooling template, which only enables
 `vergil@vergil-marketplace`: a second `vergil-marketplace` definition there

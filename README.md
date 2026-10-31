@@ -111,11 +111,6 @@ checkout — there is no separate clone to fail. See the
 [spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md)
 for the design.
 
-Already registered `vergil-marketplace` at another `ref`, such as `main`?
-Editing the `ref` is a change of source, not an update, so
-`marketplace update` alone keeps the old registration. Follow
-[Switching an existing machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#switching-an-existing-machine).
-
 A managed repo's `.claude/settings.json` is not where this goes. It
 comes from the vergil-tooling template, which only enables
 `vergil@vergil-marketplace` and never defines the marketplace: a
@@ -134,35 +129,22 @@ PATH first — see the Getting Started guide above.
 
 ## Update
 
-A release or a rollback moves `v2.1`; each machine picks the move up when
-its plugins are next updated. On the vergil fleet, run in a human shell:
-
-```bash
-vrg-host plugins        # the host
-vrg-vm update --all     # every running agent VM
-```
-
-Then restart Claude Code: a running session keeps the plugin version it
-loaded. See vergil-tooling's
-[Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine).
-
-To refresh a single install from inside Claude Code instead:
+After a new release ships, refresh the local install with this
+two-step sequence:
 
 ```text
 /plugin marketplace update vergil-marketplace
-/plugin update vergil@vergil-marketplace
 /reload-plugins
 ```
 
 What each step does:
 
 1. **`/plugin marketplace update <marketplace>`** — refreshes the
-   marketplace clone, so the release `v2.1` now points at is visible.
-2. **`/plugin update <plugin>`** — installs that release into the
+   marketplace index and downloads the new plugin version into the
    local cache at `~/.claude/plugins/cache/<plugin-id>/<version>/`.
    The previous version stays on disk for 7 days as a grace window
    for concurrent sessions, then is removed automatically.
-3. **`/reload-plugins`** — applies the new skills / hooks / agents
+2. **`/reload-plugins`** — applies the new skills / hooks / agents
    to the **current** Claude Code session without restarting.
    Without this, the running session keeps using the old in-memory
    plugin state.
@@ -170,16 +152,12 @@ What each step does:
 ### Verify the update
 
 ```bash
-claude plugin list --json
+ls -1 ~/.claude/plugins/cache/vergil-marketplace/vergil/
 ```
 
-`vergil@vergil-marketplace` should be at the release `v2.1` points at:
-normally the latest tag on
-[GitHub Releases](https://github.com/vergil-project/vergil-claude-plugin/releases),
-or the earlier release after a rollback. Don't judge by the newest
-directory under `~/.claude/plugins/cache/vergil-marketplace/vergil/`:
-after a rollback the newer, rolled-back-from version stays cached there
-for up to 7 days.
+You should see one directory per cached version. The newest
+version should match the latest tag on
+[GitHub Releases](https://github.com/vergil-project/vergil-claude-plugin/releases).
 
 ### References
 
