@@ -36,7 +36,8 @@ tools available to run.
 The plugin ships through a single channel, the floating `v2.1` rolling tag:
 each release moves `v2.1` forward, and a
 [rollback](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
-moves it back to an earlier release (see the
+with `vrg-promote`, a human-gated release act, moves it back to an earlier
+release (see the
 [spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md)).
 It is installed per user: add the marketplace definition and the plugin enable to your
 user-level `~/.claude/settings.json`, and the enable installs the plugin. If
@@ -79,8 +80,11 @@ model and
 
 A machine picks up a release, or a rollback, when its plugins are next
 updated. Run `vrg-host plugins` for the host and `vrg-vm update --all` for
-every running agent VM, in a human shell, then restart Claude Code. The
-plugin README's
+every running agent VM, in a human shell, then restart Claude Code. Both
+commands refresh the marketplace and the installed plugins and verify the
+registered repo and ref, and both refuse an agent identity. The ref is `v2.1`
+before and after, so that check does not prove a machine moved. The plugin
+README's
 [Update](https://github.com/vergil-project/vergil-claude-plugin#update)
 section gives the full procedure and how to verify the installed version.
 
