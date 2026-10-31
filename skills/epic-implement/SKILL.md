@@ -72,7 +72,12 @@ present everything needing the human:
 - operational tasks needing a human-gated release;
 - tasks paused at the agentic-review gate, each with its reason (the
   `Paused: <reason>.` its run reported;
-  [doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)). When the
+  [doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)) and the
+  number of items waiting on the human. Present each item as the run
+  reported it: the finding, its reason and the run's recommendation with
+  the alternatives. This conversation is the terminal: security details
+  appear here and nowhere else. You only present the items: file nothing
+  from them and post nothing about them. When the
   human rules on one, pass **every** ruling the human has made on that task in
   this session (not only the latest), and the human's confirmation of the
   task's state-directory listing
@@ -82,8 +87,8 @@ present everything needing the human:
   with no ruling simply stops again and is listed here again; it needs no
   special handling;
 - tasks split out for out-of-scope additions the gate removed, each listed as
-  **needs scheduling**: they are not in the epic's plan, so the human decides
-  when they run
+  **needs scheduling**: only tasks the human approved at a ruling. They are
+  not in the epic's plan, so the human decides when they run
   ([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff));
 - any problems you got stuck on (see step 5).
 
