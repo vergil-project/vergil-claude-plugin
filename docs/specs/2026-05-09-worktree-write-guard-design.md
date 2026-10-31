@@ -27,7 +27,10 @@ calls for Contents API writes.
 
 Two new PreToolUse hook scripts, following the existing
 one-hook-one-concern pattern. Both gated on managed-repo detection
-(`vergil.toml`).
+(`vergil.toml`). Hook 1 has two exceptions that apply in any repo: it
+denies a relative target path, and it denies every Write and Edit when
+`python3` is unavailable, and it denies a write whose path `python3`
+cannot normalise.
 
 ## Hook 1: `block-worktree-bypass-write.sh`
 
@@ -52,21 +55,29 @@ This is the first non-Bash matcher in the hook system.
 
 ### Logic
 
-1. Read JSON input from stdin, extract `tool_input.file_path`.
-2. Resolve `file_path` to its real path (handle symlinks via
-   `realpath` or equivalent). Best-effort: if the file does not
-   exist yet (new file creation), use the path as-is — there
-   cannot be a symlink to a non-existent file.
-3. Run `is_managed_repo` check on `dirname(file_path)` (walking
-   up to find an existing ancestor if the directory doesn't exist
-   yet). This is pure shell with no subprocess spawns — fast early
-   exit for writes to `/tmp`, non-repo paths, and unmanaged repos.
+1. Read JSON input from stdin, extract `tool_input.file_path`. Input
+   that cannot be parsed, or that has no `file_path`, is refused
+   (exit 2), unless the payload's cwd is outside a managed repo (#776).
+2. Deny a relative `file_path`. Normalise an absolute one before
+   any match: resolve every `.`, `..` and symlink in it with
+   `os.path.realpath`, for a new file as well as an existing one
+   (the existing part of the path is resolved and the rest
+   normalised). Run python3 isolated (`-I`), with its stderr kept
+   apart from the path it prints. If python3 is unavailable, deny
+   every Write and Edit, wherever it points, with a reason naming
+   python3. If python3 fails on the path, deny that write with its
+   error; if it returns anything but a single absolute path, deny
+   that write too. Every later step uses this normalised path.
+3. Run `is_managed_repo` check on the normalised path's nearest
+   existing ancestor directory (walking up from its `dirname` if
+   the directory doesn't exist yet). The check itself is pure shell
+   with no subprocess spawns (normalisation in step 2 has already run
+   python3) — an early exit for writes to `/tmp`, non-repo paths, and
+   unmanaged repos.
    If not managed: exit 0.
-4. Derive the git repo root from the file path: run
-   `git -C "$(dirname "$file_path")" rev-parse --show-toplevel`.
-   If the target directory doesn't exist yet (new file in a new
-   directory tree), walk up until an existing ancestor is found.
-5. If `file_path` is outside any git repo: exit 0 (allow).
+4. Derive the git repo root from that same ancestor: run
+   `git -C <ancestor> rev-parse --show-toplevel`.
+5. If the normalised path is outside any git repo: exit 0 (allow).
 6. Check if the repo has adopted the worktree convention:
    `.worktrees/` line in the repo root's `.gitignore`.
    If not adopted: exit 0.
@@ -75,8 +86,11 @@ This is the first non-Bash matcher in the hook system.
    Use `git rev-parse --path-format=absolute --git-common-dir` and
    take its parent to find the main root (same technique as
    `block-protected-branch-work.sh`).
-8. Check whether `file_path` falls inside `<main_root>/.worktrees/*/`.
-9. If inside a worktree subdirectory: exit 0 (allow).
+8. Check whether the normalised path falls inside
+   `<main_root>/.worktrees/*` or `<main_root>/build/.vergil-state/*`.
+9. If so: exit 0 (allow). `build/.vergil-state/` is ignored agent
+   state, the worktree convention's one exception to the read-only
+   main worktree (paad review doctrine §1.5).
 10. If not: deny.
 
 ### Hook 1 denial message
@@ -93,6 +107,11 @@ full convention.
 
 Consistent with the language in `block-protected-branch-work.sh`.
 
+The other denials each name their own reason: a relative target path;
+`python3` not installed or not on `PATH`; `python3` failing on the
+path, with its error; `python3` returning anything but a single
+absolute path; and no temporary file for `python3`'s error output.
+
 ### Edge cases
 
 - **File outside any git repo** (e.g., `/tmp/scratch.txt`): allow.
@@ -102,8 +121,12 @@ Consistent with the language in `block-protected-branch-work.sh`.
 - **New file in a path that doesn't exist yet**: walk up `dirname`
   until an existing ancestor is found, then `git rev-parse` from
   there.
-- **Symlinks**: resolve to real path before checking, so a symlink
-  into the main worktree is still caught.
+- **Symlinks, `.` and `..`**: resolved before checking, for new
+  and existing files alike.
+- **A relative path**: denied, wherever it points.
+- **No `python3`**: every Write and Edit is denied, wherever it
+  points (fail closed).
+- **A path that `python3` cannot normalise**: that write is denied.
 
 ## Hook 2: `block-github-contents-api.sh`
 

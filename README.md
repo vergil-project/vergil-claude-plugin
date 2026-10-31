@@ -32,13 +32,28 @@ validation through the dev container, and so on.
 
 ## Distribution model
 
-The plugin ships through a **single channel**: every consumer — every
-`vergil-project` repo and every external org — registers
-`vergil-marketplace@main` and runs the latest **released** version. There is no
-per-version pinning and no SemVer. The plugin is *behavioral guidance* (skills,
-hooks, agents), not a versioned API that code links against, so "track the
-release" is the entire model — and releasing to `main` is the one act that makes
-a new skill or hook live for everyone.
+The plugin ships through a **single channel**: every consumer — the host and
+every agent VM — registers `vergil-marketplace@v2.1` in its user-level
+settings and follows the floating `v2.1` rolling tag; each `vergil-project`
+repo only enables `vergil@vergil-marketplace`. There is no per-version
+pinning: the plugin is *behavioral guidance* (skills, hooks,
+agents), not a versioned API that code links against, so every consumer runs
+whatever release `v2.1` points at.
+
+- **A release makes a change live.** Each plugin release moves `v2.1` forward
+  to the new `v2.1.Z`, so releasing is the one act that makes a new skill or
+  hook live for everyone. `main` is still the release branch, but consumers
+  follow the tag, not the branch.
+- **A rollback moves it back.** Rolling back is moving `v2.1` to an earlier
+  `v2.1.Z` with `vrg-promote`, a human-gated release act. The procedure is
+  vergil-tooling's
+  [Rolling back a release](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
+  runbook. The rollback lasts until the next release moves `v2.1` forward
+  again.
+- **A new minor line is opt-in.** When a `2.2.0` release creates the `v2.2`
+  tag, `v2.1` stops moving and the fleet stays on the last `v2.1.Z` until you
+  change the `ref`; see
+  [Moving to a new minor line](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#moving-to-a-new-minor-line).
 
 To run **unreleased** (`develop`) behavior you don't need a second channel:
 
@@ -49,7 +64,9 @@ To run **unreleased** (`develop`) behavior you don't need a second channel:
   `develop` and follow it — the AI-equivalent of running it by hand.
 
 Full rationale and decision record:
-[`epics/45-plugin-distribution-model/spec.md`](https://github.com/vergil-project/.github/blob/main/epics/45-plugin-distribution-model/spec.md).
+[`epics/760-plugin-tag-distribution/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md),
+which supersedes the tag decision of
+[`epics/45-plugin-distribution-model/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/45-plugin-distribution-model/spec.md).
 
 ## Install
 
@@ -74,7 +91,7 @@ adding a second copy of either key:
       "source": {
         "source": "github",
         "repo": "vergil-project/vergil-claude-plugin",
-        "ref": "main"
+        "ref": "v2.1"
       }
     }
   },
@@ -85,10 +102,14 @@ adding a second copy of either key:
 ```
 
 The user-level enable is what installs the plugin. The
-`"ref": "main"` pins the marketplace to the **release** branch, so
-`marketplace update` tracks the latest released version (not the
-`develop` bleeding edge). The plugin loads directly from that
-checkout — there is no separate clone to fail.
+`"ref": "v2.1"` points the marketplace at the floating `v2.1` tag, so an
+[update](#update) installs the release `v2.1` points at: the latest
+release, or an earlier one after a
+[rollback](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release),
+never the `develop` bleeding edge. The plugin loads directly from that
+checkout — there is no separate clone to fail. See the
+[spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md)
+for the design.
 
 A managed repo's `.claude/settings.json` is not where this goes. It
 comes from the vergil-tooling template, which only enables
@@ -155,7 +176,11 @@ gated on a managed-repo check: a repo must contain
 `vergil.toml` at its root for the hook to fire. In repos
 without this marker, the gated hooks
 short-circuit to a no-op so the plugin doesn't interfere with
-ad-hoc git work in unrelated repositories. See the
+ad-hoc git work in unrelated repositories.
+`block-worktree-bypass-write` has exceptions that apply
+everywhere: it denies a relative target path; without `python3` it
+denies every Write and Edit; and it denies a write whose path `python3`
+cannot normalise. See the
 [hooks reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
 for the rationale.
 
@@ -170,7 +195,7 @@ for the rationale.
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
 | `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is the human's Phase-6 action |
 | `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
-| `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active |
+| `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored agent state under `build/.vergil-state/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
@@ -183,7 +208,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 
 | Skill | Purpose |
 |---|---|
-| `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec → plan, create the epic and seed its bookend tasks |
+| `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
 | `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
 | `issue-implement` | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human |

@@ -13,7 +13,7 @@ Propose the entry and where it belongs first, then wait for the decision.
 - Sessions always start at the project root, never inside `.worktrees/`.
 - One worktree per issue: `.worktrees/issue-<N>-<slug>/` on branch
   `feature/<N>-<slug>`. Remove it once its branch lands.
-- The main worktree is read-only; every edit goes through a worktree.
+- The main worktree is read-only, bar ignored `build/` scratch; every edit goes through a worktree.
 - Read, Edit and Write use the worktree's absolute path. Bash commands `cd`
   into the worktree first or use absolute paths.
 - The full convention: <https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md>.
@@ -118,9 +118,14 @@ tools available to run.
 
 ## Plugin distribution model
 
-The plugin ships through a **single channel**: every consumer (all of
-`vergil-project` and external orgs) registers `vergil-marketplace@main` — the
-released line. No SemVer, no per-version pinning, no dev marketplace; releasing
-to `main` is what makes a skill/hook live for everyone. To run unreleased
-`develop` behavior, load the source tree with `claude --plugin-dir` or tell the
-agent to read the file directly. Rationale: `vergil-project/.github` epic #45.
+The plugin ships through a **single channel**: every consumer (the host and
+every agent VM, in user-level settings) registers `vergil-marketplace@v2.1`,
+the floating `v2.1` rolling tag; repos only enable `vergil@vergil-marketplace`. No per-version
+pinning, no dev marketplace. A release makes a skill/hook live for everyone by
+moving `v2.1` forward to the new `v2.1.Z`; a rollback (`vrg-promote`, a human
+act) moves it back to an earlier one. `main` stays the release branch, but
+consumers follow the tag. To run unreleased `develop` behavior, load the source
+tree with `claude --plugin-dir` or tell the agent to read the file directly.
+Rationale: `vergil-project/.github`
+[epic #760's spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md),
+which supersedes epic #45's tag decision.

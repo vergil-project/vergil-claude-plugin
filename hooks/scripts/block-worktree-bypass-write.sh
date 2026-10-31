@@ -3,10 +3,15 @@
 #
 # Blocks file modifications to the main worktree when the parallel-AI-agent
 # worktree convention is active. Forces agents to write to their assigned
-# .worktrees/<name>/ subdirectory instead.
+# .worktrees/<name>/ subdirectory instead. The one exception is ignored
+# agent state under the main clone's build/.vergil-state/ (the paad
+# review doctrine's private state directories).
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
+# vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with
+# exceptions that apply everywhere: a relative target path is denied;
+# without python3 every Write and Edit is denied; and a write whose path
+# python3 cannot normalise is denied.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,13 +35,60 @@ if [ -z "$file_path" ]; then
   hook_input_fail_closed "the hook input has no tool_input.file_path string"
 fi
 
-# Best-effort symlink resolution. If the file exists, resolve to its real
-# path so symlinks into the main worktree are caught. If it doesn't exist
-# yet (new file creation), use the path as-is.
-if [ -e "$file_path" ]; then
-  resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$file_path" 2>/dev/null || echo "$file_path")
-else
-  resolved="$file_path"
+# The target must be an absolute path with no control characters;
+# anything else is denied. It is
+# then normalised before any match: every `.`, `..` and symlink in it is
+# resolved, for a new file as well as an existing one (os.path.realpath
+# resolves the existing part of a path and normalises the rest).
+deny_target() {
+  jq -n --arg reason "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: $reason
+    }
+  }'
+  exit 0
+}
+# Checked on the raw JSON string, since command substitution drops
+# trailing newlines from file_path.
+path_has_cntrl=$(printf '%s' "$HOOK_INPUT" \
+  | jq -r '.tool_input | objects | .file_path | strings | explode | any(. < 32 or . == 127)') \
+  || path_has_cntrl=error
+case "$path_has_cntrl" in
+  false) ;;
+  *)
+    deny_target "The worktree write guard denies this target path: the path contains a control character."
+    ;;
+esac
+case "$file_path" in
+  *[[:cntrl:]]*)
+    deny_target "The worktree write guard denies this target path: the path contains a control character."
+    ;;
+esac
+case "$file_path" in
+  /*) ;;
+  *)
+    deny_target "The worktree write guard denies the relative target path $file_path. Use an absolute path."
+    ;;
+esac
+if ! command -v python3 >/dev/null 2>&1; then
+  deny_target "The worktree write guard could not check the target path $file_path: python3 is not installed or not on PATH. The guard needs python3 to normalise every target path, so it denies every Write and Edit, in any repo, until python3 is available."
+fi
+# python3 runs isolated (-I: no PYTHON* environment, no user site), and
+# its stderr is kept apart from the path it prints. The result must be a
+# single absolute path.
+py_err=$(mktemp) || deny_target "The worktree write guard could not create a temporary file to check the target path $file_path. The write cannot be checked, so it is denied."
+trap 'rm -f "$py_err"' EXIT
+if ! resolved=$(python3 -I -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$file_path" 2>"$py_err"); then
+  deny_target "The worktree write guard could not normalise the target path $file_path: python3 failed ($(head -c 300 "$py_err")). The write cannot be checked, so it is denied."
+fi
+case "$resolved" in
+  /*) ;;
+  *) deny_target "The worktree write guard could not normalise the target path $file_path: python3 returned no absolute path. The write cannot be checked, so it is denied." ;;
+esac
+if [ "$(printf '%s\n' "$resolved" | wc -l)" -ne 1 ]; then
+  deny_target "The worktree write guard could not normalise the target path $file_path: python3 returned more than one line. The write cannot be checked, so it is denied."
 fi
 
 # Find the nearest existing ancestor directory for the target file.
@@ -50,8 +102,8 @@ if [ -z "$check_dir" ] || [ "$check_dir" = "/" ]; then
   exit 0
 fi
 
-# Early exit for non-managed repos. Pure shell, no subprocess — fast for
-# writes to /tmp, non-repo paths, and unmanaged repos.
+# Early exit for non-managed repos. The check is pure shell, with no
+# further subprocess after the normalisation above.
 if ! is_managed_repo "$check_dir"; then
   exit 0
 fi
@@ -79,9 +131,14 @@ if ! [ -f "$main_root/.gitignore" ] || ! grep -qxF '.worktrees/' "$main_root/.gi
   exit 0
 fi
 
-# The worktree convention is active. The file must be inside a worktree.
+# The worktree convention is active. The file must be inside a worktree,
+# or be ignored agent state under the main clone's build/.vergil-state/
+# (the convention's one exception to the read-only main worktree).
 case "$resolved" in
   "$main_root"/.worktrees/*)
+    exit 0
+    ;;
+  "$main_root"/build/.vergil-state/*)
     exit 0
     ;;
   *)
