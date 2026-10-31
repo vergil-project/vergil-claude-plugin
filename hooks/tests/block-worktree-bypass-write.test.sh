@@ -62,6 +62,7 @@ T_NAME=(
 	"normalisation: state path, case 1"
 	"normalisation: state path, case 2"
 	"normalisation: state path, case 3"
+	"a relative target path is denied"
 	"without python3, a write in a worktree is denied"
 	"without python3, a write to a managed repo from outside it is denied"
 	"without python3, a write outside a managed repo is denied"
@@ -81,18 +82,19 @@ T_PATH=(
 	"$S/build/.vergil-state/../../new.txt"
 	"$S/build/.vergil-state/src/new.txt"
 	"$L/build/.vergil-state/new.txt"
+	".worktrees/wt/new.txt"
 	"$S/.worktrees/wt/new.txt"
 	"$S/new.txt"
 	"$U/new.txt"
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
-	"$S" "$S" "$S" "$S" "$S" "$L"
+	"$S" "$S" "$S" "$S" "$S" "$L" "$S"
 	"$S" "$U" "$U"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
-	"" "" "" "" "" ""
+	"" "" "" "" "" "" ""
 	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
 )
 T_EXPECT=(
@@ -102,6 +104,7 @@ T_EXPECT=(
 	"allow"
 	"allow"
 	"allow"
+	"deny"
 	"deny"
 	"deny"
 	"deny"

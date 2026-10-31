@@ -203,28 +203,36 @@ issue, finds it. Find the main clone from inside a worktree with
   source. Ignored scratch under its `build/.vergil-state/` is not a source
   edit, and the worktree write hook (`block-worktree-bypass-write`) allows
   Write and Edit there and nowhere else in the main worktree.
-- **Creating it.** Take `build` and each level in turn
-  (`build/.vergil-state`, the kind, the task's state directory, and
-  `<round>` where there is one). For each that exists, first check that it
-  is a real directory, not a symlink (`test ! -L`, then `test -d`); only
-  then run `install -d -m 700 <level>`, never one `mkdir -p`; then run the
-  mode check below. A new `<round>/` must not exist before you create it
-  (`test ! -e` and `test ! -L`); if it does, write nothing and stop. Create
-  a round's subdirectory once, before its first write; later writes in the
-  same round only repeat the checks on the existing levels.
+- **Creating it.** `build` must already be a real directory: check it with
+  `test ! -L build` and `test -d build`, and never run `install -d` or the
+  mode check on it. Then take each level in turn (`build/.vergil-state`,
+  the kind, the task's state directory, and `<round>` where there is one).
+  For each that exists, first check that it is a real directory, not a
+  symlink (`test ! -L`, then `test -d`); only then run `install -d -m 700
+  <level>`, never one `mkdir -p`; then run the mode check below. A new
+  `<round>/` must not exist before you create it (`test ! -e` and `test !
+  -L`); if it does, write nothing and stop. Create a round's subdirectory
+  once, before its first write; later writes in the same round only repeat
+  the checks on the existing levels.
 - **The mode check.** Before each write into a state directory, check every
-  level with `stat` (`stat -c %a <level>` on Linux, `stat -f %Lp <level>` on
-  macOS). Its permission bits, the last three octal digits, must be exactly
-  `700`; a leading setuid, setgid or sticky digit is ignored. `install -d -m
-  700` tightens a level that already exists; if a level is still not `700`
-  after it, or is not a real directory, write nothing and stop.
+  level below `build` with `stat` (`stat -c %a <level>` on Linux,
+  `stat -f %Lp <level>` on macOS). Its permission bits, the last three
+  octal digits, must be exactly `700`; a leading setuid, setgid or sticky
+  digit is ignored. `install -d -m 700` tightens a level that already
+  exists; if a level is still not `700` after it, or is not a real
+  directory, write nothing and stop.
 - **Stopping.** Wherever this section says stop, in mode 2 that is a pause
   ([§3.8](#38-pauses)), and in mode 1 you stop and ask the human. Leave the
   directory as it is, unread.
 - **Only your own files.** Act only on the files in a state directory that
-  you wrote there yourself in this session and named in your context, or,
-  in a new session, the kept files the human has confirmed (below). Any
-  other entry found there means stop.
+  you wrote there yourself in this session and named in your context, or
+  the kept files the human has confirmed at the start of this session
+  (below). Any other entry found there means stop.
+- **Each details file.** When you write a file holding security details
+  into a state directory, take its own hash (`shasum -a 256 <file>`) and
+  keep it in your context. Check the file against that hash immediately
+  before you read it back or pass it to `vrg-security-record`; a difference
+  means stop.
 - **The hash.** One hash covers every entry in the task's state directory:
 
   ```bash
@@ -238,65 +246,66 @@ issue, finds it. Find the main clone from inside a worktree with
   Alongside it, `find <task state dir> ! -type d ! -type f` must print
   nothing: the directory holds only directories and regular files. A
   command that fails is a failed check. Keep each hash in your own context,
-  never on disk.
+  never on disk, and never take one from an earlier session.
 - **The check around each review.** Take the hash just before dispatch,
   after your own last write of the round so far, and again right after the
   review, before you write anything there. A difference is a broken round
   (mode 1: [§2.4](#24-output-checks-and-broken-rounds); mode 2:
   [§3.4](#34-output-checks)).
-- **The seal between rounds.** Take the hash again at the end of every
-  round, on every path out of it, once you have finished writing or
-  deleting there: after a clean-up, and equally when a round's
-  subdirectory is kept (a failed record, a kept copy, a pause) or the round
-  was broken. Check it at the start of the next round, before you write
-  anything there. A difference breaks the next round, the same way. A kept
-  round subdirectory stays in the directory and in the hash; the next round
-  uses a new subdirectory of its own.
-- **Returning the seal.** At the end of a run, on a pass or a pause, give
-  the latest seal hash in your final report. Under `epic-implement` the
-  main session passes it, with the human's rulings, to the run that resumes
-  the task.
-- **The first round of a session** has no seal of its own. If you were
-  given a seal hash with the rulings, check the task's state directory
-  against it before you write anything there; a difference means stop.
-  Otherwise, the directory must be absent, or hold only round
+- **The seal between rounds, within a session.** Take the hash again at
+  the end of every round, on every path out of it (a clean-up, a kept
+  round subdirectory, a pause, a broken round), once you have finished
+  writing or deleting there. Check it at the start of the next round in the
+  same session, before you write anything there. A difference breaks that
+  round, the same way. If the directory no longer exists, the seal is
+  `absent`, and the directory must still be absent. A kept round
+  subdirectory stays in the directory and in the hash; the next round uses
+  a new subdirectory of its own. The seal ends with the session: it is
+  never reported, passed on or trusted by another session.
+- **The first round of a session** has no seal. Before you write anything
+  there, the task's state directory must be absent, or hold only round
   subdirectories that the trusted records on the issue say were kept (mode
   1: a `scratch copy kept` round comment; mode 2: a paused round's
   material), and the human must confirm what it holds, shown as a listing.
-  Anything else means stop. The hash you take then seals the directory for
-  the rest of the session.
+  A run resumed under `epic-implement` gets that confirmation from the
+  main session, passed with the human's rulings. Anything else means stop.
+  The hash you take then seals the directory for the rest of the session.
 - **After a stop on a state-directory check,** the human looks at the
   directory and rules. Once they confirm its contents, a fresh hash becomes
   the seal.
-- **Kept details files.** When a file holding security details is kept
-  past the end of a round or session (a paused round's material, a mode 1
-  copy kept after a failed record, an upstream draft), take its own hash
-  (`shasum -a 256 <file>`) and record it with the record that says the
-  material was kept: the response comment's pause line (mode 2), the round
-  comment's `scratch copy kept` line (mode 1), or a comment on the
-  tracking issue (`upstream-report`). Before the file is read or passed to
-  `vrg-security-record`, check it against that hash, read only from a
-  trusted author's comment; a difference means stop.
+- **Kept details files.** When a details file is kept past the end of a
+  round or session (a paused round's material, a mode 1 copy kept after a
+  failed record, an upstream draft), record its hash with the record that
+  says the material was kept: the response comment's pause line (mode 2),
+  the round comment's `scratch copy kept` line (mode 1), or a comment on
+  the tracking issue (`upstream-report`). A later session checks the file
+  against that hash, read only from a trusted author's comment, before it
+  reads the file or passes it to `vrg-security-record`; a difference means
+  stop.
 - **The `upstream-report` directory** has no review rounds. Hash its
   `<N>/` after each write or deletion, and check the hash before the next
   write or deletion, before reading a draft back and before the report is
   sent; a difference means stop and ask the human. A session that finds the
-  directory with no hash kept shows the human its listing first, as for the
-  first round of a session.
+  directory shows the human its listing first, as for the first round of a
+  session.
 - **Deleting it.** Each mode deletes a round's subdirectory and the task's
   state directory at points its loop already reaches (mode 1:
   [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop) for the round
   and [§3.5](#35-task-issue-records) for the task). If the work is
   abandoned, the directory stays until the human deletes it.
 
-**What these checks cover.** Each task's hash checks cover only that task's
-own state directory, and only while a session is running on it. A write
-elsewhere under a state root (at the `.vergil-state` or kind level, into a
-directory no running task owns, or into kept material while no session
-runs) is not caught by them; kept details files are covered by their own
-recorded hashes (above). On the VMs the main clones are not under `$HOME`,
-so mode 2's stray-write sweep ([§3.4](#34-output-checks)) does not reach
-`build/.vergil-state/` there either.
+**What these checks cover.** The directory hash covers only the task's own
+state directory, and only across each review (before dispatch to right
+after it) and between rounds of one session. A change between the review and
+the end-of-round seal is caught only for details files, by their own hashes,
+and only up to the moment each is read or passed on. A write elsewhere
+under a state root (at the `.vergil-state` or kind level, or into a
+directory no running task owns), or into kept material while no session
+runs, is not caught by the directory hash; kept details files are checked
+against their recorded hashes when a later session uses them. On the VMs
+the main clones are not under `$HOME`, so mode 2's stray-write sweep
+([§3.4](#34-output-checks)) does not reach `build/.vergil-state/` there
+either.
 
 ## 2. Mode 1: human-gated design review
 
@@ -737,7 +746,8 @@ Post one comment per round on the planning issue, with
 - **Discards:** the count and one line each, except discards withheld by
   screening, which appear only as a count.
 - **Security:** the count, how many were accepted, the GHSA IDs this round
-  created, and `scratch copy kept` when cleanup did not happen. No titles,
+  created, and `scratch copy kept` when cleanup did not happen, with the
+  hash of each kept file ([§1.5](#15-state-directories)). No titles,
   descriptions or details.
 - **No marker lines** (`Epic:`, `Docs task:`, `Tasks filed:`), so the queue
   view's marker parsing is unaffected.
@@ -800,8 +810,10 @@ session finds it. A round ID used in this path must match `^[SPA][0-9]+$`;
 otherwise refuse and ask the human. After each move, confirm that the
 resolved path (`realpath`) is absolute and under the docs main clone's
 `build/.vergil-state/`, and that `vrg-git status --porcelain` in the docs
-worktree is still empty. Walk the human through each security finding in the
-terminal, like any other.
+worktree is still empty. Hash each moved file, and check that hash
+immediately before you read it or pass it to `vrg-security-record`
+([§1.5](#15-state-directories)). Walk the human through each security
+finding in the terminal, like any other.
 
 **Screening is required.** Right after the output checks, before
 classification and the walk-through, screen every ordinary finding against
@@ -1185,15 +1197,18 @@ different version is a warning in the findings comment, not a failure.
 - the task's state directory, `build/.vergil-state/agentic-review/<N>/` in
   the task repo's main clone ([§1.5](#15-state-directories)): check the
   seal first, against the hash kept at the end of the previous round in
-  this session, or, in the first round of a session, against the seal
-  hash given with the rulings or else its listing
-  ([§1.5](#15-state-directories)). Then
-  create the directory level by level if it is absent, check its mode, and
-  take its hash. A seal or listing that fails, or a mode that is not
+  this session, or, in the first round of a session, against the listing
+  the human confirmed ([§1.5](#15-state-directories)). Then create the
+  directory level by level if it is absent, check its mode, and take its
+  hash. A seal or listing that fails, or a mode that is not
   `700`, pauses the run before dispatch;
 - list the other tasks' state directories for the sweep's exclusions
-  (below). Take only main clones that are under a directory the sweep
-  searches and that you have verified as main clones: the directory that
+  (below). Find the candidates with
+  `find /tmp /var/tmp "$HOME" -type d -path '*/build/.vergil-state' -prune -print`
+  (the sweep's "Permission denied" rule applies); each candidate's clone is
+  the directory two levels up. Take only main clones that are under a
+  directory the sweep searches and that you have verified as main clones:
+  the directory that
   `vrg-git rev-parse --path-format=absolute --git-common-dir` names as the
   parent of a real `.git` directory, run in that clone. Never take anything
   under `/tmp`, `/var/tmp`, this session's temporary directory or
@@ -1323,8 +1338,12 @@ trusted authors.
 - **`agentic-review round <n>: response`:** what you did with each finding
   (fixed; not fixed, and why; removed, and the task it became; filed, and
   its issue), the security counts, and what happens next.
-- **`agentic-review summary: <outcome> after <n> round(s)`:** posted once, at
-  the final outcome, where `<outcome>` is `pass`, `accepted` (the human
+- **`agentic-review summary: <outcome> after <n> round(s)`:** first check
+  that no round subdirectory remains in the task's state directory. One
+  that remains may hold unrecorded details: pause ([§3.8](#38-pauses))
+  instead, post no summary, and leave the directory for the human.
+  Otherwise the summary is posted once, at the final outcome, where
+  `<outcome>` is `pass`, `accepted` (the human
   accepted the branch as it stands) or `dropped` (the human dropped it).
   Post it before `report-ready` on a pass or an accepted branch, or when the
   human drops the branch. A pause posts no summary, and abandoned work has
@@ -1333,9 +1352,7 @@ trusted authors.
   so the retrospective sweep can check them, and gives the security counts.
   Once it is posted, whatever the outcome, delete the task's state
   directory (`build/.vergil-state/agentic-review/<N>/`,
-  [§3.6](#36-security-findings)), but only when no round subdirectory
-  remains in it. One that remains may hold unrecorded details: pause
-  ([§3.8](#38-pauses)) and leave the directory for the human.
+  [§3.6](#36-security-findings)).
 
 A pause adds a line to the latest response comment, saying why the run
 stopped, and, once the human has ruled, a line with the human's ruling
@@ -1415,7 +1432,8 @@ Security: 1 found; 1 fixed on the branch, 0 recorded.
   the round's state subdirectory,
   `<main clone>/build/.vergil-state/agentic-review/<N>/<round>/`, created
   once per round, before its first write, and mode-checked before every
-  write ([§1.5](#15-state-directories)), then run:
+  write. Hash the file when you write it, and check that hash immediately
+  before you pass it on ([§1.5](#15-state-directories)). Then run:
 
   ```bash
   vrg-security-record create --repo <owner>/<repo> \
@@ -1520,10 +1538,10 @@ On a pause:
   changing what was decided.
 - **Resuming.** Under `epic-implement`, the main session passes every ruling
   the human has made on that task in this session (not only the latest),
-  and the seal hash the paused run returned, to a new `issue-implement` run
-  for that task; the run checks the task's state directory against that
-  hash before its first write there ([§1.5](#15-state-directories)). The
-  run continues from the existing worktree, continues the round count shown
+  and the human's confirmation of the task's state-directory listing
+  ([§1.5](#15-state-directories)), to a new `issue-implement` run for that
+  task. The run continues from the existing worktree, continues the round
+  count shown
   in the issue's trusted findings comments, and restates the rulings as
   requirements
   ([§3.3](#33-the-requirements-file)). In a new session the human restates
@@ -1533,8 +1551,8 @@ On a pause:
   end-of-round hash of the task's state directory, as at the end of any
   round ([§1.5](#15-state-directories)); after a pause on a state-directory
   check, the human confirms its contents first. Put the hash of each kept
-  details file in the pause line's comment, and give the seal hash in your
-  final report.
+  details file in the pause line's comment. The seal ends with the session;
+  it is never reported or passed on.
 - **A pause is not a save point.** The branch is not pushed: pushing happens
   at `report-ready`. If the human does not come back, or the worktree is lost,
   the work is abandoned: the task stays open as unfinished work and is

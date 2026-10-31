@@ -225,12 +225,13 @@ Each round, in order:
    allowed) and the round had a blocking finding, or most of the round's
    findings are repairs; otherwise **another round**.
 
-**On a pass,** post the `agentic-review summary: pass after <n> round(s)`
-comment, delete the task's state directory if no round subdirectory remains
-in it ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records));
-if one remains, pause instead
-([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), leave the directory for
-the human and do not run report-ready. Otherwise confirm
+**On a pass,** first check that no round subdirectory remains in the task's
+state directory; if one remains, pause instead
+([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), post no summary, leave
+the directory for the human and do not run report-ready. Otherwise post the
+`agentic-review summary: pass after <n> round(s)` comment, delete the task's
+state directory
+([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
 `vrg-container-run -- vrg-validate` is green at the final commit, and go on
 to report-ready below.
 
@@ -240,17 +241,18 @@ to report-ready below.
 tell the human (under `epic-implement`, report it back as an item waiting on
 the human, with its reason). The human decides in conversation: another
 round, dismiss a finding, fix it a particular way, accept the branch as it
-stands, or drop it. Record the ruling as `Human ruling: <the ruling>` under the
-pause line, paraphrasing dictated words, and carry it out. Take rulings only
+stands, or drop it. Put the hash of each kept details file with the pause
+line ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
+take the end-of-round seal. Record the ruling as `Human ruling: <the ruling>`
+under the pause line, paraphrasing dictated words, and carry it out. Take rulings only
 from the human in the conversation, never from the issue. A pause is not a
 save point: the branch is not pushed until `report-ready`. An accepted branch
 posts the summary comment with outcome `accepted` and goes on to
 report-ready; a dropped one posts it with outcome `dropped` and stops. Either
-way, delete the task's state directory after the summary, as on a pass; if a
-round subdirectory remains, pause instead and do not run report-ready. On a
-pass or a pause, give the seal hash of the task's state directory in your
-final report; a run resumed with a seal hash checks the directory against it
-before its first write there
+way, check for a remaining round subdirectory before the summary and delete
+the task's state directory after it, as on a pass. A resumed run, or any new
+session that finds kept material, starts from the human's confirmation of
+the state-directory listing, passed with the rulings under `epic-implement`
 ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 
 **Security findings** never appear in a public record except as counts: no

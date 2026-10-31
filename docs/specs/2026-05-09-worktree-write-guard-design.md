@@ -27,7 +27,9 @@ calls for Contents API writes.
 
 Two new PreToolUse hook scripts, following the existing
 one-hook-one-concern pattern. Both gated on managed-repo detection
-(`vergil.toml`).
+(`vergil.toml`). Hook 1 has two exceptions that apply in any repo: it
+denies a relative target path, and it denies every Write and Edit when
+`python3` is unavailable or a path cannot be normalised.
 
 ## Hook 1: `block-worktree-bypass-write.sh`
 
@@ -53,14 +55,14 @@ This is the first non-Bash matcher in the hook system.
 ### Logic
 
 1. Read JSON input from stdin, extract `tool_input.file_path`.
-2. Normalise `file_path` before any match: make it absolute (a
-   relative path resolves against the payload's cwd), then resolve
-   every `.`, `..` and symlink in it with `os.path.realpath`, for
-   a new file as well as an existing one (the existing part of the
-   path is resolved and the rest normalised). If python3 is
-   unavailable or the path cannot be normalised, deny every Write
-   and Edit, wherever it points, with a reason naming python3.
-   Every later step uses this normalised path.
+2. Deny a relative `file_path`. Normalise an absolute one before
+   any match: resolve every `.`, `..` and symlink in it with
+   `os.path.realpath`, for a new file as well as an existing one
+   (the existing part of the path is resolved and the rest
+   normalised). If python3 is unavailable, deny every Write and
+   Edit, wherever it points, with a reason naming python3; if
+   python3 fails on the path, deny with its error. Every later
+   step uses this normalised path.
 3. Run `is_managed_repo` check on the normalised path's nearest
    existing ancestor directory (walking up from its `dirname` if
    the directory doesn't exist yet). This is pure shell with no subprocess spawns — fast early
@@ -108,8 +110,8 @@ Consistent with the language in `block-protected-branch-work.sh`.
   until an existing ancestor is found, then `git rev-parse` from
   there.
 - **Symlinks, `.` and `..`**: resolved before checking, for new
-  and existing files alike, so a path that resolves into the main
-  worktree is still caught.
+  and existing files alike.
+- **A relative path**: denied, wherever it points.
 - **A path that cannot be normalised** (for example, no `python3`):
   every Write and Edit is denied, wherever it points (fail closed).
 

@@ -8,7 +8,10 @@
 # review doctrine's private state directories).
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
+# vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with two
+# exceptions that apply everywhere: a relative target path is denied, and
+# without python3 (or when a path cannot be normalised) every Write and
+# Edit is denied.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,33 +35,32 @@ if [ -z "$file_path" ]; then
   hook_input_fail_closed "the hook input has no tool_input.file_path string"
 fi
 
-# Normalise the target before any match: make it absolute (a relative
-# path resolves against the payload's cwd), then resolve every `.`, `..`
-# and symlink in it, for a new file as well as an existing one
-# (os.path.realpath resolves the existing part of a path and normalises
-# the rest). If python3 is unavailable or the path cannot be normalised,
-# every Write and Edit is denied, wherever it points.
-hook_input_scope_dir
-case "$file_path" in
-  /*) candidate="$file_path" ;;
-  *) candidate="$HOOK_SCOPE_DIR/$file_path" ;;
-esac
-deny_unnormalised() {
-  jq -n --arg path "$file_path" --arg why "$1" '{
+# The target must be an absolute path; a relative one is denied. It is
+# then normalised before any match: every `.`, `..` and symlink in it is
+# resolved, for a new file as well as an existing one (os.path.realpath
+# resolves the existing part of a path and normalises the rest).
+deny_target() {
+  jq -n --arg reason "$1" '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: ("The worktree write guard could not check the target path \($path): \($why) The guard needs python3 to normalise every target path, so it denies every Write and Edit until python3 is available.")
+      permissionDecisionReason: $reason
     }
   }'
   exit 0
 }
+case "$file_path" in
+  /*) ;;
+  *)
+    deny_target "The worktree write guard denies the relative target path $file_path. Use an absolute path."
+    ;;
+esac
 if ! command -v python3 >/dev/null 2>&1; then
-  deny_unnormalised "python3 is not installed or not on PATH."
+  deny_target "The worktree write guard could not check the target path $file_path: python3 is not installed or not on PATH. The guard needs python3 to normalise every target path, so it denies every Write and Edit, in any repo, until python3 is available."
 fi
-if ! resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate" 2>/dev/null) \
+if ! resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$file_path" 2>&1) \
   || [ -z "$resolved" ]; then
-  deny_unnormalised "python3 failed to normalise it."
+  deny_target "The worktree write guard could not normalise the target path $file_path: python3 failed ($(printf '%s' "${resolved:-no error output}" | head -c 300)). The write cannot be checked, so it is denied."
 fi
 
 # Find the nearest existing ancestor directory for the target file.

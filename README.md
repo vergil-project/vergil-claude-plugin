@@ -155,7 +155,10 @@ gated on a managed-repo check: a repo must contain
 `vergil.toml` at its root for the hook to fire. In repos
 without this marker, the gated hooks
 short-circuit to a no-op so the plugin doesn't interfere with
-ad-hoc git work in unrelated repositories. See the
+ad-hoc git work in unrelated repositories.
+`block-worktree-bypass-write` has two exceptions that apply
+everywhere: it denies a relative target path, and, without `python3`
+(or when a path cannot be normalised), it denies every Write and Edit. See the
 [hooks reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
 for the rationale.
 

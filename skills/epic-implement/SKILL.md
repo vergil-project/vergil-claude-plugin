@@ -74,8 +74,8 @@ present everything needing the human:
   `Paused: <reason>.` its run reported;
   [doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)). When the
   human rules on one, pass **every** ruling the human has made on that task in
-  this session (not only the latest), and the seal hash of the task's state
-  directory that the paused run returned
+  this session (not only the latest), and the human's confirmation of the
+  task's state-directory listing
   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), to a new
   `issue-implement` run for that task, which continues in its existing
   worktree. A paused task re-dispatched
