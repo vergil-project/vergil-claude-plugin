@@ -129,8 +129,10 @@ doctrine's rules for them; this step adds only the sweep.
      A security item, listed only as a count, is closed by a
      `Human ruling: security: …` counts line covering it. An item with no
      such ruling, or ruled `fix` and never fixed, is untracked.
-   - **`Filed without a ruling` lists:** each fix task named must exist; it
-     is tracked, not untracked.
+   - **`Filed without a ruling` lists:** each fix task named, filed or
+     `existing: <ref>`, must exist; it is tracked, not untracked. A
+     `not filed: <reason>` entry is untracked unless a later issue tracks
+     it.
    - **No gate records at all:** operational tasks (no PR) and tasks
      implemented before the gate shipped have none. Say so in §4, naming
      them; their other comments and PR reviews are still swept. A code task
