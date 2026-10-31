@@ -135,42 +135,76 @@ PATH first — see the Getting Started guide above.
 
 ## Update
 
-After a new release ships, refresh the local install with this
-two-step sequence:
+A machine picks up a new release, or a
+[rollback](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release),
+when its plugins are next updated. Run, in a human shell:
 
-```text
-/plugin marketplace update vergil-marketplace
-/reload-plugins
+```bash
+vrg-host plugins        # the host
+vrg-vm update --all     # every running agent VM
 ```
 
-What each step does:
+Then restart Claude Code: end the sessions already running on the host and
+in each VM, and start new ones. A running session keeps the plugin version
+it loaded; the next session start loads the updated one. Both
+commands refresh the marketplace and the installed plugins and verify the
+registered repo and ref. Both refuse an agent identity, so an agent asks
+the human to run them. Where Claude Code's background auto-update is on, it
+does the marketplace and plugin update on its own.
 
-1. **`/plugin marketplace update <marketplace>`** — refreshes the
-   marketplace index and downloads the new plugin version into the
-   local cache at `~/.claude/plugins/cache/<plugin-id>/<version>/`.
-   The previous version stays on disk for 7 days as a grace window
-   for concurrent sessions, then is removed automatically.
-2. **`/reload-plugins`** — applies the new skills / hooks / agents
-   to the **current** Claude Code session without restarting.
-   Without this, the running session keeps using the old in-memory
-   plugin state.
+Use these commands, not an in-session `/plugin marketplace update` and
+`/reload-plugins`: that pair does not switch a changed `ref` and verifies
+nothing, and this README does not document it.
+
+This is the procedure in vergil-tooling's
+[Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
+runbook, which also covers VMs that are not running: `vrg-vm update --all`
+reports a stopped VM as skipped, not as a failure, and leaves it as it was.
 
 ### Verify the update
 
+The ref check those commands run does not prove a machine moved: the ref
+is `v2.1` before and after. Check the installed version on each machine,
+host and every VM:
+
 ```bash
-ls -1 ~/.claude/plugins/cache/vergil-marketplace/vergil/
+claude plugin list --json
 ```
 
-You should see one directory per cached version. The newest
-version should match the latest tag on
-[GitHub Releases](https://github.com/vergil-project/vergil-claude-plugin/releases).
+Every `vergil@vergil-marketplace` entry must be at the version `v2.1`
+points at: the list has one entry per install, user scope and each project
+scope, and a stale project-scope entry is a mismatch too. That
+is the latest
+[GitHub Release](https://github.com/vergil-project/vergil-claude-plugin/releases)
+unless a rollback has moved `v2.1` back to an earlier release, so check the
+tag, not the newest release. It reads the tags from the canonical repo,
+not a checkout's `origin`, so a fork or stale mirror cannot answer. Run it
+inside any GitHub checkout (`vrg-git` needs one to pick its identity):
+
+```bash
+url=https://github.com/vergil-project/vergil-claude-plugin.git
+[ -z "$(vrg-git ls-remote --heads "$url" v2.1)" ] \
+  && sha=$(vrg-git ls-remote "$url" refs/tags/v2.1 | cut -f1) && [ -n "$sha" ] \
+  && vrg-git ls-remote --tags "$url" | grep "^$sha"
+```
+
+The first test stops it if a `v2.1` branch exists: Claude Code resolves
+`v2.1` as a branch before a tag, so the tag would not be what consumers
+follow. Otherwise it prints two lines with the same object ID: `v2.1` and
+the `v2.1.Z` tag it points at. That `2.1.Z` is the version to expect. Any other output, or
+none, means the lookup failed; do not read a version from it. On any
+machine that does not show the expected version, run `vrg-host plugins`
+or `vrg-vm update --all` again (a bare `vrg-vm update` updates only the
+base VM), then check it again.
 
 ### References
 
-Sourced from the official Claude Code documentation:
-
+- [Rolling back a release](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
+  — vergil-tooling's rollback runbook.
+- [Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
+  — the runbook's pick-up and verification steps.
 - [Plugins reference — CLI commands](https://code.claude.com/docs/en/plugins-reference.md)
-- [Discover plugins — Apply changes without restarting](https://code.claude.com/docs/en/discover-plugins.md)
+  — the official Claude Code documentation.
 
 ## Component inventory
 
