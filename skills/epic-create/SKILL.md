@@ -192,7 +192,8 @@ round. The human decides every round. Each round has seven steps:
 1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)): run
    the pre-dispatch steps of [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
    including the `paad/` checks, the round's empty temporary directory and
-   the state directory's seal and hash
+   the state directory's seal and hash (in the first round of a session,
+   the human's confirmation of its listing instead of the seal)
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), then
    start a fresh
    `general-purpose` subagent **in the background** with the
@@ -205,7 +206,9 @@ round. The human decides every round. Each round has seven steps:
    re-run once; stop and ask the human after a second. A failed
    state-directory check, or a failed `paad/` check before dispatch, is
    never re-run: stop and ask the human at once. On every such exit, take
-   the end-of-round seal once you are done in the state directory
+   the end-of-round seal once you are done in the state directory; after a
+   failed state-directory check, only once the human has confirmed its
+   contents
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 3. **Screen, classify and map severity:** first screen every ordinary finding
    and every discard line
@@ -330,6 +333,10 @@ A planning issue is public, so anyone can comment on it. When resuming:
   at the [§2.7](../../docs/paad-review-doctrine.md#27-security-findings) path,
   derived from the planning issue and the round ID. Use a round ID in that
   path only if it matches `^[SPA][0-9]+$`; otherwise refuse and ask the human.
+  Show the human the listing of the planning issue's state directory to
+  confirm, and check each kept file against the hash its round comment
+  records before you read it or pass it on
+  ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 - **If the docs worktree is dirty,** show the human the diff before any
   reviewer is dispatched. The human either commits it as the interrupted
   round's commit, with its round comment, or discards it

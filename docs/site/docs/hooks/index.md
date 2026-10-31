@@ -25,10 +25,10 @@ exists at the repo root.
 
 When the marker is not present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
-unrelated repositories. `block-worktree-bypass-write` has two
-exceptions that apply everywhere: it denies a relative target path,
-and, without `python3` (or when a path cannot be normalised), it
-denies every Write and Edit. Detection is a pure-shell walk up from the
+unrelated repositories. `block-worktree-bypass-write` has
+exceptions that apply everywhere: it denies a relative target path;
+without `python3` it denies every Write and Edit; and it denies a
+write whose path `python3` cannot normalise. Detection is a pure-shell walk up from the
 bash session's CWD looking for the marker, terminating at a
 `.git` boundary or the filesystem root. No `git` subprocess; the
 gate's overhead is a handful of `stat()` calls.
@@ -292,8 +292,8 @@ directories](https://github.com/vergil-project/vergil-claude-plugin/blob/develop
 which the hook allows. Every target path is normalised first
 (`.`, `..` and symlinks resolved, for new files as well as existing
 ones) with `python3`. A relative target path is denied. Without
-`python3`, or when a path cannot be normalised, the hook denies every
-Write and Edit, wherever it points.
+`python3` the hook denies every Write and Edit, wherever it points; a
+write whose path `python3` cannot normalise is denied.
 Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
 Tests: `hooks/tests/block-worktree-bypass-write.test.sh`.
 

@@ -189,7 +189,9 @@ the `build/` of a repo's main clone, never in the reviewer's worktree:
 | `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
 
 The issue-numbered level (`<M>/` or `<N>/`) is the **task's state
-directory**; `<round>/` is the round's subdirectory. The path follows from
+directory**; `<round>/` is the round's subdirectory: mode 1's round ID,
+which must match `^[SPA][0-9]+$`, or mode 2's round number, which must
+match `^[1-9][0-9]*$`. Refuse any other value and stop. The path follows from
 the issue and the round, so a resumed run, or any later session on the same
 issue, finds it. Find the main clone from inside a worktree with
 `dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)"`.
@@ -203,9 +205,11 @@ issue, finds it. Find the main clone from inside a worktree with
   source. Ignored scratch under its `build/.vergil-state/` is not a source
   edit, and the worktree write hook (`block-worktree-bypass-write`) allows
   Write and Edit there and nowhere else in the main worktree.
-- **Creating it.** `build` must already be a real directory: check it with
-  `test ! -L build` and `test -d build`, and never run `install -d` or the
-  mode check on it. Then take each level in turn (`build/.vergil-state`,
+- **Creating it.** When the main clone has no `build` (neither `test -e`
+  nor `test -L` is true), create it with a plain `mkdir build`: it is the
+  repo's ignored scratch directory. `build` must then be a real directory:
+  check it with `test ! -L build` and `test -d build`, and never run
+  `install -d` or the mode check on it. Then take each level in turn (`build/.vergil-state`,
   the kind, the task's state directory, and `<round>` where there is one).
   For each that exists, first check that it is a real directory, not a
   symlink (`test ! -L`, then `test -d`); only then run `install -d -m 700

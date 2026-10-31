@@ -29,7 +29,8 @@ Two new PreToolUse hook scripts, following the existing
 one-hook-one-concern pattern. Both gated on managed-repo detection
 (`vergil.toml`). Hook 1 has two exceptions that apply in any repo: it
 denies a relative target path, and it denies every Write and Edit when
-`python3` is unavailable or a path cannot be normalised.
+`python3` is unavailable, and it denies a write whose path `python3`
+cannot normalise.
 
 ## Hook 1: `block-worktree-bypass-write.sh`
 
@@ -54,19 +55,25 @@ This is the first non-Bash matcher in the hook system.
 
 ### Logic
 
-1. Read JSON input from stdin, extract `tool_input.file_path`.
+1. Read JSON input from stdin, extract `tool_input.file_path`. Input
+   that cannot be parsed, or that has no `file_path`, is refused
+   (exit 2), unless the payload's cwd is outside a managed repo (#776).
 2. Deny a relative `file_path`. Normalise an absolute one before
    any match: resolve every `.`, `..` and symlink in it with
    `os.path.realpath`, for a new file as well as an existing one
    (the existing part of the path is resolved and the rest
-   normalised). If python3 is unavailable, deny every Write and
-   Edit, wherever it points, with a reason naming python3; if
-   python3 fails on the path, deny with its error. Every later
-   step uses this normalised path.
+   normalised). Run python3 isolated (`-I`), with its stderr kept
+   apart from the path it prints. If python3 is unavailable, deny
+   every Write and Edit, wherever it points, with a reason naming
+   python3. If python3 fails on the path, deny that write with its
+   error; if it returns anything but a single absolute path, deny
+   that write too. Every later step uses this normalised path.
 3. Run `is_managed_repo` check on the normalised path's nearest
    existing ancestor directory (walking up from its `dirname` if
-   the directory doesn't exist yet). This is pure shell with no subprocess spawns — fast early
-   exit for writes to `/tmp`, non-repo paths, and unmanaged repos.
+   the directory doesn't exist yet). The check itself is pure shell
+   with no subprocess spawns (normalisation in step 2 has already run
+   python3) — an early exit for writes to `/tmp`, non-repo paths, and
+   unmanaged repos.
    If not managed: exit 0.
 4. Derive the git repo root from that same ancestor: run
    `git -C <ancestor> rev-parse --show-toplevel`.
@@ -100,6 +107,11 @@ full convention.
 
 Consistent with the language in `block-protected-branch-work.sh`.
 
+The other denials each name their own reason: a relative target path;
+`python3` not installed or not on `PATH`; `python3` failing on the
+path, with its error; `python3` returning anything but a single
+absolute path; and no temporary file for `python3`'s error output.
+
 ### Edge cases
 
 - **File outside any git repo** (e.g., `/tmp/scratch.txt`): allow.
@@ -112,8 +124,9 @@ Consistent with the language in `block-protected-branch-work.sh`.
 - **Symlinks, `.` and `..`**: resolved before checking, for new
   and existing files alike.
 - **A relative path**: denied, wherever it points.
-- **A path that cannot be normalised** (for example, no `python3`):
-  every Write and Edit is denied, wherever it points (fail closed).
+- **No `python3`**: every Write and Edit is denied, wherever it
+  points (fail closed).
+- **A path that `python3` cannot normalise**: that write is denied.
 
 ## Hook 2: `block-github-contents-api.sh`
 

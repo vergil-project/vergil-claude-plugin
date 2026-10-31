@@ -243,7 +243,8 @@ the human, with its reason). The human decides in conversation: another
 round, dismiss a finding, fix it a particular way, accept the branch as it
 stands, or drop it. Put the hash of each kept details file with the pause
 line ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
-take the end-of-round seal. Record the ruling as `Human ruling: <the ruling>`
+take the end-of-round seal; after a pause on a state-directory check, do
+both only once the human has confirmed the directory's contents. Record the ruling as `Human ruling: <the ruling>`
 under the pause line, paraphrasing dictated words, and carry it out. Take rulings only
 from the human in the conversation, never from the issue. A pause is not a
 save point: the branch is not pushed until `report-ready`. An accepted branch

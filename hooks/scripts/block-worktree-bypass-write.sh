@@ -8,10 +8,10 @@
 # review doctrine's private state directories).
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with two
-# exceptions that apply everywhere: a relative target path is denied, and
-# without python3 (or when a path cannot be normalised) every Write and
-# Edit is denied.
+# vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with
+# exceptions that apply everywhere: a relative target path is denied;
+# without python3 every Write and Edit is denied; and a write whose path
+# python3 cannot normalise is denied.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -58,9 +58,20 @@ esac
 if ! command -v python3 >/dev/null 2>&1; then
   deny_target "The worktree write guard could not check the target path $file_path: python3 is not installed or not on PATH. The guard needs python3 to normalise every target path, so it denies every Write and Edit, in any repo, until python3 is available."
 fi
-if ! resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$file_path" 2>&1) \
-  || [ -z "$resolved" ]; then
-  deny_target "The worktree write guard could not normalise the target path $file_path: python3 failed ($(printf '%s' "${resolved:-no error output}" | head -c 300)). The write cannot be checked, so it is denied."
+# python3 runs isolated (-I: no PYTHON* environment, no user site), and
+# its stderr is kept apart from the path it prints. The result must be a
+# single absolute path.
+py_err=$(mktemp) || deny_target "The worktree write guard could not create a temporary file to check the target path $file_path. The write cannot be checked, so it is denied."
+trap 'rm -f "$py_err"' EXIT
+if ! resolved=$(python3 -I -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$file_path" 2>"$py_err"); then
+  deny_target "The worktree write guard could not normalise the target path $file_path: python3 failed ($(head -c 300 "$py_err")). The write cannot be checked, so it is denied."
+fi
+case "$resolved" in
+  /*) ;;
+  *) deny_target "The worktree write guard could not normalise the target path $file_path: python3 returned no absolute path. The write cannot be checked, so it is denied." ;;
+esac
+if [ "$(printf '%s\n' "$resolved" | wc -l)" -ne 1 ]; then
+  deny_target "The worktree write guard could not normalise the target path $file_path: python3 returned more than one line. The write cannot be checked, so it is denied."
 fi
 
 # Find the nearest existing ancestor directory for the target file.
@@ -74,8 +85,8 @@ if [ -z "$check_dir" ] || [ "$check_dir" = "/" ]; then
   exit 0
 fi
 
-# Early exit for non-managed repos. Pure shell, no subprocess — fast for
-# writes to /tmp, non-repo paths, and unmanaged repos.
+# Early exit for non-managed repos. The check is pure shell, with no
+# further subprocess after the normalisation above.
 if ! is_managed_repo "$check_dir"; then
   exit 0
 fi

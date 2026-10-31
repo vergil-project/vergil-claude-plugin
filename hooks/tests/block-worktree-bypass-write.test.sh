@@ -47,6 +47,13 @@ source "$SCRIPT_DIR/lib/mask-hook-guard.sh"
 mask_tool_path "$TMP/mask" python3
 NOPY_PATH="$MASKED_PATH"
 
+# A PATH whose python3 writes to stderr before running the real one.
+NOISY="$TMP/noisy"
+mkdir -p "$NOISY"
+printf '#!/usr/bin/env bash\necho "noise from python3" >&2\nexec %s "$@"\n' "$(command -v python3)" >"$NOISY/python3"
+chmod +x "$NOISY/python3"
+NOISY_PATH="$NOISY:$PATH"
+
 T_NAME=(
 	"write inside a worktree is allowed"
 	"write in a worktree with a resolvable dot-dot segment is allowed"
@@ -66,6 +73,8 @@ T_NAME=(
 	"without python3, a write in a worktree is denied"
 	"without python3, a write to a managed repo from outside it is denied"
 	"without python3, a write outside a managed repo is denied"
+	"a python3 that writes to stderr: a write to the main worktree is denied"
+	"a python3 that writes to stderr: a write inside a worktree is allowed"
 )
 T_PATH=(
 	"$S/.worktrees/wt/new.txt"
@@ -86,16 +95,20 @@ T_PATH=(
 	"$S/.worktrees/wt/new.txt"
 	"$S/new.txt"
 	"$U/new.txt"
+	"$S/new.txt"
+	"$S/.worktrees/wt/new.txt"
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
 	"$S" "$S" "$S" "$S" "$S" "$L" "$S"
 	"$S" "$U" "$U"
+	"/" "$S"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
 	"" "" "" "" "" "" ""
 	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
+	"$NOISY_PATH" "$NOISY_PATH"
 )
 T_EXPECT=(
 	"allow"
@@ -116,6 +129,8 @@ T_EXPECT=(
 	"deny"
 	"deny"
 	"deny"
+	"deny"
+	"allow"
 )
 
 pass=0

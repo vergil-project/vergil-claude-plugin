@@ -156,9 +156,10 @@ gated on a managed-repo check: a repo must contain
 without this marker, the gated hooks
 short-circuit to a no-op so the plugin doesn't interfere with
 ad-hoc git work in unrelated repositories.
-`block-worktree-bypass-write` has two exceptions that apply
-everywhere: it denies a relative target path, and, without `python3`
-(or when a path cannot be normalised), it denies every Write and Edit. See the
+`block-worktree-bypass-write` has exceptions that apply
+everywhere: it denies a relative target path; without `python3` it
+denies every Write and Edit; and it denies a write whose path `python3`
+cannot normalise. See the
 [hooks reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
 for the rationale.
 
