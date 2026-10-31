@@ -39,10 +39,29 @@ kind-specific concerns.
    - **FAILURE →** do **not** close. Leave the task — and its epic — open. Each
      kind handles the failure its own way (validation files a fix task;
      deployment retries first, then files a fix task only for a genuine defect).
+     That fix task is the one issue this lifecycle files without the human's
+     approval: list it under `Filed without a ruling` in the result comment
+     and the final report, so the human sees it at the next gate.
 
 ## Out of band
 
-Capture discovered problems as their own issues (`intake-capture` /
-`vrg-issue-create`) — do not fold them into this task's result.
+Creating any other issue needs the human's approval
+([doctrine §1.7](../../../docs/paad-review-doctrine.md#17-creating-issues)).
+Do not fold a discovered problem into this task's result, and do not file
+it: list it under `Awaiting a ruling` in the result comment (or a comment of
+its own, at once, if you find it before then) and in your final report, and
+file it only as the human approves, in the form approved.
+
+A **security item** appears in any comment only as a count. Write its
+details to `build/.vergil-state/operational/<N>/` in the main clone of the
+repo the task is filed in, under the state-directory rules
+([doctrine §1.5](../../../docs/paad-review-doctrine.md#15-state-directories)),
+and present it in the terminal only (under `epic-implement`, in your final
+message to the main session, never posted). On a `record` ruling, record it
+with `vrg-security-record`
+([doctrine §3.6](../../../docs/paad-review-doctrine.md#36-security-findings));
+on `reject`, record nothing. Delete its details once the ruling is carried
+out.
+
 The issue's comments are the recovery record if a session is lost mid-run;
 `paad:handoff` is available for session continuity.

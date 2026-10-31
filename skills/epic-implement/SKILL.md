@@ -95,6 +95,13 @@ present everything needing the human:
   worktree. A paused task re-dispatched
   with no ruling simply stops again and is listed here again; it needs no
   special handling;
+- every run's items **awaiting a ruling**, paused or not, as its final
+  report gives them, security details included and shown only here. File
+  and post none of them: pass each ruling to a new run of that task's skill,
+  which carries out those rulings and nothing else
+  ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues));
+- every fix task an operational run **filed without a ruling** on a recorded
+  `Outcome: FAILURE`, so the human sees it;
 - tasks split out for out-of-scope additions the gate removed, each listed as
   **needs scheduling**: only tasks the human approved at a ruling. They are
   not in the epic's plan, so the human decides when they run
@@ -132,15 +139,13 @@ The only reason to pull the human in mid-flight is a **problem you cannot
 resolve.** Stop and ask, with what you tried and where you're stuck. Never thrash,
 never fabricate, never suppress a validation gate.
 
-**File follow-ups at once.** When a follow-up surfaces — a concern a sub-agent
-reports, a gap you hit, a "we should also…" — file it now; do not offer to file
-it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
-[--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
-otherwise, and tell the human what you filed. A filed issue survives compaction
-and session loss; one held in context does not. This does not cover the
-agentic-review gate: its findings and a paused run's items are filed only as
-the human approves
-([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
+**Creating an issue needs the human's approval**
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+When a follow-up surfaces in this session — a gap you hit, a "we should
+also…" — list it at once under `Awaiting a ruling` in a comment on the epic
+issue, and present it at the gate with the runs' items; file it only as
+the human approves. The per-repo doc tasks the documentation-review sweep
+spawns (step 6) are exempt.
 
 ## 6. Terminal handoff (hybrid)
 

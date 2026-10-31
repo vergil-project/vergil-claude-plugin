@@ -25,6 +25,7 @@ share the common core in section 1.
   - [1.4 Signals](#14-signals)
   - [1.5 State directories](#15-state-directories)
   - [1.6 Security findings](#16-security-findings)
+  - [1.7 Creating issues](#17-creating-issues)
 - [2. Mode 1: human-gated design review](#2-mode-1-human-gated-design-review)
   - [2.1 Stages](#21-stages)
   - [2.2 One round](#22-one-round)
@@ -188,6 +189,7 @@ the `build/` of a repo's main clone, never in the reviewer's worktree:
 | `design-review` | `build/.vergil-state/design-review/<M>/<round>/`, the docs repo, `<M>` the planning issue's number | mode 1's scratch copy ([§2.7](#27-security-findings)) |
 | `agentic-review` | `build/.vergil-state/agentic-review/<N>/<round>/`, the task repo, `<N>` the task issue's number | mode 2's round material ([§3.6](#36-security-findings)) |
 | `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
+| `operational` | `build/.vergil-state/operational/<N>/`, the repo the task is filed in, `<N>` the operational task's number | security items found by `issue-validate` and `issue-deploy` ([§1.7](#17-creating-issues)) |
 
 The issue-numbered level (`<M>/` or `<N>/`) is the **task's state
 directory**; `<round>/` is the round's subdirectory: mode 1's round ID,
@@ -284,22 +286,26 @@ issue, finds it. Find the main clone from inside a worktree with
   failed record, an upstream draft), record its hash with the record that
   says the material was kept: the response comment's `Kept:` and
   `Ruling record:` lines (mode 2, [§3.5](#35-task-issue-records)), the
-  round comment's `scratch copy kept` line (mode 1), or a comment on
-  the tracking issue (`upstream-report`). A later session checks the file
+  round comment's `scratch copy kept` line (mode 1), a comment on
+  the tracking issue (`upstream-report`), or a `Kept: <file> sha256:<hash>`
+  line in the comment that lists the item (`operational`,
+  [§1.7](#17-creating-issues)). A later session checks the file
   against that hash, read only from a trusted author's comment, before it
   reads the file or passes it to `vrg-security-record`; a difference means
   stop, and so does a kept file with no recorded hash.
-- **The `upstream-report` directory** has no review rounds. Hash its
-  `<N>/` after each write or deletion, and check the hash before the next
-  write or deletion, before reading a draft back and before the report is
-  sent; a difference means stop and ask the human. A session that finds the
-  directory shows the human its listing first, as for the first round of a
-  session.
+- **The `upstream-report` and `operational` directories** have no review
+  rounds. Hash the directory's `<N>/` after each write or deletion, and check the hash
+  before the next write or deletion, before reading a draft or details file
+  back and before a report is sent or a record made; a difference means
+  stop and ask the human. A session that finds the directory shows the
+  human its listing first, as for the first round of a session.
 - **Deleting it.** Each mode deletes a round's subdirectory and the task's
   state directory at points its loop already reaches (mode 1:
   [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop) for the round
-  and [§3.5](#35-task-issue-records) for the task). If the work is
-  abandoned, the directory stays until the human deletes it.
+  and [§3.5](#35-task-issue-records) for the task). An `operational`
+  details file is deleted once its item is ruled on and the ruling carried
+  out, and `<N>/` once it is empty. If the work is abandoned, the directory
+  stays until the human deletes it.
 
 **What these checks cover.** The directory hash covers only the task's own
 state directory, and only across each review (before dispatch to right
@@ -327,6 +333,51 @@ both modes ([§2.7](#27-security-findings), [§3.6](#36-security-findings)).
 Nothing widens or narrows it. Every security finding reaches the human, so
 paad may err toward reporting more; the human's rejections show where to
 tune.
+
+### 1.7 Creating issues
+
+This rule binds every agent in `issue-implement`, `epic-implement`,
+`issue-deploy`, `issue-validate` and `epic-retrospective`, inside a review
+or not. **Creating an issue needs the human's approval.** When you find new
+work on your own (a follow-up, a gap, a "we should also…", a concern a
+sub-agent reports, an operational need, an untracked problem), present it
+and file it only on the human's approving ruling, in the form approved.
+The only exemptions:
+
+- issues the human asked for or approved directly: through planning
+  (`epic-create`), capture (`intake-capture`), the queue reviews
+  (`intake-review`, `deferred-review`) or a ruling, including a mode 1
+  ruling and the neutral issue `vrg-security-record` pairs with an advisory;
+- the per-repo doc tasks that the documentation-review sweep spawns;
+- the fix task `issue-validate` or `issue-deploy` files on a recorded
+  `Outcome: FAILURE`. List it under `Filed without a ruling` in the result
+  comment and in the final report, so the human sees it at the next gate.
+
+**Write each item down at once.** List it under `Awaiting a ruling`, with
+an ID `N<n>.<i>` (`<n>` the round, `0` outside one), in a comment the skill
+already posts on its issue (mode 2: the round's response comment,
+[§3.5](#35-task-issue-records); an operational task: its result comment),
+and in your final report. An item found before any such comment exists
+gets its own comment at once, whose first line is `Awaiting a ruling`. When
+a ruling is carried out, record it as a `Human ruling:` line in §3.5's form,
+with the issue it filed, in that comment or, once that comment is finished
+or is not yours to edit, in a new one. This is best effort: an item whose
+record is lost is likely found again.
+
+**Security items** ([§1.6](#16-security-findings)) appear in posted
+comments only as counts. Their details go to the task's private directory
+([§1.5](#15-state-directories)): `agentic-review/<N>/` in mode 2
+([§3.6](#36-security-findings)), `operational/<N>/` for an operational
+task. Present them in the terminal only. One is filed only with
+`vrg-security-record`, on a `record` ruling ([§3.6](#36-security-findings)),
+never as an ordinary issue.
+
+**Under `epic-implement`,** each run's final message to the main session
+lists its items, security details included, and is never posted. The main
+session presents every run's items at the gate, and files and posts none of
+them: it passes each ruling to a new run of that task's skill, which carries
+out those rulings and nothing else (a paused agentic-review round resumes
+as [§3.8](#38-pauses) says).
 
 ## 2. Mode 1: human-gated design review
 
@@ -1739,7 +1790,8 @@ files, the PR text and the `report-ready` notes.
 
 ### 3.7 Intake and the handoff
 
-**File only what the human approved.** The gate files nothing on its own.
+**File only what the human approved** ([§1.7](#17-creating-issues)). The
+gate files nothing on its own.
 An intake issue, a task for a removed addition or a security record
 ([§3.6](#36-security-findings)) is created only on the human's approving
 ruling, in the form approved, when the round is acted on

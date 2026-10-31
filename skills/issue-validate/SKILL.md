@@ -99,6 +99,9 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
     --title "fix: <what failed>" --body "<from the FAILURE evidence>"
   ```
 
+  These fix tasks are exempt from approval, but list each under `Filed
+  without a ruling` in the result comment and your final report, so the
+  human sees it at the next gate.
   A failed validation is a gate that holds, exactly like a PR that cannot merge.
   The fix task lands its own PR; a re-run of this validation confirms the fix.
 
@@ -107,12 +110,14 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 - **No worktree, no commits, no PR.** A validation task touches no code, and the
   PR tooling (`vrg-submit-pr`, `vrg-pr-workflow report-ready`) refuses it. If you
   find yourself wanting to open a PR, you are on the wrong issue.
-- **Discovered problems are out of band — file them at once.** When a
+- **Discovered problems need the human's approval to file.** When a
   follow-up surfaces — a concern a sub-agent reports, a gap you hit, a "we
-  should also…" — file it now as its own issue; do not offer to file it later,
-  ask whether to, or fold it into this task's result. Use `vrg-issue-create
-  --epic <epic|adhoc> [--blocked-by REF]` for a task that will clearly be done,
-  `vrg-intake-create` otherwise, and tell the human what you filed. A filed
-  issue survives compaction and session loss; one held in context does not.
+  should also…" — do not fold it into this task's result and do not file it:
+  list it under `Awaiting a ruling` in the result comment (or a comment of
+  its own if you find it before then), and in your final report; file it
+  only as the human approves. A security item appears there only as a
+  count, its details in `build/.vergil-state/operational/<N>/`. See the
+  [lifecycle's "Out of band"](references/operational-task-lifecycle.md#out-of-band)
+  and [doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues).
 - The issue's comments are the recovery record if a session is lost mid-run;
   `paad:handoff` is available for session continuity.

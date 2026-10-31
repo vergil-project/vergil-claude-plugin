@@ -94,8 +94,10 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
     --title "fix: <what blocks the deploy>" --body "<from the FAILURE evidence>"
   ```
 
-  A failed deployment is a gate that holds — the task and its epic stay open
-  until it succeeds.
+  This fix task is exempt from approval, but list it under `Filed without a
+  ruling` in the result comment and your final report, so the human sees it
+  at the next gate. A failed deployment is a gate that holds — the task and
+  its epic stay open until it succeeds.
 
 ## Boundaries
 
@@ -103,12 +105,14 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   the environment, not the code; the PR tooling refuses it, and cutting a release
   is a human action. If you find yourself wanting to open a PR or run a release,
   you are outside this skill's remit — stop.
-- **Discovered problems are out of band — file them at once.** When a
+- **Discovered problems need the human's approval to file.** When a
   follow-up surfaces — a concern a sub-agent reports, a gap you hit, a "we
-  should also…" — file it now as its own issue; do not offer to file it later,
-  ask whether to, or fold it into this task's result. Use `vrg-issue-create
-  --epic <epic|adhoc> [--blocked-by REF]` for a task that will clearly be done,
-  `vrg-intake-create` otherwise, and tell the human what you filed. A filed
-  issue survives compaction and session loss; one held in context does not.
+  should also…" — do not fold it into this task's result and do not file it:
+  list it under `Awaiting a ruling` in the result comment (or a comment of
+  its own if you find it before then), and in your final report; file it
+  only as the human approves. A security item appears there only as a
+  count, its details in `build/.vergil-state/operational/<N>/`. See the
+  [lifecycle's "Out of band"](../issue-validate/references/operational-task-lifecycle.md#out-of-band)
+  and [doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues).
 - The issue's comments are the recovery record if a session is lost mid-run;
   `paad:handoff` is available for session continuity.
