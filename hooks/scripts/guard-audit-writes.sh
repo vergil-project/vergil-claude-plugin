@@ -68,8 +68,7 @@ case "$candidate" in
 esac
 
 # Best-effort symlink resolution for existing files; lexical
-# normalization (.. resolution) otherwise. Same python3 idiom as
-# block-worktree-bypass-write.
+# normalization (.. resolution) otherwise.
 if [ -e "$candidate" ]; then
   resolved=$(python3 -c \
     "import os,sys; print(os.path.realpath(sys.argv[1]))" \

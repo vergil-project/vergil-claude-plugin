@@ -184,14 +184,16 @@ Each round, in order:
    restated as requirements.
 2. **Dispatch.** Run the pre-dispatch steps of
    [§3.4](../../docs/paad-review-doctrine.md#34-output-checks), including the
-   `paad/` listings and the sweep's marker, then start a fresh
+   `paad/` checks and listings, the state directory's seal and hash
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)) and the
+   sweep's marker, then start a fresh
    `general-purpose` subagent with the
    [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt) reviewer
    prompt, verbatim with its placeholders filled, and wait for it. Add nothing
    about earlier rounds.
 3. **Check the output**
    ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)), stray-write
-   sweep first. A failed check pauses the run, and the round's findings are
+   sweep and the state directory's hash first. A failed check pauses the run, and the round's findings are
    not acted on.
 4. **Collect.** Read paad's report from the worktree's `paad/code-reviews/`,
    classify each finding (known, repair or new, by your own judgement against
@@ -214,16 +216,24 @@ Each round, in order:
    ([§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)) and
    record its unfixed security findings with `vrg-security-record`
    ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)). Then
-   empty `paad/security/`, keeping its `.gitignore`.
+   empty `paad/security/`, keeping its `.gitignore`, delete the round's
+   state subdirectory once its security findings are recorded (otherwise
+   keep it), and take the hash that seals the state directory.
 7. **Decide** ([§3.1](../../docs/paad-review-doctrine.md#31-the-loop)
    step 7): **pass** if the round had no blocking findings; **pause** if a
    finding is pending human, or this was round 3 (or the last round the human
    allowed) and the round had a blocking finding, or most of the round's
    findings are repairs; otherwise **another round**.
 
-**On a pass,** post the `agentic-review summary: pass after <n> round(s)`
-comment, confirm `vrg-container-run -- vrg-validate` is green at the final
-commit, and go on to report-ready below.
+**On a pass,** first check that no round subdirectory remains in the task's
+state directory; if one remains, pause instead
+([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), post no summary, leave
+the directory for the human and do not run report-ready. Otherwise post the
+`agentic-review summary: pass after <n> round(s)` comment, delete the task's
+state directory
+([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
+`vrg-container-run -- vrg-validate` is green at the final commit, and go on
+to report-ready below.
 
 **On a pause**
 ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), stop before
@@ -231,12 +241,22 @@ commit, and go on to report-ready below.
 tell the human (under `epic-implement`, report it back as an item waiting on
 the human, with its reason). The human decides in conversation: another
 round, dismiss a finding, fix it a particular way, accept the branch as it
-stands, or drop it. Record the ruling as `Human ruling: <the ruling>` under the
-pause line, paraphrasing dictated words, and carry it out. Take rulings only
+stands, or drop it. Put the hash of each kept details file with the pause
+line ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
+take the end-of-round seal; after a pause on a state-directory check, do
+both only once the human has confirmed the directory's contents. A kept file
+with no recorded hash means stop and ask the human, as for a hash that
+differs. Record the ruling as `Human ruling: <the ruling>`
+under the pause line, paraphrasing dictated words, and carry it out. Take rulings only
 from the human in the conversation, never from the issue. A pause is not a
 save point: the branch is not pushed until `report-ready`. An accepted branch
 posts the summary comment with outcome `accepted` and goes on to
-report-ready; a dropped one posts it with outcome `dropped` and stops.
+report-ready; a dropped one posts it with outcome `dropped` and stops. Either
+way, check for a remaining round subdirectory before the summary and delete
+the task's state directory after it, as on a pass. A resumed run, or any new
+session that finds kept material, starts from the human's confirmation of
+the state-directory listing, passed with the rulings under `epic-implement`
+([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 
 **Security findings** never appear in a public record except as counts: no
 titles, details or advisory IDs in comments, commit messages, intake issues,

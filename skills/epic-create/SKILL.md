@@ -191,15 +191,25 @@ round. The human decides every round. Each round has seven steps:
 
 1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)): run
    the pre-dispatch steps of [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
-   including the round's empty temporary directory, then start a fresh
+   including the `paad/` checks, the round's empty temporary directory and
+   the state directory's seal and hash (in the first round of a session,
+   the human's confirmation of its listing instead of the seal)
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), then
+   start a fresh
    `general-purpose` subagent **in the background** with the
    [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt) template,
    placeholders filled and nothing about earlier rounds added.
 2. **Check the output**
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)),
-   including the stray-write check. A failed check is a broken round: revert,
-   delete its security files unread, and re-run once; stop and ask the human
-   after a second.
+   including the state directory's hash and the stray-write check. A failed
+   check is a broken round: revert, delete its security files unread, and
+   re-run once; stop and ask the human after a second. A failed
+   state-directory check, or a failed `paad/` check before dispatch, is
+   never re-run: stop and ask the human at once. On every such exit, take
+   the end-of-round seal once you are done in the state directory; after a
+   failed state-directory check, only once the human has confirmed its
+   contents
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 3. **Screen, classify and map severity:** first screen every ordinary finding
    and every discard line
    ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)), then
@@ -221,7 +231,10 @@ round. The human decides every round. Each round has seven steps:
    checkpoint and the recommendation
    ([§2.5](../../docs/paad-review-doctrine.md#25-the-recommendation)), after
    recording its security findings
-   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
+   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)). Then,
+   once the scratch copy is deleted or kept, take the end-of-round hash that
+   seals the state directory until the next round
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 7. **Ask the human:** another round of this stage, or stop it
    ([§2.2](../../docs/paad-review-doctrine.md#22-one-round), step 7). The
    human's answer is final; the recommendation is advice.
@@ -320,6 +333,10 @@ A planning issue is public, so anyone can comment on it. When resuming:
   at the [§2.7](../../docs/paad-review-doctrine.md#27-security-findings) path,
   derived from the planning issue and the round ID. Use a round ID in that
   path only if it matches `^[SPA][0-9]+$`; otherwise refuse and ask the human.
+  Show the human the listing of the planning issue's state directory to
+  confirm, and check each kept file against the hash its round comment
+  records before you read it or pass it on
+  ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 - **If the docs worktree is dirty,** show the human the diff before any
   reviewer is dispatched. The human either commits it as the interrupted
   round's commit, with its round comment, or discards it
@@ -439,7 +456,10 @@ last round comment.
 8. **Docs PR.** Validate (`vrg-container-run -- vrg-validate`) and hand off the
    single spec + plan PR against `.github` — agents record it via
    `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. Merging it
-   closes the documentation task.
+   closes the documentation task. Then delete the planning issue's state
+   directory, `build/.vergil-state/design-review/<M>/` in the docs repo's
+   main clone, once no kept copy remains in it
+   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
 9. **File the implementation tasks** from the plan, each in the repo where its PR
    lands and linked under the epic: born linked via `vrg-issue-create --epic
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
