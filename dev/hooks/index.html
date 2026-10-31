@@ -4247,7 +4247,10 @@ managed-repo check. A repo is "managed" when <code>vergil.toml</code>
 exists at the repo root.</p>
 <p>When the marker is not present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
-unrelated repositories. Detection is a pure-shell walk up from the
+unrelated repositories. <code>block-worktree-bypass-write</code> has
+exceptions that apply everywhere: it denies a relative target path;
+without <code>python3</code> it denies every Write and Edit; and it denies a
+write whose path <code>python3</code> cannot normalise. Detection is a pure-shell walk up from the
 bash session's CWD looking for the marker, terminating at a
 <code>.git</code> boundary or the filesystem root. No <code>git</code> subprocess; the
 gate's overhead is a handful of <code>stat()</code> calls.</p>
@@ -4450,8 +4453,16 @@ local workflow.</p>
 worktree when the parallel-AI-agent worktree convention is active.</p>
 <p><strong>Why.</strong> The main worktree is read-only by convention — all edits
 flow through a <code>.worktrees/&lt;name&gt;/</code> worktree on a feature branch.
-Symlinks into the main worktree are resolved best-effort and caught.
-Design: <code>docs/specs/2026-05-09-worktree-write-guard-design.md</code>.</p>
+The one exception is ignored agent state under the main clone's
+<code>build/.vergil-state/</code> (the <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories">paad review doctrine's state
+directories</a>),
+which the hook allows. Every target path is normalised first
+(<code>.</code>, <code>..</code> and symlinks resolved, for new files as well as existing
+ones) with <code>python3</code>. A relative target path is denied. Without
+<code>python3</code> the hook denies every Write and Edit, wherever it points; a
+write whose path <code>python3</code> cannot normalise is denied.
+Design: <code>docs/specs/2026-05-09-worktree-write-guard-design.md</code>.
+Tests: <code>hooks/tests/block-worktree-bypass-write.test.sh</code>.</p>
 <p><strong>Alternative.</strong> Write to your assigned worktree's absolute path.</p>
 <h3 id="guard-audit-writes">guard-audit-writes<a class="headerlink" href="#guard-audit-writes" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> When <code>VRG_IDENTITY_MODE=audit</code>, denies Write/Edit/
