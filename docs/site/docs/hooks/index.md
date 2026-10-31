@@ -283,8 +283,14 @@ worktree when the parallel-AI-agent worktree convention is active.
 
 **Why.** The main worktree is read-only by convention — all edits
 flow through a `.worktrees/<name>/` worktree on a feature branch.
-Symlinks into the main worktree are resolved best-effort and caught.
-Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
+The one exception is ignored agent state under the main clone's
+`build/.vergil-state/` (the [paad review doctrine's state
+directories](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories)),
+which the hook allows. Every target path is normalised first
+(`.`, `..` and symlinks resolved, for new files as well as existing
+ones), and a path that cannot be normalised is refused inside a
+managed repo. Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
+Tests: `hooks/tests/block-worktree-bypass-write.test.sh`.
 
 **Alternative.** Write to your assigned worktree's absolute path.
 

@@ -184,14 +184,16 @@ Each round, in order:
    restated as requirements.
 2. **Dispatch.** Run the pre-dispatch steps of
    [§3.4](../../docs/paad-review-doctrine.md#34-output-checks), including the
-   `paad/` listings and the sweep's marker, then start a fresh
+   `paad/` checks and listings, the state directory's seal and hash
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)) and the
+   sweep's marker, then start a fresh
    `general-purpose` subagent with the
    [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt) reviewer
    prompt, verbatim with its placeholders filled, and wait for it. Add nothing
    about earlier rounds.
 3. **Check the output**
    ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)), stray-write
-   sweep first. A failed check pauses the run, and the round's findings are
+   sweep and the state directory's hash first. A failed check pauses the run, and the round's findings are
    not acted on.
 4. **Collect.** Read paad's report from the worktree's `paad/code-reviews/`,
    classify each finding (known, repair or new, by your own judgement against
@@ -214,7 +216,8 @@ Each round, in order:
    ([§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)) and
    record its unfixed security findings with `vrg-security-record`
    ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)). Then
-   empty `paad/security/`, keeping its `.gitignore`.
+   empty `paad/security/`, keeping its `.gitignore`, delete the round's
+   state subdirectory and take the hash that seals the state directory.
 7. **Decide** ([§3.1](../../docs/paad-review-doctrine.md#31-the-loop)
    step 7): **pass** if the round had no blocking findings; **pause** if a
    finding is pending human, or this was round 3 (or the last round the human
@@ -222,8 +225,10 @@ Each round, in order:
    findings are repairs; otherwise **another round**.
 
 **On a pass,** post the `agentic-review summary: pass after <n> round(s)`
-comment, confirm `vrg-container-run -- vrg-validate` is green at the final
-commit, and go on to report-ready below.
+comment, delete the task's state directory
+([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
+`vrg-container-run -- vrg-validate` is green at the final commit, and go on
+to report-ready below.
 
 **On a pause**
 ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), stop before

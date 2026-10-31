@@ -23,6 +23,7 @@ share the common core in section 1.
   - [1.2 Classification](#12-classification)
   - [1.3 Severity](#13-severity)
   - [1.4 Signals](#14-signals)
+  - [1.5 State directories](#15-state-directories)
 - [2. Mode 1: human-gated design review](#2-mode-1-human-gated-design-review)
   - [2.1 Stages](#21-stages)
   - [2.2 One round](#22-one-round)
@@ -175,6 +176,77 @@ human made this decision; [§2.5](#25-the-recommendation) gives the rule and
 its reason. Mode 2 does not use these signals: it has its own rules
 ([§3.1](#31-the-loop) step 7).
 
+### 1.5 State directories
+
+Private material that must outlive a session or a VM rebuild (security
+details, a paused round's material) lives in a fixed **state directory** in
+the `build/` of a repo's main clone, never in the reviewer's worktree:
+
+| Kind | Path, in the main clone of | Used by |
+|---|---|---|
+| `design-review` | `build/.vergil-state/design-review/<N>/<round>/`, the docs repo, `<N>` the planning issue's number | mode 1's scratch copy ([§2.7](#27-security-findings)) |
+| `agentic-review` | `build/.vergil-state/agentic-review/<N>/<round>/`, the task repo, `<N>` the task issue's number | mode 2's round material ([§3.6](#36-security-findings)) |
+| `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
+
+`<N>/` is the **task's state directory**; `<round>/` is the round's
+subdirectory. The path follows from the issue and the round, so a resumed
+run, or any later session on the same issue, finds it. Find the main clone
+from inside a worktree with
+`dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)"`.
+
+- **Why there.** Every repo with a `vergil.toml` ignores `build/` through
+  the managed, synced `.gitignore`, so nothing there is committed; nothing
+  checks it. The main clones sit on the persistent projects volume, so the
+  state survives a VM rebuild, as the worktrees do. The reviewer works in
+  its worktree under `.worktrees/`, outside the main clone's `build/`.
+- **The read-only exception.** The main worktree stays read-only for
+  source. Ignored scratch under its `build/.vergil-state/` is not a source
+  edit, and the worktree write hook (`block-worktree-bypass-write`) allows
+  Write and Edit there and nowhere else in the main worktree.
+- **Creating it.** Create each level in turn (`build/.vergil-state`, the
+  kind, `<N>`, and `<round>` where there is one) with `install -d -m 700
+  <level>`, never with one `mkdir -p`. `build` and every level must be a
+  real directory, not a symlink (`test -d` and `test ! -L`).
+- **The mode check.** Before each write into a state directory, check every
+  level with `stat` (`stat -c %a <level>` on Linux, `stat -f %Lp <level>` on
+  macOS). Each must be exactly `700`. `install -d -m 700` tightens a level
+  that already exists; if a level is still not `700` after it, or is not a
+  real directory, write nothing and stop: in mode 2 that is a pause
+  ([§3.8](#38-pauses)), in mode 1 you stop and ask the human.
+- **The hash.** One hash covers every entry in the task's state directory:
+
+  ```bash
+  set -o pipefail
+  cd <task state dir> && {
+    find . | LC_ALL=C sort
+    find . -type f -exec shasum -a 256 {} + | LC_ALL=C sort
+  } | shasum -a 256
+  ```
+
+  Alongside it, `find <task state dir> ! -type d ! -type f` must print
+  nothing: the directory holds only directories and regular files. A
+  command that fails is a failed check. Keep each hash in your own context,
+  never on disk.
+- **The check around each review.** Take the hash just before dispatch,
+  after your own last write of the round so far, and again right after the
+  review, before you write anything there. A difference is a broken round
+  (mode 1: [§2.4](#24-output-checks-and-broken-rounds); mode 2:
+  [§3.4](#34-output-checks)).
+- **The seal between rounds.** Take the hash again at the end of each round,
+  after your last write or deletion there, and check it at the start of the
+  next round, before you write anything there. A difference breaks the next
+  round, the same way. Across a session boundary the kept hash is gone, so
+  a change made while no session was running is not detected; that is
+  accepted.
+- **Deleting it.** Each mode deletes a round's subdirectory and the task's
+  state directory at points its loop already reaches (mode 1:
+  [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop)). If the work
+  is abandoned, the directory stays until the human deletes it.
+
+On the VMs the main clones are not under `$HOME`, so mode 2's stray-write
+sweep ([§3.4](#34-output-checks)) does not reach `build/.vergil-state/`
+there. The hash checks are what cover it.
+
 ## 2. Mode 1: human-gated design review
 
 Used in `epic-create`'s interactive design session, where judgment calls
@@ -264,7 +336,7 @@ within each stage.
 Every reviewer prompt is this template, with its placeholders filled in. It
 was validated in the spike for this mode
 ([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
-and is copied here verbatim from its outcome, with two later changes:
+and is copied here verbatim from its outcome, with three later changes:
 
 - the `Temporary directory:` paragraph, which the stray-write check in
   [§2.4](#24-output-checks-and-broken-rounds) needs and the spike did not
@@ -278,6 +350,15 @@ and is copied here verbatim from its outcome, with two later changes:
   rounds as broken. The failure signal is now the `SECURITY-CHECK-FAILED`
   line, the `Security:` line takes no annotations, and the routing directive
   no longer uses the word "hold".
+- **2026-10-30, the bare failure line and the orchestrator's `.gitignore`**
+  ([vergil-project/vergil-claude-plugin#839](https://github.com/vergil-project/vergil-claude-plugin/issues/839),
+  [vergil-project/vergil-claude-plugin#840](https://github.com/vergil-project/vergil-claude-plugin/issues/840)).
+  The prompt asks for `SECURITY-CHECK-FAILED` as a bare line when a check
+  fails and for no mention of it otherwise, since §2.4 now fails a round on
+  any line that contains it. The orchestrator creates
+  `paad/security/.gitignore` before dispatch, so the reviewer only checks it
+  and never creates it: a reviewer that created it had reported a failed
+  check for doing so.
 
 Do not reword it: changing the prompt is a doctrine change.
 
@@ -300,7 +381,7 @@ Review-only directives (these override the skill where they conflict):
 - Skip alignment's TDD rewrite step. Instead, report each code task in the plan that is not in red/green/refactor form as a minor finding.
 - Return the full ranked list with its discards.
 
-Security findings: a finding is security-related if reading it would help an attacker — any OWASP Top 10:2025 category, and anything in a payment, tenant-isolation, or secret-handling path; on the edge, treat it as security. Before you report any finding as ordinary, test it against that definition. A gap, contradiction, missing task or drift is still a security finding if it concerns who can read private data, or who can trigger an action or a state change. How you would otherwise frame it does not make it ordinary. Write security findings only to `paad/security/{{SKILL}}-<YYYY-MM-DD>-{{TOPIC}}.md` (relative to the working directory above). Give each one a `### ` heading, followed by a `Severity:` line (from the skill's scale) and a `Section:` line. Before the first write, make sure `paad/security/.gitignore` exists and contains the single line `*` (create it if absent, never rewrite it if present) and that `vrg-git ls-files paad/security/` lists nothing. If either check fails, write no security file, and put the line `SECURITY-CHECK-FAILED` in your returned answer, on a line of its own, directly before the `Security:` line that gives the count. Never put any security detail (path, severity, symbol, description) in your returned answer: return only the count.
+Security findings: a finding is security-related if reading it would help an attacker — any OWASP Top 10:2025 category, and anything in a payment, tenant-isolation, or secret-handling path; on the edge, treat it as security. Before you report any finding as ordinary, test it against that definition. A gap, contradiction, missing task or drift is still a security finding if it concerns who can read private data, or who can trigger an action or a state change. How you would otherwise frame it does not make it ordinary. Write security findings only to `paad/security/{{SKILL}}-<YYYY-MM-DD>-{{TOPIC}}.md` (relative to the working directory above). Give each one a `### ` heading, followed by a `Severity:` line (from the skill's scale) and a `Section:` line. Before the first write, check that `paad/security/.gitignore` exists and contains the single line `*`, and that `vrg-git ls-files paad/security/` lists nothing. Never create or rewrite that `.gitignore`: it is already in place. If either check fails, write no security file, and put the bare line `SECURITY-CHECK-FAILED` in your returned answer, with nothing else on it (no backticks, list marker or note), directly before the `Security:` line that gives the count. If both checks pass, do not mention that token anywhere in your answer. Never put any security detail (path, severity, symbol, description) in your returned answer: return only the count.
 
 Review the **whole** document, including mechanisms that look like recent additions. Removing a mechanism, step or task is a legitimate finding.
 
@@ -311,7 +392,7 @@ Return format, exactly:
 2. A `Config:` line only if a paad config file was followed.
 3. One block per finding, ranked by severity: its paad severity, using exactly the word from the skill's own scale ({{SCALE}}) and no other scale, its section reference, the "If this ships as written, Y happens, because Z" claim, and its options from best to worst with a recommendation.
 4. `Discards: <k>` followed by one line each.
-5. `Security: <k> finding(s)` or `Security: 0`, exactly, with nothing else on the line. If a security check failed, the line `SECURITY-CHECK-FAILED` comes directly before it, on a line of its own.
+5. `Security: <k> finding(s)` or `Security: 0`, exactly, with nothing else on the line. If a security check failed, the bare line `SECURITY-CHECK-FAILED` comes directly before it.
 6. Every file you or paad wrote, each as an absolute path (or `Files written: none`).
 ````
 
@@ -376,17 +457,28 @@ different version is a warning in the round comment, not a failure.
 - record the docs worktree's branch and HEAD SHA;
 - confirm that `vrg-git status --porcelain` in the worktree is empty, so the
   reviewer sees only committed text;
+- when the worktree's `paad/security/.gitignore` is absent, create it
+  (and `paad/security/`, if absent) holding the single line `*`, so the
+  reviewer never finds it missing
+  ([vergil-project/vergil-claude-plugin#840](https://github.com/vergil-project/vergil-claude-plugin/issues/840)).
+  Never rewrite one that is present;
 - confirm that the worktree's `paad/security/` holds nothing but its
   `.gitignore`, so every security file found afterwards is this round's;
 - fetch each member repo the prompt names;
-- create the round's temporary directory for the stray-write check (below).
+- create the round's temporary directory for the stray-write check (below);
+- check the seal on the planning issue's state directory, then take its
+  hash, last, just before dispatch ([§1.5](#15-state-directories)). The
+  state directory is `build/.vergil-state/design-review/<N>/` in the docs
+  repo's main clone; create it first if it is absent.
 
 A dirty worktree at this point (for example, a session resumed partway
 through a walk-through) is shown to the human as a diff. The human either
 commits it as the interrupted round's commit, with its round comment, or
 discards it.
 
-**After every review,** check structure, not prose:
+**After every review,** first hash the state directory again, before you
+write anything there; it must match the hash taken before dispatch
+([§1.5](#15-state-directories)). Then check structure, not prose:
 
 - the version line `Running paad:<skill> v<version>` is present;
 - there is no `Config:` line, because no fallback is adopted
@@ -395,9 +487,11 @@ discards it.
 - every finding carries a paad severity and a section reference, and the
   severity is a word in that skill's column of the [§1.3](#13-severity)
   table;
-- no line of the answer is `SECURITY-CHECK-FAILED`. That token is the
-  reviewer's only signal that a security check failed; the word "hold"
-  elsewhere in the answer is not one;
+- no line of the answer contains `SECURITY-CHECK-FAILED`, bare or
+  decorated (in backticks, after a list marker, inside a sentence)
+  ([vergil-project/vergil-claude-plugin#839](https://github.com/vergil-project/vergil-claude-plugin/issues/839)).
+  That token is the reviewer's only signal that a security check failed;
+  the word "hold" elsewhere in the answer is not one;
 - the `Discards:` line is present;
 - the `Security:` line is present and is exactly `Security: <k> finding(s)`
   or `Security: 0`, with nothing else on the line (it matches
@@ -415,6 +509,10 @@ discards it.
   ignored by the managed `.gitignore` block, so the security file does not
   show;
 - the round's temporary directory passes the stray-write check (below).
+
+A state-directory hash that differs, before dispatch (the seal) or after the
+review, is a broken round. It is not re-run automatically: leave the state
+directory as it is, unread, and stop and ask the human.
 
 **The stray-write check.** The checks above miss a reviewer that writes a
 file outside the worktree and deletes it again. In the spike, that happened
@@ -618,16 +716,18 @@ names the file by date and topic only, so a later round on the same day
 would overwrite it. Once the output checks pass, move the round's security
 files to a **scratch copy** and work from there:
 
-`${XDG_STATE_HOME:-$HOME/.local/state}/vergil/design-review/<owner>-<repo>-<M>/<round-id>/`
+`<docs main clone>/build/.vergil-state/design-review/<N>/<round-id>/`
 
-where `<owner>-<repo>-<M>` names the planning issue. Create it with mode
-700, outside any repo. The path is fixed and derivable from the planning
-issue and the round ID, so a resumed session finds it. A round ID used in
-this path must match `^[SPA][0-9]+$`; otherwise refuse and ask the human.
-After each move, confirm that the resolved path is absolute and outside
-every repo, and that `vrg-git status --porcelain` in the docs worktree is
-still empty. Walk the human through each security finding in the terminal,
-like any other.
+where `<N>` is the planning issue's number: a state directory
+([§1.5](#15-state-directories)), created level by level with mode 700 and
+mode-checked before each write. It survives a VM rebuild, and the path is
+fixed and derivable from the planning issue and the round ID, so a resumed
+session finds it. A round ID used in this path must match `^[SPA][0-9]+$`;
+otherwise refuse and ask the human. After each move, confirm that the
+resolved path (`realpath`) is absolute and under the docs main clone's
+`build/.vergil-state/`, and that `vrg-git status --porcelain` in the docs
+worktree is still empty. Walk the human through each security finding in the
+terminal, like any other.
 
 **Screening is required.** Right after the output checks, before
 classification and the walk-through, screen every ordinary finding against
@@ -664,9 +764,13 @@ Handing each advisory on the planning issue to its fix task, or to the
 documentation task, stays as `epic-create` already does it.
 
 **Cleanup.** Once every finding in the scratch copy has been recorded or
-classified known, delete the copy, so no scratch details are left behind. If
-any record fails, keep the copy, and the round comment says
-`scratch copy kept` with the failure. Never delete a copy while a new or
+classified known, delete the copy (the round's `<round-id>/`
+subdirectory), so no scratch details are left behind, then take the
+end-of-round hash that seals the state directory until the next round
+([§1.5](#15-state-directories)). Delete the planning issue's state
+directory, `design-review/<N>/`, once the docs PR is handed off and no kept
+copy remains in it. If any record fails, keep the copy, and the round comment
+says `scratch copy kept` with the failure. Never delete a copy while a new or
 repair finding in it is unrecorded. A broken round's security files are
 deleted unread ([§2.4](#24-output-checks-and-broken-rounds)).
 
@@ -805,7 +909,12 @@ Each round:
    this round's intake issues ([§3.7](#37-intake-and-the-handoff)) and record
    its unfixed security findings ([§3.6](#36-security-findings)), so nothing
    found depends on the run reaching a pass. Then empty `paad/security/`,
-   keeping its `.gitignore`.
+   keeping its `.gitignore`. Once the round is acted on and every security
+   finding in it is recorded, delete the round's state subdirectory
+   (`<round>/` under the task's state directory,
+   [§3.6](#36-security-findings)), then take the end-of-round hash that
+   seals the task's state directory until the next round
+   ([§1.5](#15-state-directories)).
 7. **Decide:**
    - **pass** if the round had no blocking findings;
    - **pause** if a finding is pending human; or this was round 3, or the
@@ -971,21 +1080,56 @@ different version is a warning in the findings comment, not a failure.
 
 - confirm that `vrg-git status --porcelain` in the worktree is empty, and
   record the worktree's branch and HEAD SHA;
-- confirm that the worktree's `paad/code-reviews/` is empty or absent, and
-  that its `paad/security/` holds nothing but its `.gitignore`, so every
-  file found there afterwards is this round's. Look at these two
-  directories, not at `paad/` as a whole: many repos track older paad
-  reports elsewhere under `paad/`;
+- prepare and check the worktree's `paad/`, in this order. Run each command
+  from the worktree root; any check that fails, or command that fails,
+  pauses the run before dispatch ([§3.8](#38-pauses)):
+  1. `paad`, where present, is a real directory: `test ! -L paad`, and
+     `test -d paad` when it exists;
+  2. when `paad/security/` is absent, create it as a real directory
+     (`mkdir -p paad/security`); when `paad/security/.gitignore` is absent,
+     create it holding the single line `*`. Never rewrite one that is
+     present. A fresh worktree has neither, and paad needs both;
+  3. `paad/security` and `paad/code-reviews`, where present, are real
+     directories: `test ! -L` on each, and `test -d` when it exists;
+  4. `paad/security/.gitignore` is a regular file, not a symlink
+     (`test -f` and `test ! -L`), whose content is exactly the single line
+     `*`;
+  5. `vrg-git ls-files paad/security` and `vrg-git ls-files
+     paad/code-reviews`, each with no trailing slash, print nothing and
+     exit zero;
+  6. `paad/code-reviews/` is empty or absent, and `paad/security/` holds
+     nothing but its `.gitignore`, so every file found there afterwards is
+     this round's. Look at these two directories, not at `paad/` as a
+     whole: many repos track older paad reports elsewhere under `paad/`;
 - run `vrg-git fetch origin` in the worktree;
 - list the `paad/` of the session's starting directory and of the task repo's
   main checkout, if different, and keep both listings in the round
   directory;
+- the task's state directory, `build/.vergil-state/agentic-review/<N>/` in
+  the task repo's main clone ([§1.5](#15-state-directories)): check the
+  seal first, against the hash kept at the end of the previous round in
+  this session (round 1 of a session has none). Then create the directory
+  level by level if it is absent, check its mode, and take its hash. A
+  seal that differs, or a mode that is not `700`, pauses the run before
+  dispatch;
+- list the other tasks' state directories for the sweep's exclusions
+  (below). Find each state root under the directories the sweep searches,
+  then list every `<root>/<kind>/<M>/` directory in each, every one but
+  this task's own:
+
+  ```bash
+  find /tmp /var/tmp "$HOME" -type d -path '*/build/.vergil-state' -prune -print
+  ```
+
+  The same "Permission denied" rule as the sweep applies;
 - last, just before dispatch, touch the sweep's marker:
   `touch <round-dir>/marker`.
 
 **After every review,** check structure, not prose. Run the stray-write
 sweep first, before writing anything else, so your own files do not show in
-it. Then:
+it. Then hash the task's state directory again, before you write anything
+there: it must match the hash taken before dispatch
+([§1.5](#15-state-directories)). Then:
 
 - the first line is `Running paad:agentic-review v<version>`;
 - there is **no** `Config:` line. Mode 2 adopts no config file, so one means
@@ -1037,7 +1181,14 @@ It must print nothing. Exclude (one `-path <path>` each, inside the brackets):
   scratchpads, so exclude the container runtime's storage (on the agent VM,
   `$HOME/.local/share/containerd`, `$HOME/.local/share/nerdctl` and
   `$HOME/.local/share/cni`), tool caches (`$HOME/.cache`), and the temporary
-  directories and worktrees of every other session, by their own paths.
+  directories and worktrees of every other session, by their own paths;
+- the other tasks' state directories, each by the path listed before
+  dispatch, so a parallel task's own writes do not fail this round. This
+  task's own state directory stays in the sweep. A state directory created
+  after that listing is not excluded: a hit there fails the round like any
+  other, and the human decides. On the VMs the main clones are not under a
+  swept directory, so the sweep does not reach any state directory there,
+  and the hash checks are what cover them ([§1.5](#15-state-directories)).
 
 Never exclude this session's own temporary directory or scratchpad: a
 reviewer subagent shares them, and they are where a stray scratch file is
@@ -1057,9 +1208,9 @@ caught at all.
 **A failed check pauses the run** ([§3.8](#38-pauses)). The reviewer did not
 produce a usable review, which says nothing about the code. A failed round is
 never treated as a pass, and its findings are not acted on. Leave the
-worktree's `paad/` and anything the sweep found where they are, unread, for
-the human. The round's findings comment notes which check failed and carries
-no findings. A security hold keeps its details only in the conversation with
+worktree's `paad/`, the task's state directory and anything the sweep found
+where they are, unread, for the human. The round's findings comment notes
+which check failed and carries no findings. A security hold keeps its details only in the conversation with
 the human.
 
 **A repo without the managed `.gitignore` block.** `paad/code-reviews/` is
@@ -1101,6 +1252,8 @@ trusted authors.
   none (no run is left to post it). It lists every finding not fixed, each
   with its intake or task issue, and every removed addition with its task,
   so the retrospective sweep can check them, and gives the security counts.
+  Once it is posted, delete the task's state directory
+  (`build/.vergil-state/agentic-review/<N>/`, [§3.6](#36-security-findings)).
 
 A pause adds a line to the latest response comment, saying why the run
 stopped, and, once the human has ruled, a line with the human's ruling
@@ -1176,8 +1329,11 @@ Security: 1 found; 1 fixed on the branch, 0 recorded.
   human, or a removed addition) through the security-records model
   ([vergil-project/.github#573](https://github.com/vergil-project/.github/issues/573)).
   This is the **only** way a security-class finding is filed: none ever
-  becomes an ordinary intake issue or task. Write its details to a file in a
-  fresh `mktemp -d` directory outside every repo, then run:
+  becomes an ordinary intake issue or task. Write its details to a file in
+  the round's state subdirectory,
+  `<main clone>/build/.vergil-state/agentic-review/<N>/<round>/`, created
+  level by level and mode-checked before the write
+  ([§1.5](#15-state-directories)), then run:
 
   ```bash
   vrg-security-record create --repo <owner>/<repo> \
@@ -1195,8 +1351,9 @@ Security: 1 found; 1 fixed on the branch, 0 recorded.
   recorded again.
 - If `create` fails after the advisory exists, it prints the exact command
   that finishes the pair (`--resume <GHSA-id>`); run it. If recording still
-  fails, pause ([§3.8](#38-pauses)) and do not empty `paad/security/`: never
-  delete a security file while a finding in it is unrecorded.
+  fails, pause ([§3.8](#38-pauses)) and do not empty `paad/security/` or
+  the round's state subdirectory: never delete a security file or details
+  file while a finding in it is unrecorded.
 - A security file holding only paad's filter reasons (no routed finding) is
   discards: count them, then delete the file; it is never recorded.
 - A finding fixed on the branch is not recorded: the bug never reached
@@ -1249,8 +1406,14 @@ when:
 
 - the task issue's author is not trusted (in Preflight,
   [§3.3](#33-the-requirements-file));
+- a pre-dispatch check fails ([§3.4](#34-output-checks)): a `paad/` check,
+  the state directory's seal, or its mode
+  ([§1.5](#15-state-directories)). Nothing is dispatched;
 - an output check fails ([§3.4](#34-output-checks)), including a security
-  hold and the repo without a managed `.gitignore` block;
+  hold, a state-directory hash that differs after the review, and the repo
+  without a managed `.gitignore` block;
+- a state directory's mode is not `700` before a write
+  ([§1.5](#15-state-directories)). Nothing is written;
 - you want to dismiss a blocking finding as wrong ("pending human",
   [§3.1](#31-the-loop) step 5);
 - round 3, or the last round the human allowed, had a blocking finding;

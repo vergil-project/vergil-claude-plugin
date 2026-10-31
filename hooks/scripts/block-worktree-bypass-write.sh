@@ -3,7 +3,9 @@
 #
 # Blocks file modifications to the main worktree when the parallel-AI-agent
 # worktree convention is active. Forces agents to write to their assigned
-# .worktrees/<name>/ subdirectory instead.
+# .worktrees/<name>/ subdirectory instead. The one exception is ignored
+# agent state under the main clone's build/.vergil-state/ (the paad
+# review doctrine's private state directories).
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml. See hooks/scripts/lib/managed-repo-check.sh.
@@ -30,13 +32,27 @@ if [ -z "$file_path" ]; then
   hook_input_fail_closed "the hook input has no tool_input.file_path string"
 fi
 
-# Best-effort symlink resolution. If the file exists, resolve to its real
-# path so symlinks into the main worktree are caught. If it doesn't exist
-# yet (new file creation), use the path as-is.
-if [ -e "$file_path" ]; then
-  resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$file_path" 2>/dev/null || echo "$file_path")
-else
-  resolved="$file_path"
+# Normalise the target before any match: make it absolute (a relative
+# path resolves against the payload's cwd), then resolve every `.`, `..`
+# and symlink in it, for a new file as well as an existing one
+# (os.path.realpath resolves the existing part of a path and normalises
+# the rest). A target that cannot be normalised is refused, unless the
+# payload's cwd is outside a managed repo.
+case "$file_path" in
+  /*) candidate="$file_path" ;;
+  *)
+    hook_input_scope_dir
+    candidate="$HOOK_SCOPE_DIR/$file_path"
+    ;;
+esac
+if ! resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate" 2>/dev/null) \
+  || [ -z "$resolved" ]; then
+  hook_input_scope_dir
+  if ! is_managed_repo "$HOOK_SCOPE_DIR"; then
+    exit 0
+  fi
+  printf '%s: blocked: could not normalise the target path %s (python3 is required). The write cannot be checked, so it is refused.\n' "$HOOK_NAME" "$file_path" >&2
+  exit 2
 fi
 
 # Find the nearest existing ancestor directory for the target file.
@@ -79,9 +95,14 @@ if ! [ -f "$main_root/.gitignore" ] || ! grep -qxF '.worktrees/' "$main_root/.gi
   exit 0
 fi
 
-# The worktree convention is active. The file must be inside a worktree.
+# The worktree convention is active. The file must be inside a worktree,
+# or be ignored agent state under the main clone's build/.vergil-state/
+# (the convention's one exception to the read-only main worktree).
 case "$resolved" in
   "$main_root"/.worktrees/*)
+    exit 0
+    ;;
+  "$main_root"/build/.vergil-state/*)
     exit 0
     ;;
   *)
