@@ -33,8 +33,12 @@ tools available to run.
 
 ### From marketplace
 
-The plugin ships through a single released channel on `main`. It is installed
-per user: add the marketplace definition and the plugin enable to your
+The plugin ships through a single channel, the floating `v2.1` rolling tag:
+each release moves `v2.1` forward, and a
+[rollback](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
+moves it back to an earlier release (see the
+[spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md)).
+It is installed per user: add the marketplace definition and the plugin enable to your
 user-level `~/.claude/settings.json`, and the enable installs the plugin. If
 that file already has `extraKnownMarketplaces` or `enabledPlugins` objects,
 merge these entries into them rather than adding a second copy of either key:
@@ -46,7 +50,7 @@ merge these entries into them rather than adding a second copy of either key:
       "source": {
         "source": "github",
         "repo": "vergil-project/vergil-claude-plugin",
-        "ref": "main"
+        "ref": "v2.1"
       }
     }
   },
