@@ -97,8 +97,11 @@ present everything needing the human:
   special handling;
 - every run's items **awaiting a ruling**, paused or not, as its final
   report gives them, security details included and shown only here. File
-  and post none of them: pass each ruling to a new run of that task's skill,
-  which carries out those rulings and nothing else
+  and post none of them: pass each ruling, with the human's confirmation of
+  the listing of any `operational/<N>/` state directory the task has
+  ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), to a
+  new run of that task's skill, which carries out those rulings and nothing
+  else, even on a reported-ready or closed task
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues));
 - every fix task an operational run **filed without a ruling** on a recorded
   `Outcome: FAILURE`, so the human sees it;
@@ -129,7 +132,8 @@ re-derive state and advance to the next frontier.
 sub-agent records `report-ready`, that branch is done: `vrg-commit` and the
 `vrg-git` push path refuse further commits until the human submits. When you
 re-derive state, treat a reported-ready (or already-merged) task as finished —
-advance the frontier, do not re-run its issue or add commits to its branch. More
+advance the frontier, do not re-run its issue (a run given rulings only, above,
+is the one exception) or add commits to its branch. More
 work on a landed task is a **new follow-up issue**, never a mutation of that
 branch.
 
@@ -142,10 +146,13 @@ never fabricate, never suppress a validation gate.
 **Creating an issue needs the human's approval**
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
 When a follow-up surfaces in this session — a gap you hit, a "we should
-also…" — list it at once under `Awaiting a ruling` in a comment on the epic
-issue, and present it at the gate with the runs' items; file it only as
-the human approves. The per-repo doc tasks the documentation-review sweep
-spawns (step 6) are exempt.
+also…" — screen it against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings), list it at
+once under `Awaiting a ruling` in a comment on the epic issue, and present
+it at the gate with the runs' items; file it only as the human approves. A
+security item is posted only as a count, its details kept in this
+conversation, and is ruled on in this session. The per-repo doc tasks the
+documentation-review sweep spawns (step 6) are exempt.
 
 ## 6. Terminal handoff (hybrid)
 

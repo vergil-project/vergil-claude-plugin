@@ -28,13 +28,18 @@ never suppress a validation gate.
 **Creating an issue needs the human's approval**
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
 When a follow-up surfaces — a concern a sub-agent reports, a gap you hit, a
-"we should also…" — list it at once under `Awaiting a ruling` in the
-comment you already post (or a comment of its own if none exists yet), and
-in your final report; file it only as the human approves. Inside the
-agentic-review gate, items noticed are handled as
+"we should also…" — screen it against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings), then list
+it at once under `Awaiting a ruling` in the comment you already post (or a
+comment of its own if none exists yet), and in your final report; file it
+only as the human approves. A security item is posted only as a count;
+outside a review round its details stay in the conversation (under
+`epic-implement`, in your final message) and it is ruled on in this
+session. Inside the agentic-review gate, items noticed are handled as
 [§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff) says.
 A run that `epic-implement` dispatches with rulings on such items only
-carries them out and stops.
+carries them out and stops: after Preflight steps 1–5 it creates no
+worktree and makes no commit, even on a reported-ready task.
 
 ## Preflight
 

@@ -123,9 +123,11 @@ doctrine's rules for them; this step adds only the sweep.
      its task (a removed addition) or a trusted `Human ruling:` that ended
      it.
    - **`Awaiting a ruling` lists**, in any trusted comment: an item is
-     closed by a later trusted `Human ruling:` for its ID, and by the issue
-     that ruling filed, which must exist. An item with no ruling is
-     untracked.
+     closed by a later trusted `Human ruling:` for its ID with one of the
+     closed words; for `file`, the issue it filed must also exist. A
+     security item, listed only as a count, is closed by a later
+     `Human ruling: security: …` counts line covering it. An item with no
+     ruling is untracked.
    - **`Filed without a ruling` lists:** each fix task named must exist; it
      is tracked, not untracked.
    - **No gate records at all:** operational tasks (no PR) and tasks
@@ -144,6 +146,8 @@ doctrine's rules for them; this step adds only the sweep.
      (`gh api` is denied), so a review in state `COMMENTED` or
      `CHANGES_REQUESTED` may hold more than its body shows: name those
      reviews to the human and ask them to check the inline comments.
+   Read the epic issue's own comments the same way: `epic-implement`'s main
+   session lists its own items there under `Awaiting a ruling`.
 3. **The planning issue.** Read the epic body's `Planning:` line and that
    issue's `Design review: …` round comments. Every finding not accepted
    into the spec or plan must have its reason or intake ref; problems raised

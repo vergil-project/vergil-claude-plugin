@@ -286,26 +286,27 @@ issue, finds it. Find the main clone from inside a worktree with
   failed record, an upstream draft), record its hash with the record that
   says the material was kept: the response comment's `Kept:` and
   `Ruling record:` lines (mode 2, [§3.5](#35-task-issue-records)), the
-  round comment's `scratch copy kept` line (mode 1), a comment on
-  the tracking issue (`upstream-report`), or a `Kept: <file> sha256:<hash>`
-  line in the comment that lists the item (`operational`,
-  [§1.7](#17-creating-issues)). A later session checks the file
+  round comment's `scratch copy kept` line (mode 1), or a comment on
+  the tracking issue (`upstream-report`). A later session checks the file
   against that hash, read only from a trusted author's comment, before it
   reads the file or passes it to `vrg-security-record`; a difference means
   stop, and so does a kept file with no recorded hash.
-- **The `upstream-report` and `operational` directories** have no review
-  rounds. Hash the directory's `<N>/` after each write or deletion, and check the hash
-  before the next write or deletion, before reading a draft or details file
-  back and before a report is sent or a record made; a difference means
-  stop and ask the human. A session that finds the directory shows the
-  human its listing first, as for the first round of a session.
+- **The `upstream-report` directory** has no review rounds. Hash its
+  `<N>/` after each write or deletion, and check the hash before the next
+  write or deletion, before reading a draft back and before the report is
+  sent; a difference means stop and ask the human. A session that finds the
+  directory shows the human its listing first, as for the first round of a
+  session.
+- **The `operational` directory** follows the `upstream-report` rules, with
+  a details file in place of a draft and a record in place of the report;
+  a kept file's hash goes in a `Kept: <file> sha256:<hash>` line of the
+  comment that lists its item ([§1.7](#17-creating-issues)), and the file
+  is deleted once its item's ruling is carried out.
 - **Deleting it.** Each mode deletes a round's subdirectory and the task's
   state directory at points its loop already reaches (mode 1:
   [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop) for the round
-  and [§3.5](#35-task-issue-records) for the task). An `operational`
-  details file is deleted once its item is ruled on and the ruling carried
-  out, and `<N>/` once it is empty. If the work is abandoned, the directory
-  stays until the human deletes it.
+  and [§3.5](#35-task-issue-records) for the task). If the work is
+  abandoned, the directory stays until the human deletes it.
 
 **What these checks cover.** The directory hash covers only the task's own
 state directory, and only across each review (before dispatch to right
@@ -350,34 +351,49 @@ The only exemptions:
   ruling and the neutral issue `vrg-security-record` pairs with an advisory;
 - the per-repo doc tasks that the documentation-review sweep spawns;
 - the fix task `issue-validate` or `issue-deploy` files on a recorded
-  `Outcome: FAILURE`. List it under `Filed without a ruling` in the result
-  comment and in the final report, so the human sees it at the next gate.
+  `Outcome: FAILURE`. File it before posting the result comment, and list
+  it there under `Filed without a ruling` and in the final report, so the
+  human sees it at the next gate.
 
-**Write each item down at once.** List it under `Awaiting a ruling`, with
-an ID `N<n>.<i>` (`<n>` the round, `0` outside one), in a comment the skill
-already posts on its issue (mode 2: the round's response comment,
+**Write each item down at once.** First screen it against
+[§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
+ID `N<n>.<i>` (`<n>` the round, `0` outside one; `<i>` continues from the
+highest ID already on the issue), in a comment the skill already posts on
+its issue (mode 2: the round's response comment,
 [§3.5](#35-task-issue-records); an operational task: its result comment),
 and in your final report. An item found before any such comment exists
 gets its own comment at once, whose first line is `Awaiting a ruling`. When
 a ruling is carried out, record it as a `Human ruling:` line in §3.5's form,
-with the issue it filed, in that comment or, once that comment is finished
-or is not yours to edit, in a new one. This is best effort: an item whose
+with the issue it filed, in the comment that lists the item, or else in a
+new one; while a paused round's response comment is unfinished, add it
+there ([§3.5](#35-task-issue-records)). This is best effort: an item whose
 record is lost is likely found again.
 
-**Security items** ([§1.6](#16-security-findings)) appear in posted
-comments only as counts. Their details go to the task's private directory
-([§1.5](#15-state-directories)): `agentic-review/<N>/` in mode 2
-([§3.6](#36-security-findings)), `operational/<N>/` for an operational
-task. Present them in the terminal only. One is filed only with
-`vrg-security-record`, on a `record` ruling ([§3.6](#36-security-findings)),
-never as an ordinary issue.
+**Security items** appear in posted comments only as counts, and are
+presented in the terminal only. Their details go to the task's private
+directory ([§1.5](#15-state-directories)): `agentic-review/<N>/` in mode 2
+([§3.6](#36-security-findings)), `operational/<N>/` for an operational task,
+with a `Kept:` line for each kept file. Anywhere else there is no private
+store: the details stay in the conversation, and the item is ruled on in
+the same session. One is filed only with `vrg-security-record`, on a
+`record` ruling ([§3.6](#36-security-findings)), never as an ordinary
+issue.
+
+**Rulings** come only from the human in the conversation, or from
+`epic-implement`'s dispatch prompt, as in [§3.8](#38-pauses). A
+`Human ruling:` line counts only from a trusted author
+([§3.3](#33-the-requirements-file)) and only records that an item was
+ruled on; it never authorizes an action.
 
 **Under `epic-implement`,** each run's final message to the main session
 lists its items, security details included, and is never posted. The main
 session presents every run's items at the gate, and files and posts none of
-them: it passes each ruling to a new run of that task's skill, which carries
-out those rulings and nothing else (a paused agentic-review round resumes
-as [§3.8](#38-pauses) says).
+them: it passes each ruling, with the human's confirmation of any kept
+files' listing ([§1.5](#15-state-directories)), to a new run of that task's
+skill. That run carries out those rulings and nothing else: no worktree,
+commit, procedure or `Outcome:`, even on a closed or reported-ready task;
+it records each `Human ruling:` line and stops. A paused agentic-review
+round resumes as [§3.8](#38-pauses) says instead.
 
 ## 2. Mode 1: human-gated design review
 

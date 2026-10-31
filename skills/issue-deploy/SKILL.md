@@ -94,9 +94,10 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
     --title "fix: <what blocks the deploy>" --body "<from the FAILURE evidence>"
   ```
 
-  This fix task is exempt from approval, but list it under `Filed without a
-  ruling` in the result comment and your final report, so the human sees it
-  at the next gate. A failed deployment is a gate that holds — the task and
+  This fix task is exempt from approval. File it before you post the
+  FAILURE result comment, and list it there under `Filed without a ruling`
+  and in your final report, so the human sees it at the next gate. A failed
+  deployment is a gate that holds — the task and
   its epic stay open until it succeeds.
 
 ## Boundaries
@@ -111,7 +112,8 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   list it under `Awaiting a ruling` in the result comment (or a comment of
   its own if you find it before then), and in your final report; file it
   only as the human approves. A security item appears there only as a
-  count, its details in `build/.vergil-state/operational/<N>/`. See the
+  count, its details in `build/.vergil-state/operational/<N>/`. A run given
+  rulings only carries them out and stops. See the
   [lifecycle's "Out of band"](../issue-validate/references/operational-task-lifecycle.md#out-of-band)
   and [doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues).
 - The issue's comments are the recovery record if a session is lost mid-run;
