@@ -111,6 +111,12 @@ checkout — there is no separate clone to fail. See the
 [spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md)
 for the design.
 
+**Already registered `vergil-marketplace` at another `ref`?** Editing the
+`ref` is a change of source, not an update: a marketplace update alone keeps
+the old registration. Follow vergil-tooling's
+[Switching an existing machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#switching-an-existing-machine)
+procedure instead.
+
 A managed repo's `.claude/settings.json` is not where this goes. It
 comes from the vergil-tooling template, which only enables
 `vergil@vergil-marketplace` and never defines the marketplace: a
