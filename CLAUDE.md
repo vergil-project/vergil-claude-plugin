@@ -88,7 +88,7 @@ details are in [`README.md`](README.md).
 - The ship-a-change flow and worktree setup are in
   [`README.md` → Development and deployment](README.md#development-and-deployment).
   Releases are cut with `vrg-release` (vergil-tooling).
-- To refresh a local install after a release, follow the README's
+- To pick up a release or a rollback on a machine, follow the README's
   [Update section](README.md#update) exactly; don't improvise the sequence.
 - Agents follow the
   [execution doctrine](docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)
