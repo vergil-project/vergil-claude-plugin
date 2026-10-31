@@ -123,11 +123,12 @@ doctrine's rules for them; this step adds only the sweep.
      its task (a removed addition) or a trusted `Human ruling:` that ended
      it.
    - **`Awaiting a ruling` lists**, in any trusted comment: an item is
-     closed by a later trusted `Human ruling:` for its ID with one of the
-     closed words; for `file`, the issue it filed must also exist. A
-     security item, listed only as a count, is closed by a later
+     closed by a trusted `Human ruling:` for its ID, in the same comment or
+     a later one, with a word that ends it: `decline`, `dismiss`, `file`,
+     `record` or `reject`; for `file`, the issue it filed must also exist.
+     A security item, listed only as a count, is closed by a
      `Human ruling: security: …` counts line covering it. An item with no
-     ruling is untracked.
+     such ruling, or ruled `fix` and never fixed, is untracked.
    - **`Filed without a ruling` lists:** each fix task named must exist; it
      is tracked, not untracked.
    - **No gate records at all:** operational tasks (no PR) and tasks

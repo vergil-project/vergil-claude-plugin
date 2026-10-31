@@ -74,8 +74,9 @@ Capture the real output — you will paste it into the result as evidence.
 
 ## Record the result and close
 
-Judge the run against the issue's **Acceptance criteria**, then post the result
-as a comment following the scaffold's Results template. The outcome line is
+Judge the run against the issue's **Acceptance criteria**. On FAILURE, file
+the fix task(s) below **before** posting; then post the result as a comment
+following the scaffold's Results template. The outcome line is
 load-bearing — `vrg-epic-audit` reads it — so it MUST contain a line
 `Outcome: SUCCESS` or `Outcome: FAILURE`, plus the evidence:
 
@@ -99,9 +100,12 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
     --title "fix: <what failed>" --body "<from the FAILURE evidence>"
   ```
 
-  These fix tasks are exempt from approval. File them before you post the
-  FAILURE result comment, and list each there under `Filed without a
-  ruling` and in your final report, so the human sees it at the next gate.
+  These fix tasks are exempt from approval, under the conditions of the
+  [lifecycle's step 4](references/operational-task-lifecycle.md#lifecycle):
+  screen the failure first (a security-class one is not filed), search for
+  an existing open fix task, and post the result even if filing fails. List
+  each in the result comment under `Filed without a ruling` and in your
+  final report, so the human sees it at the next gate.
   A failed validation is a gate that holds, exactly like a PR that cannot merge.
   The fix task lands its own PR; a re-run of this validation confirms the fix.
 

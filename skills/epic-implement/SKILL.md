@@ -69,7 +69,10 @@ with the comment's author and time, any leftover state directory, and,
 where the task's state directory exists, its listing for confirmation
 ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
 pass the answers in the dispatch prompt
-([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
+([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)). Likewise,
+before dispatching any `issue-validate` or `issue-deploy` run whose task
+has an `operational/<N>/` state directory, show the human its listing for
+confirmation and pass the answer in the prompt.
 
 ## 4. Batch at the gate, then stop
 
@@ -97,14 +100,16 @@ present everything needing the human:
   special handling;
 - every run's items **awaiting a ruling**, paused or not, as its final
   report gives them, security details included and shown only here. File
-  and post none of them: pass each ruling, with the human's confirmation of
-  the listing of any `operational/<N>/` state directory the task has
-  ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), to a
-  new run of that task's skill, which carries out those rulings and nothing
-  else, even on a reported-ready or closed task
-  ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues));
-- every fix task an operational run **filed without a ruling** on a recorded
-  `Outcome: FAILURE`, so the human sees it;
+  and post none of them: pass all of a task's rulings together, with each
+  item's text, the approved form, any security details and the human's
+  confirmation of the listing of any `operational/<N>/` state directory the
+  task has ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)),
+  to one new run of that task's skill at a time, which carries out those
+  rulings and nothing else, even on a reported-ready or closed task
+  ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+  A paused task's rulings go to its resuming run instead;
+- every fix task an operational run **filed without a ruling** on a FAILURE
+  outcome, so the human sees it;
 - tasks split out for out-of-scope additions the gate removed, each listed as
   **needs scheduling**: only tasks the human approved at a ruling. They are
   not in the epic's plan, so the human decides when they run
@@ -149,7 +154,8 @@ When a follow-up surfaces in this session — a gap you hit, a "we should
 also…" — screen it against
 [§1.6](../../docs/paad-review-doctrine.md#16-security-findings), list it at
 once under `Awaiting a ruling` in a comment on the epic issue, and present
-it at the gate with the runs' items; file it only as the human approves. A
+it at the gate with the runs' items; file it only as the human approves,
+then record the ruling in that comment as §1.7 says. A
 security item is posted only as a count, its details kept in this
 conversation, and is ruled on in this session. The per-repo doc tasks the
 documentation-review sweep spawns (step 6) are exempt.

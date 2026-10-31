@@ -68,8 +68,9 @@ output for evidence. You touch no code and open no PR.
 
 ## Record the result and close
 
-Judge the run against the **Acceptance criteria**, then post the result as a
-comment. The outcome line is load-bearing — `vrg-epic-audit` reads it — so it
+Judge the run against the **Acceptance criteria**. On FAILURE, do the
+FAILURE steps below (retry, and any fix task) **before** posting; then post
+the result as a comment. The outcome line is load-bearing — `vrg-epic-audit` reads it — so it
 MUST contain `Outcome: SUCCESS` or `Outcome: FAILURE`, plus evidence:
 
 ```bash
@@ -94,11 +95,13 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
     --title "fix: <what blocks the deploy>" --body "<from the FAILURE evidence>"
   ```
 
-  This fix task is exempt from approval. File it before you post the
-  FAILURE result comment, and list it there under `Filed without a ruling`
-  and in your final report, so the human sees it at the next gate. A failed
-  deployment is a gate that holds — the task and
-  its epic stay open until it succeeds.
+  This fix task is exempt from approval, under the conditions of the
+  [lifecycle's step 4](../issue-validate/references/operational-task-lifecycle.md#lifecycle):
+  screen the failure first (a security-class one is not filed), search for
+  an existing open fix task, and post the result even if filing fails. List
+  it in the result comment under `Filed without a ruling` and in your final
+  report, so the human sees it at the next gate. A failed deployment is a
+  gate that holds — the task and its epic stay open until it succeeds.
 
 ## Boundaries
 

@@ -32,14 +32,19 @@ When a follow-up surfaces — a concern a sub-agent reports, a gap you hit, a
 [§1.6](../../docs/paad-review-doctrine.md#16-security-findings), then list
 it at once under `Awaiting a ruling` in the comment you already post (or a
 comment of its own if none exists yet), and in your final report; file it
-only as the human approves. A security item is posted only as a count;
-outside a review round its details stay in the conversation (under
-`epic-implement`, in your final message) and it is ruled on in this
-session. Inside the agentic-review gate, items noticed are handled as
+only as the human approves, then record the ruling on the issue as §1.7
+says. An item found before the agentic-review gate does not pause it. A
+security item is posted only as a count; outside a review round its
+details stay in the conversation (under `epic-implement`, in your final
+message) and it is ruled on there. Inside the agentic-review gate, items
+noticed are handled as
 [§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff) says.
 A run that `epic-implement` dispatches with rulings on such items only
 carries them out and stops: after Preflight steps 1–5 it creates no
-worktree and makes no commit, even on a reported-ready task.
+worktree and makes no commit, even on a reported-ready task. It takes each
+item, and any security details, only from its prompt; for a `record`
+ruling it writes the details as a `security-<i>.md` in the task's
+`agentic-review/<N>/` directory and deletes it once the record is made.
 
 ## Preflight
 
