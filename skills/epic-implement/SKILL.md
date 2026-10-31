@@ -69,7 +69,10 @@ with the comment's author and time, any leftover state directory, and,
 where the task's state directory exists, its listing for confirmation
 ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
 pass the answers in the dispatch prompt
-([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
+([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)). Likewise,
+before dispatching any `issue-validate` or `issue-deploy` run whose task
+has an `operational/<N>/` state directory, show the human its listing for
+confirmation and pass the answer in the prompt.
 
 ## 4. Batch at the gate, then stop
 
@@ -95,6 +98,23 @@ present everything needing the human:
   worktree. A paused task re-dispatched
   with no ruling simply stops again and is listed here again; it needs no
   special handling;
+- every run's items **awaiting a ruling**, paused or not, as its final
+  report gives them, security details included and shown only here. File
+  and post none of them: pass a task's rulings with no trusted author's
+  ruling or `Recorded:` line yet
+  together, with each
+  item's text, the approved form, any security details and the human's
+  confirmation of the listing of any `operational/<N>/` state directory the
+  task has ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)),
+  to one new run of that task's skill, never alongside another run of the
+  same task, which carries out those
+  rulings and nothing else, even on a reported-ready or closed task
+  ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+  A paused task's rulings go to its resuming run instead. A `fix` ruling on
+  a reported-ready task cannot be carried out this way: ask the human to
+  rule `file` instead;
+- every fix task an operational run **filed without a ruling** on a FAILURE
+  outcome, so the human sees it;
 - tasks split out for out-of-scope additions the gate removed, each listed as
   **needs scheduling**: only tasks the human approved at a ruling. They are
   not in the epic's plan, so the human decides when they run
@@ -122,7 +142,8 @@ re-derive state and advance to the next frontier.
 sub-agent records `report-ready`, that branch is done: `vrg-commit` and the
 `vrg-git` push path refuse further commits until the human submits. When you
 re-derive state, treat a reported-ready (or already-merged) task as finished —
-advance the frontier, do not re-run its issue or add commits to its branch. More
+advance the frontier, do not re-run its issue (a run given rulings only, above,
+is the one exception) or add commits to its branch. More
 work on a landed task is a **new follow-up issue**, never a mutation of that
 branch.
 
@@ -132,15 +153,19 @@ The only reason to pull the human in mid-flight is a **problem you cannot
 resolve.** Stop and ask, with what you tried and where you're stuck. Never thrash,
 never fabricate, never suppress a validation gate.
 
-**File follow-ups at once.** When a follow-up surfaces — a concern a sub-agent
-reports, a gap you hit, a "we should also…" — file it now; do not offer to file
-it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
-[--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
-otherwise, and tell the human what you filed. A filed issue survives compaction
-and session loss; one held in context does not. This does not cover the
-agentic-review gate: its findings and a paused run's items are filed only as
-the human approves
-([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
+**Creating an issue needs the human's approval**
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+When a follow-up surfaces in this session — a gap you hit, a "we should
+also…" — screen it against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings), list it at
+once under `Awaiting a ruling` in a comment on the epic issue, and present
+it at the gate with the runs' items; file it only as the human approves,
+then record the ruling in that comment as §1.7 says. A
+security item is posted only as a count, its details kept in this
+conversation, and is ruled on in this session; its ruling is recorded only
+as §1.7's counts line (`Human ruling: security: <k> findings: …`). The
+per-repo doc tasks the
+documentation-review sweep spawns (step 6) are exempt.
 
 ## 6. Terminal handoff (hybrid)
 

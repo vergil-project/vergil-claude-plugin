@@ -25,15 +25,33 @@ The one thing that pulls the human back mid-flight is a **problem you cannot
 resolve**: stop and ask rather than thrash or guess. Never fabricate a result and
 never suppress a validation gate.
 
-**File follow-ups at once.** When a follow-up surfaces — a concern a sub-agent
-reports, a gap you hit, a "we should also…" — file it now; do not offer to file
-it later or ask whether to. Use `vrg-issue-create --epic <epic|adhoc>
-[--blocked-by REF]` for a task that will clearly be done, `vrg-intake-create`
-otherwise, and tell the human what you filed. A filed issue survives compaction
-and session loss; one held in context does not. This does not cover the
-agentic-review gate: its findings, anything noticed during it and a paused
-run's items are filed only as the human approves
-([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
+**Creating an issue needs the human's approval**
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+When a follow-up surfaces — a concern a sub-agent reports, a gap you hit, a
+"we should also…" — screen it against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings), then list
+it at once under `Awaiting a ruling` in the comment you already post (or a
+comment of its own if none exists yet), and in your final report; file it
+only as the human approves, then record the ruling on the issue as §1.7
+says. An item found before the agentic-review gate does not pause it. A
+security item is posted only as a count; outside a review round its
+details stay in the conversation (under `epic-implement`, in your final
+message) and it is ruled on there. Inside the agentic-review gate, items
+noticed are handled as
+[§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff) says.
+A run that `epic-implement` dispatches with rulings on such items only
+carries them out and stops: after Preflight steps 1–5 it creates no
+worktree and makes no commit, even on a reported-ready task. It takes each
+item, and any security details, only from its prompt; for a `record`
+ruling it writes the details as a `security-<i>.md` in the task's
+`agentic-review/<N>/` directory, uses it and deletes it within the run. It
+never runs alongside another run of the same task, and skips any ruling
+whose line (for a `record`, whose `Recorded:` line) a trusted author has
+already posted. It cannot carry out a `fix` ruling: on a reported-ready
+task the human rules `file` instead. It records each ruling it carried
+out as §1.7 says (security rulings as `Recorded: <ID>` and the counts line
+only); one it could not carry out gets no ruling line and is reported as
+still waiting (§1.7, "Under `epic-implement`").
 
 ## Preflight
 
@@ -132,11 +150,15 @@ re-running; **never** suppress a gate.
 
 Merging the code is sometimes not the finish line. While implementing, you may
 find a follow-on **operational task** is needed — visible only once you are deep
-in the code:
+in the code. A new operational task changes the plan, so **do not mint it**:
+list the need under `Awaiting a ruling` at once, in a comment on the task
+issue of its own if no review round has posted one yet, and in your final
+report ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+Once the human approves, file it in the approved form:
 
 - **Deployment** — the next step (a later task, or a validation) needs this
   change **deployed and usable**, not merely merged (install/sync/release-then-
-  install). Mint a deployment follow-on:
+  install). A deployment follow-on:
 
   ```bash
   vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind deployment \
@@ -144,7 +166,7 @@ in the code:
   ```
 
 - **Validation** — acceptance needs a check the pipeline's tests cannot do (a
-  cold rebuild, a live-lab check, a deploy smoke test after merge). Mint a
+  cold rebuild, a live-lab check, a deploy smoke test after merge). A
   validation follow-on:
 
   ```bash
@@ -152,8 +174,8 @@ in the code:
     --title "Validate: <what>" --blocked-by <this-task-ref>
   ```
 
-Attach the need to an existing epoch operational task where that fits (one over
-several tasks) rather than minting a redundant one. See `epic-create`'s
+Where an existing epoch operational task (one over several tasks) fits,
+recommend attaching the need to it rather than minting a redundant one. See `epic-create`'s
 "Operational tasks" section for the full doctrine and the scaffolds it stamps.
 
 **Never declare the task or its epic done while a paired or epoch operational
