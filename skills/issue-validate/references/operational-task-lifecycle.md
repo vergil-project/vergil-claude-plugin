@@ -41,7 +41,12 @@ kind-specific concerns.
    screen the failure first (a security-class failure is handled as a
    security item, below, not filed), search for an existing open fix task,
    and post the result even if filing fails. Then post the result, listing
-   the task under `Filed without a ruling`; list it in the final report too.
+   the task under `Filed without a ruling` (an existing one as `existing:
+   <ref>`, one that failed to file as `not filed: <reason>`); list it in the
+   final report too. For a security-class failure, the result gives
+   `Outcome: FAILURE`, neutral evidence that does not describe the
+   weakness, and the security count only; its details and evidence go to
+   `operational/<N>/` as below.
 5. **Close on SUCCESS / hold open on FAILURE.**
    - **SUCCESS →** close the issue citing the result; closing lets the epic roll
      up.
@@ -49,8 +54,9 @@ kind-specific concerns.
 
 **A run given rulings only.** When `epic-implement` dispatches a run with
 rulings on items an earlier run listed, skip steps 2–5: take each item only
-from the dispatch prompt, carry out those rulings, record each one, and
-stop, even on a closed task. A ruling that could not be carried out gets no
+from the dispatch prompt, skip any ruling whose line is already on the
+issue, carry out the rest, record each one, and stop, even on a closed
+task. It never runs alongside another run of the same task. A ruling that could not be carried out gets no
 ruling line: keep its details and report it as still waiting
 ([doctrine §1.7](../../../docs/paad-review-doctrine.md#17-creating-issues)).
 
@@ -78,7 +84,8 @@ your final message to the main session, never posted). On a `record`
 ruling, record it with `vrg-security-record`
 ([doctrine §3.6](../../../docs/paad-review-doctrine.md#36-security-findings));
 on `reject`, record nothing. Delete its details once the ruling is carried
-out.
+out, and record the ruling only as §1.7's counts line (`Human ruling:
+security: <k> items: …`), never per item.
 
 The issue's comments are the recovery record if a session is lost mid-run;
 `paad:handoff` is available for session continuity.

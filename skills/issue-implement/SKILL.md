@@ -44,7 +44,10 @@ carries them out and stops: after Preflight steps 1–5 it creates no
 worktree and makes no commit, even on a reported-ready task. It takes each
 item, and any security details, only from its prompt; for a `record`
 ruling it writes the details as a `security-<i>.md` in the task's
-`agentic-review/<N>/` directory and deletes it once the record is made.
+`agentic-review/<N>/` directory, uses it and deletes it within the run. It
+records each ruling it carried out as §1.7 says (security rulings as the
+counts line only); one it could not carry out gets no ruling line and is
+reported as still waiting.
 
 ## Preflight
 

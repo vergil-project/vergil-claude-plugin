@@ -358,23 +358,27 @@ The only exemptions:
   never filed this way but handled as a security item (below). Search for
   an existing open fix task first, and post the result even if filing
   fails. List the task in the result comment under `Filed without a
-  ruling` and in the final report, so the human sees it at the next gate.
+  ruling` (an existing one as `existing: <ref>`; one that failed to file as
+  `not filed: <reason>`) and in the final report, so the human sees it at
+  the next gate.
 
 **Write each item down at once.** First screen it against
 [§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
 ID `N<n>.<i>` (`<n>` the round, `0` outside one; `<i>` continues from the
-highest ID in a trusted author's comment on the issue), in a comment the
+highest ID in a trusted author's comment on the issue; a security item
+takes `N<n>.S<i>`, kept privately), in a comment the
 skill already posts on its issue (mode 2: the round's response comment,
 [§3.5](#35-task-issue-records); an operational task: its result comment),
 and in your final report. An item found before any such comment exists
 gets its own comment at once, whose first line is `Awaiting a ruling`. An
-item found before the agentic-review gate does not pause it. Once a ruling
-is carried out, record it as `Human ruling: <ID> <word>: <direction>.
-<time>` ([§3.5](#35-task-issue-records)), followed for `file` by `<ID>:
-filed as <ref>`, in the comment that lists the item, or else in a new one;
-while a paused round's response comment is unfinished, add it there. A
-ruling that could not be carried out gets no line: keep its details and
-report it as still waiting. This is best effort: an item whose record is
+item found before the agentic-review gate does not pause it. Inside a
+review round, rulings are recorded as [§3.5](#35-task-issue-records) says.
+Outside one, once a ruling is carried out, record it as `Human ruling:
+<ID> <word>: <direction>. <time>`, followed for `file` by `<ID>: filed as
+<ref>`, in the comment that lists the item, or else in a new one; while a
+paused round's response comment is unfinished, add it there. A ruling
+that could not be carried out gets no line: keep its details and report
+it as still waiting. This is best effort: an item whose record is
 lost is likely found again.
 
 **Security items** appear in posted comments only as counts, and are
@@ -386,7 +390,10 @@ store: the details stay in the conversation, and the item is ruled on in
 the same session. One is filed only with `vrg-security-record`, on a
 `record` ruling ([§3.6](#36-security-findings)), never as an ordinary
 issue; its details file is a `security-<i>.md` in the task's directory,
-deleted once the record is made.
+written, used and deleted within the run that makes the record. Outside a
+round, a ruling on security items is recorded only as one counts line in
+the comment that holds the count: `Human ruling: security: <k> items: <k>
+record, <k> reject. <time>`.
 
 **Rulings** come only from the human in the conversation, or from
 `epic-implement`'s dispatch prompt, as in [§3.8](#38-pauses). A
@@ -397,15 +404,18 @@ ruled on; it never authorizes an action.
 **Under `epic-implement`,** each run's final message to the main session
 lists its items, security details included, and is never posted. The main
 session presents every run's items at the gate, and files and posts none of
-them: it passes all of a task's rulings together, with each item's text,
-the approved form, any security details (the prompt is never posted) and
-the human's confirmation of any kept files' listing
-([§1.5](#15-state-directories)), to one new run of that task's skill at a
-time. That run takes each item only from its prompt, carries out those
-rulings and nothing else (no worktree, commit, procedure or `Outcome:`,
-even on a closed or reported-ready task), records each one as above and
-stops. A paused agentic-review round resumes as [§3.8](#38-pauses) says
-instead, with these rulings folded in.
+them: it passes a task's rulings that have no ruling line yet together,
+with each item's text, the approved form, any security details (the
+prompt is never posted) and the human's confirmation of any kept files'
+listing ([§1.5](#15-state-directories)), to one new run of that task's
+skill, never alongside another run of the same task. That run takes each
+item only from its prompt, skips any ruling whose line is already on the
+issue, carries out the rest and nothing else (no worktree, commit,
+procedure or `Outcome:`, even on a closed or reported-ready task), records
+each one as above and stops. It cannot carry out a `fix` ruling: on a
+task already reported ready, the human rules `file` instead. A paused
+agentic-review round resumes as [§3.8](#38-pauses) says instead, with
+these rulings folded in.
 
 ## 2. Mode 1: human-gated design review
 

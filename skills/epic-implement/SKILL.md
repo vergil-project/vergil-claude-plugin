@@ -100,14 +100,18 @@ present everything needing the human:
   special handling;
 - every run's items **awaiting a ruling**, paused or not, as its final
   report gives them, security details included and shown only here. File
-  and post none of them: pass all of a task's rulings together, with each
+  and post none of them: pass a task's rulings with no ruling line yet
+  together, with each
   item's text, the approved form, any security details and the human's
   confirmation of the listing of any `operational/<N>/` state directory the
   task has ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)),
-  to one new run of that task's skill at a time, which carries out those
+  to one new run of that task's skill, never alongside another run of the
+  same task, which carries out those
   rulings and nothing else, even on a reported-ready or closed task
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
-  A paused task's rulings go to its resuming run instead;
+  A paused task's rulings go to its resuming run instead. A `fix` ruling on
+  a reported-ready task cannot be carried out this way: ask the human to
+  rule `file` instead;
 - every fix task an operational run **filed without a ruling** on a FAILURE
   outcome, so the human sees it;
 - tasks split out for out-of-scope additions the gate removed, each listed as
@@ -157,7 +161,9 @@ once under `Awaiting a ruling` in a comment on the epic issue, and present
 it at the gate with the runs' items; file it only as the human approves,
 then record the ruling in that comment as §1.7 says. A
 security item is posted only as a count, its details kept in this
-conversation, and is ruled on in this session. The per-repo doc tasks the
+conversation, and is ruled on in this session; its ruling is recorded only
+as §1.7's counts line (`Human ruling: security: <k> items: …`). The
+per-repo doc tasks the
 documentation-review sweep spawns (step 6) are exempt.
 
 ## 6. Terminal handoff (hybrid)

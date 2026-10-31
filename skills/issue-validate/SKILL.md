@@ -85,6 +85,11 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 - Evidence: <command output / observations>"
 ```
 
+For a failure screened as security-class, the comment gives `Outcome:
+FAILURE`, neutral evidence that does not describe the weakness, and the
+security count only; the details go to `operational/<N>/`
+([lifecycle step 4](references/operational-task-lifecycle.md#lifecycle)).
+
 - **SUCCESS →** close the issue, citing the result; closing it lets the epic roll
   up:
 
@@ -104,8 +109,10 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   [lifecycle's step 4](references/operational-task-lifecycle.md#lifecycle):
   screen the failure first (a security-class one is not filed), search for
   an existing open fix task, and post the result even if filing fails. List
-  each in the result comment under `Filed without a ruling` and in your
-  final report, so the human sees it at the next gate.
+  each in the result comment under `Filed without a ruling` (an existing
+  one as `existing: <ref>`, one that failed to file as `not filed:
+  <reason>`) and in your final report, so the human sees it at the next
+  gate.
   A failed validation is a gate that holds, exactly like a PR that cannot merge.
   The fix task lands its own PR; a re-run of this validation confirms the fix.
 
@@ -120,9 +127,12 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   list it under `Awaiting a ruling` in the result comment (or a comment of
   its own if you find it before then), and in your final report; file it
   only as the human approves. A security item appears there only as a
-  count, its details in `build/.vergil-state/operational/<N>/`. A run given
-  rulings only carries them out and stops. See the
+  count, its details in `build/.vergil-state/operational/<N>/`. See the
   [lifecycle's "Out of band"](references/operational-task-lifecycle.md#out-of-band)
   and [doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues).
+- **A run given rulings only** (dispatched by `epic-implement`) stops after
+  Preflight and follows the
+  [lifecycle's rulings-only entry](references/operational-task-lifecycle.md#lifecycle)
+  instead of the steps above.
 - The issue's comments are the recovery record if a session is lost mid-run;
   `paad:handoff` is available for session continuity.
