@@ -75,6 +75,15 @@ the repo file to equal the template. See vergil-tooling's
 model and
 [Consuming Repo Setup](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#claudesettingsjson).
 
+### Updating
+
+A machine picks up a release, or a rollback, when its plugins are next
+updated. Run `vrg-host plugins` for the host and `vrg-vm update --all` for
+every running agent VM, in a human shell, then restart Claude Code. The
+plugin README's
+[Update](https://github.com/vergil-project/vergil-claude-plugin#update)
+section gives the full procedure and how to verify the installed version.
+
 ### Local development
 
 ```bash
