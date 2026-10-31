@@ -151,6 +151,10 @@ registered repo and ref. Both refuse an agent identity, so an agent asks
 the human to run them. Where Claude Code's background auto-update is on, it
 does the marketplace and plugin update on its own.
 
+Use these commands, not an in-session `/plugin marketplace update` and
+`/reload-plugins`: that pair does not switch a changed `ref` and verifies
+nothing, and this README does not document it.
+
 This is the procedure in vergil-tooling's
 [Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
 runbook, which also covers VMs that are not running and Lima sessions that
@@ -170,18 +174,22 @@ claude plugin list --json
 is the latest
 [GitHub Release](https://github.com/vergil-project/vergil-claude-plugin/releases)
 unless a rollback has moved `v2.1` back to an earlier release, so check the
-tag, not the newest release. From a vergil-claude-plugin checkout:
+tag, not the newest release. It reads the tags from the canonical repo,
+not a checkout's `origin`, so a fork or stale mirror cannot answer. Run it
+inside any GitHub checkout (`vrg-git` needs one to pick its identity):
 
 ```bash
-sha=$(vrg-git ls-remote origin refs/tags/v2.1 | cut -f1) && [ -n "$sha" ] \
-  && vrg-git ls-remote --tags origin | grep "^$sha"
+url=https://github.com/vergil-project/vergil-claude-plugin.git
+sha=$(vrg-git ls-remote "$url" refs/tags/v2.1 | cut -f1) && [ -n "$sha" ] \
+  && vrg-git ls-remote --tags "$url" | grep "^$sha"
 ```
 
 It prints two lines with the same object ID: `v2.1` and the `v2.1.Z` tag it
 points at. That `2.1.Z` is the version to expect. Any other output, or
 none, means the lookup failed; do not read a version from it. On any
-machine that does not show the expected version, run `vrg-host plugins` or
-`vrg-vm update` again.
+machine that does not show the expected version, run `vrg-host plugins`
+or `vrg-vm update --all` again (a bare `vrg-vm update` updates only the
+base VM), then check it again.
 
 A Lima `vrg-vm session` that loads a vergil plugin tree with
 `--plugin-dir` (listed in the host's `~/.config/vergil/plugin-dirs.toml`)
