@@ -206,13 +206,21 @@ from inside a worktree with
 - **Creating it.** Create each level in turn (`build/.vergil-state`, the
   kind, `<N>`, and `<round>` where there is one) with `install -d -m 700
   <level>`, never with one `mkdir -p`. `build` and every level must be a
-  real directory, not a symlink (`test -d` and `test ! -L`).
+  real directory, not a symlink (`test -d` and `test ! -L`). A new
+  `<round>/` must not exist before you create it (`test ! -e` and
+  `test ! -L`); if it does, write nothing and stop.
 - **The mode check.** Before each write into a state directory, check every
   level with `stat` (`stat -c %a <level>` on Linux, `stat -f %Lp <level>` on
   macOS). Each must be exactly `700`. `install -d -m 700` tightens a level
   that already exists; if a level is still not `700` after it, or is not a
-  real directory, write nothing and stop: in mode 2 that is a pause
-  ([§3.8](#38-pauses)), in mode 1 you stop and ask the human.
+  real directory, write nothing and stop.
+- **Stopping.** Wherever this section says stop, in mode 2 that is a pause
+  ([§3.8](#38-pauses)), and in mode 1 you stop and ask the human. Leave the
+  directory as it is, unread.
+- **Only your own files.** Act only on the files in a state directory that
+  you wrote there yourself in this session and named in your context, or,
+  in a new session, the kept files the human has confirmed (below). Any
+  other entry found there means stop.
 - **The hash.** One hash covers every entry in the task's state directory:
 
   ```bash
@@ -232,20 +240,43 @@ from inside a worktree with
   review, before you write anything there. A difference is a broken round
   (mode 1: [§2.4](#24-output-checks-and-broken-rounds); mode 2:
   [§3.4](#34-output-checks)).
-- **The seal between rounds.** Take the hash again at the end of each round,
-  after your last write or deletion there, and check it at the start of the
-  next round, before you write anything there. A difference breaks the next
-  round, the same way. Across a session boundary the kept hash is gone, so
-  a change made while no session was running is not detected; that is
-  accepted.
+- **The seal between rounds.** Take the hash again at the end of every
+  round, on every path out of it, once you have finished writing or
+  deleting there: after a clean-up, and equally when a round's
+  subdirectory is kept (a failed record, a kept copy, a pause) or the round
+  was broken. Check it at the start of the next round, before you write
+  anything there. A difference breaks the next round, the same way. A kept
+  round subdirectory stays in the directory and in the hash; the next round
+  uses a new subdirectory of its own.
+- **The first round of a session** has no kept hash. Before you write
+  anything there, the task's state directory must be absent, or hold only
+  round subdirectories that the trusted records on the issue say were kept
+  (mode 1: a `scratch copy kept` round comment; mode 2: a paused round's
+  material), and the human must confirm what it holds, shown as a listing.
+  Anything else means stop. The hash you take then seals the directory for
+  the rest of the session. A change made while no session was running is
+  caught only by that listing; that is accepted.
+- **After a stop on a state-directory check,** the human looks at the
+  directory and rules. Once they confirm its contents, a fresh hash becomes
+  the seal.
+- **The `upstream-report` directory** has no review rounds. Hash its
+  `<N>/` after each write, and check the hash before the next write,
+  before reading a draft back and before the report is sent; a difference
+  means stop and ask the human. A session that finds the directory with no
+  hash kept shows the human its listing first, as for the first round of a
+  session.
 - **Deleting it.** Each mode deletes a round's subdirectory and the task's
   state directory at points its loop already reaches (mode 1:
-  [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop)). If the work
-  is abandoned, the directory stays until the human deletes it.
+  [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop) for the round
+  and [§3.5](#35-task-issue-records) for the task). If the work is
+  abandoned, the directory stays until the human deletes it.
 
 On the VMs the main clones are not under `$HOME`, so mode 2's stray-write
 sweep ([§3.4](#34-output-checks)) does not reach `build/.vergil-state/`
-there. The hash checks are what cover it.
+there; where a main clone is under `$HOME`, the sweep leaves each state
+root out. Either way the hash checks above are what cover the state
+directories: each task checks its own, so a write into another task's
+directory is caught by that task.
 
 ## 2. Mode 1: human-gated design review
 
@@ -457,19 +488,31 @@ different version is a warning in the round comment, not a failure.
 - record the docs worktree's branch and HEAD SHA;
 - confirm that `vrg-git status --porcelain` in the worktree is empty, so the
   reviewer sees only committed text;
-- when the worktree's `paad/security/.gitignore` is absent, create it
-  (and `paad/security/`, if absent) holding the single line `*`, so the
-  reviewer never finds it missing
-  ([vergil-project/vergil-claude-plugin#840](https://github.com/vergil-project/vergil-claude-plugin/issues/840)).
-  Never rewrite one that is present;
-- confirm that the worktree's `paad/security/` holds nothing but its
-  `.gitignore`, so every security file found afterwards is this round's;
+- prepare and check the docs worktree's `paad/`, in this order, from the
+  worktree root. A check or command that fails means you stop and ask the
+  human before dispatch; it is not re-run automatically:
+  1. `paad` and `paad/security`, where present, are real directories:
+     `test ! -L` on each, and `test -d` when it exists;
+  2. when `paad/security/` is absent, create it as a real directory
+     (`mkdir -p paad/security`); when `paad/security/.gitignore` is
+     absent, create it holding the single line `*`, so the reviewer never
+     finds it missing
+     ([vergil-project/vergil-claude-plugin#840](https://github.com/vergil-project/vergil-claude-plugin/issues/840)).
+     Never rewrite one that is present;
+  3. `paad/security/.gitignore` is a regular file, not a symlink
+     (`test -f` and `test ! -L`), whose content is exactly the single
+     line `*`;
+  4. `vrg-git ls-files paad/security`, with no trailing slash, prints
+     nothing and exits zero;
+  5. `paad/security/` holds nothing but its `.gitignore`, so every
+     security file found afterwards is this round's;
 - fetch each member repo the prompt names;
 - create the round's temporary directory for the stray-write check (below);
-- check the seal on the planning issue's state directory, then take its
-  hash, last, just before dispatch ([§1.5](#15-state-directories)). The
-  state directory is `build/.vergil-state/design-review/<N>/` in the docs
-  repo's main clone; create it first if it is absent.
+- last, just before dispatch, the planning issue's state directory,
+  `build/.vergil-state/design-review/<N>/` in the docs repo's main clone
+  ([§1.5](#15-state-directories)): check its seal (or, in the first round
+  of a session, its listing), create it level by level if it is absent,
+  check its mode, and take its hash.
 
 A dirty worktree at this point (for example, a session resumed partway
 through a walk-through) is shown to the human as a diff. The human either
@@ -511,8 +554,8 @@ write anything there; it must match the hash taken before dispatch
 - the round's temporary directory passes the stray-write check (below).
 
 A state-directory hash that differs, before dispatch (the seal) or after the
-review, is a broken round. It is not re-run automatically: leave the state
-directory as it is, unread, and stop and ask the human.
+review, is a broken round of its own kind: it is never re-run
+automatically (see the procedure below).
 
 **The stray-write check.** The checks above miss a reviewer that writes a
 file outside the worktree and deletes it again. In the spike, that happened
@@ -565,6 +608,14 @@ caught at all.
 **A failed check is a broken round.** The reviewer did not produce a usable
 review, which says nothing about the design. A broken round is never treated
 as a pass, and its findings are not acted on.
+
+**A state-directory check that fails** (the seal or listing before
+dispatch, a mode, or the hash after the review,
+[§1.5](#15-state-directories)) is the exception to the procedure below: stop
+at once and ask the human, with no automatic re-run. Leave the state
+directory as it is, unread. A seal or listing that fails before dispatch has
+no reviewer changes to revert; after a review, revert as in step 1, then
+stop. Every other failed check follows these steps:
 
 1. Revert anything the reviewer changed, staged or not, in this order. These
    are the commands the spike's revert drill ran and confirmed with
@@ -765,14 +816,15 @@ documentation task, stays as `epic-create` already does it.
 
 **Cleanup.** Once every finding in the scratch copy has been recorded or
 classified known, delete the copy (the round's `<round-id>/`
-subdirectory), so no scratch details are left behind, then take the
-end-of-round hash that seals the state directory until the next round
-([§1.5](#15-state-directories)). Delete the planning issue's state
-directory, `design-review/<N>/`, once the docs PR is handed off and no kept
-copy remains in it. If any record fails, keep the copy, and the round comment
-says `scratch copy kept` with the failure. Never delete a copy while a new or
-repair finding in it is unrecorded. A broken round's security files are
-deleted unread ([§2.4](#24-output-checks-and-broken-rounds)).
+subdirectory), so no scratch details are left behind. If any record fails,
+keep the copy, and the round comment says `scratch copy kept` with the
+failure. Never delete a copy while a new or repair finding in it is
+unrecorded. A broken round's security files are deleted unread
+([§2.4](#24-output-checks-and-broken-rounds)). Either way, once you have
+finished writing and deleting there, take the end-of-round hash that seals
+the state directory until the next round ([§1.5](#15-state-directories)).
+Delete the planning issue's state directory, `design-review/<N>/`, once the
+docs PR is handed off and no kept copy remains in it.
 
 **Public records.** The round comment shows the count of security findings,
 how many were accepted, and the GHSA IDs the round created. A GHSA ID shows
@@ -912,8 +964,9 @@ Each round:
    keeping its `.gitignore`. Once the round is acted on and every security
    finding in it is recorded, delete the round's state subdirectory
    (`<round>/` under the task's state directory,
-   [§3.6](#36-security-findings)), then take the end-of-round hash that
-   seals the task's state directory until the next round
+   [§3.6](#36-security-findings)); otherwise it is kept. Either way, once
+   you have finished writing and deleting there, take the end-of-round hash
+   that seals the task's state directory until the next round
    ([§1.5](#15-state-directories)).
 7. **Decide:**
    - **pass** if the round had no blocking findings;
@@ -1083,14 +1136,13 @@ different version is a warning in the findings comment, not a failure.
 - prepare and check the worktree's `paad/`, in this order. Run each command
   from the worktree root; any check that fails, or command that fails,
   pauses the run before dispatch ([§3.8](#38-pauses)):
-  1. `paad`, where present, is a real directory: `test ! -L paad`, and
-     `test -d paad` when it exists;
-  2. when `paad/security/` is absent, create it as a real directory
-     (`mkdir -p paad/security`); when `paad/security/.gitignore` is absent,
-     create it holding the single line `*`. Never rewrite one that is
-     present. A fresh worktree has neither, and paad needs both;
-  3. `paad/security` and `paad/code-reviews`, where present, are real
-     directories: `test ! -L` on each, and `test -d` when it exists;
+  1. `paad`, `paad/security` and `paad/code-reviews`, where present, are
+     real directories: `test ! -L` on each, and `test -d` when it exists;
+  2. only then, when `paad/security/` is absent, create it as a real
+     directory (`mkdir -p paad/security`); when `paad/security/.gitignore`
+     is absent, create it holding the single line `*`. Never rewrite one
+     that is present. A fresh worktree has neither, and paad needs both;
+  3. `paad/security` is a real directory: `test ! -L` and `test -d`;
   4. `paad/security/.gitignore` is a regular file, not a symlink
      (`test -f` and `test ! -L`), whose content is exactly the single line
      `*`;
@@ -1108,14 +1160,13 @@ different version is a warning in the findings comment, not a failure.
 - the task's state directory, `build/.vergil-state/agentic-review/<N>/` in
   the task repo's main clone ([§1.5](#15-state-directories)): check the
   seal first, against the hash kept at the end of the previous round in
-  this session (round 1 of a session has none). Then create the directory
-  level by level if it is absent, check its mode, and take its hash. A
-  seal that differs, or a mode that is not `700`, pauses the run before
-  dispatch;
-- list the other tasks' state directories for the sweep's exclusions
-  (below). Find each state root under the directories the sweep searches,
-  then list every `<root>/<kind>/<M>/` directory in each, every one but
-  this task's own:
+  this session, or, in the first round of a session, its listing. Then
+  create the directory level by level if it is absent, check its mode, and
+  take its hash. A seal or listing that fails, or a mode that is not
+  `700`, pauses the run before dispatch;
+- list the state roots for the sweep's exclusions (below): every
+  `build/.vergil-state` directory under the directories the sweep
+  searches. Record each by its path:
 
   ```bash
   find /tmp /var/tmp "$HOME" -type d -path '*/build/.vergil-state' -prune -print
@@ -1182,13 +1233,22 @@ It must print nothing. Exclude (one `-path <path>` each, inside the brackets):
   `$HOME/.local/share/containerd`, `$HOME/.local/share/nerdctl` and
   `$HOME/.local/share/cni`), tool caches (`$HOME/.cache`), and the temporary
   directories and worktrees of every other session, by their own paths;
-- the other tasks' state directories, each by the path listed before
-  dispatch, so a parallel task's own writes do not fail this round. This
-  task's own state directory stays in the sweep. A state directory created
-  after that listing is not excluded: a hit there fails the round like any
-  other, and the human decides. On the VMs the main clones are not under a
-  swept directory, so the sweep does not reach any state directory there,
-  and the hash checks are what cover them ([§1.5](#15-state-directories)).
+- each state root listed before dispatch, by its path, as a whole, so a
+  parallel task's writes in its own state directory do not fail this
+  round, even in a directory it creates after the listing. This task's own
+  state directory is swept on its own instead, and must also print
+  nothing:
+
+  ```bash
+  find <task state dir> -type f -newer <round-dir>/marker -print
+  ```
+
+  A state root created after the listing (a new main clone) is not
+  excluded: a hit there fails the round like any other, and the human
+  decides. Writes into another task's state directory are caught by that
+  task's own hash checks ([§1.5](#15-state-directories)). On the VMs the
+  main clones are not under a swept directory, so the sweep does not reach
+  any state directory there, and the hash checks are what cover them.
 
 Never exclude this session's own temporary directory or scratchpad: a
 reviewer subagent shares them, and they are where a stray scratch file is
@@ -1210,8 +1270,8 @@ produce a usable review, which says nothing about the code. A failed round is
 never treated as a pass, and its findings are not acted on. Leave the
 worktree's `paad/`, the task's state directory and anything the sweep found
 where they are, unread, for the human. The round's findings comment notes
-which check failed and carries no findings. A security hold keeps its details only in the conversation with
-the human.
+which check failed and carries no findings. A security hold keeps its
+details only in the conversation with the human.
 
 **A repo without the managed `.gitignore` block.** `paad/code-reviews/` is
 ignored only by the managed block that `vrg-gitignore-sync` maintains. In a
@@ -1252,8 +1312,11 @@ trusted authors.
   none (no run is left to post it). It lists every finding not fixed, each
   with its intake or task issue, and every removed addition with its task,
   so the retrospective sweep can check them, and gives the security counts.
-  Once it is posted, delete the task's state directory
-  (`build/.vergil-state/agentic-review/<N>/`, [§3.6](#36-security-findings)).
+  Once it is posted, whatever the outcome, delete the task's state
+  directory (`build/.vergil-state/agentic-review/<N>/`,
+  [§3.6](#36-security-findings)), but only when no round subdirectory
+  remains in it. One that remains may hold unrecorded details: pause
+  ([§3.8](#38-pauses)) and leave the directory for the human.
 
 A pause adds a line to the latest response comment, saying why the run
 stopped, and, once the human has ruled, a line with the human's ruling
@@ -1407,13 +1470,17 @@ when:
 - the task issue's author is not trusted (in Preflight,
   [§3.3](#33-the-requirements-file));
 - a pre-dispatch check fails ([§3.4](#34-output-checks)): a `paad/` check,
-  the state directory's seal, or its mode
+  or the state directory's seal, first-round listing or mode
   ([§1.5](#15-state-directories)). Nothing is dispatched;
 - an output check fails ([§3.4](#34-output-checks)), including a security
   hold, a state-directory hash that differs after the review, and the repo
   without a managed `.gitignore` block;
-- a state directory's mode is not `700` before a write
-  ([§1.5](#15-state-directories)). Nothing is written;
+- a state-directory check fails before a write
+  ([§1.5](#15-state-directories)): a mode that is not `700`, a new round
+  subdirectory that already exists, or an entry you did not write. Nothing
+  is written;
+- a round subdirectory remains when the task's state directory is due for
+  deletion ([§3.5](#35-task-issue-records));
 - you want to dismiss a blocking finding as wrong ("pending human",
   [§3.1](#31-the-loop) step 5);
 - round 3, or the last round the human allowed, had a blocking finding;
@@ -1440,6 +1507,10 @@ On a pause:
   ([§3.3](#33-the-requirements-file)). In a new session the human restates
   any earlier rulings. Rulings are recorded on the issue for people; a run
   takes them only from the human in the conversation, never from the issue.
+- **Seal on a pause.** Once you have finished writing there, take the
+  end-of-round hash of the task's state directory, as at the end of any
+  round ([§1.5](#15-state-directories)); after a pause on a state-directory
+  check, the human confirms its contents first.
 - **A pause is not a save point.** The branch is not pushed: pushing happens
   at `report-ready`. If the human does not come back, or the worktree is lost,
   the work is abandoned: the task stays open as unfinished work and is

@@ -191,15 +191,20 @@ round. The human decides every round. Each round has seven steps:
 
 1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)): run
    the pre-dispatch steps of [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
-   including the round's empty temporary directory, then start a fresh
+   including the `paad/` checks, the round's empty temporary directory and
+   the state directory's seal and hash
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), then
+   start a fresh
    `general-purpose` subagent **in the background** with the
    [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt) template,
    placeholders filled and nothing about earlier rounds added.
 2. **Check the output**
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)),
-   including the stray-write check. A failed check is a broken round: revert,
-   delete its security files unread, and re-run once; stop and ask the human
-   after a second.
+   including the state directory's hash and the stray-write check. A failed
+   check is a broken round: revert, delete its security files unread, and
+   re-run once; stop and ask the human after a second. A failed
+   state-directory check, or a failed `paad/` check before dispatch, is
+   never re-run: stop and ask the human at once.
 3. **Screen, classify and map severity:** first screen every ordinary finding
    and every discard line
    ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)), then

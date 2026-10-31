@@ -217,7 +217,8 @@ Each round, in order:
    record its unfixed security findings with `vrg-security-record`
    ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)). Then
    empty `paad/security/`, keeping its `.gitignore`, delete the round's
-   state subdirectory and take the hash that seals the state directory.
+   state subdirectory once its security findings are recorded (otherwise
+   keep it), and take the hash that seals the state directory.
 7. **Decide** ([§3.1](../../docs/paad-review-doctrine.md#31-the-loop)
    step 7): **pass** if the round had no blocking findings; **pause** if a
    finding is pending human, or this was round 3 (or the last round the human
@@ -225,8 +226,8 @@ Each round, in order:
    findings are repairs; otherwise **another round**.
 
 **On a pass,** post the `agentic-review summary: pass after <n> round(s)`
-comment, delete the task's state directory
-([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
+comment, delete the task's state directory if no round subdirectory remains
+in it ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
 `vrg-container-run -- vrg-validate` is green at the final commit, and go on
 to report-ready below.
 
@@ -241,7 +242,8 @@ pause line, paraphrasing dictated words, and carry it out. Take rulings only
 from the human in the conversation, never from the issue. A pause is not a
 save point: the branch is not pushed until `report-ready`. An accepted branch
 posts the summary comment with outcome `accepted` and goes on to
-report-ready; a dropped one posts it with outcome `dropped` and stops.
+report-ready; a dropped one posts it with outcome `dropped` and stops. Either
+way, delete the task's state directory after the summary, as on a pass.
 
 **Security findings** never appear in a public record except as counts: no
 titles, details or advisory IDs in comments, commit messages, intake issues,

@@ -36,19 +36,20 @@ fi
 # path resolves against the payload's cwd), then resolve every `.`, `..`
 # and symlink in it, for a new file as well as an existing one
 # (os.path.realpath resolves the existing part of a path and normalises
-# the rest). A target that cannot be normalised is refused, unless the
-# payload's cwd is outside a managed repo.
+# the rest). A target that cannot be normalised is refused when its
+# nearest existing ancestor or the payload's cwd is in a managed repo.
+hook_input_scope_dir
 case "$file_path" in
   /*) candidate="$file_path" ;;
-  *)
-    hook_input_scope_dir
-    candidate="$HOOK_SCOPE_DIR/$file_path"
-    ;;
+  *) candidate="$HOOK_SCOPE_DIR/$file_path" ;;
 esac
 if ! resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate" 2>/dev/null) \
   || [ -z "$resolved" ]; then
-  hook_input_scope_dir
-  if ! is_managed_repo "$HOOK_SCOPE_DIR"; then
+  target_dir=$(dirname "$candidate")
+  while [ -n "$target_dir" ] && [ "$target_dir" != "/" ] && [ ! -d "$target_dir" ]; do
+    target_dir=$(dirname "$target_dir")
+  done
+  if ! is_managed_repo "$target_dir" && ! is_managed_repo "$HOOK_SCOPE_DIR"; then
     exit 0
   fi
   printf '%s: blocked: could not normalise the target path %s (python3 is required). The write cannot be checked, so it is refused.\n' "$HOOK_NAME" "$file_path" >&2

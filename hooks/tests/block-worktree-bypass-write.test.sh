@@ -63,6 +63,7 @@ T_NAME=(
 	"normalisation: state path, case 2"
 	"normalisation: state path, case 3"
 	"a path that cannot be normalised in a managed repo is refused"
+	"a path that cannot be normalised into a managed repo from outside it is refused"
 	"a path that cannot be normalised outside a managed repo is allowed"
 )
 T_PATH=(
@@ -81,17 +82,18 @@ T_PATH=(
 	"$S/build/.vergil-state/src/new.txt"
 	"$L/build/.vergil-state/new.txt"
 	"$S/.worktrees/wt/new.txt"
+	"$S/new.txt"
 	"$U/new.txt"
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
 	"$S" "$S" "$S" "$S" "$S" "$L"
-	"$S" "$U"
+	"$S" "$U" "$U"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
 	"" "" "" "" "" ""
-	"$NOPY_PATH" "$NOPY_PATH"
+	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
 )
 T_EXPECT=(
 	"allow"
@@ -108,6 +110,7 @@ T_EXPECT=(
 	"deny"
 	"deny"
 	"deny"
+	"blocked"
 	"blocked"
 	"allow"
 )

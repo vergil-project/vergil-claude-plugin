@@ -53,10 +53,14 @@ This is the first non-Bash matcher in the hook system.
 ### Logic
 
 1. Read JSON input from stdin, extract `tool_input.file_path`.
-2. Resolve `file_path` to its real path (handle symlinks via
-   `realpath` or equivalent). Best-effort: if the file does not
-   exist yet (new file creation), use the path as-is — there
-   cannot be a symlink to a non-existent file.
+2. Normalise `file_path` before any match: make it absolute (a
+   relative path resolves against the payload's cwd), then resolve
+   every `.`, `..` and symlink in it with `os.path.realpath`, for
+   a new file as well as an existing one (the existing part of the
+   path is resolved and the rest normalised). If it cannot be
+   normalised, refuse the write (exit 2) when the target's nearest
+   existing ancestor or the payload's cwd is in a managed repo, and
+   allow it otherwise.
 3. Run `is_managed_repo` check on `dirname(file_path)` (walking
    up to find an existing ancestor if the directory doesn't exist
    yet). This is pure shell with no subprocess spawns — fast early
@@ -75,8 +79,11 @@ This is the first non-Bash matcher in the hook system.
    Use `git rev-parse --path-format=absolute --git-common-dir` and
    take its parent to find the main root (same technique as
    `block-protected-branch-work.sh`).
-8. Check whether `file_path` falls inside `<main_root>/.worktrees/*/`.
-9. If inside a worktree subdirectory: exit 0 (allow).
+8. Check whether the normalised path falls inside
+   `<main_root>/.worktrees/*` or `<main_root>/build/.vergil-state/*`.
+9. If so: exit 0 (allow). `build/.vergil-state/` is ignored agent
+   state, the worktree convention's one exception to the read-only
+   main worktree (paad review doctrine §1.5).
 10. If not: deny.
 
 ### Hook 1 denial message
@@ -102,8 +109,11 @@ Consistent with the language in `block-protected-branch-work.sh`.
 - **New file in a path that doesn't exist yet**: walk up `dirname`
   until an existing ancestor is found, then `git rev-parse` from
   there.
-- **Symlinks**: resolve to real path before checking, so a symlink
-  into the main worktree is still caught.
+- **Symlinks, `.` and `..`**: resolved before checking, for new
+  and existing files alike, so a path that resolves into the main
+  worktree is still caught.
+- **A path that cannot be normalised** (for example, no `python3`):
+  refused inside a managed repo (fail closed).
 
 ## Hook 2: `block-github-contents-api.sh`
 
