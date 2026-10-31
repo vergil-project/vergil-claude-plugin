@@ -288,8 +288,9 @@ The one exception is ignored agent state under the main clone's
 directories](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories)),
 which the hook allows. Every target path is normalised first
 (`.`, `..` and symlinks resolved, for new files as well as existing
-ones), and a path that cannot be normalised is refused inside a
-managed repo. Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
+ones) with `python3`. Without `python3`, or when a path cannot be
+normalised, the hook denies every Write and Edit, wherever it points.
+Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.
 Tests: `hooks/tests/block-worktree-bypass-write.test.sh`.
 
 **Alternative.** Write to your assigned worktree's absolute path.

@@ -226,7 +226,10 @@ round. The human decides every round. Each round has seven steps:
    checkpoint and the recommendation
    ([§2.5](../../docs/paad-review-doctrine.md#25-the-recommendation)), after
    recording its security findings
-   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
+   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)). Then,
+   once the scratch copy is deleted or kept, take the end-of-round hash that
+   seals the state directory until the next round
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 7. **Ask the human:** another round of this stage, or stop it
    ([§2.2](../../docs/paad-review-doctrine.md#22-one-round), step 7). The
    human's answer is final; the recommendation is advice.

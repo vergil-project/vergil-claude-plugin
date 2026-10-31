@@ -62,9 +62,9 @@ T_NAME=(
 	"normalisation: state path, case 1"
 	"normalisation: state path, case 2"
 	"normalisation: state path, case 3"
-	"a path that cannot be normalised in a managed repo is refused"
-	"a path that cannot be normalised into a managed repo from outside it is refused"
-	"a path that cannot be normalised outside a managed repo is allowed"
+	"without python3, a write in a worktree is denied"
+	"without python3, a write to a managed repo from outside it is denied"
+	"without python3, a write outside a managed repo is denied"
 )
 T_PATH=(
 	"$S/.worktrees/wt/new.txt"
@@ -110,9 +110,9 @@ T_EXPECT=(
 	"deny"
 	"deny"
 	"deny"
-	"blocked"
-	"blocked"
-	"allow"
+	"deny"
+	"deny"
+	"deny"
 )
 
 pass=0

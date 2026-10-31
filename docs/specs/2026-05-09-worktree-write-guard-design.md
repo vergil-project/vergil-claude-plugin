@@ -57,20 +57,18 @@ This is the first non-Bash matcher in the hook system.
    relative path resolves against the payload's cwd), then resolve
    every `.`, `..` and symlink in it with `os.path.realpath`, for
    a new file as well as an existing one (the existing part of the
-   path is resolved and the rest normalised). If it cannot be
-   normalised, refuse the write (exit 2) when the target's nearest
-   existing ancestor or the payload's cwd is in a managed repo, and
-   allow it otherwise.
-3. Run `is_managed_repo` check on `dirname(file_path)` (walking
-   up to find an existing ancestor if the directory doesn't exist
-   yet). This is pure shell with no subprocess spawns — fast early
+   path is resolved and the rest normalised). If python3 is
+   unavailable or the path cannot be normalised, deny every Write
+   and Edit, wherever it points, with a reason naming python3.
+   Every later step uses this normalised path.
+3. Run `is_managed_repo` check on the normalised path's nearest
+   existing ancestor directory (walking up from its `dirname` if
+   the directory doesn't exist yet). This is pure shell with no subprocess spawns — fast early
    exit for writes to `/tmp`, non-repo paths, and unmanaged repos.
    If not managed: exit 0.
-4. Derive the git repo root from the file path: run
-   `git -C "$(dirname "$file_path")" rev-parse --show-toplevel`.
-   If the target directory doesn't exist yet (new file in a new
-   directory tree), walk up until an existing ancestor is found.
-5. If `file_path` is outside any git repo: exit 0 (allow).
+4. Derive the git repo root from that same ancestor: run
+   `git -C <ancestor> rev-parse --show-toplevel`.
+5. If the normalised path is outside any git repo: exit 0 (allow).
 6. Check if the repo has adopted the worktree convention:
    `.worktrees/` line in the repo root's `.gitignore`.
    If not adopted: exit 0.
@@ -113,7 +111,7 @@ Consistent with the language in `block-protected-branch-work.sh`.
   and existing files alike, so a path that resolves into the main
   worktree is still caught.
 - **A path that cannot be normalised** (for example, no `python3`):
-  refused inside a managed repo (fail closed).
+  every Write and Edit is denied, wherever it points (fail closed).
 
 ## Hook 2: `block-github-contents-api.sh`
 

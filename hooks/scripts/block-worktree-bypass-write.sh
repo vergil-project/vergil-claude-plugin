@@ -36,24 +36,29 @@ fi
 # path resolves against the payload's cwd), then resolve every `.`, `..`
 # and symlink in it, for a new file as well as an existing one
 # (os.path.realpath resolves the existing part of a path and normalises
-# the rest). A target that cannot be normalised is refused when its
-# nearest existing ancestor or the payload's cwd is in a managed repo.
+# the rest). If python3 is unavailable or the path cannot be normalised,
+# every Write and Edit is denied, wherever it points.
 hook_input_scope_dir
 case "$file_path" in
   /*) candidate="$file_path" ;;
   *) candidate="$HOOK_SCOPE_DIR/$file_path" ;;
 esac
+deny_unnormalised() {
+  jq -n --arg path "$file_path" --arg why "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: ("The worktree write guard could not check the target path \($path): \($why) The guard needs python3 to normalise every target path, so it denies every Write and Edit until python3 is available.")
+    }
+  }'
+  exit 0
+}
+if ! command -v python3 >/dev/null 2>&1; then
+  deny_unnormalised "python3 is not installed or not on PATH."
+fi
 if ! resolved=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$candidate" 2>/dev/null) \
   || [ -z "$resolved" ]; then
-  target_dir=$(dirname "$candidate")
-  while [ -n "$target_dir" ] && [ "$target_dir" != "/" ] && [ ! -d "$target_dir" ]; do
-    target_dir=$(dirname "$target_dir")
-  done
-  if ! is_managed_repo "$target_dir" && ! is_managed_repo "$HOOK_SCOPE_DIR"; then
-    exit 0
-  fi
-  printf '%s: blocked: could not normalise the target path %s (python3 is required). The write cannot be checked, so it is refused.\n' "$HOOK_NAME" "$file_path" >&2
-  exit 2
+  deny_unnormalised "python3 failed to normalise it."
 fi
 
 # Find the nearest existing ancestor directory for the target file.

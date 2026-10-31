@@ -227,7 +227,10 @@ Each round, in order:
 
 **On a pass,** post the `agentic-review summary: pass after <n> round(s)`
 comment, delete the task's state directory if no round subdirectory remains
-in it ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
+in it ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records));
+if one remains, pause instead
+([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), leave the directory for
+the human and do not run report-ready. Otherwise confirm
 `vrg-container-run -- vrg-validate` is green at the final commit, and go on
 to report-ready below.
 
@@ -243,7 +246,12 @@ from the human in the conversation, never from the issue. A pause is not a
 save point: the branch is not pushed until `report-ready`. An accepted branch
 posts the summary comment with outcome `accepted` and goes on to
 report-ready; a dropped one posts it with outcome `dropped` and stops. Either
-way, delete the task's state directory after the summary, as on a pass.
+way, delete the task's state directory after the summary, as on a pass; if a
+round subdirectory remains, pause instead and do not run report-ready. On a
+pass or a pause, give the seal hash of the task's state directory in your
+final report; a run resumed with a seal hash checks the directory against it
+before its first write there
+([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 
 **Security findings** never appear in a public record except as counts: no
 titles, details or advisory IDs in comments, commit messages, intake issues,
