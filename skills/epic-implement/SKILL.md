@@ -65,7 +65,9 @@ unique, so parallel efforts never collide.
 Each `issue-implement` run you dispatch, paused before or not, is a new
 session with no human. Before dispatching it, show the human each recorded
 `fix` ruling on the task from a trusted author (`vrg-trusted-authors`),
-with the comment's author and time, and any leftover state directory, and
+with the comment's author and time, any leftover state directory, and,
+where the task's state directory exists, its listing for confirmation
+([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
 pass the answers in the dispatch prompt
 ([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 

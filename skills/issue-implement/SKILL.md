@@ -107,8 +107,8 @@ run's items are filed only as the human approves
    rules.
 6. **Leftover state.** If the task's state directory,
    `build/.vergil-state/agentic-review/<N>/` in the main clone, exists with
-   no live pause or open `Kept:` line on the issue, and is not only the
-   live ruling record, tell the human before doing anything else and wait
+   no live pause or open `Kept:` line on the issue, and is neither empty
+   nor only the live ruling record, tell the human before doing anything else and wait
    for their decision; under `epic-implement`, the main session passes it
    ([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 7. **Create the worktree for this issue** from the repo root and work inside it
@@ -163,7 +163,8 @@ task is still open** — it gates the epic's closure and closes only on a record
 ## The agentic-review gate
 
 Before you hand off, review your own branch with `paad:agentic-review`, act on
-what it finds and repeat, for up to three rounds. This is mode 2 of the
+what it finds and repeat, for three rounds before the human decides whether
+to allow more. This is mode 2 of the
 [paad review doctrine](../../docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement).
 The doctrine's [§3](../../docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)
 holds the rules and the detail (§3.1–3.8); this section is the procedure, in
@@ -245,7 +246,8 @@ Each round, in order
    stop. Otherwise delete the round's state subdirectory (under
    `accept-branch` or `drop-branch`, then check that none remains), finish
    the response comment with `Finished:` (edit a paused round's with
-   `--edit-last`), and take the seal. Then, by the branch ruling:
+   `--edit-last`, first confirming your latest comment is that unfinished
+   response comment, or pause), and take the seal. Then, by the branch ruling:
    `accept-branch` posts the summary with outcome `accepted`, deletes the
    task's state directory and goes on to report-ready; `drop-branch` posts
    it with outcome `dropped`, deletes the directory and stops; otherwise

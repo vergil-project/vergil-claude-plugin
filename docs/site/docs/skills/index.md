@@ -122,8 +122,9 @@ epic", "we're done with this epic".
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
 its feature branch, validates to green via `vrg-validate`, runs the
-**agentic-review gate** — up to three rounds of `paad:agentic-review` on
-its own branch, recorded on the task issue: it acts alone only on findings
+**agentic-review gate** — three rounds of `paad:agentic-review` on its
+own branch before the human decides whether to allow more, recorded on the
+task issue: it acts alone only on findings
 that are its own, pauses the whole round for the human on anything else
 (every security finding included), and reviews every change it makes, as
 the

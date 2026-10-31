@@ -952,7 +952,8 @@ report-only mode.
 ## 3. Mode 2: agentic review in `issue-implement`
 
 Used in `issue-implement`: the implementer runs `paad:agentic-review` on its
-own branch, acts on what it finds and repeats, for up to three rounds. It
+own branch, acts on what it finds and repeats, for three rounds before the
+human decides whether to allow more. It
 acts alone only on the findings that are its own ([§3.1](#31-the-loop));
 everything else waits for the human, and only a round with nothing left to
 act on, or the human, ends the loop. Each round is a fresh review-only
@@ -1024,7 +1025,8 @@ Each round:
      round has reached the cap and has anything to act on; or most of its
      findings are repairs. The cap is round 3, plus one round for each
      `another-round` ruling and for each round a `fix` ruling at the cap
-     grants. Act on nothing in the round yet, not even your own findings: a
+     grants; a `fix` and an `another-round` given together at the cap
+     grant one round, not two. Act on nothing in the round yet, not even your own findings: a
      ruling on one item can change what the others need. Post the response
      comment with the pause;
    - otherwise **act** (step 7).
@@ -1050,7 +1052,8 @@ Each round:
    naming the review would tell the next reviewer about earlier rounds. A
    security fix gets a neutral message. Then
    `vrg-container-run -- vrg-validate` must pass: repair what it finds
-   before anything else.
+   before anything else. A repair that would need the human (reasons 2, 3
+   or 5) is not yours: pause for it.
 
    If a ruling could not be carried out, keep the round's state
    subdirectory and pause: add the `Paused:` and `Kept:` lines to the
@@ -1098,7 +1101,9 @@ on was given in its own conversation ([§3.8](#38-pauses)).
 
 **Rulings end findings.** A ruling ends its finding when it needs no further
 change on the branch: `decline`, `dismiss`, `file`, `record` and `reject`
-do; `fix` does not. Only the human ends a finding. The loop ends only on a
+do; `fix` does not, except that an approved security fix ends a held-back
+finding that only reports it ([§3.6](#36-security-findings)). Only the
+human ends a finding. The loop ends only on a
 pass (a round with nothing left to act on) or on the human's branch
 ruling; you never decide alone that the branch is done while anything is
 left to act on.
@@ -1395,7 +1400,8 @@ caught at all.
 
 **A failed check pauses the run** ([§3.8](#38-pauses)). The reviewer did not
 produce a usable review, which says nothing about the code. A failed round is
-never treated as a pass, and its findings are not acted on. Leave the
+never treated as a pass, and its findings are not acted on unless the human
+rules the check `dismiss` ([§3.5](#35-task-issue-records)). Leave the
 worktree's `paad/`, the task's state directory and anything the sweep found
 where they are, unread, for the human. The round's findings comment notes
 which check failed and carries no findings, and its response comment
@@ -1454,17 +1460,21 @@ ISO 8601.
   with `vrg-gh issue comment <n> --repo <owner>/<repo> --edit-last
   --body-file <file>`, which edits only your latest comment on the issue.
   Add every later line (`Human ruling:`, `Recorded:`, `Ruling record:`,
-  `Finished:`) the same way, and post nothing else on the issue while the
-  comment is unfinished. If you must, first post the comment again below,
-  with every line kept unchanged, and only then delete the old one, never
-  the reverse (`--delete-last --yes` deletes only your latest comment, so
-  delete before reposting only when the old one is your latest).
+  `Finished:`) the same way. Before each edit, read your latest comment on
+  the issue and confirm it is this round's response comment with no
+  `Finished:` line; if it is not, pause. Post nothing else on the issue
+  while the comment is unfinished, with one exception: a check ruled
+  `dismiss` (below). Then delete the paused response comment with
+  `--delete-last --yes` (it is your latest), post the round's findings
+  comment again, superseding the first, and post the response comment
+  again with every line kept, to finish as usual.
 
 **Pause and ruling lines.** A pause adds these to the round's response
 comment, in this fixed form, one per line:
 
 - `Paused: <reason>. <time>`: when the round was handed to the human. A
-  pause is **live** while its comment has no `Finished:` line.
+  pause is **live** while its comment, the latest trusted response
+  comment, has no `Finished:` line.
 - `Kept: <round>/<file> sha256:<hash>`: one for each file kept in the
   round's state subdirectory, with its hash ([§1.5](#15-state-directories)).
   This is the record that names a kept round. A `Kept:` line is **open**
@@ -1486,11 +1496,21 @@ comment, in this fixed form, one per line:
     `accept-branch`, `drop-branch` or `another-round`;
   - for a pause not about a finding (a failed check and the like), with
     `check` or `pause` as the ID and no sorting: `dismiss` (its cause is
-    not a problem: the round's output is used, and its steps 4–7 run) or
-    `another-round` (the round's output is discarded as the human directs,
-    and the next round takes the next number). The direction says what
-    happens to anything left unread, such as the worktree's `paad/`. The
-    paused round gets `Finished:` once the ruling is carried out.
+    not a problem) or `another-round` (a reviewed round's output is
+    discarded as the human directs, and the next round takes the next
+    number). The
+    direction says what happens to anything left unread, such as the
+    worktree's `paad/`. The paused round gets `Finished:` once the ruling
+    is carried out. What `dismiss` does depends on where the run paused:
+    - after a failed output check: the round's output is used, and its
+      steps 4–7 run through the exception above. A new session no longer
+      has the reviewer's `Files written or updated:` list, so the human's
+      ruling names the files, or the round is run again;
+    - before dispatch: nothing ran, so the same round is dispatched again
+      under its own number (as it is for `another-round`), and it counts
+      toward the cap only once it runs;
+    - inside step 7 (a ruling that could not be carried out): step 7 runs
+      again, carrying out every ruling with no result line yet.
 
   Security rulings take one line of counts only, by word:
   `Human ruling: security: <k> findings: <k> fix, <k> record, <k> reject. <time>`.
@@ -1633,8 +1653,9 @@ state subdirectory and hash it ([§1.5](#15-state-directories)). Step 4's
 files and these share one numbering, and no file is written over: check
 `test ! -e` first.
 
-Security findings get IDs `R<n>.S<i>`, used only in the terminal and the
-ruling record.
+Security findings get IDs `R<n>.S<i>`, used in the terminal, the ruling
+record and the public `Recorded:` line, which shows no more than the
+counts do.
 
 **Rulings.** Every security finding needs the human (reason 1,
 [§3.1](#31-the-loop)), unless it is known under a ruling that ended it.
@@ -1778,7 +1799,9 @@ when:
   ([§3.7](#37-intake-and-the-handoff));
 - round 3, or the last round the human allowed, has anything to act on;
 - most of a round's findings are repairs;
-- a security record cannot be completed ([§3.6](#36-security-findings)).
+- a ruling cannot be carried out, such as a security record that cannot be
+  completed, or a validation repair would need the human
+  ([§3.1](#31-the-loop) step 7, [§3.6](#36-security-findings)).
 
 On a pause:
 
@@ -1828,7 +1851,9 @@ On a pause:
   earlier by <login> at <time>: R2.1, fix: cap retries at 3. Still
   stands?"). The answer is a ruling given in this
   conversation, so it goes into the requirements file. Security rulings are
-  read from the ruling record instead ([§3.6](#36-security-findings)). A run
+  read from the ruling record instead ([§3.6](#36-security-findings)). For
+  a live pause raised inside step 7, the human also confirms every
+  recorded ruling that has no result line yet. A run
   dispatched by `epic-implement` has no human: for every task it
   dispatches, paused or not, the main session asks these questions, and
   the leftover-state one below, and passes the answers in the dispatch
@@ -1839,7 +1864,7 @@ On a pause:
   directory exists before it does anything else: it is left from abandoned
   work, and the human decides. A directory holding only the ruling record,
   on a task with no summary comment, whose hash matches the latest trusted
-  `Ruling record:` line, is live state, not leftover.
+  `Ruling record:` line, is live state, not leftover; so is an empty one.
 - **Seal on a pause.** Once you have finished writing there, take the
   end-of-round hash of the task's state directory, as at the end of any
   round ([§1.5](#15-state-directories)); after a pause on a state-directory
