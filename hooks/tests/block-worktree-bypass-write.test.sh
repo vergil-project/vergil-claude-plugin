@@ -37,6 +37,8 @@ printf '[project]\n' >"$L/vergil.toml"
 printf '.worktrees/\n' >"$L/.gitignore"
 ln -s "$L/src" "$L/build/.vergil-state"
 
+NL=$'\n'
+
 # A directory outside any managed repo.
 U="$TMP/unmanaged"
 mkdir -p "$U"
@@ -70,6 +72,7 @@ T_NAME=(
 	"normalisation: state path, case 2"
 	"normalisation: state path, case 3"
 	"a relative target path is denied"
+	"a target path with a control character is denied"
 	"without python3, a write in a worktree is denied"
 	"without python3, a write to a managed repo from outside it is denied"
 	"without python3, a write outside a managed repo is denied"
@@ -92,6 +95,7 @@ T_PATH=(
 	"$S/build/.vergil-state/src/new.txt"
 	"$L/build/.vergil-state/new.txt"
 	".worktrees/wt/new.txt"
+	"$S/$NL"
 	"$S/.worktrees/wt/new.txt"
 	"$S/new.txt"
 	"$U/new.txt"
@@ -100,13 +104,13 @@ T_PATH=(
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
-	"$S" "$S" "$S" "$S" "$S" "$L" "$S"
+	"$S" "$S" "$S" "$S" "$S" "$L" "$S" "$S"
 	"$S" "$U" "$U"
 	"/" "$S"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
-	"" "" "" "" "" "" ""
+	"" "" "" "" "" "" "" ""
 	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
 	"$NOISY_PATH" "$NOISY_PATH"
 )
@@ -117,6 +121,7 @@ T_EXPECT=(
 	"allow"
 	"allow"
 	"allow"
+	"deny"
 	"deny"
 	"deny"
 	"deny"

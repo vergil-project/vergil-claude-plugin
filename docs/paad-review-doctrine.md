@@ -285,7 +285,7 @@ issue, finds it. Find the main clone from inside a worktree with
   the tracking issue (`upstream-report`). A later session checks the file
   against that hash, read only from a trusted author's comment, before it
   reads the file or passes it to `vrg-security-record`; a difference means
-  stop.
+  stop, and so does a kept file with no recorded hash.
 - **The `upstream-report` directory** has no review rounds. Hash its
   `<N>/` after each write or deletion, and check the hash before the next
   write or deletion, before reading a draft back and before the report is

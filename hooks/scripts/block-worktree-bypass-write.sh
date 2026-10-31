@@ -35,7 +35,8 @@ if [ -z "$file_path" ]; then
   hook_input_fail_closed "the hook input has no tool_input.file_path string"
 fi
 
-# The target must be an absolute path; a relative one is denied. It is
+# The target must be an absolute path with no control characters;
+# anything else is denied. It is
 # then normalised before any match: every `.`, `..` and symlink in it is
 # resolved, for a new file as well as an existing one (os.path.realpath
 # resolves the existing part of a path and normalises the rest).
@@ -49,6 +50,22 @@ deny_target() {
   }'
   exit 0
 }
+# Checked on the raw JSON string, since command substitution drops
+# trailing newlines from file_path.
+path_has_cntrl=$(printf '%s' "$HOOK_INPUT" \
+  | jq -r '.tool_input | objects | .file_path | strings | explode | any(. < 32 or . == 127)') \
+  || path_has_cntrl=error
+case "$path_has_cntrl" in
+  false) ;;
+  *)
+    deny_target "The worktree write guard denies this target path: the path contains a control character."
+    ;;
+esac
+case "$file_path" in
+  *[[:cntrl:]]*)
+    deny_target "The worktree write guard denies this target path: the path contains a control character."
+    ;;
+esac
 case "$file_path" in
   /*) ;;
   *)
