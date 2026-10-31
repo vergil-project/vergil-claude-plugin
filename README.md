@@ -144,8 +144,9 @@ vrg-host plugins        # the host
 vrg-vm update --all     # every running agent VM
 ```
 
-Then start a new Claude Code session: a running session keeps the plugin
-version it loaded, and the next session start loads the updated one. Both
+Then restart Claude Code: end the sessions already running on the host and
+in each VM, and start new ones. A running session keeps the plugin version
+it loaded; the next session start loads the updated one. Both
 commands refresh the marketplace and the installed plugins and verify the
 registered repo and ref. Both refuse an agent identity, so an agent asks
 the human to run them. Where Claude Code's background auto-update is on, it
@@ -157,8 +158,8 @@ nothing, and this README does not document it.
 
 This is the procedure in vergil-tooling's
 [Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
-runbook, which also covers VMs that are not running and Lima sessions that
-load a plugin tree with `--plugin-dir`.
+runbook, which also covers VMs that are not running: `vrg-vm update --all`
+reports a stopped VM as skipped, not as a failure, and leaves it as it was.
 
 ### Verify the update
 
@@ -170,7 +171,9 @@ host and every VM:
 claude plugin list --json
 ```
 
-`vergil@vergil-marketplace` must be at the version `v2.1` points at. That
+Every `vergil@vergil-marketplace` entry must be at the version `v2.1`
+points at: the list has one entry per install, user scope and each project
+scope, and a stale project-scope entry is a mismatch too. That
 is the latest
 [GitHub Release](https://github.com/vergil-project/vergil-claude-plugin/releases)
 unless a rollback has moved `v2.1` back to an earlier release, so check the
@@ -180,22 +183,19 @@ inside any GitHub checkout (`vrg-git` needs one to pick its identity):
 
 ```bash
 url=https://github.com/vergil-project/vergil-claude-plugin.git
-sha=$(vrg-git ls-remote "$url" refs/tags/v2.1 | cut -f1) && [ -n "$sha" ] \
+[ -z "$(vrg-git ls-remote --heads "$url" v2.1)" ] \
+  && sha=$(vrg-git ls-remote "$url" refs/tags/v2.1 | cut -f1) && [ -n "$sha" ] \
   && vrg-git ls-remote --tags "$url" | grep "^$sha"
 ```
 
-It prints two lines with the same object ID: `v2.1` and the `v2.1.Z` tag it
-points at. That `2.1.Z` is the version to expect. Any other output, or
+The first test stops it if a `v2.1` branch exists: Claude Code resolves
+`v2.1` as a branch before a tag, so the tag would not be what consumers
+follow. Otherwise it prints two lines with the same object ID: `v2.1` and
+the `v2.1.Z` tag it points at. That `2.1.Z` is the version to expect. Any other output, or
 none, means the lookup failed; do not read a version from it. On any
 machine that does not show the expected version, run `vrg-host plugins`
 or `vrg-vm update --all` again (a bare `vrg-vm update` updates only the
 base VM), then check it again.
-
-A Lima `vrg-vm session` that loads a vergil plugin tree with
-`--plugin-dir` (listed in the host's `~/.config/vergil/plugin-dirs.toml`)
-runs that tree, not the installed plugin, so neither a release nor a
-rollback reaches it; see the
-[runbook](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine).
 
 ### References
 
