@@ -197,6 +197,14 @@ machine that does not show the expected version, run `vrg-host plugins`
 or `vrg-vm update --all` again (a bare `vrg-vm update` updates only the
 base VM), then check it again.
 
+A Lima `vrg-vm session` can bypass the installed plugin: when the host's
+`~/.config/vergil/plugin-dirs.toml` lists a vergil plugin tree, the session
+loads that tree with `--plugin-dir`, so neither a release nor a rollback
+reaches it, and `claude plugin list --json` does not show this. See the
+paragraph on it in vergil-tooling's
+[Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
+runbook.
+
 ### References
 
 - [Rolling back a release](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
