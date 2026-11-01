@@ -210,8 +210,10 @@ round. The human decides every round. Each round has seven steps:
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)),
    including the state directory's hash and, on the fallback path, the
    stray-write check. On the delegate path, cut the security section out
-   into the scratch copy before anything else reads the result, and only
-   from a well-formed result
+   into the scratch copy as `security-1.md`, hashed as a details file,
+   before anything else reads the result, and only from a well-formed
+   result; a result whose shape does not allow the cut is written there
+   whole, hashed and treated as security material
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
    failed check is a broken round: revert, delete its security material
    unread, and re-run once; stop and ask the human after a second. A

@@ -236,19 +236,29 @@ Each round, in order
    prompt (`paad:paad-delegate` or `general-purpose`), verbatim with its
    placeholders filled, and wait for it. Add nothing about earlier rounds.
    Note the dispatch and return times and the review's cost from its
-   completion notice.
+   completion notice. If a pre-dispatch check fails, dispatch nothing: post
+   only the round's response comment, with its `Paused:` line
+   ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 3. **Check the output**
-   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)): on the
-   fallback path the stray-write sweep first, then the state directory's
-   hash. On the delegate path, cut the security section out into the
-   round's state subdirectory before anything else reads the result, and
-   only from a well-formed result; write the rest beside it as `result.md`
-   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
-   failed check, a blocked result or a result whose shape does not allow
-   the cut pauses the run and skips steps 4–7: post a findings comment
-   naming the failed check or the blocked reason, with no findings and
-   nothing else from the result, and a response comment with `Paused:` and `Kept:` lines, and leave
-   everything else untouched. None is re-run automatically.
+   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). On the
+   fallback path, the stray-write sweep first. Then, on both paths, the
+   checks after the review
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)):
+   the state directory's hash, before anything is written there, then the
+   worktree's branch, HEAD SHA and clean status. Then, on the delegate
+   path, cut the security section out
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)), only
+   from a well-formed result: write it to the round's state subdirectory as
+   `security-1.md` and the rest beside it as `result.md`, hashing each as a
+   details file. A result whose shape does not allow the cut is written
+   whole as `security-1.md`, hashed, and treated as security material:
+   nothing from it is posted. A failed check, a blocked result or a result
+   that could not be cut pauses the run and skips steps 4–7: post a
+   findings comment naming the failed check (for a blocked result, only
+   that it was blocked; its reason goes to the human in the terminal),
+   with no findings and nothing else from the result, and a response
+   comment with `Paused:` and `Kept:` lines, and leave everything else
+   untouched. None is re-run automatically.
 4. **Collect.** On the fallback path, move paad's report and every other
    file in `paad/code-reviews/` and `paad/security/` (but its `.gitignore`)
    into the round's state subdirectory, under neutral names, hashing each;

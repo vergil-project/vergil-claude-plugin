@@ -353,7 +353,8 @@ reporting more; the human's rejections show where to tune.
 **Screening is required,** on both paths and in both modes. Every round,
 after the output checks and before classification, and before anything
 about the round is posted, screen every ordinary finding and every discard
-line against the definition above, whatever the round's security count
+line (and, for pushback on the delegate path, every `Outside the spec:`
+line) against the definition above, whatever the round's security count
 says. Also take any ordinary finding whose symbol, excerpt or fix shows the
 code a security finding is about. Each one that qualifies:
 
@@ -488,7 +489,7 @@ the fallback path. A round never mixes the two. Today only a session that
 loads the fleet's paad checkout has the delegate
 ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
 so a session started without that override, a cloud box, or anyone using
-this plugin with a released paad takes the fallback path.
+this plugin with paad as released today takes the fallback path.
 
 **Record the path.** Each round records the path it took: mode 1 in the
 round comment's checkpoint ([§2.6](#26-the-round-comment)), mode 2 in the
@@ -498,12 +499,15 @@ loaded)`. Rounds record nothing about the fleet's paad checkout: the human
 records its commit each time they move it
 ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
 
-**The fallback stays until a released paad carries the mode.** paad's author
-may take unattended mode in a different shape, later or not at all, so the
-fallback path keeps every check it needs. Text marked **Fallback path
-only** is binding on the fallback path and does not apply on the delegate
-path; it is retired once a released paad carries the mode and this doctrine
-is updated to that release. "Fallback" in this document means only this
+**The fallback stays until the delegate is reliably available.** Today the
+delegate exists only in sessions that load the fleet's paad checkout, and
+paad's author may take unattended mode in a different shape, later or not
+at all, so the fallback path keeps every check it needs. Text marked
+**Fallback path only** is binding on the fallback path and does not apply
+on the delegate path. It is retired once the delegate is reliably
+available wherever these skills run, for example because upstream paad
+adopts the mode, and this doctrine is updated to match. "Fallback" in this
+document means only this
 path: the older idea of a mode 1 fallback through review-only
 `paad/config/` files was never adopted, and unattended mode replaces it.
 
@@ -554,7 +558,10 @@ section as the location; for agentic-review, `Symbol:`, `Excerpt:`, `Fix:`,
 addition`) and `Bug class:`, with the file and line as the location.
 agentic-review's skill-specific fields are its counts line, `Agents
 dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
-consulted:` and `Verifier warnings:`. A blocked result has `Findings: 0`
+consulted:` and `Verifier warnings:`. pushback's one skill-specific field
+is `Outside the spec: <n>`, then one line for each defect in the
+surrounding code that does not block the spec; alignment has none. A
+blocked result has `Findings: 0`
 and `Discards: 0`, and still carries the security section, empty. A skill
 the delegate refused without invoking it opens `Running paad:<skill> (not
 invoked)`. If the subagent returns more than one answer, use the last one.
@@ -586,7 +593,10 @@ the start marker to the end marker, inclusive, are the security section.
 Write them to the mode's private location as `security-1.md` and hash it as
 a details file ([§1.5](#15-state-directories)): mode 1, the round's scratch
 copy ([§2.7](#27-security-findings)); mode 2, the round's state
-subdirectory ([§3.6](#36-security-findings)). From then on, every comment,
+subdirectory ([§3.6](#36-security-findings)). That write creates the
+round's subdirectory, as [§1.5](#15-state-directories) says: it must not
+exist before (`test ! -e` and `test ! -L`), and if it does, write nothing
+and stop. From then on, every comment,
 commit message, intake issue and note about the round is built only from
 the rest of the result. Inside the section, `Security: <k>` must equal the
 number of `### S<i>` headings, and `Security discards:` must be present; a
@@ -598,19 +608,27 @@ unchanged, to the mode's private location as `security-1.md`, hash it as a
 details file, and treat it as security material: it is never read back into
 a public record. Then ask the human, with no automatic re-run: mode 1 stops
 and asks ([§2.4](#24-output-checks-and-broken-rounds)), mode 2 pauses
-([§3.8](#38-pauses)). A mode 2 round keeps the file under a `Kept:` line.
-The human rules on what happens to it.
+([§3.8](#38-pauses)). The file's hash is recorded with the record that
+says it was kept: mode 1's round comment (`scratch copy kept`,
+[§2.4](#24-output-checks-and-broken-rounds)), mode 2's `Kept:` line. The
+human rules on what happens to it. A later run of the round never reuses a
+kept subdirectory: it takes the next round number.
 
-**The output checks.** Check the structure, not the prose:
+**The output checks.** Check the structure, not the prose. First read the
+`Status:` line: a blocked result (below) is checked only for its frame
+(the announce line, `Status:`, `Agent types dispatched:`, `Findings: 0`,
+`Discards: 0`, an empty security section and `Files written: none`), not
+for the mode's values. Then:
 
 - the first line is `Running paad:<skill> v<version>` for the skill the
-  prompt named. A session loading the fleet's paad checkout announces
-  `v<X.Y.Z>-preview`; that suffix is expected, not a version warning. A
-  version other than the mode's expected one is a warning in the round's
-  record, as on the fallback path;
+  prompt named, and `<version>` is exactly the version that
+  [paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)
+  records as validated. Any other version fails the check: a delegate that
+  has not passed the validation gate is not relied on;
 - no `Config:` line: a config file was followed, which only a config file
   the prompt names may be, and no prompt names one. Each `Config not
-  followed: <path>` line is allowed; record its path in the round's record;
+  followed: <path>` line is allowed. Show the paths to the human in the
+  terminal; the round's public record gives only their count;
 - the `Status:` line is `complete`, or `blocked: <reason>` (below). Any
   other value fails;
 - the `Agent types dispatched:` line lists only the types the mode allows
@@ -627,16 +645,21 @@ The human rules on what happens to it.
 - the mode's own values ([§2.4](#24-output-checks-and-broken-rounds),
   [§3.4](#34-output-checks)).
 
-Each `Defaults applied:` line is recorded in the round's record, not
-checked. A failed check is handled by the mode: in mode 1 a broken round
+`Defaults applied:` lines are not checked. They, like the `Config not
+followed:` paths, are the delegate's own free text, written after reading
+the reviewed content, so they never reach a public record: show them to the
+human in the terminal, and give only their count in the round's record. A
+failed check is handled by the mode: in mode 1 a broken round
 ([§2.4](#24-output-checks-and-broken-rounds)), in mode 2 a pause
 ([§3.4](#34-output-checks)). The record names the failed check; it never
 quotes the result.
 
-**A blocked result pauses for the human,** with its reason, and is never
-re-run automatically: mode 1 stops and asks the human, mode 2 pauses
-([§3.8](#38-pauses)). A blocked result is not a broken round: the delegate
-did what its contract says when it cannot proceed safely. `Running
+**A blocked result pauses for the human,** and is never re-run
+automatically: mode 1 stops and asks the human, mode 2 pauses
+([§3.8](#38-pauses)). Its reason is the delegate's free text, so it goes to
+the human in the terminal only; a public record says only that the round
+was blocked. A blocked result is not a broken round: the delegate did what
+its contract says when it cannot proceed safely. `Running
 paad:<skill> (not invoked)` is accepted only with `Status: blocked: skill
 does not support unattended mode`.
 
@@ -966,9 +989,11 @@ Rules the template carries, and why:
 
 ### 2.4 Output checks and broken rounds
 
-**Expected paad version: 2.0.2**, the version every spike run reported. A
-different version is a warning in the round comment, not a failure. On the
-delegate path, `v2.0.2-preview` is expected ([§1.9](#19-the-delegate-path)).
+**Expected paad version: 2.0.2**, the version every spike run reported. On
+the fallback path a different version is a warning in the round comment,
+not a failure. On the delegate path the version must be the one
+paad-policy §10 records as validated, or the check fails
+([§1.9](#19-the-delegate-path)).
 
 **Before dispatch,** in this order:
 
@@ -1021,7 +1046,13 @@ output checks, with these values for mode 1:
 - each finding carries `Claim:`, `Options:` and `Recommendation:`;
 - the severities come from the skill's column: pushback `critical`,
   `serious`, `moderate`, `minor`; alignment `Critical`, `Important`,
-  `Minor`.
+  `Minor`;
+- for pushback, the `Outside the spec: <n>` field is present, with `<n>`
+  lines; alignment has no skill-specific field. Each `Outside the spec:`
+  line is a defect in the surrounding code, not in the spec: screen it
+  with the findings ([§1.6](#16-security-findings)), then walk it through
+  with the round's low findings as one batch, where the human drops it or
+  has it filed in intake ([§2.2](#22-one-round) step 4).
 
 **On the fallback path** (*Fallback path only*), check structure, not
 prose:
@@ -1121,14 +1152,20 @@ re-run; the procedure below does not apply to them:
   unread. A seal or listing that fails before dispatch has no reviewer
   changes to revert; after a review, revert as in step 1, then stop.
 - **A blocked result** on the delegate path ([§1.9](#19-the-delegate-path)):
-  tell the human its reason. The human decides what to change before the
-  round is dispatched again.
+  tell the human its reason, in the terminal only. Delete the round's
+  scratch-copy subdirectory (`<round-id>/`, holding only the empty cut-out
+  section) unread, then take the seal ([§1.5](#15-state-directories)). The
+  human decides what to change before the round is dispatched again.
 - **A result whose shape does not allow the security cut** on the delegate
   path ([§1.9](#19-the-delegate-path)): the whole result is already in the
   scratch copy as security material. Post nothing from it; tell the human
-  in the terminal which shape rule failed. The human decides whether the
-  round is re-run and what happens to the kept file, which follows
-  [§2.7](#27-security-findings)'s keep and cleanup rules.
+  in the terminal which shape rule failed. Post a round comment that names
+  only the failed shape rule and says `scratch copy kept`, with the kept
+  file's hash ([§2.6](#26-the-round-comment)), so a later session can
+  check it. The human decides what happens to the kept file, which follows
+  [§2.7](#27-security-findings)'s keep and cleanup rules, and whether the
+  round is run again; a new run takes the next round ID, since the kept
+  subdirectory is never reused.
 
 Every other failed check follows these steps:
 
@@ -1150,9 +1187,11 @@ Every other failed check follows these steps:
      stop and ask the human.
 
    Delete the broken run's security material unread: its `paad/security/`
-   files on the fallback path, or the cut-out `security-1.md` in the
-   round's scratch copy on the delegate path. Nobody has walked through
-   them, and the re-run raises those findings again.
+   files on the fallback path, or, on the delegate path, the round's whole
+   scratch-copy subdirectory (`<round-id>/`), so the re-run can create it
+   afresh ([§1.5](#15-state-directories)). Then take the seal. Nobody has
+   walked through that material, and the re-run raises those findings
+   again.
 2. Re-run the round once, automatically, with a fresh reviewer.
 3. On a second broken run, stop and ask the human, who chooses: retry; run
    the skill interactively in the main session, the way `epic-create` did
@@ -1225,9 +1264,10 @@ Post one comment per round on the planning issue, with
   broken-round note (with any version warning or recorded skip) when it
   applies; and the path the round took
   ([§1.8](#18-the-two-paths)): `Path: delegate`, or `Path: fallback
-  (paad:paad-delegate not loaded)`. On the delegate path, add each
-  `Config not followed:` path and each `Defaults applied:` line from the
-  result.
+  (paad:paad-delegate not loaded)`. On the delegate path, add only the
+  counts of `Config not followed:` lines and `Defaults applied:` lines;
+  the lines themselves go to the human in the terminal
+  ([§1.9](#19-the-delegate-path)).
 - **Findings:** one entry per finding, with its round ID
   (`<stage-letter><n>.<i>`: `S` for spec pushback, `P` for plan pushback,
   `A` for alignment; for example `S2.3` is spec pushback round 2, finding 3),
@@ -1442,16 +1482,19 @@ Each round:
    returns more than one answer, use the last one. Note when you dispatched
    it and when it returned, and the `totalTokens`, `toolUses` and
    `durationMs` its completion notice gives.
-3. **Check the output** ([§3.4](#34-output-checks)). On the delegate path,
-   the security section is cut out first, into the round's state
+3. **Check the output** ([§3.4](#34-output-checks)). The checks after the
+   review in [§1.10](#110-checks-on-both-paths) come first, on both paths,
+   before anything is written to the task's state directory. Then, on the
+   delegate path, the security section is cut out into the round's state
    subdirectory ([§1.9](#19-the-delegate-path)), and the rest of the result
    is written beside it as `result.md`, hashed as a details file. A failed
    check, a blocked result or a result whose shape does not allow the cut
    pauses the run ([§3.8](#38-pauses)) and skips steps 4–7: post a findings
-   comment that names the failed check (or the blocked status and its
-   reason) and carries no findings, then a response comment with the
-   `Paused:` line and a `Kept:` line for each file in the round's state
-   subdirectory, and leave everything else untouched.
+   comment that names the failed check (for a blocked result, only that it
+   was blocked; the reason goes to the human in the terminal) and carries
+   no findings and nothing else from the result, then a response comment
+   with the `Paused:` line and a `Kept:` line for each file in the round's
+   state subdirectory, and leave everything else untouched.
 4. **Collect.** On the delegate path there is nothing to move: the round's
    material is already in its state subdirectory (step 3). *Fallback path
    only:* read paad's report at the path its `Files written or updated:`
@@ -1761,9 +1804,10 @@ not settled here.
 
 ### 3.4 Output checks
 
-**Expected paad version: 2.0.2**, the version every re-spike run reported. A
-different version is a warning in the findings comment, not a failure. On
-the delegate path, `v2.0.2-preview` is expected
+**Expected paad version: 2.0.2**, the version every re-spike run reported.
+On the fallback path a different version is a warning in the findings
+comment, not a failure. On the delegate path the version must be the one
+paad-policy §10 records as validated, or the check fails
 ([§1.9](#19-the-delegate-path)).
 
 **Before dispatch,** in this order. Any check that fails, or command that
@@ -1930,7 +1974,9 @@ details only in the conversation with the human.
 **A blocked result, and a result whose shape does not allow the cut,** on
 the delegate path, pause the run the same way, and neither is ever re-run
 automatically ([§1.9](#19-the-delegate-path)). A blocked result's
-findings comment gives its status line, which carries no finding. A result
+findings comment says only that the round was blocked: the reason is the
+delegate's free text, so it goes to the human in the terminal and stays in
+the round's `result.md`. A result
 that could not be cut posts nothing from the result: the findings comment
 says only that the security section was malformed, and the whole result
 stays in the round's state subdirectory as security material, under a
@@ -1961,8 +2007,9 @@ ISO 8601.
   toolUses <u>, durationMs <d>`, or `Review cost: not reported` when the
   completion notice does not give them; the path the round took
   ([§1.8](#18-the-two-paths)), `Path: delegate` or `Path: fallback
-  (paad:paad-delegate not loaded)`, and on the delegate path each `Config
-  not followed:` path and each `Defaults applied:` line; paad's version,
+  (paad:paad-delegate not loaded)`, and on the delegate path the counts of
+  `Config not followed:` and `Defaults applied:` lines (the lines go to the
+  human in the terminal, [§1.9](#19-the-delegate-path)); paad's version,
   and a counts line
   in paad's form recomputed over the ordinary findings left after
   screening and the hold-back, so it reveals nothing withheld; then each
@@ -2037,9 +2084,22 @@ comment, in this fixed form, one per line:
     worktree's `paad/`. The paused round gets `Finished:` once the ruling
     is carried out. What `dismiss` does depends on where the run paused:
     - after a failed output check: the round's output is used, and its
-      steps 4–7 run through the exception above. A new session no longer
-      has the reviewer's `Files written or updated:` list, so the human's
-      ruling names the files, or the round is run again;
+      steps 4–7 run through the exception above. On the fallback path, a
+      new session no longer has the reviewer's `Files written or updated:`
+      list, so the human's ruling names the files, or the round is run
+      again. On the delegate path the output is the round's hashed
+      `result.md`, with its cut-out `security-1.md`;
+    - after a blocked result (delegate path): there is no review to use.
+      Delete the round's state subdirectory (it holds only the empty
+      security section and `result.md`), take the seal, and dispatch the
+      round again under its own number, as before dispatch below. A
+      blocked round never reaches step 6, and so never passes;
+    - after a result whose shape did not allow the cut (delegate path):
+      `dismiss` does not apply. The whole result is security material and
+      is never used to build a record. The human rules `another-round`,
+      which runs the next round number with a fresh reviewer, and rules on
+      the kept file like any security material
+      ([§3.6](#36-security-findings));
     - before dispatch: nothing ran, so the same round is dispatched again
       under its own number (as it is for `another-round`), and it counts
       toward the cap only once it runs;
@@ -2129,7 +2189,8 @@ Awaiting a ruling
 
 Security: 0 found.
 Paused: R2.2 and R2.3 need a ruling. 2026-10-30T14:24:05Z
-Kept: 2/report.md sha256:5f0c2a8e9d1b47c3a6e8f2d4b9c1a7e3f5d8b2c6a4e9f1d3b7c5a8e2f4d6b9c1
+Kept: 2/result.md sha256:5f0c2a8e9d1b47c3a6e8f2d4b9c1a7e3f5d8b2c6a4e9f1d3b7c5a8e2f4d6b9c1
+Kept: 2/security-1.md sha256:0d3e7b1c5a9f2e8d4b6c1a3f7e9d2b5c8a4f6e1d3b9c7a2e5f8d4b1c6a3e9f7d
 Human ruling: R2.2 (reason 4) fix: name the delay as a constant after all. 2026-10-30T16:40:12Z
 Human ruling: R2.3 (reason 2) file: file it in intake as found. 2026-10-30T16:40:12Z
 
