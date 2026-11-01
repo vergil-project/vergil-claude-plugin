@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.53] - 2026-11-01
+
+### Documentation
+
+- warn that changing an existing marketplace ref needs the switching procedure (#871)
+- cover picking up a release or a v2.1 rollback in Update and Verify (#872)
+- sweep plugin-distribution docs for the v2.1 tag, rollback and verified refresh (#873)
+
+### Features
+
+- creating an issue needs the human's approval (#870)
+
 ## [2.1.52] - 2026-10-31
 
 ### Bug fixes
