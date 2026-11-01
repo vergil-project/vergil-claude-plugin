@@ -220,24 +220,39 @@ Each round, in order
    carries every ruling the human has made on this task in this session,
    and every confirmed recorded `fix` ruling, restated as requirements;
    never a security ruling.
-2. **Dispatch.** Run the pre-dispatch steps of
+2. **Dispatch.** Select the path by the doctrine's selection rule
+   ([§1.8](../../docs/paad-review-doctrine.md#18-the-two-paths)): the
+   delegate path when `paad:paad-delegate` is among the agent types this
+   session can dispatch, otherwise the fallback path, recorded in the
+   findings comment as a deviation. Run that path's pre-dispatch steps of
    [§3.4](../../docs/paad-review-doctrine.md#34-output-checks), including the
-   `paad/` checks and listings, the state directory's seal and hash
-   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)) and the
-   sweep's marker, then start a fresh `general-purpose` subagent with the
+   `paad/` checks
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)),
+   the state directory's seal and hash
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)) and, on
+   the fallback path, the listings and the sweep's marker. Then start a
+   fresh subagent with that path's
    [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt) reviewer
-   prompt, verbatim with its placeholders filled, and wait for it. Add nothing
-   about earlier rounds. Note the dispatch and return times and the
-   review's cost from its completion notice.
+   prompt (`paad:paad-delegate` or `general-purpose`), verbatim with its
+   placeholders filled, and wait for it. Add nothing about earlier rounds.
+   Note the dispatch and return times and the review's cost from its
+   completion notice.
 3. **Check the output**
-   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)), stray-write
-   sweep and the state directory's hash first. A failed check pauses the
-   run and skips steps 4–7: post a findings comment naming the failed check,
-   with no findings, and a response comment with `Paused:`, and leave
-   everything else untouched.
-4. **Collect.** Move paad's report and every other file in `paad/code-reviews/`
-   and `paad/security/` (but its `.gitignore`) into the round's state
-   subdirectory, under neutral names, hashing each. Delete the round
+   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)): on the
+   fallback path the stray-write sweep first, then the state directory's
+   hash. On the delegate path, cut the security section out into the
+   round's state subdirectory before anything else reads the result, and
+   only from a well-formed result; write the rest beside it as `result.md`
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
+   failed check, a blocked result or a result whose shape does not allow
+   the cut pauses the run and skips steps 4–7: post a findings comment
+   naming the failed check or the blocked reason, with no findings and
+   nothing else from the result, and a response comment with `Paused:` and `Kept:` lines, and leave
+   everything else untouched. None is re-run automatically.
+4. **Collect.** On the fallback path, move paad's report and every other
+   file in `paad/code-reviews/` and `paad/security/` (but its `.gitignore`)
+   into the round's state subdirectory, under neutral names, hashing each;
+   on the delegate path the material is already there. Delete the round
    directory.
 5. **Screen, classify and sort** every finding before acting on any:
    screening and the security hold-back
