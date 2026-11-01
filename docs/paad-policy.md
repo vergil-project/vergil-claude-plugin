@@ -26,10 +26,11 @@ visible and can be revisited.
   vergil-tooling) does not enable or pin paad, and this policy does not
   change it.
 - Neither review mode adopts a `paad/config/` file (section 4).
-- The fleet may run unreleased paad work from the fork's preview tree
-  instead of the installed release, through a per-host override
-  (section 10). That changes which paad a session loads, not this
-  decision: the installed paad stays unpinned.
+- The fleet runs paad from the fork's preview tree instead of the
+  installed release, through a standing per-host override (section 10).
+  That changes which paad a session loads, not this decision: the
+  installed paad, which sessions without the override use, stays
+  unpinned.
 - For now nobody detects drift between paad releases and the workflow's
   expectations: D left drift detection out until real use shows it is needed
   (`epics/568-agentic-review-gate/spec.md` §5). The output checks in the
@@ -162,7 +163,7 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 Rows marked **(fallback path)** describe how the doctrine's fallback path
 works around paad's interactive design. Unattended mode does each of these
 things itself, as paad's own behaviour, so the delegate path retires them;
-they stay for the fallback path until a released paad carries the mode
+they stay for the fallback path until the delegate is reliably available
 (section 10).
 
 | Deviation from paad | Reason |
@@ -175,15 +176,17 @@ they stay for the fallback path until a released paad carries the mode
 | The reviewer's reality check does not read the history of the document under review | Commit history of earlier rounds carries the provenance that umbrella §3.1 keeps out of the reviewer's context. |
 | Design-review rounds are repeated under explicit stop and continue signals, with the human deciding each round | The authors say "revise and repeat as needed" without stop rules. The experiment behind vergil-project/.github#469 showed that unruled repetition compounds complexity. |
 | **(fallback path)** agentic-review writes its usual files, but `paad/code-reviews/` is ignored rather than committed; the implementer moves the report into the task's private state directory after each round and posts its findings to the task issue | The task issue is the record of each round, and a paused round keeps its material privately. Adapting to paad's defaults is more reliable than redirecting them. Emptying the directory keeps earlier rounds out of the next reviewer's context. |
-| **(fallback path)** paad's code-review backlog does not persist; an out-of-scope bug goes to intake when the human rules it filed | Intake is the system of record for follow-on work (umbrella §2.4). |
+| paad's code-review backlog does not persist; an out-of-scope bug goes to intake when the human rules it filed | Intake is the system of record for follow-on work (umbrella §2.4). On the fallback path paad writes its backlog and the implementer moves it out of the worktree each round; on the delegate path paad neither reads nor writes it. |
 | `paad:backlog` is not used | paad's code-review backlog does not persist and intake is the system of record. The queue-review skills (`intake-review`, `deferred-review`) and the task model cover its clean and fix modes. |
 | **(fallback path)** The Spec Compliance intent source is a requirements file named in the prompt, not a spec-file argument | The skill's arguments take only a base and a path. Unattended mode's `Intent:` input carries it on the delegate path. |
 | The paad usage policy lives in this one central document rather than in each repo's steering file | The authors suggest recording the policy in the steering file. A single document avoids drift between copies across the fleet. Pointing each repo's steering files at it is handed to child epic E (steering-file review). |
 | `steering-audit` runs pushback findings-only: it collects and returns the findings instead of walking them one at a time, does not edit the reviewed file, and writes no report or other file | `steering-audit` walks the findings itself against the Claude config ownership model. In user scope it must write nothing at all, because the user-level files are personal and have no change control. |
 
-The first agentic-review row above refines umbrella §3.3's "results reach the
-implementer through the subagent's answer": the implementer reads paad's
-report from its file in the worktree. That refinement is the human's decision,
+On the fallback path, the first agentic-review row above refines umbrella
+§3.3's "results reach the implementer through the subagent's answer": the
+implementer reads paad's report from its file in the worktree. On the
+delegate path the results do reach it through the answer, as the umbrella
+says. That refinement is the human's decision,
 made in the design review of epic
 [vergil-project/.github#568](https://github.com/vergil-project/.github/issues/568),
 to adapt to paad's defaults rather than redirect them; the task issue remains
@@ -203,21 +206,37 @@ canonical scale; other documents link to it.
 ## 10. paad unattended mode and the fleet checkout
 
 **Decision.** The review skills run paad in **unattended mode** wherever it
-is available, and the fleet may run it from unreleased work on the paad
-fork before any paad release carries it (epic
+is available. vergil contributes to paad, so the fleet runs paad from the
+fork's tree through a standing override, not from a paad release (epic
 [vergil-project/.github#699](https://github.com/vergil-project/.github/issues/699),
-spec §4.7 and §4.8).
+spec §4.7 and §4.8, with one change the human decided since: the override
+is not removed when upstream releases the change).
 
+- **The standing arrangement.** The override and the fleet checkout below
+  are permanent. The fork tracks upstream paad and stays in sync with it,
+  and the fleet expects to run a patch or two ahead of it. There is no plan
+  to switch the fleet to a released paad.
 - **The two paths.** Each review round runs under `paad:paad-delegate`,
   paad's unattended runner, when the session has it loaded, and on the
   **fallback path** otherwise: the `general-purpose` reviewer with today's
   prompts and checks. A round on the fallback path records the deviation
   ([doctrine §1.8](paad-review-doctrine.md#18-the-two-paths)).
-- **The fallback stays until a released paad carries the mode.** The
-  author may take the change in a different shape, later, or not at all.
-  Once a release carries it, and the gate below has passed against that
-  release, the doctrine retires the text it marks *Fallback path only*, and
-  the register rows marked **(fallback path)** (section 8) go with it.
+- **The fallback stays until the delegate is reliably available.** Today
+  only sessions that load the fleet checkout have it, and the author may
+  take the change in a different shape, later, or not at all. Once the
+  delegate is reliably available wherever the skills run (for example,
+  because upstream paad adopts the mode), the doctrine retires the text it
+  marks *Fallback path only*, and the register rows marked **(fallback
+  path)** (section 8) go with it.
+- **The validated version.** The delegate path relies only on a delegate
+  whose announced version is the one recorded here as validated: today
+  `2.0.2-preview` (the announce `v2.0.2-preview`), validated at fleet
+  commit `abf879f` in
+  [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733).
+  A round whose delegate announces any other version fails its output
+  check ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)).
+  The human updates this line when the gate below passes on a version that
+  announces differently.
 - **The override.** The fleet loads the fork's preview tree through
   `vrg-vm session`'s `--plugin-dir` override: the host file
   `~/.config/vergil/plugin-dirs.toml` lists the fleet checkout's
@@ -225,8 +244,9 @@ spec §4.7 and §4.8).
   It is personal, outside every repo, and read when each session starts.
   **Turn it on** by creating the file with that entry; **turn it off** by
   deleting the file or setting `plugin_dirs = []`, and the next session
-  uses the installed paad again. After a released paad carries the mode,
-  the override is removed. The tool's reference is vergil-tooling's
+  uses the installed paad again, with its rounds on the fallback path. The
+  override stays on as the standing arrangement. The tool's reference is
+  vergil-tooling's
   `cli-tools-overview.md`, "The `--plugin-dir` override".
 - **Lima only.** The paad development environment is supported only on
   macOS with Lima VMs, which see the Mac's projects tree at the same path.
@@ -238,20 +258,21 @@ spec §4.7 and §4.8).
   `git worktree` of it,
   `/Users/pmoore/dev/projects/wphillipmoore/paad-fleet`, on branch
   `fleet`:
-  - only the human moves `fleet`; moving it is the one deliberate step that
-    puts a paad change in front of the fleet;
+  - only the human moves `fleet`, including to sync it with upstream;
+    moving it is the one deliberate step that puts a paad change in front
+    of the fleet;
+  - move `fleet` only when no session that loads it is running a review;
   - agents never run git in the fleet worktree;
   - the human records the checkout's commit on the issue that tracks each
     move. Review rounds record nothing about it.
-- **The gate.** After every move of the fleet checkout, the validation sets
-  (the seeded and plain scenario sets of
+- **The gate.** After every move of the fleet checkout, including a sync
+  with upstream, the validation sets (the seeded and plain scenario sets
+  of
   [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733),
   spec §5) pass on the new commit, in newly started sessions, before
-  vergil relies on it. The same gate applies to switching vergil to a
-  released paad: the validation sets pass against that release first, and
-  if its unattended contract changed (the agent's name, the result's
-  syntax, the status values or the input fields), the doctrine is updated
-  to match before the switch.
+  vergil relies on it. If the move changes the unattended contract (the
+  agent's name, the result's syntax, the status values or the input
+  fields), the doctrine is updated to match first.
 - **Accepted risks.**
   - Running the development tree is a deliberate choice: whatever is in the
     fleet checkout runs in every review. That is how the change is proven
@@ -261,17 +282,13 @@ spec §4.7 and §4.8).
     read-write. An uncommitted edit there changes what every later session
     runs, and nothing checks for it. This is accepted; a read-only mount of
     the fleet checkout is a candidate for the next iteration.
-  - paad is unpinned (section 1), so a paad release that ships the
-    delegate reaches the fleet on the next `vrg-vm update`, and the
-    selection rule would take it before the gate has run against it. A
-    result that does not match the doctrine's format fails its round, but a
-    contract change that still parses would not; the human runs the gate
-    when such a release appears.
 
 **Reason.** Unattended mode moves the review-only rules out of vergil's
 prompts and into paad's own contract, where a fresh reviewer cannot read
 them as optional, and it retires most of the fallback path's guards
-(section 8). Keeping the fallback means a session without the override, a
-cloud box, or anyone using vergil-claude-plugin with a released paad still
-runs a checked review. The gate keeps an unvalidated paad change from
-reaching the fleet's reviews by accident.
+(section 8). vergil now develops paad changes itself, so running the fork's
+tree is the normal state, not a bridge to a release. Keeping the fallback
+means a session without the override, a cloud box, or anyone using
+vergil-claude-plugin with paad as released today still runs a checked
+review. The gate and the validated version keep an unvalidated paad change
+from reaching the fleet's reviews by accident.
