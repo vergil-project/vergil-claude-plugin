@@ -68,14 +68,21 @@ output for evidence. You touch no code and open no PR.
 
 ## Record the result and close
 
-Judge the run against the **Acceptance criteria**, then post the result as a
-comment. The outcome line is load-bearing — `vrg-epic-audit` reads it — so it
+Judge the run against the **Acceptance criteria**. On FAILURE, do the
+FAILURE steps below (retry, and any fix task) **before** posting; then post
+the result as a comment. The outcome line is load-bearing — `vrg-epic-audit` reads it — so it
 MUST contain `Outcome: SUCCESS` or `Outcome: FAILURE`, plus evidence:
 
 ```bash
 vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 - Evidence: <command output / observations>"
 ```
+
+For a failure screened as security-class, the comment gives `Outcome:
+FAILURE`, neutral evidence that does not describe the weakness, and the
+security count only; the details go to `operational/<N>/`, with a `Kept:`
+line
+([lifecycle step 4](../issue-validate/references/operational-task-lifecycle.md#lifecycle)).
 
 - **SUCCESS →** close the issue, citing the result; closing lets the epic (and
   any downstream validation) proceed:
@@ -94,8 +101,15 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
     --title "fix: <what blocks the deploy>" --body "<from the FAILURE evidence>"
   ```
 
-  A failed deployment is a gate that holds — the task and its epic stay open
-  until it succeeds.
+  This fix task is exempt from approval, under the conditions of the
+  [lifecycle's step 4](../issue-validate/references/operational-task-lifecycle.md#lifecycle):
+  screen the failure first (a security-class one is not filed), search for
+  an existing open fix task, and post the result even if filing fails. List
+  it in the result comment under `Filed without a ruling` (an existing one
+  as `existing: <ref>`, one that failed to file as `not filed: <reason>`)
+  and in your final report, so the human sees it at the next gate. A failed
+  deployment is a
+  gate that holds — the task and its epic stay open until it succeeds.
 
 ## Boundaries
 
@@ -103,12 +117,18 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
   the environment, not the code; the PR tooling refuses it, and cutting a release
   is a human action. If you find yourself wanting to open a PR or run a release,
   you are outside this skill's remit — stop.
-- **Discovered problems are out of band — file them at once.** When a
+- **Discovered problems need the human's approval to file.** When a
   follow-up surfaces — a concern a sub-agent reports, a gap you hit, a "we
-  should also…" — file it now as its own issue; do not offer to file it later,
-  ask whether to, or fold it into this task's result. Use `vrg-issue-create
-  --epic <epic|adhoc> [--blocked-by REF]` for a task that will clearly be done,
-  `vrg-intake-create` otherwise, and tell the human what you filed. A filed
-  issue survives compaction and session loss; one held in context does not.
+  should also…" — do not fold it into this task's result and do not file it:
+  list it under `Awaiting a ruling` in the result comment (or a comment of
+  its own if you find it before then), and in your final report; file it
+  only as the human approves. A security item appears there only as a
+  count, its details in `build/.vergil-state/operational/<N>/`. See the
+  [lifecycle's "Out of band"](../issue-validate/references/operational-task-lifecycle.md#out-of-band)
+  and [doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues).
+- **A run given rulings only** (dispatched by `epic-implement`) stops after
+  Preflight and follows the
+  [lifecycle's rulings-only entry](../issue-validate/references/operational-task-lifecycle.md#lifecycle)
+  instead of the steps above.
 - The issue's comments are the recovery record if a session is lost mid-run;
   `paad:handoff` is available for session continuity.

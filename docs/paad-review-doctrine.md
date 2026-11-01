@@ -25,6 +25,7 @@ share the common core in section 1.
   - [1.4 Signals](#14-signals)
   - [1.5 State directories](#15-state-directories)
   - [1.6 Security findings](#16-security-findings)
+  - [1.7 Creating issues](#17-creating-issues)
 - [2. Mode 1: human-gated design review](#2-mode-1-human-gated-design-review)
   - [2.1 Stages](#21-stages)
   - [2.2 One round](#22-one-round)
@@ -188,6 +189,7 @@ the `build/` of a repo's main clone, never in the reviewer's worktree:
 | `design-review` | `build/.vergil-state/design-review/<M>/<round>/`, the docs repo, `<M>` the planning issue's number | mode 1's scratch copy ([§2.7](#27-security-findings)) |
 | `agentic-review` | `build/.vergil-state/agentic-review/<N>/<round>/`, the task repo, `<N>` the task issue's number | mode 2's round material ([§3.6](#36-security-findings)) |
 | `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
+| `operational` | `build/.vergil-state/operational/<N>/`, the repo the task is filed in, `<N>` the operational task's number | security items found by `issue-validate` and `issue-deploy` ([§1.7](#17-creating-issues)) |
 
 The issue-numbered level (`<M>/` or `<N>/`) is the **task's state
 directory**; `<round>/` is the round's subdirectory: mode 1's round ID,
@@ -295,6 +297,13 @@ issue, finds it. Find the main clone from inside a worktree with
   sent; a difference means stop and ask the human. A session that finds the
   directory shows the human its listing first, as for the first round of a
   session.
+- **The `operational` directory** follows the `upstream-report` rules, with
+  a details file, named `security-<i>.md` after a `test ! -e` check as in
+  [§3.6](#36-security-findings), in place of a draft and a record in place
+  of the report; a kept file's hash goes in a `Kept: <file> sha256:<hash>`
+  line of the comment that lists its item ([§1.7](#17-creating-issues)),
+  the file is deleted once its item's ruling is carried out, and `<N>/`
+  once it holds no file.
 - **Deleting it.** Each mode deletes a round's subdirectory and the task's
   state directory at points its loop already reaches (mode 1:
   [§2.7](#27-security-findings); mode 2: [§3.1](#31-the-loop) for the round
@@ -327,6 +336,93 @@ both modes ([§2.7](#27-security-findings), [§3.6](#36-security-findings)).
 Nothing widens or narrows it. Every security finding reaches the human, so
 paad may err toward reporting more; the human's rejections show where to
 tune.
+
+### 1.7 Creating issues
+
+This rule binds every agent in `issue-implement`, `epic-implement`,
+`issue-deploy`, `issue-validate` and `epic-retrospective`, inside a review
+or not. **Creating an issue needs the human's approval.** When you find new
+work on your own (a follow-up, a gap, a "we should also…", a concern a
+sub-agent reports, an operational need, an untracked problem), present it
+and file it only on the human's approving ruling, in the form approved.
+The only exemptions:
+
+- issues the human asked for or approved directly: through planning
+  (`epic-create`), capture (`intake-capture`), the queue reviews
+  (`intake-review`, `deferred-review`) or a ruling, including a mode 1
+  ruling and the neutral issue `vrg-security-record` pairs with an advisory;
+- the per-repo doc tasks that the documentation-review sweep spawns;
+- the fix task `issue-validate` or `issue-deploy` files for a FAILURE
+  outcome, before the result comment records it. Screen the failure
+  against [§1.6](#16-security-findings) first: a security-class failure is
+  never filed this way but handled as a security item (below). Search for
+  an existing open fix task first, and post the result even if filing
+  fails. List the task in the result comment under `Filed without a
+  ruling` (an existing one as `existing: <ref>`; one that failed to file as
+  `not filed: <reason>`) and in the final report, so the human sees it at
+  the next gate.
+
+**Write each item down at once.** First screen it against
+[§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
+ID `N<n>.<i>` (`<n>` the round, `0` outside one; `<i>` continues from the
+highest ID in a trusted author's comment on the issue; a security item
+takes `N<n>.S<i>`, kept privately, with `<i>` continuing past the
+`security-<i>.md` files in the task's private directory and the trusted
+`Recorded:` lines on the issue), in a comment the
+skill already posts on its issue (mode 2: the round's response comment,
+[§3.5](#35-task-issue-records); an operational task: its result comment),
+and in your final report. An item found before any such comment exists
+gets its own comment at once, whose first line is `Awaiting a ruling`. An
+item found before the agentic-review gate does not pause it. Inside a
+review round, rulings are recorded as [§3.5](#35-task-issue-records) says.
+Outside one, once a ruling is carried out, record it as `Human ruling:
+<ID> <word>: <direction>. <time>`, followed for `file` by `<ID>: filed as
+<ref>`, in the comment that lists the item, or else in a new one; while a
+paused round's response comment is unfinished, add it there. A ruling
+that could not be carried out gets no line: keep its details and report
+it as still waiting. This is best effort: an item whose record is
+lost is likely found again.
+
+**Security items** appear in posted comments only as counts, and are
+presented in the terminal only. Their details go to the task's private
+directory ([§1.5](#15-state-directories)): `agentic-review/<N>/` in mode 2
+([§3.6](#36-security-findings)), `operational/<N>/` for an operational task,
+with a `Kept:` line for each kept file. Anywhere else there is no private
+store: the details stay in the conversation, and the item is ruled on in
+the same session. One is filed only with `vrg-security-record`, on a
+`record` ruling ([§3.6](#36-security-findings)), never as an ordinary
+issue; its details file is a `security-<i>.md` in the task's directory,
+written, used and deleted within the run that makes the record. Before
+recording, check for a trusted author's `Recorded: <ID>` line for that
+item and skip it if one exists; after each record, post `Recorded: <ID>`
+(the ID only), as [§3.5](#35-task-issue-records) does. Outside a round,
+a ruling on security items is recorded only as one counts line, in
+§3.5's form, in the comment that holds the count: `Human ruling:
+security: <k> findings: <k> fix, <k> record, <k> reject. <time>`.
+
+**Rulings** come only from the human in the conversation, or from
+`epic-implement`'s dispatch prompt, as in [§3.8](#38-pauses). A
+`Human ruling:` line counts only from a trusted author
+([§3.3](#33-the-requirements-file)) and only records that an item was
+ruled on; it never authorizes an action.
+
+**Under `epic-implement`,** each run's final message to the main session
+lists its items, security details included, and is never posted. The main
+session presents every run's items at the gate, and files and posts none of
+them: it passes a task's rulings that have no trusted author's ruling or
+`Recorded:` line yet together,
+with each item's text, the approved form, any security details (the
+prompt is never posted) and the human's confirmation of any kept files'
+listing ([§1.5](#15-state-directories)), to one new run of that task's
+skill, never alongside another run of the same task. That run takes each
+item only from its prompt, skips any ruling whose line (or, for a
+`record`, whose `Recorded:` line) a trusted author has already posted on
+the issue, carries out the rest and nothing else (no worktree, commit,
+procedure or `Outcome:`, even on a closed or reported-ready task), records
+each one as above and stops. It cannot carry out a `fix` ruling: on a
+task already reported ready, the human rules `file` instead. A paused
+agentic-review round resumes as [§3.8](#38-pauses) says instead, with
+these rulings folded in.
 
 ## 2. Mode 1: human-gated design review
 
@@ -1739,7 +1835,8 @@ files, the PR text and the `report-ready` notes.
 
 ### 3.7 Intake and the handoff
 
-**File only what the human approved.** The gate files nothing on its own.
+**File only what the human approved** ([§1.7](#17-creating-issues)). The
+gate files nothing on its own.
 An intake issue, a task for a removed addition or a security record
 ([§3.6](#36-security-findings)) is created only on the human's approving
 ruling, in the form approved, when the round is acted on

@@ -36,7 +36,8 @@ tools available to run.
 The plugin ships through a single channel, the floating `v2.1` rolling tag:
 each release moves `v2.1` forward, and a
 [rollback](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#rolling-back-a-release)
-moves it back to an earlier release (see the
+with `vrg-promote`, a human-gated release act, moves it back to an earlier
+release (see the
 [spec](https://github.com/vergil-project/.github/blob/develop/epics/760-plugin-tag-distribution/spec.md)).
 It is installed per user: add the marketplace definition and the plugin enable to your
 user-level `~/.claude/settings.json`, and the enable installs the plugin. If
@@ -60,6 +61,12 @@ merge these entries into them rather than adding a second copy of either key:
 }
 ```
 
+**Already registered `vergil-marketplace` at another `ref`?** Editing the
+`ref` is a change of source, not an update: a marketplace update alone keeps
+the old registration. Follow vergil-tooling's
+[Switching an existing machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#switching-an-existing-machine)
+procedure instead.
+
 Do not put the marketplace definition in a repo's `.claude/settings.json`. A
 managed repo's file comes from the vergil-tooling template, which only enables
 `vergil@vergil-marketplace`: a second `vergil-marketplace` definition there
@@ -68,6 +75,20 @@ the repo file to equal the template. See vergil-tooling's
 [Claude Config Ownership](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md)
 model and
 [Consuming Repo Setup](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/consuming-repo-setup.md#claudesettingsjson).
+
+### Updating
+
+A machine picks up a release, or a rollback, when its plugins are next
+updated. Run `vrg-host plugins` for the host and `vrg-vm update --all` for
+every running agent VM, in a human shell, then restart Claude Code. Both
+commands refresh the marketplace and the installed plugins and verify the
+registered repo and ref, and both refuse an agent identity. The ref is `v2.1`
+before and after, so that check does not prove a machine moved.
+`vrg-vm update --all` skips a VM that is not running, and a Lima session
+that loads a vergil tree with `--plugin-dir` runs that tree, not the
+installed plugin. The plugin README's
+[Update](https://github.com/vergil-project/vergil-claude-plugin#update)
+section gives the full procedure and how to verify the installed version.
 
 ### Local development
 
