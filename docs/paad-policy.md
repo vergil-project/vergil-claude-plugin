@@ -33,9 +33,11 @@ visible and can be revisited.
   unpinned.
 - For now nobody detects drift between paad releases and the workflow's
   expectations: D left drift detection out until real use shows it is needed
-  (`epics/568-agentic-review-gate/spec.md` §5). The output checks in the
-  [review doctrine](paad-review-doctrine.md) expect a paad version and treat
-  a different one as a warning.
+  (`epics/568-agentic-review-gate/spec.md` §5). On the fallback path, the
+  output checks in the [review doctrine](paad-review-doctrine.md) expect a
+  paad version and treat a different one as a warning. On the delegate
+  path a version other than the validated one fails the round
+  (section 10).
 
 **Reason.** A pin would not hold where agents run: `vrg-vm update` moves every
 enabled plugin to its latest version. Adopting no config file keeps the
@@ -236,7 +238,11 @@ is not removed when upstream releases the change).
   A round whose delegate announces any other version fails its output
   check ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)).
   The human updates this line when the gate below passes on a version that
-  announces differently.
+  announces differently. The check compares only the announced version: a
+  later fleet commit, or an uncommitted edit in the fleet checkout, that
+  announces the same version passes it. What keeps those from reaching the
+  fleet unvalidated is the human's gate on every move of `fleet` and the
+  commit the human records, not this check.
 - **The override.** The fleet loads the fork's preview tree through
   `vrg-vm session`'s `--plugin-dir` override: the host file
   `~/.config/vergil/plugin-dirs.toml` lists the fleet checkout's
@@ -290,5 +296,7 @@ them as optional, and it retires most of the fallback path's guards
 tree is the normal state, not a bridge to a release. Keeping the fallback
 means a session without the override, a cloud box, or anyone using
 vergil-claude-plugin with paad as released today still runs a checked
-review. The gate and the validated version keep an unvalidated paad change
-from reaching the fleet's reviews by accident.
+review. The human's gate on every move of `fleet` is what keeps an
+unvalidated paad change from reaching the fleet's reviews; the
+validated-version check only catches a delegate that announces a version
+the gate has not passed.

@@ -362,7 +362,10 @@ code a security finding is about. Each one that qualifies:
   text goes to a details file of its own in the mode's private location
   (mode 1: the scratch copy, [§2.7](#27-security-findings); mode 2: the
   round's state subdirectory, [§3.6](#36-security-findings)), hashed as a
-  details file ([§1.5](#15-state-directories));
+  details file ([§1.5](#15-state-directories)). In both modes the file is
+  named `security-<i>.md`, numbered after every security file already in
+  the round's subdirectory (the cut's `security-1.md` among them), and
+  never written over: check `test ! -e` first;
 - leaves the ordinary findings, and is counted as security, so its summary
   never reaches a comment, an intake issue or a commit message; a withheld
   discard appears only in a count;
@@ -473,9 +476,10 @@ Every round, in both modes, runs on one of two paths:
 
 - **The delegate path:** the round dispatches paad's unattended runner,
   `paad:paad-delegate`. It runs the skill with no person present, asks
-  nothing, writes nothing, follows no config file the prompt does not name,
-  dispatches only the analyst, and returns one structured result
-  ([§1.9](#19-the-delegate-path)).
+  nothing, writes nothing (paad's contract allows only incidental artifacts
+  of read-only commands, in ignored paths), follows no config file the
+  prompt does not name, dispatches only the analyst, and returns one
+  structured result ([§1.9](#19-the-delegate-path)).
 - **The fallback path:** the round dispatches a `general-purpose` subagent
   with the mode's fallback prompt, and runs the checks that prompt needs
   (mode 1: [§2.3](#23-the-reviewer-prompt),
@@ -517,7 +521,8 @@ path: the older idea of a mode 1 fallback through review-only
 mode's delegate prompt (mode 1: [§2.3](#23-the-reviewer-prompt); mode 2:
 [§3.2](#32-the-reviewer-prompt)), its placeholders filled and nothing else
 added. The delegate's own contract says what the fallback prompts had to
-spell out: ask nothing, write nothing, follow no unnamed config file,
+spell out: ask nothing, write nothing but incidental artifacts in ignored
+paths, follow no unnamed config file,
 dispatch only the analyst, and the result's format. So the prompt carries
 only the skill and its arguments, the document roles (mode 1) or the
 `Intent:` input (mode 2), the working directory, and vergil's own review
@@ -575,6 +580,15 @@ invoked)`. If the subagent returns more than one answer, use the last one.
 4. screening ([§1.6](#16-security-findings));
 5. the mode's own steps.
 
+If the state directory's hash differs (step 1), write nothing there: no
+cut, no `result.md`. The result stays only in the conversation; show its
+security section to the human in the terminal only, and post nothing from
+it. The round can only be run again (mode 1: the human decides, mode 2:
+`another-round`), never used. If another check in step 1 fails (the
+worktree's branch, HEAD SHA or clean status), the state directory is
+intact, so the cut and the writes still happen, and the round then fails
+that check like any other, with its files kept.
+
 **The security cut.** The result's security section holds details that
 would help an attacker, and the caller must keep it out of every public
 record. So the orchestrator cuts it out first, and only from a result whose
@@ -584,8 +598,11 @@ shape is beyond doubt. The cut proceeds only when all of these hold:
   line contains `=== end paad security section ===`, and each of those
   lines is the marker alone;
 - the start marker's line comes before the end marker's line;
-- outside the two markers, no line starts with `### S` followed by a digit,
-  and no line starts with `Security:` or `Security discards:`.
+- outside the two markers, no line, once leading whitespace, list markers
+  (`-`, `*`, `+`, `>`, a number and a dot) and markdown emphasis (`*`,
+  `_`, `` ` ``) are stripped from its start, starts with `### S` followed
+  by a digit, or with `Security:` or `Security discards:`. When unsure
+  whether a line is one of these, treat it as one: the cut fails closed.
 
 Markers and keywords match without regard to case
 ([§1.10](#110-checks-on-both-paths)). If the cut proceeds, the lines from
@@ -615,16 +632,21 @@ human rules on what happens to it. A later run of the round never reuses a
 kept subdirectory: it takes the next round number.
 
 **The output checks.** Check the structure, not the prose. First read the
-`Status:` line: a blocked result (below) is checked only for its frame
-(the announce line, `Status:`, `Agent types dispatched:`, `Findings: 0`,
-`Discards: 0`, an empty security section and `Files written: none`), not
-for the mode's values. Then:
+`Status:` line. A blocked result (below) is checked for its frame (the
+announce line, `Status:`, `Findings: 0`, `Discards: 0`, an empty security
+section and `Files written: none`) and for the version, `Config:` and
+`Agent types dispatched:` checks below, but not for the mode's values.
+Then:
 
 - the first line is `Running paad:<skill> v<version>` for the skill the
   prompt named, and `<version>` is exactly the version that
   [paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)
-  records as validated. Any other version fails the check: a delegate that
-  has not passed the validation gate is not relied on;
+  records as validated. Any other version fails the check. This catches a
+  delegate that announces a version the gate has not passed; it cannot
+  tell two builds that announce the same version apart, such as a later
+  fleet commit or an uncommitted edit in the fleet checkout. Those rest on
+  the human's gate for every move of `fleet` and the commit the human
+  records (paad-policy §10);
 - no `Config:` line: a config file was followed, which only a config file
   the prompt names may be, and no prompt names one. Each `Config not
   followed: <path>` line is allowed. Show the paths to the human in the
@@ -656,10 +678,14 @@ quotes the result.
 
 **A blocked result pauses for the human,** and is never re-run
 automatically: mode 1 stops and asks the human, mode 2 pauses
-([§3.8](#38-pauses)). Its reason is the delegate's free text, so it goes to
-the human in the terminal only; a public record says only that the round
-was blocked. A blocked result is not a broken round: the delegate did what
-its contract says when it cannot proceed safely. `Running
+([§3.8](#38-pauses)). That holds for any result whose `Status:` line starts
+`blocked:`, whether or not its other checks pass. If any of them fails,
+tell the human which, with the block, and keep the whole result in the
+mode's private location as security material, as for a result that could
+not be cut. Its reason is the delegate's free text, so it goes to the
+human in the terminal only; a public record says only that the round was
+blocked. A blocked result is not a broken round: the delegate did what its
+contract says when it cannot proceed safely. `Running
 paad:<skill> (not invoked)` is accepted only with `Status: blocked: skill
 does not support unattended mode`.
 
@@ -715,7 +741,13 @@ fallback path, right after mode 2's stray-write sweep):
   it must match the hash taken before dispatch
   ([§1.5](#15-state-directories));
 - the worktree's branch and HEAD SHA are unchanged, and `vrg-git status
-  --porcelain` is empty.
+  --porcelain` is empty;
+- on the delegate path, `paad/security/` and `paad/code-reviews/` in the
+  worktree are each absent or hold nothing but a `.gitignore`. Both are
+  ignored, so the clean-status check cannot see a file there, and the
+  delegate writes no file of its own anywhere: paad's contract allows only
+  incidental artifacts of read-only commands, in ignored paths. A file in
+  either directory fails the check; leave it there, unread, for the human.
 
 A state-directory hash that differs is never re-run automatically (mode 1:
 [§2.4](#24-output-checks-and-broken-rounds); mode 2: [§3.8](#38-pauses)).
@@ -1150,12 +1182,21 @@ re-run; the procedure below does not apply to them:
   dispatch, a mode, or the hash after the review,
   [§1.5](#15-state-directories)). Leave the state directory as it is,
   unread. A seal or listing that fails before dispatch has no reviewer
-  changes to revert; after a review, revert as in step 1, then stop.
-- **A blocked result** on the delegate path ([§1.9](#19-the-delegate-path)):
-  tell the human its reason, in the terminal only. Delete the round's
-  scratch-copy subdirectory (`<round-id>/`, holding only the empty cut-out
-  section) unread, then take the seal ([§1.5](#15-state-directories)). The
-  human decides what to change before the round is dispatched again.
+  changes to revert; after a review, revert the worktree as step 1's
+  bullets say, but delete nothing in the state directory and take no seal
+  there: on the delegate path nothing was cut or written
+  ([§1.9](#19-the-delegate-path)), and the human confirms the directory's
+  contents before a fresh seal ([§1.5](#15-state-directories)). Then stop.
+- **A blocked result** on the delegate path ([§1.9](#19-the-delegate-path)),
+  whether or not its other checks pass: tell the human its reason, in the
+  terminal only, and any check it failed. If every other check passed,
+  delete the round's scratch-copy subdirectory (`<round-id>/`, holding only
+  the empty cut-out section) unread, then take the seal
+  ([§1.5](#15-state-directories)). If one failed, keep the whole result
+  there as security material instead, as for a result that could not be
+  cut (below). The human decides what to change before the round is
+  dispatched again; a run after a kept subdirectory takes the next round
+  ID.
 - **A result whose shape does not allow the security cut** on the delegate
   path ([§1.9](#19-the-delegate-path)): the whole result is already in the
   scratch copy as security material. Post nothing from it; tell the human
@@ -2088,12 +2129,17 @@ comment, in this fixed form, one per line:
       new session no longer has the reviewer's `Files written or updated:`
       list, so the human's ruling names the files, or the round is run
       again. On the delegate path the output is the round's hashed
-      `result.md`, with its cut-out `security-1.md`;
-    - after a blocked result (delegate path): there is no review to use.
-      Delete the round's state subdirectory (it holds only the empty
-      security section and `result.md`), take the seal, and dispatch the
-      round again under its own number, as before dispatch below. A
-      blocked round never reaches step 6, and so never passes;
+      `result.md`, with its cut-out `security-1.md`; after a state-directory
+      hash that differed, nothing was written ([§1.9](#19-the-delegate-path)),
+      so `dismiss` does not apply and only `another-round` does;
+    - after a blocked result (delegate path) that passed its other checks:
+      there is no review to use. Delete the round's state subdirectory (it
+      holds only the empty security section and `result.md`), finish the
+      paused response comment with `Finished:`, take the seal, and run the
+      next round number, as for `another-round`. A blocked round never
+      reaches step 6, and so never passes, and it does not count toward the
+      cap. A blocked result that failed another check is kept whole, as
+      below;
     - after a result whose shape did not allow the cut (delegate path):
       `dismiss` does not apply. The whole result is security material and
       is never used to build a record. The human rules `another-round`,

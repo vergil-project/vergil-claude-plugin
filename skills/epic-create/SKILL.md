@@ -216,11 +216,21 @@ round. The human decides every round. Each round has seven steps:
    whole, hashed and treated as security material
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
    failed check is a broken round: revert, delete its security material
-   unread, and re-run once; stop and ask the human after a second. A
-   failed state-directory check, a failed `paad/` check before dispatch, a
-   blocked result, or a result whose shape does not allow the cut is never
-   re-run: stop and ask the human at once, posting nothing from the
-   result. On every such exit, take
+   unread, and re-run once; stop and ask the human after a second. These
+   are never re-run; stop and ask the human at once, posting nothing from
+   the result
+   ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)):
+   - a failed state-directory check, or a failed `paad/` check before
+     dispatch: revert the worktree only, and leave the state directory as
+     it is;
+   - a blocked result: tell the human its reason in the terminal; if its
+     other checks passed, delete the round's scratch-copy subdirectory
+     unread, otherwise keep the whole result there;
+   - a result whose shape does not allow the cut: keep it, and post a
+     round comment naming only the failed shape rule, with `scratch copy
+     kept` and the file's hash.
+
+   On every such exit, take
    the end-of-round seal once you are done in the state directory; after a
    failed state-directory check, only once the human has confirmed its
    contents

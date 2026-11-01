@@ -244,9 +244,12 @@ Each round, in order
    fallback path, the stray-write sweep first. Then, on both paths, the
    checks after the review
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)):
-   the state directory's hash, before anything is written there, then the
-   worktree's branch, HEAD SHA and clean status. Then, on the delegate
-   path, cut the security section out
+   the state directory's hash, before anything is written there (if it
+   differs, write nothing there and pause; the round can only be run
+   again), then the worktree's branch, HEAD SHA and clean status, and on
+   the delegate path that `paad/security/` and `paad/code-reviews/` hold
+   nothing but a `.gitignore`. Then, on the delegate path, cut the
+   security section out
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)), only
    from a well-formed result: write it to the round's state subdirectory as
    `security-1.md` and the rest beside it as `result.md`, hashing each as a
