@@ -132,8 +132,10 @@ if ! [ -f "$main_root/.gitignore" ] || ! grep -qxF '.worktrees/' "$main_root/.gi
 fi
 
 # The worktree convention is active. The file must be inside a worktree,
-# or be ignored agent state under the main clone's build/.vergil-state/
-# (the convention's one exception to the read-only main worktree).
+# or be ignored agent state under the main clone's build/.vergil-state/.
+# The convention keeps the main worktree read-only for source and allows
+# ignored scratch in its build/; build/.vergil-state/ is the agent-state
+# namespace there, and the only main-worktree path this hook allows.
 case "$resolved" in
   "$main_root"/.worktrees/*)
     exit 0

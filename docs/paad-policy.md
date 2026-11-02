@@ -156,7 +156,8 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 | Deviation from paad | Reason |
 |---|---|
 | Mode 2 (agentic-review in `issue-implement`) caps autonomous rounds at 3, then pauses for the human | The authors say "repeat" with a human present. Unattended, an unbounded loop is unsafe. |
-| paad is unpinned and follows the latest release | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. No `paad/config/` file is adopted (section 4). For now nobody detects paad drift (epic 568 spec §5). |
+| The installed paad is unpinned and follows the latest release | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. No `paad/config/` file is adopted (section 4). For now nobody detects paad drift (epic 568 spec §5). Review rounds do not use the installed paad (next row). |
+| The fleet's review rounds run paad from a fork's tree, a patch or two ahead of upstream, not from a release | vergil develops paad changes itself (unattended mode first) and proves them in the fleet before offering them upstream. The fork tracks upstream; only the human moves the fleet checkout, and reviews are held until the validation gate passes on it (section 10). |
 | The reviewer's reality check does not read the history of the document under review | Commit history of earlier rounds carries the provenance that umbrella §3.1 keeps out of the reviewer's context. |
 | Design-review rounds are repeated under explicit stop and continue signals, with the human deciding each round | The authors say "revise and repeat as needed" without stop rules. The experiment behind vergil-project/.github#469 showed that unruled repetition compounds complexity. |
 | paad's code-review backlog does not persist; an out-of-scope bug goes to intake when the human rules it filed | Intake is the system of record for follow-on work (umbrella §2.4). Under unattended mode paad neither reads nor writes it. |
