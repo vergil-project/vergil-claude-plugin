@@ -140,9 +140,9 @@ fi
 # normalised path, so a `..` or a symlink that leads out of build/ is
 # matched where it leads, and a build/ that is itself a symlink never
 # matches. A target under build/ is allowed only when git reports it
-# ignored: a build/ the repo does not ignore, or a file tracked there,
-# is source like any other. Any other git result, a failure included,
-# denies.
+# ignored, from any ignore source git reads; a target git does not
+# report ignored, such as a file tracked there, is source like any
+# other. Any other git result, a failure included, denies.
 case "$resolved" in
   "$main_root"/.worktrees/*)
     exit 0
@@ -154,7 +154,7 @@ case "$resolved" in
       ci_rc=$?
     fi
     if [ "$ci_rc" -eq 1 ]; then
-      deny_target "The worktree write guard denies $file_path: it is under the main clone's build/, but git does not report it as ignored (build/ is not ignored, or the file is tracked). Only ignored scratch in build/ may be written; write to your assigned worktree instead."
+      deny_target "The worktree write guard denies $file_path: it is under the main clone's build/, but git does not report it ignored. Only ignored scratch in build/ may be written; write to your assigned worktree instead."
     fi
     deny_target "The worktree write guard could not check $file_path: git check-ignore failed with exit $ci_rc ($(printf '%s' "$ci_out" | head -c 300)). The write cannot be checked, so it is denied."
     ;;

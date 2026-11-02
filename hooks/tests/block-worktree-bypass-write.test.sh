@@ -18,6 +18,15 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 TMP=$(cd "$TMP" && pwd -P)
 
+# Keep git hermetic: no global or system config, and no user-level
+# ignore file, so only each scratch repo's own .gitignore decides what
+# git reports ignored.
+mkdir -p "$TMP/home/.config"
+export GIT_CONFIG_GLOBAL=/dev/null
+export GIT_CONFIG_NOSYSTEM=1
+export HOME="$TMP/home"
+export XDG_CONFIG_HOME="$TMP/home/.config"
+
 # S: a managed repo on the worktree convention, with a worktree, a
 # source directory, a state directory and some links.
 S="$TMP/main"
@@ -75,6 +84,14 @@ printf '#!/usr/bin/env bash\necho "noise from python3" >&2\nexec %s "$@"\n' "$(c
 chmod +x "$NOISY/python3"
 NOISY_PATH="$NOISY:$PATH"
 
+# A PATH whose git fails `check-ignore` with exit 128 and runs the real
+# git for every other command.
+GITSHIM="$TMP/gitshim"
+mkdir -p "$GITSHIM"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do\n\tif [ "$a" = check-ignore ]; then\n\t\techo "fatal: shim check-ignore failure" >&2\n\t\texit 128\n\tfi\ndone\nexec %s "$@"\n' "$(command -v git)" >"$GITSHIM/git"
+chmod +x "$GITSHIM/git"
+GITSHIM_PATH="$GITSHIM:$PATH"
+
 T_NAME=(
 	"write inside a worktree is allowed"
 	"write in a worktree with a resolvable dot-dot segment is allowed"
@@ -108,6 +125,7 @@ T_NAME=(
 	"normalisation: build path, case 4"
 	"write under a build/ that is not ignored is denied"
 	"write to a tracked file under build/ is denied"
+	"a git check-ignore failure under build/ is denied"
 )
 T_PATH=(
 	"$S/.worktrees/wt/new.txt"
@@ -142,6 +160,7 @@ T_PATH=(
 	"$B/build/new.txt"
 	"$N/build/new.txt"
 	"$S/build/tracked.txt"
+	"$S/build/new.txt"
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
@@ -149,7 +168,7 @@ T_CWD=(
 	"$S" "$U" "$U"
 	"/" "$S"
 	"$S" "$S" "$S" "$S" "$S" "$S" "$S" "$S" "$B"
-	"$N" "$S"
+	"$N" "$S" "$S"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
@@ -157,7 +176,7 @@ T_PATHVAR=(
 	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
 	"$NOISY_PATH" "$NOISY_PATH"
 	"" "" "" "" "" "" "" "" ""
-	"" ""
+	"" "" "$GITSHIM_PATH"
 )
 T_EXPECT=(
 	"allow"
@@ -192,7 +211,13 @@ T_EXPECT=(
 	"deny"
 	"deny"
 	"deny"
+	"deny"
 )
+
+# Text a row's deny reason must contain, where it matters. The last row
+# (the check-ignore failure) must deny for that reason, not another.
+T_REASON=()
+T_REASON[$((${#T_NAME[@]} - 1))]="could not check"
 
 pass=0
 fail=0
@@ -223,6 +248,15 @@ while [ "$i" -lt "$total" ]; do
 		verdict="deny"
 	else
 		verdict="error"
+	fi
+
+	want_reason="${T_REASON[$i]:-}"
+	if [ -n "$want_reason" ] && [ "$verdict" = "deny" ]; then
+		reason=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""')
+		case "$reason" in
+			*"$want_reason"*) ;;
+			*) verdict="deny for another reason" ;;
+		esac
 	fi
 
 	if [ "$verdict" = "${T_EXPECT[$i]}" ]; then
