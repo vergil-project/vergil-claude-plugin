@@ -240,9 +240,11 @@ is not removed when upstream releases the change).
   The human updates this line when the gate below passes on a version that
   announces differently. The check compares only the announced version: a
   later fleet commit, or an uncommitted edit in the fleet checkout, that
-  announces the same version passes it. What keeps those from reaching the
-  fleet unvalidated is the human's gate on every move of `fleet` and the
-  commit the human records, not this check.
+  announces the same version passes it. What keeps a moved commit from
+  reaching reviews unvalidated is the human's process below (reviews held
+  from a move until the gate passes) and the commit the human records, not
+  this check. An uncommitted edit is not covered by either: it is an
+  accepted risk (below).
 - **The override.** The fleet loads the fork's preview tree through
   `vrg-vm session`'s `--plugin-dir` override: the host file
   `~/.config/vergil/plugin-dirs.toml` lists the fleet checkout's
@@ -276,14 +278,18 @@ is not removed when upstream releases the change).
   of
   [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733),
   spec §5) pass on the new commit, in newly started sessions, before
-  vergil relies on it. If the move changes the unattended contract (the
-  agent's name, the result's syntax, the status values or the input
-  fields), the doctrine is updated to match first.
+  vergil relies on it. The order is always the same: the human moves
+  `fleet`, then runs the gate, and until the gate passes no session runs
+  a review round that loads the fleet checkout (the human holds those
+  reviews, or turns the override off so they take the fallback path). If
+  the move changes the unattended contract (the agent's name, the result's
+  syntax, the status values or the input fields), the doctrine is updated
+  to match before reviews resume.
 - **Accepted risks.**
   - Running the development tree is a deliberate choice: whatever is in the
     fleet checkout runs in every review. That is how the change is proven
-    before it goes upstream, and the dedicated checkout, moved only by the
-    human after the gate, is the control.
+    before it goes upstream. The control is the dedicated checkout, moved
+    only by the human, with reviews held until the gate passes on it.
   - The fleet checkout sits on the projects tree every Lima VM mounts
     read-write. An uncommitted edit there changes what every later session
     runs, and nothing checks for it. This is accepted; a read-only mount of
@@ -296,7 +302,7 @@ them as optional, and it retires most of the fallback path's guards
 tree is the normal state, not a bridge to a release. Keeping the fallback
 means a session without the override, a cloud box, or anyone using
 vergil-claude-plugin with paad as released today still runs a checked
-review. The human's gate on every move of `fleet` is what keeps an
-unvalidated paad change from reaching the fleet's reviews; the
-validated-version check only catches a delegate that announces a version
-the gate has not passed.
+review. Holding reviews from each move of `fleet` until the gate passes is
+what keeps a committed but unvalidated paad change out of the fleet's
+reviews, and it rests on the human's process; the validated-version check
+only catches a delegate that announces a version the gate has not passed.

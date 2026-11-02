@@ -205,30 +205,39 @@ round. The human decides every round. Each round has seven steps:
    start a fresh subagent **in the background** with that path's
    [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
    template (`paad:paad-delegate` or `general-purpose`), placeholders
-   filled and nothing about earlier rounds added.
+   filled and nothing about earlier rounds added. If any pre-dispatch
+   check or command fails, dispatch nothing and stop and ask the human:
+   nothing is reverted or re-run.
 2. **Check the output**
-   ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)),
-   including the state directory's hash and, on the fallback path, the
-   stray-write check. On the delegate path, cut the security section out
-   into the scratch copy as `security-1.md`, hashed as a details file,
-   before anything else reads the result, and only from a well-formed
-   result; a result whose shape does not allow the cut is written there
-   whole, hashed and treated as security material
+   ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
+   On the fallback path, the stray-write check. Then, on both paths, the
+   state directory's hash, before anything is written there
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)).
+   If it differs, write nothing there, show the result's security section
+   in the terminal only, and take the state-directory exit below, which
+   overrides every other exit. Otherwise, on the delegate path, cut the
+   security section out into the scratch copy as `security-1.md`, hashed
+   as a details file, before anything else reads the result, and only from
+   a well-formed result; a result whose shape does not allow the cut is
+   written there whole, hashed and treated as security material
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
    failed check is a broken round: revert, delete its security material
    unread, and re-run once; stop and ask the human after a second. These
    are never re-run; stop and ask the human at once, posting nothing from
    the result
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)):
-   - a failed state-directory check, or a failed `paad/` check before
-     dispatch: revert the worktree only, and leave the state directory as
-     it is;
+   - a failed state-directory check: revert the worktree only, and leave
+     the state directory as it is;
    - a blocked result: tell the human its reason in the terminal; if its
      other checks passed, delete the round's scratch-copy subdirectory
-     unread, otherwise keep the whole result there;
+     unread; otherwise keep the whole result there (`security-1.md` and
+     `result.md`) and post a round comment saying only that the round was
+     blocked, with `scratch copy kept` and each file's hash;
    - a result whose shape does not allow the cut: keep it, and post a
      round comment naming only the failed shape rule, with `scratch copy
-     kept` and the file's hash.
+     kept` and the file's hash;
+   - a delegate that reports `Files written:` other than `none`: show the
+     paths in the terminal only, unread, and keep the scratch copy.
 
    On every such exit, take
    the end-of-round seal once you are done in the state directory; after a

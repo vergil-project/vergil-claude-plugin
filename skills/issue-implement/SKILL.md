@@ -261,7 +261,10 @@ Each round, in order
    that it was blocked; its reason goes to the human in the terminal),
    with no findings and nothing else from the result, and a response
    comment with `Paused:` and `Kept:` lines, and leave everything else
-   untouched. None is re-run automatically.
+   untouched. None is re-run automatically. A blocked result that also
+   failed another check is kept whole as security material
+   (`security-1.md` and `result.md`), and `dismiss` does not apply to it
+   ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)).
 4. **Collect.** On the fallback path, move paad's report and every other
    file in `paad/code-reviews/` and `paad/security/` (but its `.gitignore`)
    into the round's state subdirectory, under neutral names, hashing each;

@@ -373,6 +373,14 @@ code a security finding is about. Each one that qualifies:
   in the terminal and recorded ([§2.7](#27-security-findings)), in mode 2
   held for the human's ruling ([§3.6](#36-security-findings)).
 
+**Discard lines when any candidate was security-class,** in both modes:
+when the reviewer reports any security-class discard (on the delegate path,
+`Security discards:` is not 0) or screening withheld any discard, the
+round's public record gives the discards as a count alone, with no lines
+(mode 1: [§2.6](#26-the-round-comment); mode 2:
+[§3.5](#35-task-issue-records)). The lines go to the human in the
+terminal.
+
 Screening is load-bearing, not a backstop you may skip: routing by the model
 is not guaranteed. In the mode 1 spike
 ([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
@@ -561,6 +569,10 @@ The native finding fields are, for pushback and alignment, `Claim:`,
 section as the location; for agentic-review, `Symbol:`, `Excerpt:`, `Fix:`,
 `Confidence:`, `Scope:` (`in scope`, `out-of-scope bug` or `out-of-scope
 addition`) and `Bug class:`, with the file and line as the location.
+`Options:` is the one field that runs over several lines: its numbered
+options follow it, one per line, best first. An option line that trips the
+security cut's shape rule (below) is an expected cause of a broken round;
+the cut still fails closed, and the human rules on it.
 agentic-review's skill-specific fields are its counts line, `Agents
 dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
 consulted:` and `Verifier warnings:`. pushback's one skill-specific field
@@ -569,7 +581,12 @@ surrounding code that does not block the spec; alignment has none. A
 blocked result has `Findings: 0`
 and `Discards: 0`, and still carries the security section, empty. A skill
 the delegate refused without invoking it opens `Running paad:<skill> (not
-invoked)`. If the subagent returns more than one answer, use the last one.
+invoked)`. The review has returned only when the harness's completion
+notice says the subagent has finished and has no work still running; take
+the result from that notice, its last answer. Nothing after the review
+starts before then. An answer that arrives after the processing below has
+started is not used: in mode 1 it breaks the round, in mode 2 it pauses
+the run.
 
 **After the review,** in this order:
 
@@ -584,10 +601,14 @@ If the state directory's hash differs (step 1), write nothing there: no
 cut, no `result.md`. The result stays only in the conversation; show its
 security section to the human in the terminal only, and post nothing from
 it. The round can only be run again (mode 1: the human decides, mode 2:
-`another-round`), never used. If another check in step 1 fails (the
-worktree's branch, HEAD SHA or clean status), the state directory is
-intact, so the cut and the writes still happen, and the round then fails
-that check like any other, with its files kept.
+`another-round`), never used. This takes precedence over every other rule
+below, including the blocked-result and cut-shape rules. If another check
+in step 1 fails (the worktree's branch, HEAD SHA or clean status), the
+state directory is intact, so the cut and the writes still happen, and the
+round then fails that check like any other; what happens to its files then
+is the mode's failed-check handling (mode 1:
+[§2.4](#24-output-checks-and-broken-rounds); mode 2:
+[§3.4](#34-output-checks)).
 
 **The security cut.** The result's security section holds details that
 would help an attacker, and the caller must keep it out of every public
@@ -625,8 +646,8 @@ unchanged, to the mode's private location as `security-1.md`, hash it as a
 details file, and treat it as security material: it is never read back into
 a public record. Then ask the human, with no automatic re-run: mode 1 stops
 and asks ([§2.4](#24-output-checks-and-broken-rounds)), mode 2 pauses
-([§3.8](#38-pauses)). The file's hash is recorded with the record that
-says it was kept: mode 1's round comment (`scratch copy kept`,
+([§3.8](#38-pauses)). The hash of each kept file is recorded with the
+record that says it was kept: mode 1's round comment (`scratch copy kept`,
 [§2.4](#24-output-checks-and-broken-rounds)), mode 2's `Kept:` line. The
 human rules on what happens to it. A later run of the round never reuses a
 kept subdirectory: it takes the next round number.
@@ -635,8 +656,9 @@ kept subdirectory: it takes the next round number.
 `Status:` line. A blocked result (below) is checked for its frame (the
 announce line, `Status:`, `Findings: 0`, `Discards: 0`, an empty security
 section and `Files written: none`) and for the version, `Config:` and
-`Agent types dispatched:` checks below, but not for the mode's values.
-Then:
+`Agent types dispatched:` checks below, but not for the mode's values. For
+a blocked result, in both modes, `Agent types dispatched:` may be `none` or
+list only `paad:paad-analyst`. Then:
 
 - the first line is `Running paad:<skill> v<version>` for the skill the
   prompt named, and `<version>` is exactly the version that
@@ -644,9 +666,9 @@ Then:
   records as validated. Any other version fails the check. This catches a
   delegate that announces a version the gate has not passed; it cannot
   tell two builds that announce the same version apart, such as a later
-  fleet commit or an uncommitted edit in the fleet checkout. Those rest on
-  the human's gate for every move of `fleet` and the commit the human
-  records (paad-policy §10);
+  fleet commit or an uncommitted edit in the fleet checkout. A moved
+  commit rests on the human holding reviews until the gate passes on it;
+  an uncommitted edit is an accepted risk (paad-policy §10);
 - no `Config:` line: a config file was followed, which only a config file
   the prompt names may be, and no prompt names one. Each `Config not
   followed: <path>` line is allowed. Show the paths to the human in the
@@ -681,8 +703,11 @@ automatically: mode 1 stops and asks the human, mode 2 pauses
 ([§3.8](#38-pauses)). That holds for any result whose `Status:` line starts
 `blocked:`, whether or not its other checks pass. If any of them fails,
 tell the human which, with the block, and keep the whole result in the
-mode's private location as security material, as for a result that could
-not be cut. Its reason is the delegate's free text, so it goes to the
+mode's private location as security material: the cut has already written
+the section as `security-1.md`, so write the rest of the result beside it
+as `result.md`, hash both, and record both hashes as for a result that
+could not be cut (below). A differing state-directory hash still comes
+first: then nothing is written (above). Its reason is the delegate's free text, so it goes to the
 human in the terminal only; a public record says only that the round was
 blocked. A blocked result is not a broken round: the delegate did what its
 contract says when it cannot proceed safely. `Running
@@ -724,8 +749,10 @@ the path.
   present, is not a symlink (`test ! -L`); and `vrg-git ls-files
   paad/security` and `vrg-git ls-files paad/code-reviews`, each with no
   trailing slash, print nothing and exit zero. On the delegate path nothing
-  is created there afterwards; on the fallback path the mode then prepares
-  `paad/security/`;
+  is created there afterwards, and `paad/security/` and
+  `paad/code-reviews/` must each be absent or hold nothing but a
+  `.gitignore`, the same state the check after the review expects; on the
+  fallback path the mode then prepares `paad/security/`;
 - last, just before dispatch: the task's state directory: its seal (or, in
   the first round of a session, the listing the human confirmed), its mode,
   and its hash ([§1.5](#15-state-directories)).
@@ -763,8 +790,10 @@ The keywords are, on the delegate path: `Running paad:`, `not invoked`,
 `Config:`, `Config not followed:`, `Status:`, `complete`, `blocked:`,
 `Agent types dispatched:`, `Defaults applied:`, `none`, `Findings:`, the
 native finding field names, `Discards:`, the skill-specific field names and
-`BAIL:`, the two security markers, `Security:`, `Security discards:` and
-`Files written:`. On the fallback path: `Running paad:`, `Config:`,
+`BAIL:`, the counts line's labels (`Critical:`, `Important:`,
+`Suggestion:`, `in-scope`, `out-of-scope`), the two security markers,
+`Security:`, `Security discards:` and `Files written:`. On the fallback
+path: `Running paad:`, `Config:`,
 `Discards:`, `Security:`, `finding(s)`, `SECURITY-CHECK-FAILED`, `Files
 written`, `Files written or updated:`, the counts line's labels (`Critical:`,
 `Important:`, `Suggestion:`, `in-scope`, `out-of-scope`), `Agents
@@ -1175,9 +1204,15 @@ caught at all.
 review, which says nothing about the design. A broken round is never treated
 as a pass, and its findings are not acted on.
 
-**Three exceptions stop at once and ask the human,** with no automatic
-re-run; the procedure below does not apply to them:
+**These exceptions stop at once and ask the human,** with no automatic
+re-run; the procedure below does not apply to them. A state-directory
+check that fails takes precedence over the others:
 
+- **A pre-dispatch check or command that fails** (the clean status, the
+  `paad/` checks, the fallback path's `paad/security/` preparation, a
+  fetch, the temporary directory): dispatch nothing, revert nothing and
+  run nothing again. A dirty worktree is shown to the human as a diff
+  (above).
 - **A state-directory check that fails** (the seal or listing before
   dispatch, a mode, or the hash after the review,
   [§1.5](#15-state-directories)). Leave the state directory as it is,
@@ -1193,10 +1228,19 @@ re-run; the procedure below does not apply to them:
   delete the round's scratch-copy subdirectory (`<round-id>/`, holding only
   the empty cut-out section) unread, then take the seal
   ([§1.5](#15-state-directories)). If one failed, keep the whole result
-  there as security material instead, as for a result that could not be
-  cut (below). The human decides what to change before the round is
-  dispatched again; a run after a kept subdirectory takes the next round
-  ID.
+  there as security material instead: the cut-out section stays as
+  `security-1.md` and the rest is written beside it as `result.md`
+  ([§1.9](#19-the-delegate-path)). Post a round comment that says only
+  that the round was blocked, with `scratch copy kept` and each kept
+  file's hash ([§2.6](#26-the-round-comment)). The human decides what to
+  change before the round is dispatched again; a run after a kept
+  subdirectory takes the next round ID.
+- **A delegate that reports `Files written:` other than `none`** on the
+  delegate path: the delegate's own report is the only evidence of the
+  write, since this path has no sweep. Show the reported paths to the
+  human in the terminal only, unread and never posted, and keep the
+  round's scratch copy as for a result that could not be cut. The human
+  decides what happens to the files and whether the round is run again.
 - **A result whose shape does not allow the security cut** on the delegate
   path ([§1.9](#19-the-delegate-path)): the whole result is already in the
   scratch copy as security material. Post nothing from it; tell the human
@@ -1314,8 +1358,10 @@ Post one comment per round on the planning issue, with
   `A` for alignment; for example `S2.3` is spec pushback round 2, finding 3),
   its paad and mapped severity, its classification, its structural tag, a
   summary of the claim, the decision, and the reason or intake ref.
-- **Discards:** the count and one line each, except discards withheld by
-  screening, which appear only as a count.
+- **Discards:** the count and one line each. When any discard candidate
+  was security-class (on the delegate path, `Security discards:` is not 0)
+  or screening withheld any discard, the count alone
+  ([§1.6](#16-security-findings)).
 - **Security:** the count, how many were accepted, the GHSA IDs this round
   created, and `scratch copy kept` when cleanup did not happen, with the
   hash of each kept file ([§1.5](#15-state-directories)). No titles,
