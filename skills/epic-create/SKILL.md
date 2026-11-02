@@ -190,34 +190,44 @@ run `paad:pushback` or `paad:alignment` in the main session; every review is a
 round. The human decides every round. Each round has seven steps:
 
 1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)):
-   select the path by the doctrine's selection rule
-   ([§1.8](../../docs/paad-review-doctrine.md#18-the-two-paths)): the
-   delegate path when `paad:paad-delegate` is among the agent types this
-   session can dispatch, otherwise the fallback path, recorded in the round
-   comment as a deviation. Run that path's pre-dispatch steps of
-   [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
-   including the `paad/` checks
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)),
-   on the fallback path the round's empty temporary directory, and the
-   state directory's seal and hash (in the first round of a session, the
-   human's confirmation of its listing instead of the seal)
+   run the pre-dispatch steps of
+   [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds).
+   The first is the delegate requirement
+   ([§1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement)):
+   if `paad:paad-delegate` is not among the agent types this session can
+   dispatch, the round does not run; stop and tell the human the fix, which
+   is to start the session with the fleet's paad checkout loaded through
+   `vrg-vm session`
+   ([paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+   Then, in order: the docs worktree is clean, with its branch and HEAD SHA
+   recorded, and its `paad/` passes its checks
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round));
+   fetch each member repo the prompt names; and last the state directory's
+   seal and hash (in the first round of a session, the human's
+   confirmation of its listing instead of the seal)
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
-   start a fresh subagent **in the background** with that path's
-   [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
-   template (`paad:paad-delegate` or `general-purpose`), placeholders
-   filled and nothing about earlier rounds added. If any pre-dispatch
-   check or command fails, dispatch nothing and stop and ask the human:
+   start a fresh `paad:paad-delegate` subagent **in the background** with
+   the [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
+   template, placeholders filled and nothing about earlier rounds added. If
+   any pre-dispatch check or command fails, dispatch nothing and stop and ask the human:
    nothing is reverted or re-run.
 2. **Check the output**
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
-   On the fallback path, the stray-write check. Then, on both paths, the
-   state directory's hash, before anything is written there
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)).
+   Take the result from the completion notice with its `&amp;`, `&lt;`
+   and `&gt;` entities decoded, so every check and file sees the
+   delegate's own text; text copied from the result into a round comment
+   goes only in a fenced code block of at least three backticks, longer
+   than its longest backtick run, at the top level of the comment, never
+   in a list item
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)).
+   First the state directory's hash, before anything is written there
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)).
    If it differs, write nothing there, show the result's security section
    in the terminal only, and take the state-directory exit below, which
-   overrides every other exit. Otherwise, on the delegate path, cut the
-   security section out into the scratch copy as `security-1.md`, hashed
-   as a details file, before anything else reads the result, and only from
+   overrides every other exit. Then the worktree's branch, HEAD SHA and
+   clean status, and that `paad/security/` and `paad/code-reviews/` hold
+   nothing but a `.gitignore`. Then cut the security section out into the
+   scratch copy as `security-1.md`, hashed as a details file, before anything else reads the result, and only from
    a well-formed result; a result whose shape does not allow the cut is
    written there whole, hashed and treated as security material
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
@@ -237,7 +247,18 @@ round. The human decides every round. Each round has seven steps:
      round comment naming only the failed shape rule, with `scratch copy
      kept` and the file's hash;
    - a delegate that reports `Files written:` other than `none`: show the
-     paths in the terminal only, unread, and keep the scratch copy.
+     paths in the terminal only, unread;
+   - a file in the worktree's `paad/security/` or `paad/code-reviews/`
+     other than a `.gitignore`: leave it there, unread, for the human.
+
+   For these last two, keep the whole result in the scratch copy as
+   security material: the cut-out section as `security-1.md` and the rest
+   as `result.md`, or the whole result as `security-1.md` when the cut did
+   not proceed, each hashed. If the branch, HEAD SHA or clean status also
+   changed, revert the worktree but leave every reported path and `paad/`
+   file in place, unread. These exits take precedence over the broken-round
+   re-run; when a round meets several, apply each, and the round comment
+   names each exit it met, with `scratch copy kept` and each file's hash.
 
    On every such exit, take
    the end-of-round seal once you are done in the state directory; after a
