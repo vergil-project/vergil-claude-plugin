@@ -243,8 +243,14 @@ Each round, in order
    only the round's response comment, with its `Paused:` line
    ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 3. **Check the output**
-   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). First the
-   checks after the review
+   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). Take the
+   result from the completion notice with its `&amp;`, `&lt;` and `&gt;`
+   entities decoded, so every check and file sees the delegate's own text;
+   text copied from the result into a comment goes only in a fenced code
+   block of at least three backticks, longer than its longest backtick
+   run, at the top level of the comment, never in a list item
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)).
+   First the checks after the review
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)):
    the state directory's hash, before anything is written there (if it
    differs, write nothing there and pause; the round can only be run
@@ -256,7 +262,11 @@ Each round, in order
    `security-1.md` and the rest beside it as `result.md`, hashing each as a
    details file. A result whose shape does not allow the cut is written
    whole as `security-1.md`, hashed, and treated as security material:
-   nothing from it is posted. A delegate that reports `Files written:`
+   nothing from it is posted. Then the output checks, among them that each
+   finding's `Scope:` value is exactly one of the three, then that the
+   counts line agrees with the findings, by severity and by scope. After a
+   missing or invalid `Scope:` field, `dismiss` does not apply, only
+   `another-round`. A delegate that reports `Files written:`
    other than `none`, or a file left in `paad/security/` or
    `paad/code-reviews/`, is a failed check of its own kind: show reported
    paths in the terminal only, leave any file in `paad/` unread, keep the

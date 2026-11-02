@@ -549,7 +549,9 @@ security cut's shape rule (below) is an expected cause of a broken round;
 the cut still fails closed, and the human rules on it.
 agentic-review's skill-specific fields are its counts line, `Agents
 dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
-consulted:` and `Verifier warnings:`. pushback's one skill-specific field
+consulted:` and `Verifier warnings:`. The counts line counts only the
+findings outside the security section, and must agree with them by
+severity and by scope ([§3.4](#34-output-checks)). pushback's one skill-specific field
 is `Outside the spec: <n>`, then one line for each defect in the
 surrounding code that does not block the spec; alignment has none. A
 blocked result has `Findings: 0`
@@ -557,7 +559,21 @@ and `Discards: 0`, and still carries the security section, empty. A skill
 the delegate refused without invoking it opens `Running paad:<skill> (not
 invoked)`. The review has returned only when the harness's completion
 notice says the subagent has finished and has no work still running; take
-the result from that notice, its last answer. Nothing after the review
+the result from that notice, its last answer. The notice escapes the
+delegate's text as HTML entities, so decode `&amp;`, `&lt;` and `&gt;` in
+it, and no other entity, in one pass from left to right (`&amp;lt;`
+becomes `&lt;`), before the result is checked, cut, parsed or written
+anywhere: every rule below, `security-1.md` and `result.md` all see the
+delegate's own text. That text is raw, and it was written after reading
+untrusted content, so it is never posted as markdown. Result text is any
+text copied from the result, such as a location, a symbol, an excerpt or
+a discard reason. Wherever it is posted in a public record, it goes in a
+fenced code block of at least three backticks, longer than the longest
+run of backticks in the text, placed at the top level of the comment and
+never inside a list item. There is no other form: no inline code span and
+no escaping instead (mode 1: [§2.6](#26-the-round-comment); mode 2:
+[§3.5](#35-task-issue-records)).
+Nothing after the review
 starts before then. An answer that arrives after the processing below has
 started is not used: in mode 1 it breaks the round, in mode 2 it pauses
 the run.
@@ -655,20 +671,24 @@ list only `paad:paad-analyst`. Then:
   [§3.4](#34-output-checks)). The harness cannot limit which agent types a
   subagent dispatches, so this line is the delegate's own report, and the
   check is the caller's;
-- every field is present, in order: `Defaults applied:`; `Findings: <n>`,
-  with `<n>` equal to the number of `### F<i>` headings; each finding's
-  native fields; `Discards: <k>`, with `<k>` lines; the skill-specific
+- every field is present, in order: `Defaults applied:`, in one of two
+  shapes: `Defaults applied: none`, or the label alone on its line
+  followed by one or more lines that each start with `- `. A bare label
+  with no `- ` line after it, or any text after the label but `none`,
+  fails; `Findings: <n>`, with `<n>` equal to the number of `### F<i>`
+  headings; each finding's native fields; `Discards: <k>`, with `<k>` lines; the skill-specific
   fields the mode requires; and `Files written: none` as the last line;
 - every severity is a word from that skill's column of the
   [§1.3](#13-severity) table;
 - the mode's own values ([§2.4](#24-output-checks-and-broken-rounds),
   [§3.4](#34-output-checks)).
 
-`Defaults applied:` lines are not checked. They, like the `Config not
-followed:` paths, are the delegate's own free text, written after reading
-the reviewed content, so they never reach a public record: show them to the
-human in the terminal, and give only their count in the round's record. A
-failed check is handled by the mode: in mode 1 a broken round
+What a `Defaults applied:` line says is not checked, only its shape. The
+lines, like the `Config not followed:` paths, are the delegate's own free
+text, written after reading the reviewed content, so they never reach a public record: show them to the
+human in the terminal, and give only their count in the round's record:
+the number of `- ` lines under `Defaults applied:`, and 0 for
+`Defaults applied: none`. A failed check is handled by the mode: in mode 1 a broken round
 ([§2.4](#24-output-checks-and-broken-rounds)), in mode 2 a pause
 ([§3.4](#34-output-checks)). The record names the failed check; it never
 quotes the result.
@@ -1135,7 +1155,8 @@ Post one comment per round on the planning issue, with
   recommendation and its signal; the round-4 note when it applies; the
   broken-round note (with any recorded skip) when it applies; and, for a
   round the delegate ran, the counts of `Config not followed:` lines and
-  `Defaults applied:` lines, never the lines themselves, which go to the
+  of the `- ` lines under `Defaults applied:` (0 for `none`), never the
+  lines themselves, which go to the
   human in the terminal ([§1.9](#19-the-delegate-path)). A round run
   interactively at the human's choice
   ([§2.4](#24-output-checks-and-broken-rounds) step 3) has no such counts:
@@ -1155,6 +1176,12 @@ Post one comment per round on the planning issue, with
   descriptions or details.
 - **No marker lines** (`Epic:`, `Docs task:`, `Tasks filed:`), so the queue
   view's marker parsing is unaffected.
+- **Result text is fenced.** Any text copied from the result (a claim, a
+  location, a discard line) goes in a fenced code block of at least three
+  backticks, longer than the longest run of backticks in the text, at the
+  top level of the comment and never inside a list item: no inline code
+  span and no escaping instead, since the decoded result is raw
+  ([§1.9](#19-the-delegate-path)).
 
 A comment that would pass GitHub's 65,536-character limit is split into
 parts. Each part's first line is the same first line plus `(part <i>/<m>)`.
@@ -1626,7 +1653,19 @@ checks, with these values for mode 2:
 - each finding carries `Symbol:`, `Excerpt:`, `Fix:`, `Confidence:`,
   `Scope:` and `Bug class:`, and its severity is `Critical`, `Important` or
   `Suggestion`;
-- the counts line is present, in paad's form;
+- each `Scope:` value is exactly `in scope`, `out-of-scope bug` or
+  `out-of-scope addition`, matched exactly, as severity words are
+  ([§1.10](#110-checks-around-every-round)). This check comes before the
+  counts line's, so a malformed value fails as itself, not as a miscount;
+- the counts line is present, in paad's form (`Critical: <a> (in-scope)
+  / <b> (out-of-scope), Important: …, Suggestion: …`), and agrees with the
+  findings the result returns: for each severity, the in-scope number
+  equals the number of `### F<i>` findings of that severity with `Scope:
+  in scope`, and the out-of-scope number those with `Scope: out-of-scope
+  bug` or `Scope: out-of-scope addition`. The security section's findings
+  are not counted. A mismatch fails the check: the public counts line is
+  recomputed from the findings ([§3.5](#35-task-issue-records)), but a
+  result that miscounts its own findings is not a usable review;
 - `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`;
 - Spec Compliance did not bail (no `BAIL:` for it under `Agents
   dispatched:`), and `Intent sources consulted:` lists the requirements file
@@ -1637,7 +1676,9 @@ checks, with these values for mode 2:
 produce a usable review, which says nothing about the code. A failed round is
 never treated as a pass, and its findings are not acted on unless the human
 rules the check `dismiss` where [§3.5](#35-task-issue-records) allows it
-(below, a reported write and a file left in `paad/` do not). Leave the
+(below, a reported write and a file left in `paad/` do not, and neither
+does a missing or invalid `Scope:` field, since the findings comment needs
+each finding's scope bucket). Leave the
 worktree's `paad/` and the task's state directory where they are, unread,
 for the human. The round's findings comment notes which check failed and
 carries no findings, and its response comment carries the `Paused:` line
@@ -1685,8 +1726,9 @@ ISO 8601.
   `Returned: <time>`; the review's cost, `Review cost: totalTokens <t>,
   toolUses <u>, durationMs <d>`, or `Review cost: not reported` when the
   completion notice does not give them; the counts of `Config not
-  followed:` and `Defaults applied:` lines (the lines go to the human in
-  the terminal, [§1.9](#19-the-delegate-path)); paad's version,
+  followed:` lines and of the `- ` lines under `Defaults applied:` (0 for
+  `none`; the lines go to the human in the terminal,
+  [§1.9](#19-the-delegate-path)); paad's version,
   and a counts line
   in paad's form recomputed over the ordinary findings left after
   screening and the hold-back, so it reveals nothing withheld; then each
@@ -1765,7 +1807,10 @@ comment, in this fixed form, one per line:
       steps 4–7 run through the exception above. The output is the round's
       hashed `result.md`, with its cut-out `security-1.md`; after a state-directory
       hash that differed, nothing was written ([§1.9](#19-the-delegate-path)),
-      so `dismiss` does not apply and only `another-round` does;
+      so `dismiss` does not apply and only `another-round` does. Nor does
+      it apply after a missing or invalid `Scope:` field
+      ([§3.4](#34-output-checks)): a finding with no valid scope has no
+      bucket in the findings comment, so only `another-round` does;
     - after a blocked result that passed its other checks:
       there is no review to use. Delete the round's state subdirectory (it
       holds only the empty security section and `result.md`), finish the
@@ -1823,14 +1868,20 @@ comment, in this fixed form, one per line:
   directory (`build/.vergil-state/agentic-review/<N>/`).
 
 The reviewer's free-text notes are not copied into these comments, and
-security findings appear only as counts. A comment that would pass GitHub's
+security findings appear only as counts. Text copied from the result (a
+location, a symbol, an excerpt, a discard reason) goes in a fenced code
+block of at least three backticks, longer than the longest run of
+backticks in the text, at the top level of the comment and never inside
+a list item: no inline code span and no escaping instead, since the
+decoded result is raw ([§1.9](#19-the-delegate-path)). Your own summary
+of a finding is prose outside the block. A comment that would pass GitHub's
 65,536-character limit is split into parts; each part's first line is the
 same first line plus `(part <i>/<m>)`.
 
 **Examples.** Round 2 of an invented task, `example-org/example-repo#9001`,
 which pauses and is resumed.
 
-```text
+````text
 agentic-review round 2: findings
 
 Dispatched: 2026-10-30T14:02:11Z
@@ -1841,27 +1892,45 @@ paad:agentic-review v2.0.2-preview
 Critical: 0 (in-scope) / 0 (out-of-scope), Important: 1 (in-scope) / 1 (out-of-scope), Suggestion: 1 (in-scope) / 0 (out-of-scope)
 
 Findings
-- R2.1 (Important, high; in scope; repair; agent): src/example/fetch.py,
-  `fetch_with_retry`: the retry loop added for 503 responses has no upper
-  bound, so a server that keeps failing hangs the caller.
-  Excerpt: `while response.status == 503: response = session.get(url)`
-  (line 42 at the time).
-- R2.2 (Suggestion, medium; in scope; new; human, reason 4):
-  src/example/fetch.py, `fetch_with_retry`: the retry delay is a bare
-  number with no name.
-  Excerpt: `time.sleep(0.5)` (line 45 at the time).
-- R2.3 (Important, high; out-of-scope bug; new; human, reason 2):
-  src/example/cache.py, `Cache.get`: an expired entry is returned once
-  before it is evicted.
-  Excerpt: `if entry.expired: self.evict(key)` (line 88 at the time).
+
+R2.1 (Important, high; in scope; repair; agent): the retry loop added for
+503 responses has no upper bound, so a server that keeps failing hangs the
+caller. Line 42 at the time.
+
+```text
+src/example/fetch.py
+fetch_with_retry
+while response.status == 503: response = session.get(url)
+```
+
+R2.2 (Suggestion, medium; in scope; new; human, reason 4): the retry delay
+is a bare number with no name. Line 45 at the time.
+
+```text
+src/example/fetch.py
+fetch_with_retry
+time.sleep(0.5)
+```
+
+R2.3 (Important, high; out-of-scope bug; new; human, reason 2): an expired
+entry is returned once before it is evicted. Line 88 at the time.
+
+```text
+src/example/cache.py
+Cache.get
+if entry.expired: self.evict(key)
+```
 
 Filtered out: 2
-- A null-response concern, withdrawn: the caller checks for None.
-- A naming preference with no effect on behaviour.
+
+```text
+A null-response concern, withdrawn: the caller checks for None.
+A naming preference with no effect on behaviour.
+```
 
 Security: 0
 Output checks: passed
-```
+````
 
 ```text
 agentic-review round 2: response

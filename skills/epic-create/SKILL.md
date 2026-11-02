@@ -213,6 +213,13 @@ round. The human decides every round. Each round has seven steps:
    nothing is reverted or re-run.
 2. **Check the output**
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
+   Take the result from the completion notice with its `&amp;`, `&lt;`
+   and `&gt;` entities decoded, so every check and file sees the
+   delegate's own text; text copied from the result into a round comment
+   goes only in a fenced code block of at least three backticks, longer
+   than its longest backtick run, at the top level of the comment, never
+   in a list item
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)).
    First the state directory's hash, before anything is written there
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)).
    If it differs, write nothing there, show the result's security section
