@@ -177,8 +177,10 @@ canonical scale; other documents link to it.
 
 ## 10. paad unattended mode and the fleet checkout
 
-**Decision.** The review skills run paad only in **unattended mode**. vergil contributes to paad, so the fleet runs paad from the
-fork's tree through a standing override, not from a paad release (epic
+**Decision.** The review doctrine's rounds (`epic-create`'s design review
+and `issue-implement`'s agentic-review gate) run paad only in **unattended
+mode**; `steering-audit`'s own pushback run is unchanged (section 8).
+vergil contributes to paad, so the fleet runs paad from the fork's tree through a standing override, not from a paad release (epic
 [vergil-project/.github#699](https://github.com/vergil-project/.github/issues/699),
 spec §4.7 and §4.8, with one change the human decided since: the override
 is not removed when upstream releases the change).

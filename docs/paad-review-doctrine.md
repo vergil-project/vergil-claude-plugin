@@ -577,7 +577,8 @@ security section to the human in the terminal only, and post nothing from
 it. The round can only be run again (mode 1: the human decides, mode 2:
 `another-round`), never used. This takes precedence over every other rule
 below, including the blocked-result and cut-shape rules. If another check
-in step 1 fails (the worktree's branch, HEAD SHA or clean status), the
+in step 1 fails (the worktree's branch, HEAD SHA or clean status, or the
+`paad/` directory check), the
 state directory is intact, so the cut and the writes still happen, and the
 round then fails that check like any other; what happens to its files then
 is the mode's failed-check handling (mode 1:
@@ -765,8 +766,9 @@ The keywords are: `Running paad:`, `not invoked`,
 `Agent types dispatched:`, `Defaults applied:`, `none`, `Findings:`, the
 native finding field names, `Discards:`, the skill-specific field names and
 `BAIL:`, the counts line's labels (`Critical:`, `Important:`,
-`Suggestion:`, `in-scope`, `out-of-scope`), the two security markers,
-`Security:`, `Security discards:` and `Files written:`.
+`Suggestion:`, `in-scope`, `out-of-scope`), `Agents dispatched:`, `NOT
+DISPATCHED`, `Intent sources consulted:`, `Verifier warnings:`, the two
+security markers, `Security:`, `Security discards:` and `Files written:`.
 
 ## 2. Mode 1: human-gated design review
 
@@ -1006,15 +1008,23 @@ check that fails takes precedence over the others:
 - **A delegate that reports `Files written:` other than `none`:** the
   delegate's own report is the only evidence of the write, since no check
   sweeps for it. Show the reported paths to the human in the terminal
-  only, unread and never posted, and keep the round's scratch copy as for
-  a result that could not be cut. The human decides what happens to the
+  only, unread and never posted. The human decides what happens to the
   files and whether the round is run again.
 - **A file in the worktree's `paad/security/` or `paad/code-reviews/`**
   other than a `.gitignore`, after the review
   ([§1.10](#110-checks-around-every-round)): leave it there, unread, for
-  the human, and keep the round's scratch copy as for a result that could
-  not be cut. The human decides what happens to the file and whether the
+  the human. The human decides what happens to the file and whether the
   round is run again.
+
+  For both, keep the whole result in the round's scratch copy as security
+  material: the cut-out section as `security-1.md` and the rest beside it
+  as `result.md`, or, when the cut did not proceed, the whole result as
+  `security-1.md` ([§1.9](#19-the-delegate-path)), each hashed as a
+  details file. Post a round comment that names only what happened (a
+  reported write, or a file left in `paad/`) and says `scratch copy kept`,
+  with each kept file's hash ([§2.6](#26-the-round-comment)). The kept
+  files follow [§2.7](#27-security-findings)'s keep and cleanup rules; a
+  new run takes the next round ID.
 - **A result whose shape does not allow the security cut**
   ([§1.9](#19-the-delegate-path)): the whole result is already in the
   scratch copy as security material. Post nothing from it; tell the human
@@ -1231,9 +1241,11 @@ keep the copy, and the round comment says `scratch copy kept` with the
 failure and the hash of each kept file ([§1.5](#15-state-directories)).
 Never delete a copy while a new or repair finding in it is
 unrecorded. A broken round's security material is deleted unread
-([§2.4](#24-output-checks-and-broken-rounds)), except a whole result kept
-because its shape did not allow the cut, which stays until the human rules
-on it. Either way, once you have
+([§2.4](#24-output-checks-and-broken-rounds)), except a result kept by
+one of §2.4's stop-at-once exceptions (a result whose shape did not allow
+the cut, a reported write, a file left in `paad/`, or a blocked result
+that failed another check), which stays until the human rules on it.
+Either way, once you have
 finished writing and deleting there, take the end-of-round hash that seals
 the state directory until the next round ([§1.5](#15-state-directories)).
 Delete the planning issue's state directory, `design-review/<M>/`, once the
@@ -1614,7 +1626,8 @@ checks, with these values for mode 2:
 **A failed check pauses the run** ([§3.8](#38-pauses)). The reviewer did not
 produce a usable review, which says nothing about the code. A failed round is
 never treated as a pass, and its findings are not acted on unless the human
-rules the check `dismiss` ([§3.5](#35-task-issue-records)). Leave the
+rules the check `dismiss` where [§3.5](#35-task-issue-records) allows it
+(below, a reported write and a file left in `paad/` do not). Leave the
 worktree's `paad/` and the task's state directory where they are, unread,
 for the human. The round's findings comment notes which check failed and
 carries no findings, and its response comment carries the `Paused:` line
@@ -1631,15 +1644,19 @@ says only that the security section was malformed, and the whole result
 stays in the round's state subdirectory as security material, under a
 `Kept:` line, until the human rules on it.
 
-**A delegate that reports `Files written:` other than `none`** pauses the
-run the same way, and is never re-run automatically. The delegate's own
-report is the only evidence of the write, since no check sweeps for it.
-Show the reported paths to the human in the terminal only, unread and
-never posted; the findings comment says only that the delegate reported a
-write. Keep the round's state subdirectory as for a result that could not
-be cut, under `Kept:` lines. `dismiss` does not apply: the human decides
-what happens to the files, and rules `another-round`
-([§3.5](#35-task-issue-records)).
+**A delegate that reports `Files written:` other than `none`, and a file
+left in the worktree's `paad/security/` or `paad/code-reviews/`** other
+than a `.gitignore` ([§1.10](#110-checks-around-every-round)), pause the
+run the same way, and neither is ever re-run automatically. The
+delegate's own report is the only evidence of a reported write, since no
+check sweeps for it: show the reported paths to the human in the terminal
+only, unread and never posted. Leave a file found in `paad/` there,
+unread, for the human. The findings comment says only that the delegate
+reported a write, or that a file was left in `paad/`. Keep the round's
+state subdirectory (the cut-out `security-1.md` and `result.md`, or the
+whole result as `security-1.md` when the cut did not proceed), under
+`Kept:` lines. `dismiss` does not apply: the human decides what happens to
+the files, and rules `another-round` ([§3.5](#35-task-issue-records)).
 
 ### 3.5 Task-issue records
 
@@ -1750,9 +1767,10 @@ comment, in this fixed form, one per line:
       which runs the next round number with a fresh reviewer, and rules on
       the kept file like any security material
       ([§3.6](#36-security-findings));
-    - after a delegate that reported `Files written:` other than `none`
+    - after a delegate that reported `Files written:` other than `none`,
+      or a file left in the worktree's `paad/`
       ([§3.4](#34-output-checks)): `dismiss` does not apply. The human
-      decides what happens to the reported files and rules
+      decides what happens to the files and rules
       `another-round`, which runs the next round number with a fresh
       reviewer;
     - before dispatch: nothing ran, so the same round is dispatched again
@@ -2039,9 +2057,9 @@ when:
 - an output check fails ([§3.4](#34-output-checks)), including a
   state-directory hash that differs after the review;
 - the result is blocked, its shape does not allow the security cut
-  ([§1.9](#19-the-delegate-path)), or the delegate reports `Files
-  written:` other than `none` ([§3.4](#34-output-checks)). None is re-run
-  automatically;
+  ([§1.9](#19-the-delegate-path)), the delegate reports `Files written:`
+  other than `none`, or a file is left in the worktree's `paad/`
+  ([§3.4](#34-output-checks)). None is re-run automatically;
 - a state-directory check fails before a write
   ([§1.5](#15-state-directories)): a mode that is not `700`, a new round
   subdirectory that already exists, or an entry you did not write. Nothing

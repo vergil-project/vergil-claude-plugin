@@ -256,8 +256,13 @@ Each round, in order
    `security-1.md` and the rest beside it as `result.md`, hashing each as a
    details file. A result whose shape does not allow the cut is written
    whole as `security-1.md`, hashed, and treated as security material:
-   nothing from it is posted. A failed check, a blocked result or a result
-   that could not be cut pauses the run and skips steps 4–7: post a
+   nothing from it is posted. A delegate that reports `Files written:`
+   other than `none`, or a file left in `paad/security/` or
+   `paad/code-reviews/`, is a failed check of its own kind: show reported
+   paths in the terminal only, leave any file in `paad/` unread, keep the
+   round's state subdirectory, and `dismiss` does not apply, only
+   `another-round`. A failed check, a blocked result or a result that
+   could not be cut pauses the run and skips steps 4–7: post a
    findings comment naming the failed check (for a blocked result, only
    that it was blocked; its reason goes to the human in the terminal),
    with no findings and nothing else from the result, and a response
