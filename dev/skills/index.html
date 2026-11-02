@@ -3668,6 +3668,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#paad-review-rounds-what-a-session-needs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        paad review rounds: what a session needs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skill-catalogue-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3927,6 +3938,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#paad-review-rounds-what-a-session-needs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        paad review rounds: what a session needs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#skill-catalogue-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4149,6 +4171,42 @@ and only stop mid-flight for a problem they cannot resolve. The plugin
 no longer tunes agent behavior for continuous human observability; that
 older "Continuous Oversight" model is retired. The never-fabricate and
 never-suppress-a-gate rules are unaffected.</p>
+<h2 id="paad-review-rounds-what-a-session-needs">paad review rounds: what a session needs<a class="headerlink" href="#paad-review-rounds-what-a-session-needs" title="Permanent link">&para;</a></h2>
+<p><code>epic-create</code>'s design-review rounds and <code>issue-implement</code>'s
+agentic-review gate run paad in its unattended mode, through paad's
+unattended runner, <code>paad:paad-delegate</code>
+(<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#18-the-delegate-requirement">doctrine §1.8</a>).</p>
+<ul>
+<li><strong>The delegate is required.</strong> The released paad has no delegate. Only
+  a session that loads the fleet's paad checkout, a fork's tree that
+  tracks upstream and runs a patch or two ahead of it, has one. A session
+  without it runs no review round: <code>epic-create</code> stops and tells the
+  human, <code>issue-implement</code> stops in Preflight before creating a worktree
+  (and its gate pauses if a round finds the delegate missing), and the
+  message names the fix. No other agent type stands in for the delegate.</li>
+<li><strong>Turning it on.</strong> On the Mac, create
+  <code>~/.config/vergil/plugin-dirs.toml</code> listing the fleet checkout's
+  <code>preview/paad</code>, then start the session with <code>vrg-vm session</code>, which
+  loads each listed tree with <code>--plugin-dir</code>. Deleting the file, or
+  setting <code>plugin_dirs = []</code>, turns it off. The override is a permanent
+  arrangement, not a bridge to a paad release. The file's format is in
+  vergil-tooling's
+  <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/cli-tools-overview.md#vrg-vm"><code>--plugin-dir</code> override</a>
+  reference; the entry the fleet uses, the fleet checkout and the rules
+  for moving it are in
+  <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout">paad-policy §10</a>.</li>
+<li><strong>Lima only.</strong> Only a Lima VM sees the Mac's projects tree, so only a
+  Lima session can load the checkout. A cloud session launches with the
+  installed plugins, so it runs no review round. Cloud support for
+  reviews is not planned.</li>
+<li><strong>Where agent state lives.</strong> Private review material that must outlive
+  a session or a VM rebuild (security details, a paused round) is kept in
+  the main clone's ignored <code>build/.vergil-state/</code>, never in a worktree
+  (<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories">doctrine §1.5</a>).
+  The worktree convention keeps the main worktree read-only for source
+  and allows ignored scratch in its <code>build/</code>; <code>build/.vergil-state/</code> is
+  the namespace for agent state there.</li>
+</ul>
 <h2 id="skill-catalogue-at-a-glance">Skill catalogue (at a glance)<a class="headerlink" href="#skill-catalogue-at-a-glance" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -4176,7 +4234,7 @@ never-suppress-a-gate rules are unaffected.</p>
 </tr>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
-<td>USER agent: implement an issue (locally or on a cloud VM), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human</td>
+<td>USER agent: implement an issue in a Lima session (the agentic-review gate cannot run on a cloud VM), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4249,7 +4307,9 @@ spec + plan as a docs PR. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
 round on the planning issue, and the human decides every further round. The
 rules are mode 1 of the
-<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#2-mode-1-human-gated-design-review">paad review doctrine</a>.
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#2-mode-1-human-gated-design-review">paad review doctrine</a>,
+and each round needs paad's delegate
+(<a href="#paad-review-rounds-what-a-session-needs">paad review rounds</a>).
 Every run is tracked in a <strong>planning issue</strong> (an open
 child of the planning epic): it is entered from a planning issue, an intake
 issue (pulled into planning), a deferred issue (pulled back into planning after
@@ -4318,13 +4378,18 @@ planning or deferred epic (route it with <code>intake-review</code>, expand it w
 <code>epic-create</code>, or revive it with <code>deferred-review</code> first), mirroring the
 PR tooling's refusal.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
-implementation through the point where the human opens the PR. The same
-flow runs on a cloud VM: <code>report-ready</code> pushes a world-readable <strong>relay
-ref</strong> carrying the ready-state, so the Mac no longer needs the VM's
-filesystem, and the human opens the PR worktree-free with
-<code>vrg-submit-pr &lt;branch&gt; [&lt;branch&gt; …]</code>. (This retired the former
-<code>issue-localize</code> skill, which reconstructed the ready-state locally
-before the relay existed — epic
+implementation through the point where the human opens the PR. Run it
+in a Lima session: the agentic-review gate needs paad's delegate, which
+only a Lima session loads, so the gate cannot run on a cloud VM (see
+<a href="#paad-review-rounds-what-a-session-needs">paad review rounds</a>). On a
+cloud VM it stops in Preflight, before creating a worktree and with
+nothing posted on the issue, and tells the human to start the task in a
+Lima session. <code>report-ready</code> pushes a
+world-readable <strong>relay ref</strong> carrying the ready-state, so the Mac does
+not need the session's filesystem, and the human opens the PR
+worktree-free with <code>vrg-submit-pr &lt;branch&gt; [&lt;branch&gt; …]</code>. (This retired
+the former <code>issue-localize</code> skill, which reconstructed the ready-state
+locally before the relay existed — epic
 <a href="https://github.com/vergil-project/.github/issues/148">vergil-project/.github#148</a>.)</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (<code>vrg-pr-workflow</code>, etc.) at runtime.</p>

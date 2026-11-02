@@ -4454,7 +4454,8 @@ convention's allowed locations. It does not match <code>vrg-commit</code>.</p>
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md">worktree convention</a>.
 The hook detects adoption by looking for a <code>.worktrees/</code> line in the
 repo's <code>.gitignore</code>. On adopted repos, commits must originate from
-inside <code>.worktrees/&lt;name&gt;/</code>; the main tree is read-only. On
+inside <code>.worktrees/&lt;name&gt;/</code>; the main tree is read-only for source
+(ignored scratch in its <code>build/</code> is not a source edit). On
 non-adopted repos, the hook falls back to the legacy behavior of
 blocking commits on <code>main</code> or <code>develop</code> regardless of directory.</p>
 <p><strong>Alternative.</strong> On adopted repos: create a worktree with
@@ -4571,12 +4572,16 @@ local workflow.</p>
 <h3 id="block-worktree-bypass-write">block-worktree-bypass-write<a class="headerlink" href="#block-worktree-bypass-write" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Blocks Write/Edit file modifications targeting the main
 worktree when the parallel-AI-agent worktree convention is active.</p>
-<p><strong>Why.</strong> The main worktree is read-only by convention — all edits
-flow through a <code>.worktrees/&lt;name&gt;/</code> worktree on a feature branch.
-The one exception is ignored agent state under the main clone's
-<code>build/.vergil-state/</code> (the <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories">paad review doctrine's state
-directories</a>),
-which the hook allows. Every target path is normalised first
+<p><strong>Why.</strong> The main worktree is read-only for source by convention — all
+edits flow through a <code>.worktrees/&lt;name&gt;/</code> worktree on a feature branch.
+The convention's
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#rules"><code>build/</code> exception</a>
+allows ignored scratch in the main clone's <code>build/</code> (the MQ lab's shared
+live-lab state lives there), and <code>build/.vergil-state/</code> is the namespace
+for agent state (the <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories">paad review doctrine's state
+directories</a>).
+Of the main worktree, the hook allows Write and Edit only under
+<code>build/.vergil-state/</code>. Every target path is normalised first
 (<code>.</code>, <code>..</code> and symlinks resolved, for new files as well as existing
 ones) with <code>python3</code>. A relative target path is denied. Without
 <code>python3</code> the hook denies every Write and Edit, wherever it points; a
