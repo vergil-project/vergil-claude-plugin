@@ -214,9 +214,12 @@ T_EXPECT=(
 	"deny"
 )
 
-# Text a row's deny reason must contain, where it matters. The last row
-# (the check-ignore failure) must deny for that reason, not another.
+# Text a row's deny reason must contain, where it matters. The last
+# three rows each deny under build/ for one reason, not another: the
+# two not reported ignored, and the check-ignore failure.
 T_REASON=()
+T_REASON[$((${#T_NAME[@]} - 3))]="does not report it ignored"
+T_REASON[$((${#T_NAME[@]} - 2))]="does not report it ignored"
 T_REASON[$((${#T_NAME[@]} - 1))]="could not check"
 
 pass=0
