@@ -628,12 +628,15 @@ round's subdirectory, as [§1.5](#15-state-directories) says: it must not
 exist before (`test ! -e` and `test ! -L`), and if it does, write nothing
 and stop. From then on, every comment,
 commit message, intake issue and note about the round is built only from
-the rest of the result. Inside the section, `Security:` and `Security
-discards:` must each appear exactly once; `Security: <k>` must equal the
-number of `### S<i>` headings; and `Security discards: <k>` must equal the
-number of lines between it and the end marker, each of which starts with
-`- `, as `Discards: <k>` must equal its lines. Any other line there, or a
-mismatch, is a failed output check (below).
+the rest of the result. Inside the section, exactly one line starts with
+`Security:` and exactly one starts with `Security discards:`, matched at
+the line's start with nothing stripped; the `- ` lines under `Security
+discards:` are free text and are not checked for either label.
+`Security: <k>` must equal the number of `### S<i>` headings. The lines
+between `Security discards: <k>` and the end marker must be exactly `<k>`
+lines, each starting with `- `. A label that does not appear exactly
+once, a count that differs, or any other line between `Security
+discards:` and the end marker is a failed output check (below).
 
 **A result of any other shape is a broken round, and nothing is cut.**
 Nothing from the result is posted anywhere. Write the whole result,
