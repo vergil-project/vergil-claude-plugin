@@ -549,7 +549,9 @@ security cut's shape rule (below) is an expected cause of a broken round;
 the cut still fails closed, and the human rules on it.
 agentic-review's skill-specific fields are its counts line, `Agents
 dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
-consulted:` and `Verifier warnings:`. pushback's one skill-specific field
+consulted:` and `Verifier warnings:`. The counts line counts only the
+findings outside the security section, and must agree with them by
+severity and by scope ([§3.4](#34-output-checks)). pushback's one skill-specific field
 is `Outside the spec: <n>`, then one line for each defect in the
 surrounding code that does not block the spec; alignment has none. A
 blocked result has `Findings: 0`
@@ -557,7 +559,12 @@ and `Discards: 0`, and still carries the security section, empty. A skill
 the delegate refused without invoking it opens `Running paad:<skill> (not
 invoked)`. The review has returned only when the harness's completion
 notice says the subagent has finished and has no work still running; take
-the result from that notice, its last answer. Nothing after the review
+the result from that notice, its last answer. The notice escapes the
+delegate's text as HTML entities, so decode `&amp;`, `&lt;` and `&gt;` in
+it, and no other entity, in one pass from left to right (`&amp;lt;`
+becomes `&lt;`), before the result is checked, cut, parsed or written
+anywhere: every rule below, `security-1.md` and `result.md` all see the
+delegate's own text. Nothing after the review
 starts before then. An answer that arrives after the processing below has
 started is not used: in mode 1 it breaks the round, in mode 2 it pauses
 the run.
@@ -1626,7 +1633,15 @@ checks, with these values for mode 2:
 - each finding carries `Symbol:`, `Excerpt:`, `Fix:`, `Confidence:`,
   `Scope:` and `Bug class:`, and its severity is `Critical`, `Important` or
   `Suggestion`;
-- the counts line is present, in paad's form;
+- the counts line is present, in paad's form (`Critical: <a> (in-scope)
+  / <b> (out-of-scope), Important: …, Suggestion: …`), and agrees with the
+  findings the result returns: for each severity, the in-scope number
+  equals the number of `### F<i>` findings of that severity with `Scope:
+  in scope`, and the out-of-scope number those with `Scope: out-of-scope
+  bug` or `Scope: out-of-scope addition`. The security section's findings
+  are not counted. A mismatch fails the check: the public counts line is
+  recomputed from the findings ([§3.5](#35-task-issue-records)), but a
+  result that miscounts its own findings is not a usable review;
 - `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`;
 - Spec Compliance did not bail (no `BAIL:` for it under `Agents
   dispatched:`), and `Intent sources consulted:` lists the requirements file
