@@ -942,8 +942,9 @@ discards it.
 
 **After every review,** first run the checks after the review in
 [§1.10](#110-checks-around-every-round): the state directory's hash, before
-you write anything there, and the worktree's branch, HEAD SHA and clean
-status.
+you write anything there; the worktree's branch, HEAD SHA and clean
+status; and that `paad/security/` and `paad/code-reviews/` hold nothing but
+a `.gitignore`.
 
 Then cut the security section out ([§1.9](#19-the-delegate-path)); a
 result whose shape does not allow the cut stops the round for the human
@@ -1004,10 +1005,16 @@ check that fails takes precedence over the others:
   subdirectory takes the next round ID.
 - **A delegate that reports `Files written:` other than `none`:** the
   delegate's own report is the only evidence of the write, since no check
-  sweeps for it. Show the reported paths to the
-  human in the terminal only, unread and never posted, and keep the
-  round's scratch copy as for a result that could not be cut. The human
-  decides what happens to the files and whether the round is run again.
+  sweeps for it. Show the reported paths to the human in the terminal
+  only, unread and never posted, and keep the round's scratch copy as for
+  a result that could not be cut. The human decides what happens to the
+  files and whether the round is run again.
+- **A file in the worktree's `paad/security/` or `paad/code-reviews/`**
+  other than a `.gitignore`, after the review
+  ([§1.10](#110-checks-around-every-round)): leave it there, unread, for
+  the human, and keep the round's scratch copy as for a result that could
+  not be cut. The human decides what happens to the file and whether the
+  round is run again.
 - **A result whose shape does not allow the security cut**
   ([§1.9](#19-the-delegate-path)): the whole result is already in the
   scratch copy as security material. Post nothing from it; tell the human
@@ -1582,8 +1589,9 @@ fails, pauses the run before dispatch ([§3.8](#38-pauses)):
 
 **After every review,** check structure, not prose. First run the checks
 after the review in [§1.10](#110-checks-around-every-round): the task's
-state directory's hash, before you write anything there, and the
-worktree's branch, HEAD SHA and clean status.
+state directory's hash, before you write anything there; the worktree's
+branch, HEAD SHA and clean status; and that `paad/security/` and
+`paad/code-reviews/` hold nothing but a `.gitignore`.
 
 Then cut the security section out ([§1.9](#19-the-delegate-path)); a
 result whose shape does not allow the cut pauses the run
@@ -1622,6 +1630,16 @@ that could not be cut posts nothing from the result: the findings comment
 says only that the security section was malformed, and the whole result
 stays in the round's state subdirectory as security material, under a
 `Kept:` line, until the human rules on it.
+
+**A delegate that reports `Files written:` other than `none`** pauses the
+run the same way, and is never re-run automatically. The delegate's own
+report is the only evidence of the write, since no check sweeps for it.
+Show the reported paths to the human in the terminal only, unread and
+never posted; the findings comment says only that the delegate reported a
+write. Keep the round's state subdirectory as for a result that could not
+be cut, under `Kept:` lines. `dismiss` does not apply: the human decides
+what happens to the files, and rules `another-round`
+([§3.5](#35-task-issue-records)).
 
 ### 3.5 Task-issue records
 
@@ -1732,6 +1750,11 @@ comment, in this fixed form, one per line:
       which runs the next round number with a fresh reviewer, and rules on
       the kept file like any security material
       ([§3.6](#36-security-findings));
+    - after a delegate that reported `Files written:` other than `none`
+      ([§3.4](#34-output-checks)): `dismiss` does not apply. The human
+      decides what happens to the reported files and rules
+      `another-round`, which runs the next round number with a fresh
+      reviewer;
     - before dispatch: nothing ran, so the same round is dispatched again
       under its own number (as it is for `another-round`), and it counts
       toward the cap only once it runs;
@@ -2015,7 +2038,9 @@ when:
   to run posts only its response comment, with the `Paused:` line;
 - an output check fails ([§3.4](#34-output-checks)), including a
   state-directory hash that differs after the review;
-- the result is blocked, or its shape does not allow the security cut ([§1.9](#19-the-delegate-path)). Neither is re-run
+- the result is blocked, its shape does not allow the security cut
+  ([§1.9](#19-the-delegate-path)), or the delegate reports `Files
+  written:` other than `none` ([§3.4](#34-output-checks)). None is re-run
   automatically;
 - a state-directory check fails before a write
   ([§1.5](#15-state-directories)): a mode that is not `700`, a new round

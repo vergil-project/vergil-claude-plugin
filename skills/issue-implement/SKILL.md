@@ -229,13 +229,15 @@ Each round, in order
    the session with the fleet's paad checkout loaded through
    `vrg-vm session`
    ([paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
-   Then come the `paad/` checks
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round))
-   and the state directory's seal and hash
+   Then, in order: the worktree is clean, with its branch and HEAD SHA
+   recorded, and its `paad/` passes its checks
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round));
+   `vrg-git fetch origin`; and last the state directory's seal and hash
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
    start a fresh `paad:paad-delegate` subagent with the
-   [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt) reviewer
-   prompt, verbatim with its placeholders filled, and wait for it. Add nothing about earlier rounds.
+   [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt)
+   reviewer prompt, verbatim with its placeholders filled, and wait for it.
+   Add nothing about earlier rounds.
    Note the dispatch and return times and the review's cost from its
    completion notice. If a pre-dispatch check fails, dispatch nothing: post
    only the round's response comment, with its `Paused:` line
