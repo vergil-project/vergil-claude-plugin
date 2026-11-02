@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.54] - 2026-11-02
+
+### Documentation
+
+- add the paad-delegate path, with today's path as fallback (#878)
+
 ## [2.1.53] - 2026-11-01
 
 ### Documentation
