@@ -534,6 +534,7 @@ Security: <k>
 ### S<i> <severity> — <location>
 <native finding fields>
 Security discards: <k>
+- <one line each>
 === end paad security section ===
 Files written: none
 ```
@@ -627,9 +628,12 @@ round's subdirectory, as [§1.5](#15-state-directories) says: it must not
 exist before (`test ! -e` and `test ! -L`), and if it does, write nothing
 and stop. From then on, every comment,
 commit message, intake issue and note about the round is built only from
-the rest of the result. Inside the section, `Security: <k>` must equal the
-number of `### S<i>` headings, and `Security discards:` must be present; a
-mismatch is a failed output check (below).
+the rest of the result. Inside the section, `Security:` and `Security
+discards:` must each appear exactly once; `Security: <k>` must equal the
+number of `### S<i>` headings; and `Security discards: <k>` must equal the
+number of lines between it and the end marker, each of which starts with
+`- `, as `Discards: <k>` must equal its lines. Any other line there, or a
+mismatch, is a failed output check (below).
 
 **A result of any other shape is a broken round, and nothing is cut.**
 Nothing from the result is posted anywhere. Write the whole result,
