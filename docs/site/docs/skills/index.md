@@ -33,8 +33,9 @@ unattended runner, `paad:paad-delegate`
   a session that loads the fleet's paad checkout, a fork's tree that
   tracks upstream and runs a patch or two ahead of it, has one. A session
   without it runs no review round: `epic-create` stops and tells the
-  human, `issue-implement` pauses its gate, and the message names the
-  fix. No other agent type stands in for the delegate.
+  human, `issue-implement` stops in Preflight before creating a worktree
+  (and its gate pauses if a round finds the delegate missing), and the
+  message names the fix. No other agent type stands in for the delegate.
 - **Turning it on.** On the Mac, create
   `~/.config/vergil/plugin-dirs.toml` listing the fleet checkout's
   `preview/paad`, then start the session with `vrg-vm session`, which
@@ -181,9 +182,10 @@ PR tooling's refusal.
 implementation through the point where the human opens the PR. Run it
 in a Lima session: the agentic-review gate needs paad's delegate, which
 only a Lima session loads, so the gate cannot run on a cloud VM (see
-[paad review rounds](#paad-review-rounds-what-a-session-needs)). A task
-started on a cloud VM is implemented again in a Lima session, since the
-branch is not pushed before `report-ready`. `report-ready` pushes a
+[paad review rounds](#paad-review-rounds-what-a-session-needs)). On a
+cloud VM it stops in Preflight, before creating a worktree and with
+nothing posted on the issue, and tells the human to start the task in a
+Lima session. `report-ready` pushes a
 world-readable **relay ref** carrying the ready-state, so the Mac does
 not need the session's filesystem, and the human opens the PR
 worktree-free with `vrg-submit-pr <branch> [<branch> …]`. (This retired
