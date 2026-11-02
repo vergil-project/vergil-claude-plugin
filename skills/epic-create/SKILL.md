@@ -190,33 +190,32 @@ run `paad:pushback` or `paad:alignment` in the main session; every review is a
 round. The human decides every round. Each round has seven steps:
 
 1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)):
-   select the path by the doctrine's selection rule
-   ([§1.8](../../docs/paad-review-doctrine.md#18-the-two-paths)): the
-   delegate path when `paad:paad-delegate` is among the agent types this
-   session can dispatch, otherwise the fallback path, recorded in the round
-   comment as a deviation. Run that path's pre-dispatch steps of
-   [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
-   including the `paad/` checks
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)),
-   on the fallback path the round's empty temporary directory, and the
-   state directory's seal and hash (in the first round of a session, the
-   human's confirmation of its listing instead of the seal)
+   run the pre-dispatch steps of
+   [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds).
+   The first is the delegate requirement
+   ([§1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement)):
+   if `paad:paad-delegate` is not among the agent types this session can
+   dispatch, the round does not run; stop and tell the human the fix, which
+   is to start the session with the fleet's paad checkout loaded through
+   `vrg-vm session`
+   ([paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+   Then come the `paad/` checks
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round))
+   and the state directory's seal and hash (in the first round of a
+   session, the human's confirmation of its listing instead of the seal)
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
-   start a fresh subagent **in the background** with that path's
-   [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
-   template (`paad:paad-delegate` or `general-purpose`), placeholders
-   filled and nothing about earlier rounds added. If any pre-dispatch
+   start a fresh `paad:paad-delegate` subagent **in the background** with
+   the [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
+   template, placeholders filled and nothing about earlier rounds added. If any pre-dispatch
    check or command fails, dispatch nothing and stop and ask the human:
    nothing is reverted or re-run.
 2. **Check the output**
    ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
-   On the fallback path, the stray-write check. Then, on both paths, the
-   state directory's hash, before anything is written there
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)).
+   First the state directory's hash, before anything is written there
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)).
    If it differs, write nothing there, show the result's security section
    in the terminal only, and take the state-directory exit below, which
-   overrides every other exit. Otherwise, on the delegate path, cut the
-   security section out into the scratch copy as `security-1.md`, hashed
+   overrides every other exit. Otherwise cut the security section out into the scratch copy as `security-1.md`, hashed
    as a details file, before anything else reads the result, and only from
    a well-formed result; a result whose shape does not allow the cut is
    written there whole, hashed and treated as security material

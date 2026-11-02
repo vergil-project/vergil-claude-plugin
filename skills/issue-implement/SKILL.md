@@ -220,36 +220,35 @@ Each round, in order
    carries every ruling the human has made on this task in this session,
    and every confirmed recorded `fix` ruling, restated as requirements;
    never a security ruling.
-2. **Dispatch.** Select the path by the doctrine's selection rule
-   ([§1.8](../../docs/paad-review-doctrine.md#18-the-two-paths)): the
-   delegate path when `paad:paad-delegate` is among the agent types this
-   session can dispatch, otherwise the fallback path, recorded in the
-   findings comment as a deviation. Run that path's pre-dispatch steps of
-   [§3.4](../../docs/paad-review-doctrine.md#34-output-checks), including the
-   `paad/` checks
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)),
-   the state directory's seal and hash
-   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)) and, on
-   the fallback path, the listings and the sweep's marker. Then start a
-   fresh subagent with that path's
+2. **Dispatch.** Run the pre-dispatch steps of
+   [§3.4](../../docs/paad-review-doctrine.md#34-output-checks). The first
+   is the delegate requirement
+   ([§1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement)):
+   if `paad:paad-delegate` is not among the agent types this session can
+   dispatch, the round does not run; pause, and say the fix is to start
+   the session with the fleet's paad checkout loaded through
+   `vrg-vm session`
+   ([paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+   Then come the `paad/` checks
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round))
+   and the state directory's seal and hash
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
+   start a fresh `paad:paad-delegate` subagent with the
    [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt) reviewer
-   prompt (`paad:paad-delegate` or `general-purpose`), verbatim with its
-   placeholders filled, and wait for it. Add nothing about earlier rounds.
+   prompt, verbatim with its placeholders filled, and wait for it. Add nothing about earlier rounds.
    Note the dispatch and return times and the review's cost from its
    completion notice. If a pre-dispatch check fails, dispatch nothing: post
    only the round's response comment, with its `Paused:` line
    ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
 3. **Check the output**
-   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). On the
-   fallback path, the stray-write sweep first. Then, on both paths, the
+   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). First the
    checks after the review
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)):
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)):
    the state directory's hash, before anything is written there (if it
    differs, write nothing there and pause; the round can only be run
-   again), then the worktree's branch, HEAD SHA and clean status, and on
-   the delegate path that `paad/security/` and `paad/code-reviews/` hold
-   nothing but a `.gitignore`. Then, on the delegate path, cut the
-   security section out
+   again), then the worktree's branch, HEAD SHA and clean status, and that
+   `paad/security/` and `paad/code-reviews/` hold nothing but a
+   `.gitignore`. Then cut the security section out
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)), only
    from a well-formed result: write it to the round's state subdirectory as
    `security-1.md` and the rest beside it as `result.md`, hashing each as a
@@ -265,11 +264,8 @@ Each round, in order
    failed another check is kept whole as security material
    (`security-1.md` and `result.md`), and `dismiss` does not apply to it
    ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)).
-4. **Collect.** On the fallback path, move paad's report and every other
-   file in `paad/code-reviews/` and `paad/security/` (but its `.gitignore`)
-   into the round's state subdirectory, under neutral names, hashing each;
-   on the delegate path the material is already there. Delete the round
-   directory.
+4. **Collect.** The round's material is already in its state
+   subdirectory (step 3). Delete the round directory.
 5. **Screen, classify and sort** every finding before acting on any:
    screening and the security hold-back
    ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)),
