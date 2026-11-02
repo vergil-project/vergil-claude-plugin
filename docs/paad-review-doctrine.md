@@ -564,7 +564,11 @@ delegate's text as HTML entities, so decode `&amp;`, `&lt;` and `&gt;` in
 it, and no other entity, in one pass from left to right (`&amp;lt;`
 becomes `&lt;`), before the result is checked, cut, parsed or written
 anywhere: every rule below, `security-1.md` and `result.md` all see the
-delegate's own text. Nothing after the review
+delegate's own text. That text is raw, so result text posted in a public
+record goes in a code span or fence longer than its own longest run of
+backticks, or has `&`, `<` and `>` escaped again as it is posted (mode 1:
+[§2.6](#26-the-round-comment); mode 2: [§3.5](#35-task-issue-records)).
+Nothing after the review
 starts before then. An answer that arrives after the processing below has
 started is not used: in mode 1 it breaks the round, in mode 2 it pauses
 the run.
@@ -677,8 +681,9 @@ list only `paad:paad-analyst`. Then:
 What a `Defaults applied:` line says is not checked, only its shape. The
 lines, like the `Config not followed:` paths, are the delegate's own free
 text, written after reading the reviewed content, so they never reach a public record: show them to the
-human in the terminal, and give only their count in the round's record. A
-failed check is handled by the mode: in mode 1 a broken round
+human in the terminal, and give only their count in the round's record:
+the number of `- ` lines under `Defaults applied:`, and 0 for
+`Defaults applied: none`. A failed check is handled by the mode: in mode 1 a broken round
 ([§2.4](#24-output-checks-and-broken-rounds)), in mode 2 a pause
 ([§3.4](#34-output-checks)). The record names the failed check; it never
 quotes the result.
@@ -1145,7 +1150,8 @@ Post one comment per round on the planning issue, with
   recommendation and its signal; the round-4 note when it applies; the
   broken-round note (with any recorded skip) when it applies; and, for a
   round the delegate ran, the counts of `Config not followed:` lines and
-  `Defaults applied:` lines, never the lines themselves, which go to the
+  of the `- ` lines under `Defaults applied:` (0 for `none`), never the
+  lines themselves, which go to the
   human in the terminal ([§1.9](#19-the-delegate-path)). A round run
   interactively at the human's choice
   ([§2.4](#24-output-checks-and-broken-rounds) step 3) has no such counts:
@@ -1165,6 +1171,10 @@ Post one comment per round on the planning issue, with
   descriptions or details.
 - **No marker lines** (`Epic:`, `Docs task:`, `Tasks filed:`), so the queue
   view's marker parsing is unaffected.
+- **Result text is contained.** Any text taken from the result (a claim
+  summary, a discard line) goes in a code span or fence longer than its
+  own longest run of backticks, or has `&`, `<` and `>` escaped again,
+  since the decoded result is raw ([§1.9](#19-the-delegate-path)).
 
 A comment that would pass GitHub's 65,536-character limit is split into
 parts. Each part's first line is the same first line plus `(part <i>/<m>)`.
@@ -1659,7 +1669,9 @@ checks, with these values for mode 2:
 produce a usable review, which says nothing about the code. A failed round is
 never treated as a pass, and its findings are not acted on unless the human
 rules the check `dismiss` where [§3.5](#35-task-issue-records) allows it
-(below, a reported write and a file left in `paad/` do not). Leave the
+(below, a reported write and a file left in `paad/` do not, and neither
+does a failed `Scope:` value check, since the findings comment needs each
+finding's scope bucket). Leave the
 worktree's `paad/` and the task's state directory where they are, unread,
 for the human. The round's findings comment notes which check failed and
 carries no findings, and its response comment carries the `Paused:` line
@@ -1707,8 +1719,9 @@ ISO 8601.
   `Returned: <time>`; the review's cost, `Review cost: totalTokens <t>,
   toolUses <u>, durationMs <d>`, or `Review cost: not reported` when the
   completion notice does not give them; the counts of `Config not
-  followed:` and `Defaults applied:` lines (the lines go to the human in
-  the terminal, [§1.9](#19-the-delegate-path)); paad's version,
+  followed:` lines and of the `- ` lines under `Defaults applied:` (0 for
+  `none`; the lines go to the human in the terminal,
+  [§1.9](#19-the-delegate-path)); paad's version,
   and a counts line
   in paad's form recomputed over the ordinary findings left after
   screening and the hold-back, so it reveals nothing withheld; then each
@@ -1787,7 +1800,10 @@ comment, in this fixed form, one per line:
       steps 4–7 run through the exception above. The output is the round's
       hashed `result.md`, with its cut-out `security-1.md`; after a state-directory
       hash that differed, nothing was written ([§1.9](#19-the-delegate-path)),
-      so `dismiss` does not apply and only `another-round` does;
+      so `dismiss` does not apply and only `another-round` does. Nor does
+      it apply after a failed `Scope:` value check
+      ([§3.4](#34-output-checks)): a finding with no valid scope has no
+      bucket in the findings comment, so only `another-round` does;
     - after a blocked result that passed its other checks:
       there is no review to use. Delete the round's state subdirectory (it
       holds only the empty security section and `result.md`), finish the
@@ -1845,7 +1861,11 @@ comment, in this fixed form, one per line:
   directory (`build/.vergil-state/agentic-review/<N>/`).
 
 The reviewer's free-text notes are not copied into these comments, and
-security findings appear only as counts. A comment that would pass GitHub's
+security findings appear only as counts. Text taken from the result (an
+excerpt, a symbol, a discard reason) goes in a code span or fence longer
+than its own longest run of backticks, or has `&`, `<` and `>` escaped
+again, since the decoded result is raw ([§1.9](#19-the-delegate-path)).
+A comment that would pass GitHub's
 65,536-character limit is split into parts; each part's first line is the
 same first line plus `(part <i>/<m>)`.
 

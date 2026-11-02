@@ -245,7 +245,9 @@ Each round, in order
 3. **Check the output**
    ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). Take the
    result from the completion notice with its `&amp;`, `&lt;` and `&gt;`
-   entities decoded, so every check and file sees the delegate's own text
+   entities decoded, so every check and file sees the delegate's own text;
+   result text posted on the issue goes in a code span or fence longer than
+   its longest backtick run, or is escaped again
    ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)).
    First the checks after the review
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)):
