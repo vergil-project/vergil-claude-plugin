@@ -662,18 +662,21 @@ list only `paad:paad-analyst`. Then:
   [§3.4](#34-output-checks)). The harness cannot limit which agent types a
   subagent dispatches, so this line is the delegate's own report, and the
   check is the caller's;
-- every field is present, in order: `Defaults applied:`; `Findings: <n>`,
-  with `<n>` equal to the number of `### F<i>` headings; each finding's
-  native fields; `Discards: <k>`, with `<k>` lines; the skill-specific
+- every field is present, in order: `Defaults applied:`, in one of two
+  shapes: `Defaults applied: none`, or the label alone on its line
+  followed by one or more lines that each start with `- `. A bare label
+  with no `- ` line after it, or any text after the label but `none`,
+  fails; `Findings: <n>`, with `<n>` equal to the number of `### F<i>`
+  headings; each finding's native fields; `Discards: <k>`, with `<k>` lines; the skill-specific
   fields the mode requires; and `Files written: none` as the last line;
 - every severity is a word from that skill's column of the
   [§1.3](#13-severity) table;
 - the mode's own values ([§2.4](#24-output-checks-and-broken-rounds),
   [§3.4](#34-output-checks)).
 
-`Defaults applied:` lines are not checked. They, like the `Config not
-followed:` paths, are the delegate's own free text, written after reading
-the reviewed content, so they never reach a public record: show them to the
+What a `Defaults applied:` line says is not checked, only its shape. The
+lines, like the `Config not followed:` paths, are the delegate's own free
+text, written after reading the reviewed content, so they never reach a public record: show them to the
 human in the terminal, and give only their count in the round's record. A
 failed check is handled by the mode: in mode 1 a broken round
 ([§2.4](#24-output-checks-and-broken-rounds)), in mode 2 a pause
@@ -1633,6 +1636,10 @@ checks, with these values for mode 2:
 - each finding carries `Symbol:`, `Excerpt:`, `Fix:`, `Confidence:`,
   `Scope:` and `Bug class:`, and its severity is `Critical`, `Important` or
   `Suggestion`;
+- each `Scope:` value is exactly `in scope`, `out-of-scope bug` or
+  `out-of-scope addition`, matched exactly, as severity words are
+  ([§1.10](#110-checks-around-every-round)). This check comes before the
+  counts line's, so a malformed value fails as itself, not as a miscount;
 - the counts line is present, in paad's form (`Critical: <a> (in-scope)
   / <b> (out-of-scope), Important: …, Suggestion: …`), and agrees with the
   findings the result returns: for each severity, the in-scope number

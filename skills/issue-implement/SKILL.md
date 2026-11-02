@@ -259,8 +259,8 @@ Each round, in order
    `security-1.md` and the rest beside it as `result.md`, hashing each as a
    details file. A result whose shape does not allow the cut is written
    whole as `security-1.md`, hashed, and treated as security material:
-   nothing from it is posted. Then the output checks, among them that the
-   counts line agrees with the findings, by severity and by scope. A
+   nothing from it is posted. Then the output checks, among them that each
+   `Scope:` value is one of the three and that the counts line agrees with the findings, by severity and by scope. A
    delegate that reports `Files written:`
    other than `none`, or a file left in `paad/security/` or
    `paad/code-reviews/`, is a failed check of its own kind: show reported
