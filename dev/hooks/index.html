@@ -4581,9 +4581,13 @@ live-lab state lives there), and <code>build/.vergil-state/</code> is the namesp
 for agent state (the <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories">paad review doctrine's state
 directories</a>).
 Of the main worktree, the hook allows Write and Edit only under
-<code>build/.vergil-state/</code>. Every target path is normalised first
-(<code>.</code>, <code>..</code> and symlinks resolved, for new files as well as existing
-ones) with <code>python3</code>. A relative target path is denied. Without
+<code>build/</code>, the one place the human can see what agents write, and there
+only to paths git reports as ignored. Every
+target path is normalised first (<code>.</code>, <code>..</code> and symlinks resolved, for
+new files as well as existing ones) with <code>python3</code>, and matched where
+it leads: a path that leads out of <code>build/</code> through <code>..</code> or a symlink,
+or through a <code>build</code> that is itself a symlink, is not allowed as
+<code>build/</code> scratch. A relative target path is denied. Without
 <code>python3</code> the hook denies every Write and Edit, wherever it points; a
 write whose path <code>python3</code> cannot normalise is denied.
 Design: <code>docs/specs/2026-05-09-worktree-write-guard-design.md</code>.
