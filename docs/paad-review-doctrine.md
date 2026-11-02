@@ -9,14 +9,19 @@ it for the rules; they keep only their own step-by-step procedure.
   [`epics/500-paad-first-engineering/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/500-paad-first-engineering/spec.md)
   §3.1 (common core), §3.2 (mode 1) and §3.3 (mode 2); the mode 1 spec,
   [`epics/553-iterating-design-review/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/553-iterating-design-review/spec.md);
-  and the mode 2 spec,
+  the mode 2 spec,
   [`epics/568-agentic-review-gate/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/568-agentic-review-gate/spec.md);
-  all in `vergil-project/.github`.
+  and the paad unattended mode spec,
+  [`epics/699-paad-unattended-mode/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/699-paad-unattended-mode/spec.md)
+  §4.8 and §4.11; all in `vergil-project/.github`.
 - **Policy:** how the workflow uses paad, and every deviation from the paad
   authors' recommendations, is in the [paad usage policy](paad-policy.md).
 
 The doctrine has two modes, chosen by whether a human is in the loop. Both
-share the common core in section 1.
+share the common core in section 1, which holds everything the two modes do
+alike: the paths a round can take, the output checks, screening, the
+handling of security findings and the no-anchoring rule. Each mode's section
+keeps only what differs: its iteration rules, its prompts and its records.
 
 - [1. Common core](#1-common-core)
   - [1.1 Rules](#11-rules)
@@ -26,6 +31,9 @@ share the common core in section 1.
   - [1.5 State directories](#15-state-directories)
   - [1.6 Security findings](#16-security-findings)
   - [1.7 Creating issues](#17-creating-issues)
+  - [1.8 The two paths](#18-the-two-paths)
+  - [1.9 The delegate path](#19-the-delegate-path)
+  - [1.10 Checks on both paths](#110-checks-on-both-paths)
 - [2. Mode 1: human-gated design review](#2-mode-1-human-gated-design-review)
   - [2.1 Stages](#21-stages)
   - [2.2 One round](#22-one-round)
@@ -36,7 +44,6 @@ share the common core in section 1.
   - [2.7 Security findings](#27-security-findings)
   - [2.8 No review history](#28-no-review-history)
   - [2.9 The planning issue](#29-the-planning-issue)
-  - [2.10 Fallback](#210-fallback)
 - [3. Mode 2: agentic review in `issue-implement`](#3-mode-2-agentic-review-in-issue-implement)
   - [3.1 The loop](#31-the-loop)
   - [3.2 The reviewer prompt](#32-the-reviewer-prompt)
@@ -55,9 +62,10 @@ session of `epic-create`; in mode 2 it is the implementer.
 
 ### 1.1 Rules
 
-- **One round is one fresh reviewer.** Dispatch a fresh subagent that runs
-  the paad skill on the artifact in its current state and returns its full
-  findings. Give it no memory of earlier rounds: no round number, no earlier
+- **One round is one fresh reviewer.** Dispatch a fresh subagent, on the
+  path [§1.8](#18-the-two-paths) selects, that runs the paad skill on the
+  artifact in its current state and returns its full findings. Give it no
+  memory of earlier rounds: no round number, no earlier
   findings, no decisions. Tell it to review the **whole** artifact,
   including mechanisms that earlier rounds added, and that removing an
   earlier addition is a legitimate finding.
@@ -254,12 +262,14 @@ issue, finds it. Find the main clone from inside a worktree with
   nothing: the directory holds only directories and regular files. A
   command that fails is a failed check. Keep each hash in your own context,
   never on disk, and never take one from an earlier session.
-- **The check around each review.** Take the hash just before dispatch,
+- **The check around each review,** on both paths
+  ([§1.10](#110-checks-on-both-paths)). Take the hash just before dispatch,
   after your own last write of the round so far, and again right after the
   review, before you write anything there. A difference is a broken round
   (mode 1: [§2.4](#24-output-checks-and-broken-rounds); mode 2:
   [§3.4](#34-output-checks)).
-- **The seal between rounds, within a session.** Take the hash again at
+- **The seal between rounds, within a session,** on both paths. Take the
+  hash again at
   the end of every round, on every path out of it (a clean-up, a kept
   round subdirectory, a pause, a broken round), once you have finished
   writing or deleting there. Check it at the start of the next round in the
@@ -321,7 +331,9 @@ runs, is not caught by the directory hash; kept details files are checked
 against their recorded hashes when a later session uses them. On the VMs
 the main clones are not under `$HOME`, so mode 2's stray-write sweep
 ([§3.4](#34-output-checks)) does not reach `build/.vergil-state/` there
-either.
+either. The delegate path has no sweep
+([§1.8](#18-the-two-paths)), so there the hash checks alone cover the state
+directory.
 
 ### 1.6 Security findings
 
@@ -330,12 +342,54 @@ one the workflow uses: reading it would help an attacker. That covers any
 OWASP Top 10:2025 category, and anything in a payment, tenant-isolation or
 secret-handling path. On the edge, treat it as security.
 
-The mode 1 reviewer prompt carries this definition
-([§2.3](#23-the-reviewer-prompt)), and the orchestrator screens with it in
-both modes ([§2.7](#27-security-findings), [§3.6](#36-security-findings)).
-Nothing widens or narrows it. Every security finding reaches the human, so
-paad may err toward reporting more; the human's rejections show where to
-tune.
+On the delegate path paad applies this definition itself, and returns its
+security findings in the result's security section
+([§1.9](#19-the-delegate-path)). On the fallback path the mode 1 reviewer
+prompt carries it ([§2.3](#23-the-reviewer-prompt)). The orchestrator
+screens with it on both paths and in both modes. Nothing widens or narrows
+it. Every security finding reaches the human, so paad may err toward
+reporting more; the human's rejections show where to tune.
+
+**Screening is required,** on both paths and in both modes. Every round,
+after the output checks and before classification, and before anything
+about the round is posted, screen every ordinary finding and every discard
+line (and, for pushback on the delegate path, every `Outside the spec:`
+line) against the definition above, whatever the round's security count
+says. Also take any ordinary finding whose symbol, excerpt or fix shows the
+code a security finding is about. Each one that qualifies:
+
+- moves into the round's security material before any comment is built: its
+  text goes to a details file of its own in the mode's private location
+  (mode 1: the scratch copy, [§2.7](#27-security-findings); mode 2: the
+  round's state subdirectory, [§3.6](#36-security-findings)), hashed as a
+  details file ([§1.5](#15-state-directories)). In both modes the file is
+  named `security-<i>.md`, numbered after every security file already in
+  the round's subdirectory (the cut's `security-1.md` among them), and
+  never written over: check `test ! -e` first;
+- leaves the ordinary findings, and is counted as security, so its summary
+  never reaches a comment, an intake issue or a commit message; a withheld
+  discard appears only in a count;
+- is handled as a security finding from then on: in mode 1 walked through
+  in the terminal and recorded ([§2.7](#27-security-findings)), in mode 2
+  held for the human's ruling ([§3.6](#36-security-findings)).
+
+**Discard lines when any candidate was security-class,** in both modes:
+when the reviewer reports any security-class discard (on the delegate path,
+`Security discards:` is not 0) or screening withheld any discard, the
+round's public record gives the discards as a count alone, with no lines
+(mode 1: [§2.6](#26-the-round-comment); mode 2:
+[§3.5](#35-task-issue-records)). The lines go to the human in the
+terminal.
+
+Screening is load-bearing, not a backstop you may skip: routing by the model
+is not guaranteed. In the mode 1 spike
+([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
+an alignment reviewer reported a security mechanism as an ordinary gap. In
+the validation of the delegate path
+([vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733))
+the same finding came back in the security section in one run and as an
+ordinary finding in the next, and screening moved it. Screening is also the
+backstop for a security marker forged in the reviewed content.
 
 ### 1.7 Creating issues
 
@@ -424,6 +478,328 @@ task already reported ready, the human rules `file` instead. A paused
 agentic-review round resumes as [§3.8](#38-pauses) says instead, with
 these rulings folded in.
 
+### 1.8 The two paths
+
+Every round, in both modes, runs on one of two paths:
+
+- **The delegate path:** the round dispatches paad's unattended runner,
+  `paad:paad-delegate`. It runs the skill with no person present, asks
+  nothing, writes nothing (paad's contract allows only incidental artifacts
+  of read-only commands, in ignored paths), follows no config file the
+  prompt does not name, dispatches only the analyst, and returns one
+  structured result ([§1.9](#19-the-delegate-path)).
+- **The fallback path:** the round dispatches a `general-purpose` subagent
+  with the mode's fallback prompt, and runs the checks that prompt needs
+  (mode 1: [§2.3](#23-the-reviewer-prompt),
+  [§2.4](#24-output-checks-and-broken-rounds); mode 2:
+  [§3.2](#32-the-reviewer-prompt), [§3.4](#34-output-checks)).
+
+**The selection rule.** Before each dispatch, look at the agent types this
+session can dispatch: the list the Agent tool offers. If it includes
+`paad:paad-delegate`, the round takes the delegate path; otherwise it takes
+the fallback path. A round never mixes the two. Today only a session that
+loads the fleet's paad checkout has the delegate
+([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
+so a session started without that override, a cloud box, or anyone using
+this plugin with paad as released today takes the fallback path.
+
+**Record the path.** Each round records the path it took: mode 1 in the
+round comment's checkpoint ([§2.6](#26-the-round-comment)), mode 2 in the
+findings comment ([§3.5](#35-task-issue-records)). A round on the fallback
+path records it as a deviation, `Path: fallback (paad:paad-delegate not
+loaded)`. Rounds record nothing about the fleet's paad checkout: the human
+records its commit each time they move it
+([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+
+**The fallback stays until the delegate is reliably available.** Today the
+delegate exists only in sessions that load the fleet's paad checkout, and
+paad's author may take unattended mode in a different shape, later or not
+at all, so the fallback path keeps every check it needs. Text marked
+**Fallback path only** is binding on the fallback path and does not apply
+on the delegate path. It is retired once the delegate is reliably
+available wherever these skills run, for example because upstream paad
+adopts the mode, and this doctrine is updated to match. "Fallback" in this
+document means only this
+path: the older idea of a mode 1 fallback through review-only
+`paad/config/` files was never adopted, and unattended mode replaces it.
+
+### 1.9 The delegate path
+
+**Dispatch.** Start a fresh subagent of type `paad:paad-delegate` with the
+mode's delegate prompt (mode 1: [§2.3](#23-the-reviewer-prompt); mode 2:
+[§3.2](#32-the-reviewer-prompt)), its placeholders filled and nothing else
+added. The delegate's own contract says what the fallback prompts had to
+spell out: ask nothing, write nothing but incidental artifacts in ignored
+paths, follow no unnamed config file,
+dispatch only the analyst, and the result's format. So the prompt carries
+only the skill and its arguments, the document roles (mode 1) or the
+`Intent:` input (mode 2), the working directory, and vergil's own review
+rules: read the code but never run it, review the whole artifact, and the
+no-anchoring rule ([§1.1](#11-rules)). It names vergil's things only by
+concrete identifier, such as an issue ref or a path, because everything paad
+reads uses paad's own terms.
+
+**The result.** The delegate's final message is the result, these lines in
+this order (`<…>` are values):
+
+```text
+Running paad:<skill> v<version>
+Config: <path>                       (only when a caller-named file was followed)
+Config not followed: <path>          (one line per file found and not followed)
+Status: complete | blocked: <reason>
+Agent types dispatched: <type>[, <type>…] | none
+Defaults applied: none | then one "- <interaction point>: <default>" line each
+Findings: <n>
+### F<i> <severity> — <location>
+<the skill's native finding fields, one "<Field>: <value>" line each>
+Discards: <k>
+- <one line each>
+<skill-specific fields>
+=== paad security section ===
+Security: <k>
+### S<i> <severity> — <location>
+<native finding fields>
+Security discards: <k>
+=== end paad security section ===
+Files written: none
+```
+
+The native finding fields are, for pushback and alignment, `Claim:`,
+`Options:` (best to worst) and `Recommendation:`, with the document and
+section as the location; for agentic-review, `Symbol:`, `Excerpt:`, `Fix:`,
+`Confidence:`, `Scope:` (`in scope`, `out-of-scope bug` or `out-of-scope
+addition`) and `Bug class:`, with the file and line as the location.
+`Options:` is the one field that runs over several lines: its numbered
+options follow it, one per line, best first. An option line that trips the
+security cut's shape rule (below) is an expected cause of a broken round;
+the cut still fails closed, and the human rules on it.
+agentic-review's skill-specific fields are its counts line, `Agents
+dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
+consulted:` and `Verifier warnings:`. pushback's one skill-specific field
+is `Outside the spec: <n>`, then one line for each defect in the
+surrounding code that does not block the spec; alignment has none. A
+blocked result has `Findings: 0`
+and `Discards: 0`, and still carries the security section, empty. A skill
+the delegate refused without invoking it opens `Running paad:<skill> (not
+invoked)`. The review has returned only when the harness's completion
+notice says the subagent has finished and has no work still running; take
+the result from that notice, its last answer. Nothing after the review
+starts before then. An answer that arrives after the processing below has
+started is not used: in mode 1 it breaks the round, in mode 2 it pauses
+the run.
+
+**After the review,** in this order:
+
+1. the checks after the review in [§1.10](#110-checks-on-both-paths),
+   starting with the state directory's hash;
+2. the security cut (below), before anything else reads the result;
+3. the output checks (below), on the result with the section removed;
+4. screening ([§1.6](#16-security-findings));
+5. the mode's own steps.
+
+If the state directory's hash differs (step 1), write nothing there: no
+cut, no `result.md`. The result stays only in the conversation; show its
+security section to the human in the terminal only, and post nothing from
+it. The round can only be run again (mode 1: the human decides, mode 2:
+`another-round`), never used. This takes precedence over every other rule
+below, including the blocked-result and cut-shape rules. If another check
+in step 1 fails (the worktree's branch, HEAD SHA or clean status), the
+state directory is intact, so the cut and the writes still happen, and the
+round then fails that check like any other; what happens to its files then
+is the mode's failed-check handling (mode 1:
+[§2.4](#24-output-checks-and-broken-rounds); mode 2:
+[§3.4](#34-output-checks)).
+
+**The security cut.** The result's security section holds details that
+would help an attacker, and the caller must keep it out of every public
+record. So the orchestrator cuts it out first, and only from a result whose
+shape is beyond doubt. The cut proceeds only when all of these hold:
+
+- exactly one line contains `=== paad security section ===` and exactly one
+  line contains `=== end paad security section ===`, and each of those
+  lines is the marker alone;
+- the start marker's line comes before the end marker's line;
+- outside the two markers, no line, once leading whitespace, list markers
+  (`-`, `*`, `+`, `>`, a number and a dot) and markdown emphasis (`*`,
+  `_`, `` ` ``) are stripped from its start, starts with `### S` followed
+  by a digit, or with `Security:` or `Security discards:`. When unsure
+  whether a line is one of these, treat it as one: the cut fails closed.
+
+Markers and keywords match without regard to case
+([§1.10](#110-checks-on-both-paths)). If the cut proceeds, the lines from
+the start marker to the end marker, inclusive, are the security section.
+Write them to the mode's private location as `security-1.md` and hash it as
+a details file ([§1.5](#15-state-directories)): mode 1, the round's scratch
+copy ([§2.7](#27-security-findings)); mode 2, the round's state
+subdirectory ([§3.6](#36-security-findings)). That write creates the
+round's subdirectory, as [§1.5](#15-state-directories) says: it must not
+exist before (`test ! -e` and `test ! -L`), and if it does, write nothing
+and stop. From then on, every comment,
+commit message, intake issue and note about the round is built only from
+the rest of the result. Inside the section, `Security: <k>` must equal the
+number of `### S<i>` headings, and `Security discards:` must be present; a
+mismatch is a failed output check (below).
+
+**A result of any other shape is a broken round, and nothing is cut.**
+Nothing from the result is posted anywhere. Write the whole result,
+unchanged, to the mode's private location as `security-1.md`, hash it as a
+details file, and treat it as security material: it is never read back into
+a public record. Then ask the human, with no automatic re-run: mode 1 stops
+and asks ([§2.4](#24-output-checks-and-broken-rounds)), mode 2 pauses
+([§3.8](#38-pauses)). The hash of each kept file is recorded with the
+record that says it was kept: mode 1's round comment (`scratch copy kept`,
+[§2.4](#24-output-checks-and-broken-rounds)), mode 2's `Kept:` line. The
+human rules on what happens to it. A later run of the round never reuses a
+kept subdirectory: it takes the next round number.
+
+**The output checks.** Check the structure, not the prose. First read the
+`Status:` line. A blocked result (below) is checked for its frame (the
+announce line, `Status:`, `Findings: 0`, `Discards: 0`, an empty security
+section and `Files written: none`) and for the version, `Config:` and
+`Agent types dispatched:` checks below, but not for the mode's values. For
+a blocked result, in both modes, `Agent types dispatched:` may be `none` or
+list only `paad:paad-analyst`. Then:
+
+- the first line is `Running paad:<skill> v<version>` for the skill the
+  prompt named, and `<version>` is exactly the version that
+  [paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)
+  records as validated. Any other version fails the check. This catches a
+  delegate that announces a version the gate has not passed; it cannot
+  tell two builds that announce the same version apart, such as a later
+  fleet commit or an uncommitted edit in the fleet checkout. A moved
+  commit rests on the human holding reviews until the gate passes on it;
+  an uncommitted edit is an accepted risk (paad-policy §10);
+- no `Config:` line: a config file was followed, which only a config file
+  the prompt names may be, and no prompt names one. Each `Config not
+  followed: <path>` line is allowed. Show the paths to the human in the
+  terminal; the round's public record gives only their count;
+- the `Status:` line is `complete`, or `blocked: <reason>` (below). Any
+  other value fails;
+- the `Agent types dispatched:` line lists only the types the mode allows
+  (mode 1: [§2.4](#24-output-checks-and-broken-rounds); mode 2:
+  [§3.4](#34-output-checks)). The harness cannot limit which agent types a
+  subagent dispatches, so this line is the delegate's own report, and the
+  check is the caller's;
+- every field is present, in order: `Defaults applied:`; `Findings: <n>`,
+  with `<n>` equal to the number of `### F<i>` headings; each finding's
+  native fields; `Discards: <k>`, with `<k>` lines; the skill-specific
+  fields the mode requires; and `Files written: none` as the last line;
+- every severity is a word from that skill's column of the
+  [§1.3](#13-severity) table;
+- the mode's own values ([§2.4](#24-output-checks-and-broken-rounds),
+  [§3.4](#34-output-checks)).
+
+`Defaults applied:` lines are not checked. They, like the `Config not
+followed:` paths, are the delegate's own free text, written after reading
+the reviewed content, so they never reach a public record: show them to the
+human in the terminal, and give only their count in the round's record. A
+failed check is handled by the mode: in mode 1 a broken round
+([§2.4](#24-output-checks-and-broken-rounds)), in mode 2 a pause
+([§3.4](#34-output-checks)). The record names the failed check; it never
+quotes the result.
+
+**A blocked result pauses for the human,** and is never re-run
+automatically: mode 1 stops and asks the human, mode 2 pauses
+([§3.8](#38-pauses)). That holds for any result whose `Status:` line starts
+`blocked:`, whether or not its other checks pass. If any of them fails,
+tell the human which, with the block, and keep the whole result in the
+mode's private location as security material: the cut has already written
+the section as `security-1.md`, so write the rest of the result beside it
+as `result.md`, hash both, and record both hashes as for a result that
+could not be cut (below). A differing state-directory hash still comes
+first: then nothing is written (above). Its reason is the delegate's free text, so it goes to the
+human in the terminal only; a public record says only that the round was
+blocked. A blocked result is not a broken round: the delegate did what its
+contract says when it cannot proceed safely. `Running
+paad:<skill> (not invoked)` is accepted only with `Status: blocked: skill
+does not support unattended mode`.
+
+**What a result may show without failing.** In the validation runs
+([vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733)),
+these happened and are not failed checks, as long as every type dispatched
+is the analyst:
+
+- a specialist re-dispatched once a slot freed, after the harness's limit on
+  concurrent subagents refused it at first;
+- a specialist or the Verifier returning twice, with the later, complete
+  report used;
+- a stray analyst dispatch whose output was ignored.
+
+The severity of the same finding can differ between runs (Critical in one,
+Important in the next). Map the severity this round reported
+([§1.3](#13-severity)) and never re-grade it; classify a finding as known
+by what it is about, whatever severity it carries now.
+
+### 1.10 Checks on both paths
+
+These checks guard every round on both paths. Each mode's own checks
+([§2.4](#24-output-checks-and-broken-rounds), [§3.4](#34-output-checks))
+run them, at the points they name, beside what is specific to the mode and
+the path.
+
+**Before dispatch:**
+
+- confirm that `vrg-git status --porcelain` in the worktree under review is
+  empty, so the reviewer sees only committed content, and record the
+  worktree's branch and HEAD SHA;
+- check the worktree's `paad/` before anything is created there. Run each
+  command from the worktree root: `paad`, `paad/security` and
+  `paad/code-reviews`, where present, are real directories (`test ! -L` on
+  each, and `test -d` when it exists); `paad/security/.gitignore`, where
+  present, is not a symlink (`test ! -L`); and `vrg-git ls-files
+  paad/security` and `vrg-git ls-files paad/code-reviews`, each with no
+  trailing slash, print nothing and exit zero. On the delegate path nothing
+  is created there afterwards, and `paad/security/` and
+  `paad/code-reviews/` must each be absent or hold nothing but a
+  `.gitignore`, the same state the check after the review expects; on the
+  fallback path the mode then prepares `paad/security/`;
+- last, just before dispatch: the task's state directory: its seal (or, in
+  the first round of a session, the listing the human confirmed), its mode,
+  and its hash ([§1.5](#15-state-directories)).
+
+A check that fails, or a command that fails, stops the round before
+dispatch: mode 1 stops and asks the human, mode 2 pauses
+([§3.8](#38-pauses)). Neither re-runs it automatically.
+
+**After the review,** before anything else reads the result (on the
+fallback path, right after mode 2's stray-write sweep):
+
+- hash the task's state directory again, before you write anything there;
+  it must match the hash taken before dispatch
+  ([§1.5](#15-state-directories));
+- the worktree's branch and HEAD SHA are unchanged, and `vrg-git status
+  --porcelain` is empty;
+- on the delegate path, `paad/security/` and `paad/code-reviews/` in the
+  worktree are each absent or hold nothing but a `.gitignore`. Both are
+  ignored, so the clean-status check cannot see a file there, and the
+  delegate writes no file of its own anywhere: paad's contract allows only
+  incidental artifacts of read-only commands, in ignored paths. A file in
+  either directory fails the check; leave it there, unread, for the human.
+
+A state-directory hash that differs is never re-run automatically (mode 1:
+[§2.4](#24-output-checks-and-broken-rounds); mode 2: [§3.8](#38-pauses)).
+
+**Fixed keywords match without regard to case.** Every output check, on
+both paths, matches the fixed keywords and markers it looks for without
+regard to case, and everything else exactly: spacing, punctuation, numbers,
+paths, agent types, severity words, and nothing extra on the line. So
+`SECURITY: 3 finding(s)` passes where `Security: 3 finding(s)` does, and an
+annotation on the line still fails
+([vergil-project/vergil-claude-plugin#841](https://github.com/vergil-project/vergil-claude-plugin/issues/841)).
+The keywords are, on the delegate path: `Running paad:`, `not invoked`,
+`Config:`, `Config not followed:`, `Status:`, `complete`, `blocked:`,
+`Agent types dispatched:`, `Defaults applied:`, `none`, `Findings:`, the
+native finding field names, `Discards:`, the skill-specific field names and
+`BAIL:`, the counts line's labels (`Critical:`, `Important:`,
+`Suggestion:`, `in-scope`, `out-of-scope`), the two security markers,
+`Security:`, `Security discards:` and `Files written:`. On the fallback
+path: `Running paad:`, `Config:`,
+`Discards:`, `Security:`, `finding(s)`, `SECURITY-CHECK-FAILED`, `Files
+written`, `Files written or updated:`, the counts line's labels (`Critical:`,
+`Important:`, `Suggestion:`, `in-scope`, `out-of-scope`), `Agents
+dispatched:`, `NOT DISPATCHED`, `Intent sources consulted:`, `Verifier
+warnings:` and `Choices made without asking:`.
+
 ## 2. Mode 1: human-gated design review
 
 Used in `epic-create`'s interactive design session, where judgment calls
@@ -461,14 +837,18 @@ Every round in every stage runs the same procedure. `<stage>` is one of
 `spec pushback`, `plan pushback` or `alignment`. Rounds are numbered from 1
 within each stage.
 
-1. **Dispatch.** Run the pre-dispatch steps in [§2.4](#24-output-checks-and-broken-rounds),
-   then start a fresh `general-purpose` subagent with the reviewer prompt
-   ([§2.3](#23-the-reviewer-prompt)). Run it in the background: the human
-   cares about the result, not the work.
-2. **Check the output** ([§2.4](#24-output-checks-and-broken-rounds)). A
-   failed check is a broken round.
+1. **Dispatch.** Select the path ([§1.8](#18-the-two-paths)) and run the
+   pre-dispatch steps in [§2.4](#24-output-checks-and-broken-rounds). Then
+   start a fresh subagent with that path's reviewer prompt
+   ([§2.3](#23-the-reviewer-prompt)): `paad:paad-delegate` on the delegate
+   path, `general-purpose` on the fallback path. Run it in the background:
+   the human cares about the result, not the work.
+2. **Check the output** ([§2.4](#24-output-checks-and-broken-rounds)). On
+   the delegate path the security section is cut out first
+   ([§1.9](#19-the-delegate-path)). A failed check is a broken round; a
+   blocked result stops for the human.
 3. **Screen, classify and map severity.** Screen every ordinary finding and
-   every discard line first ([§2.7](#27-security-findings)), so a security
+   every discard line first ([§1.6](#16-security-findings)), so a security
    finding is handled as one in every later step. Then classify
    ([§1.2](#12-classification)) and map severity ([§1.3](#13-severity)).
 4. **Walk the human through the findings,** one at a time and in severity
@@ -510,8 +890,53 @@ within each stage.
 
 ### 2.3 The reviewer prompt
 
-Every reviewer prompt is this template, with its placeholders filled in. It
-was validated in the spike for this mode
+Each path has its own template. Fill its placeholders and add nothing:
+changing either prompt is a doctrine change.
+
+**The delegate path.** The prompt for `paad:paad-delegate`
+([§1.9](#19-the-delegate-path)), validated with the delegate in
+[vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733)
+and copied here verbatim from its drafted prompts, with that issue's one
+amendment: the rule to read the code and never run it, placed after the
+working-directory paragraph. In two validation runs before the amendment, a
+specialist ran the code under review to confirm a finding and left an
+untracked cache in the worktree.
+
+````text
+Skill: paad:{{SKILL}}
+Arguments: {{SKILL_ARGS}}
+
+{{DOCUMENT_ROLES}}
+
+Working directory: {{DOCS_WORKTREE}}. Every Bash command you run starts with `cd {{DOCS_WORKTREE}} && …`, and every subagent you or the skill dispatches is told the same. Use `vrg-git` instead of `git` and `vrg-gh` instead of `gh`.
+
+Read the code in the working directory; do not run, import or execute it, and tell every subagent you or the skill dispatches the same.
+
+Review the whole document, including mechanisms that look like recent additions. Removing a mechanism, step or task is a legitimate finding.
+
+Reality check: read the recent `origin/develop` history of these repositories, already fetched: {{REPOS}}. Do not read the history, diffs or commit messages of `{{DOC_DIR}}`, and do not read GitHub issue {{ISSUE_REF}} or its comments.
+````
+
+| Placeholder | Value |
+|---|---|
+| `{{SKILL}}` | `pushback` or `alignment` |
+| `{{SKILL_ARGS}}` | Absolute paths: the spec (spec pushback), the plan (plan pushback), or the spec and the plan (alignment). |
+| `{{DOCUMENT_ROLES}}` | Spec pushback: "The spec at <path> is under review." Plan pushback: "The plan at <path> is under review. The spec at <path> is context only: do not review it." Alignment: "The spec at <path> is the intent document and the plan at <path> is the action document. Both are under review." |
+| `{{DOCS_WORKTREE}}` | The absolute path of the worktree holding the documents. |
+| `{{REPOS}}` | The absolute local path of each repository the documents name, each fetched before dispatch. |
+| `{{DOC_DIR}}` | The documents' directory, repo-relative (the epic's `epics/<N>-<slug>/`). |
+| `{{ISSUE_REF}}` | The planning issue, whose comments hold the earlier rounds, as `<owner>/<repo>#<M>`. |
+
+The prompt uses paad's terms only (spec, plan, intent and action documents,
+document, finding), and names the issue and the directories only by ref and
+path. It adds no security directive: the delegate routes security findings
+by paad's own definition ([§1.6](#16-security-findings)), and screening
+stays required. The git history rule and "nothing about earlier rounds"
+below hold for it as for the fallback template.
+
+**The fallback path.** *Fallback path only* ([§1.8](#18-the-two-paths)).
+Every fallback reviewer prompt is this template, with its placeholders
+filled in. It was validated in the spike for this mode
 ([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
 and is copied here verbatim from its outcome, with three later changes:
 
@@ -625,38 +1050,37 @@ Rules the template carries, and why:
 
 ### 2.4 Output checks and broken rounds
 
-**Expected paad version: 2.0.2**, the version every spike run reported. A
-different version is a warning in the round comment, not a failure.
+**Expected paad version: 2.0.2**, the version every spike run reported. On
+the fallback path a different version is a warning in the round comment,
+not a failure. On the delegate path the version must be the one
+paad-policy §10 records as validated, or the check fails
+([§1.9](#19-the-delegate-path)).
 
-**Before dispatch:**
+**Before dispatch,** in this order:
 
-- list the `paad/` of the session's starting directory;
-- record the docs worktree's branch and HEAD SHA;
-- confirm that `vrg-git status --porcelain` in the worktree is empty, so the
-  reviewer sees only committed text;
-- prepare and check the docs worktree's `paad/`, in this order, from the
-  worktree root. A check or command that fails means you stop and ask the
-  human before dispatch; it is not re-run automatically:
-  1. before anything is created: `paad`, `paad/security` and
-     `paad/code-reviews`, where present, are real directories (`test ! -L`
-     on each, and `test -d` when it exists); `paad/security/.gitignore` is
-     not a symlink (`test ! -L`); and `vrg-git ls-files paad/security` and
-     `vrg-git ls-files paad/code-reviews`, each with no trailing slash,
-     print nothing and exit zero;
-  2. only then, when `paad/security/` is absent, create it as a real
-     directory (`mkdir -p paad/security`); when `paad/security/.gitignore`
-     is absent, create it holding the single line `*`, so the reviewer
-     never finds it missing
+- *Fallback path only:* list the `paad/` of the session's starting
+  directory;
+- the checks before dispatch in [§1.10](#110-checks-on-both-paths): the
+  docs worktree is clean, its branch and HEAD SHA are recorded, and its
+  `paad/` passes the checks before anything is created;
+- *Fallback path only:* prepare the docs worktree's `paad/security/`, from
+  the worktree root. A check or command that fails means you stop and ask
+  the human before dispatch; it is not re-run automatically:
+  1. when `paad/security/` is absent, create it as a real directory
+     (`mkdir -p paad/security`); when `paad/security/.gitignore` is absent,
+     create it holding the single line `*`, so the reviewer never finds it
+     missing
      ([vergil-project/vergil-claude-plugin#840](https://github.com/vergil-project/vergil-claude-plugin/issues/840)).
      Never rewrite one that is present;
-  3. after it: `paad/security` is a real directory (`test ! -L` and
+  2. after it: `paad/security` is a real directory (`test ! -L` and
      `test -d`), and `paad/security/.gitignore` is a regular file, not a
      symlink (`test -f` and `test ! -L`), whose content is exactly the
      single line `*`;
-  4. `paad/security/` holds nothing but its `.gitignore`, so every
+  3. `paad/security/` holds nothing but its `.gitignore`, so every
      security file found afterwards is this round's;
 - fetch each member repo the prompt names;
-- create the round's temporary directory for the stray-write check (below);
+- *Fallback path only:* create the round's temporary directory for the
+  stray-write check (below);
 - last, just before dispatch, the planning issue's state directory,
   `build/.vergil-state/design-review/<M>/` in the docs repo's main clone
   ([§1.5](#15-state-directories)): check its seal (or, in the first round
@@ -668,14 +1092,36 @@ through a walk-through) is shown to the human as a diff. The human either
 commits it as the interrupted round's commit, with its round comment, or
 discards it.
 
-**After every review,** first hash the state directory again, before you
-write anything there; it must match the hash taken before dispatch
-([§1.5](#15-state-directories)). Then check structure, not prose:
+**After every review,** first run the checks after the review in
+[§1.10](#110-checks-on-both-paths): the state directory's hash, before you
+write anything there, and the worktree's branch, HEAD SHA and clean status.
+
+**On the delegate path,** then cut the security section out
+([§1.9](#19-the-delegate-path)); a result whose shape does not allow the
+cut stops the round for the human (below). Then run [§1.9](#19-the-delegate-path)'s
+output checks, with these values for mode 1:
+
+- the skill is the one the prompt named, `pushback` or `alignment`;
+- `Agent types dispatched:` is `none`, or lists only `paad:paad-analyst`:
+  these skills dispatch no subagents of their own;
+- each finding carries `Claim:`, `Options:` and `Recommendation:`;
+- the severities come from the skill's column: pushback `critical`,
+  `serious`, `moderate`, `minor`; alignment `Critical`, `Important`,
+  `Minor`;
+- for pushback, the `Outside the spec: <n>` field is present, with `<n>`
+  lines; alignment has no skill-specific field. Each `Outside the spec:`
+  line is a defect in the surrounding code, not in the spec: screen it
+  with the findings ([§1.6](#16-security-findings)), then walk it through
+  with the round's low findings as one batch, where the human drops it or
+  has it filed in intake ([§2.2](#22-one-round) step 4).
+
+**On the fallback path** (*Fallback path only*), check structure, not
+prose:
 
 - the version line `Running paad:<skill> v<version>` is present;
-- there is no `Config:` line, because no fallback is adopted
-  ([§2.10](#210-fallback)). Once one is adopted, the `Config:` line names
-  exactly the expected file;
+- there is no `Config:` line: no config file is adopted
+  ([paad-policy §4](paad-policy.md#4-paadconfig)), so one means a stray
+  `paad/config/` changed the review;
 - every finding carries a paad severity and a section reference, and the
   severity is a word in that skill's column of the [§1.3](#13-severity)
   table;
@@ -687,27 +1133,27 @@ write anything there; it must match the hash taken before dispatch
 - the `Discards:` line is present;
 - the `Security:` line is present and is exactly `Security: <k> finding(s)`
   or `Security: 0`, with nothing else on the line (it matches
-  `^Security: (0|[1-9][0-9]* finding\(s\))$`). An annotation on it fails
-  this check;
+  `^Security: (0|[1-9][0-9]* finding\(s\))$`, without regard to case,
+  [§1.10](#110-checks-on-both-paths)). An annotation on it fails this
+  check;
 - every file the reviewer or paad wrote, as an absolute path, is under the
   docs worktree's `paad/security/`, and when `Security:` reports findings,
   that file exists. A reported write anywhere else, even of a file that was
   later deleted, fails this check;
 - nothing new appeared under the `paad/` of the session's starting
   directory;
-- the worktree's branch and HEAD SHA are unchanged, so the reviewer neither
-  committed nor moved HEAD;
-- `vrg-git status --porcelain` in the worktree is empty. `paad/security/` is
-  ignored by the managed `.gitignore` block, so the security file does not
-  show;
 - the round's temporary directory passes the stray-write check (below).
+
+`paad/security/` is ignored by the managed `.gitignore` block, so the
+security file does not show in the clean-status check.
 
 A state-directory hash that differs, before dispatch (the seal) or after the
 review, is a broken round of its own kind: it is never re-run
 automatically (see the procedure below).
 
-**The stray-write check.** The checks above miss a reviewer that writes a
-file outside the worktree and deletes it again. In the spike, that happened
+**The stray-write check** (*Fallback path only*). The checks above miss a
+reviewer that writes a file outside the worktree and deletes it again. In
+the spike, that happened
 once even with the "write nothing, anywhere" directive, and only the
 reviewer's own list of files written showed it; a before-and-after
 comparison of the scratchpad did not. So every round gives the reviewer an
@@ -758,13 +1204,55 @@ caught at all.
 review, which says nothing about the design. A broken round is never treated
 as a pass, and its findings are not acted on.
 
-**A state-directory check that fails** (the seal or listing before
-dispatch, a mode, or the hash after the review,
-[§1.5](#15-state-directories)) is the exception to the procedure below: stop
-at once and ask the human, with no automatic re-run. Leave the state
-directory as it is, unread. A seal or listing that fails before dispatch has
-no reviewer changes to revert; after a review, revert as in step 1, then
-stop. Every other failed check follows these steps:
+**These exceptions stop at once and ask the human,** with no automatic
+re-run; the procedure below does not apply to them. A state-directory
+check that fails takes precedence over the others:
+
+- **A pre-dispatch check or command that fails** (the clean status, the
+  `paad/` checks, the fallback path's `paad/security/` preparation, a
+  fetch, the temporary directory): dispatch nothing, revert nothing and
+  run nothing again. A dirty worktree is shown to the human as a diff
+  (above).
+- **A state-directory check that fails** (the seal or listing before
+  dispatch, a mode, or the hash after the review,
+  [§1.5](#15-state-directories)). Leave the state directory as it is,
+  unread. A seal or listing that fails before dispatch has no reviewer
+  changes to revert; after a review, revert the worktree as step 1's
+  bullets say, but delete nothing in the state directory and take no seal
+  there: on the delegate path nothing was cut or written
+  ([§1.9](#19-the-delegate-path)), and the human confirms the directory's
+  contents before a fresh seal ([§1.5](#15-state-directories)). Then stop.
+- **A blocked result** on the delegate path ([§1.9](#19-the-delegate-path)),
+  whether or not its other checks pass: tell the human its reason, in the
+  terminal only, and any check it failed. If every other check passed,
+  delete the round's scratch-copy subdirectory (`<round-id>/`, holding only
+  the empty cut-out section) unread, then take the seal
+  ([§1.5](#15-state-directories)). If one failed, keep the whole result
+  there as security material instead: the cut-out section stays as
+  `security-1.md` and the rest is written beside it as `result.md`
+  ([§1.9](#19-the-delegate-path)). Post a round comment that says only
+  that the round was blocked, with `scratch copy kept` and each kept
+  file's hash ([§2.6](#26-the-round-comment)). The human decides what to
+  change before the round is dispatched again; a run after a kept
+  subdirectory takes the next round ID.
+- **A delegate that reports `Files written:` other than `none`** on the
+  delegate path: the delegate's own report is the only evidence of the
+  write, since this path has no sweep. Show the reported paths to the
+  human in the terminal only, unread and never posted, and keep the
+  round's scratch copy as for a result that could not be cut. The human
+  decides what happens to the files and whether the round is run again.
+- **A result whose shape does not allow the security cut** on the delegate
+  path ([§1.9](#19-the-delegate-path)): the whole result is already in the
+  scratch copy as security material. Post nothing from it; tell the human
+  in the terminal which shape rule failed. Post a round comment that names
+  only the failed shape rule and says `scratch copy kept`, with the kept
+  file's hash ([§2.6](#26-the-round-comment)), so a later session can
+  check it. The human decides what happens to the kept file, which follows
+  [§2.7](#27-security-findings)'s keep and cleanup rules, and whether the
+  round is run again; a new run takes the next round ID, since the kept
+  subdirectory is never reused.
+
+Every other failed check follows these steps:
 
 1. Revert anything the reviewer changed, staged or not, in this order. These
    are the commands the spike's revert drill ran and confirmed with
@@ -783,17 +1271,22 @@ stop. Every other failed check follows these steps:
      `vrg-git status --porcelain` is empty. If not, the revert has failed:
      stop and ask the human.
 
-   Delete the broken run's `paad/security/` files unread: nobody has walked
-   through them, and the re-run raises those findings again.
+   Delete the broken run's security material unread: its `paad/security/`
+   files on the fallback path, or, on the delegate path, the round's whole
+   scratch-copy subdirectory (`<round-id>/`), so the re-run can create it
+   afresh ([§1.5](#15-state-directories)). Then take the seal. Nobody has
+   walked through that material, and the re-run raises those findings
+   again.
 2. Re-run the round once, automatically, with a fresh reviewer.
 3. On a second broken run, stop and ask the human, who chooses: retry; run
    the skill interactively in the main session, the way `epic-create` did
    before rounds (that round is recorded as a deviation); or skip the stage.
    A skip is recorded in the round comment with the human's reason.
 
-Repeated broken rounds are evidence for the fallback ([§2.10](#210-fallback)).
-A round that reports `SECURITY-CHECK-FAILED` keeps its details only in the
-terminal conversation with the human.
+Repeated broken rounds are recorded in the round comments; a change to the
+prompts or the checks that would prevent them is a doctrine change. A round
+that reports `SECURITY-CHECK-FAILED` keeps its details only in the terminal
+conversation with the human.
 
 ### 2.5 The recommendation
 
@@ -852,16 +1345,23 @@ Post one comment per round on the planning issue, with
   concentration; the growth; the line
   `classification: trusted authors checked`, confirming that
   `vrg-trusted-authors` ran; the round commit's SHA, or `no commit`; the
-  recommendation and its signal; the round-4 note when it applies; and the
+  recommendation and its signal; the round-4 note when it applies; the
   broken-round note (with any version warning or recorded skip) when it
-  applies.
+  applies; and the path the round took
+  ([§1.8](#18-the-two-paths)): `Path: delegate`, or `Path: fallback
+  (paad:paad-delegate not loaded)`. On the delegate path, add only the
+  counts of `Config not followed:` lines and `Defaults applied:` lines;
+  the lines themselves go to the human in the terminal
+  ([§1.9](#19-the-delegate-path)).
 - **Findings:** one entry per finding, with its round ID
   (`<stage-letter><n>.<i>`: `S` for spec pushback, `P` for plan pushback,
   `A` for alignment; for example `S2.3` is spec pushback round 2, finding 3),
   its paad and mapped severity, its classification, its structural tag, a
   summary of the claim, the decision, and the reason or intake ref.
-- **Discards:** the count and one line each, except discards withheld by
-  screening, which appear only as a count.
+- **Discards:** the count and one line each. When any discard candidate
+  was security-class (on the delegate path, `Security discards:` is not 0)
+  or screening withheld any discard, the count alone
+  ([§1.6](#16-security-findings)).
 - **Security:** the count, how many were accepted, the GHSA IDs this round
   created, and `scratch copy kept` when cleanup did not happen, with the
   hash of each kept file ([§1.5](#15-state-directories)). No titles,
@@ -890,6 +1390,7 @@ Checkpoint
 - classification: trusted authors checked
 - Commit: 1a2b3c4
 - Recommendation: stop (the round raised nothing new).
+- Path: delegate
 
 Findings
 - S2.1 (serious, high; repair; structural): the retry step added in round 1
@@ -911,41 +1412,41 @@ Security: 0
 
 ### 2.7 Security findings
 
-**Scratch copy.** paad writes security findings under the docs worktree's
-ignored `paad/security/`, in the format the reviewer prompt fixes. paad
-names the file by date and topic only, so a later round on the same day
-would overwrite it. Once the output checks pass, move the round's security
-files to a **scratch copy** and work from there:
+**Scratch copy.** The round's security material is kept in a **scratch
+copy**, the orchestrator's own storage, and worked from there:
 
 `<docs main clone>/build/.vergil-state/design-review/<M>/<round-id>/`
 
 where `<M>` is the planning issue's number: a state directory
 ([§1.5](#15-state-directories)), created level by level with mode 700 and
-mode-checked before each write. It survives a VM rebuild, and the path is
-fixed and derivable from the planning issue and the round ID, so a resumed
-session finds it. A round ID used in this path must match `^[SPA][0-9]+$`;
-otherwise refuse and ask the human. After each move, confirm that the
-resolved path (`realpath`) is absolute and under the docs main clone's
-`build/.vergil-state/`, and that `vrg-git status --porcelain` in the docs
-worktree is still empty. Hash each moved file, and check that hash
-immediately before you read it or pass it to `vrg-security-record`
+mode-checked before each write. It survives a VM rebuild and an interrupted
+session, and the path is fixed and derivable from the planning issue and
+the round ID, so a resumed session finds it. A round ID used in this path
+must match `^[SPA][0-9]+$`; otherwise refuse and ask the human. What goes
+into it depends on the path:
+
+- **Delegate path:** the security cut writes the result's security section
+  there as `security-1.md`, or the whole result when its shape does not
+  allow the cut ([§1.9](#19-the-delegate-path)).
+- **Fallback path** (*Fallback path only*): paad writes security findings
+  under the docs worktree's ignored `paad/security/`, in the format the
+  reviewer prompt fixes. paad names the file by date and topic only, so a
+  later round on the same day would overwrite it. Once the output checks
+  pass, move the round's security files to the scratch copy. After each
+  move, confirm that the resolved path (`realpath`) is absolute and under
+  the docs main clone's `build/.vergil-state/`, and that `vrg-git status
+  --porcelain` in the docs worktree is still empty.
+
+Hash each file written or moved there, and check that hash immediately
+before you read it or pass it to `vrg-security-record`
 ([§1.5](#15-state-directories)). Walk the human through each security
 finding in the terminal, like any other.
 
-**Screening is required.** Right after the output checks, before
-classification and the walk-through, screen every ordinary finding against
-paad's security definition ([§1.6](#16-security-findings)). A
-finding that qualifies moves to the scratch copy and is handled as a
-security finding from then on, so its summary never reaches an intake
-issue, a commit message or the round comment. Screen the reviewer's discard
-lines the same way: a discard that qualifies goes to the scratch copy for
-the human to see in the terminal, and the round comment shows only how many
-discards were withheld.
-
-Screening is load-bearing, not a backstop you may skip. The reviewer prompt
-asks for routing, but in the spike an alignment reviewer still
-reported a security mechanism as an ordinary gap, and only screening caught
-it. Run it on every round, whatever the reviewer's `Security:` count says.
+**Screening is required** ([§1.6](#16-security-findings)): right after the
+output checks, before classification and the walk-through. A finding or
+discard that qualifies moves to the scratch copy as its own details file,
+and is walked through and recorded as a security finding; the round
+comment shows only how many discards were withheld.
 
 **Recording.** Record only **new** and **repair** security findings; a
 **known** one already has its record. Recording follows the security-records
@@ -972,8 +1473,10 @@ subdirectory), so no scratch details are left behind. If any record fails,
 keep the copy, and the round comment says `scratch copy kept` with the
 failure and the hash of each kept file ([§1.5](#15-state-directories)).
 Never delete a copy while a new or repair finding in it is
-unrecorded. A broken round's security files are deleted unread
-([§2.4](#24-output-checks-and-broken-rounds)). Either way, once you have
+unrecorded. A broken round's security material is deleted unread
+([§2.4](#24-output-checks-and-broken-rounds)), except a whole result kept
+because its shape did not allow the cut, which stays until the human rules
+on it. Either way, once you have
 finished writing and deleting there, take the end-of-round hash that seals
 the state directory until the next round ([§1.5](#15-state-directories)).
 Delete the planning issue's state directory, `design-review/<M>/`, once the
@@ -1016,35 +1519,6 @@ Existing published specs and plans are not rewritten.
 - The planning issue is never moved to the epic it produced. It closes in
   the planning epic and drains into its archive.
 
-### 2.10 Fallback
-
-**Status: not adopted.** The spike
-([vergil-project/.github#625](https://github.com/vergil-project/.github/issues/625))
-showed that the prompt alone, as tightened in [§2.3](#23-the-reviewer-prompt),
-keeps the reviewer review-only. No `paad/config/` file is in use, and the
-output checks expect no `Config:` line.
-
-If repeated broken rounds show that prompting is not enough, the fallback is
-paad's experimental config: `paad/config/pushback.md` and
-`paad/config/alignment.md`, holding the review-only directives. paad reads
-config relative to the reviewer's working directory, which is the docs
-worktree, so the files are committed in the epic's home repo
-(`vergil-project/.github`, and any self-homed private repo that runs
-`epic-create`). Each file names the paad version it was written for
-([paad-policy §1](paad-policy.md#1-paad-version) and
-[§4](paad-policy.md#4-paadconfig)).
-
-paad applies a config file to every run of that skill in the repo, including
-a human's own interactive `/paad:pushback`. So the files must act only on
-the review-only reviewer, for example by applying only when the prompt
-carries a review-only marker. If that cannot be done, the side effect is
-documented in the paad policy before the files are adopted. Adopting the
-fallback is a doctrine change: its `Config:` line becomes an expected value
-in [§2.4](#24-output-checks-and-broken-rounds).
-
-If config is also not enough, the next step is asking the paad authors for a
-report-only mode.
-
 ## 3. Mode 2: agentic review in `issue-implement`
 
 Used in `issue-implement`: the implementer runs `paad:agentic-review` on its
@@ -1060,9 +1534,11 @@ links here for the rules and keeps only its own step-by-step procedure.
   [`epics/568-agentic-review-gate/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/568-agentic-review-gate/spec.md)
   §4, and the finding-handling rules in
   [`epics/699-paad-unattended-mode/spec.md`](https://github.com/vergil-project/.github/blob/develop/epics/699-paad-unattended-mode/spec.md)
-  §4.11, all in `vergil-project/.github`. The reviewer prompt and the
-  stray-write check come from the re-spike,
-  [vergil-project/.github#590](https://github.com/vergil-project/.github/issues/590).
+  §4.8 and §4.11, all in `vergil-project/.github`. The fallback reviewer
+  prompt and the stray-write check come from the re-spike,
+  [vergil-project/.github#590](https://github.com/vergil-project/.github/issues/590);
+  the delegate prompt from the validation of unattended mode,
+  [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733).
 - **Where mode 2 overrides the common core.** The stop and continue signals in
   [§1.4](#14-signals) do not apply: mode 2 decides each round with the rules
   in [§3.1](#31-the-loop) step 6. Classification ([§1.2](#12-classification))
@@ -1085,24 +1561,38 @@ Each round:
    fresh directory outside the worktree: the round directory, made with
    `mktemp -d`. Its path goes to the reviewer, so it never points into the
    task's state directory.
-2. **Dispatch.** Run the pre-dispatch steps in [§3.4](#34-output-checks), then
-   start a fresh `general-purpose` subagent with the reviewer prompt
-   ([§3.2](#32-the-reviewer-prompt)) and wait for it. If it returns more than
-   one answer, use the last one. Note when you dispatched it and when it
-   returned, and the `totalTokens`, `toolUses` and `durationMs` its
-   completion notice gives.
-3. **Check the output** ([§3.4](#34-output-checks)). A failed check pauses the
-   run ([§3.8](#38-pauses)) and skips steps 4–7: post a findings comment
-   that names the failed check and carries no findings, then a response
-   comment with the `Paused:` line, and leave everything else untouched.
-4. **Collect.** Read paad's report at the path its `Files written or
-   updated:` list gives. Move it, every other file in the worktree's
-   `paad/code-reviews/` (backlog included) and every file in `paad/security/`
-   but its `.gitignore` into the round's state subdirectory
-   (`<N>/<round>/`, [§1.5](#15-state-directories)), under neutral names
-   (`report.md`, `backlog.md`, `security-<i>.md`), and hash each as a
-   details file. The worktree's `paad/` is then clean for the next reviewer,
-   and a paused round keeps its material. Delete the round directory.
+2. **Dispatch.** Select the path ([§1.8](#18-the-two-paths)) and run the
+   pre-dispatch steps in [§3.4](#34-output-checks). Then start a fresh
+   subagent with that path's reviewer prompt
+   ([§3.2](#32-the-reviewer-prompt)), `paad:paad-delegate` on the delegate
+   path or `general-purpose` on the fallback path, and wait for it. If it
+   returns more than one answer, use the last one. Note when you dispatched
+   it and when it returned, and the `totalTokens`, `toolUses` and
+   `durationMs` its completion notice gives.
+3. **Check the output** ([§3.4](#34-output-checks)). The checks after the
+   review in [§1.10](#110-checks-on-both-paths) come first, on both paths,
+   before anything is written to the task's state directory. Then, on the
+   delegate path, the security section is cut out into the round's state
+   subdirectory ([§1.9](#19-the-delegate-path)), and the rest of the result
+   is written beside it as `result.md`, hashed as a details file. A failed
+   check, a blocked result or a result whose shape does not allow the cut
+   pauses the run ([§3.8](#38-pauses)) and skips steps 4–7: post a findings
+   comment that names the failed check (for a blocked result, only that it
+   was blocked; the reason goes to the human in the terminal) and carries
+   no findings and nothing else from the result, then a response comment
+   with the `Paused:` line and a `Kept:` line for each file in the round's
+   state subdirectory, and leave everything else untouched.
+4. **Collect.** On the delegate path there is nothing to move: the round's
+   material is already in its state subdirectory (step 3). *Fallback path
+   only:* read paad's report at the path its `Files written or updated:`
+   list gives. Move it, every other file in the worktree's
+   `paad/code-reviews/` (backlog included) and every file in
+   `paad/security/` but its `.gitignore` into the round's state
+   subdirectory (`<N>/<round>/`, [§1.5](#15-state-directories)), under
+   neutral names (`report.md`, `backlog.md`, `security-<i>.md`), and hash
+   each as a details file. The worktree's `paad/` is then clean for the next
+   reviewer. On both paths a paused round keeps its material. Delete the
+   round directory.
 5. **Screen, classify and sort.** Screen every ordinary finding and discard,
    and hold back any that matches an approved security fix
    ([§3.6](#36-security-findings)); then classify each finding (below) and
@@ -1221,8 +1711,52 @@ earlier rounds.
 
 ### 3.2 The reviewer prompt
 
-Every reviewer prompt is this template, with its placeholders filled in. It
-was validated in the re-spike
+Each path has its own template. Fill its placeholders and add nothing:
+changing either prompt is a doctrine change.
+
+**The delegate path.** The prompt for `paad:paad-delegate`
+([§1.9](#19-the-delegate-path)), validated with the delegate in
+[vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733)
+and copied here verbatim from its drafted prompts, with that issue's one
+amendment: the rule to read the code and never run it, placed after the
+working-directory paragraph. In two validation runs before the amendment, a
+specialist ran the module under review to confirm a finding and left an
+untracked cache in the worktree, which failed the clean-status check.
+
+````text
+Skill: paad:agentic-review
+Arguments: {{BASE}}
+Intent: {{REQUIREMENTS_FILE}}
+
+The base is already fetched.
+
+Working directory: {{WORKTREE}}. Every Bash command you run starts with `cd {{WORKTREE}} && …`, and every subagent you or the skill dispatches is told the same. Use `vrg-git` instead of `git` and `vrg-gh` instead of `gh`.
+
+Read the code in the working directory; do not run, import or execute it, and tell every subagent you or the skill dispatches the same.
+
+Review the whole diff against the base, every file in it, including changes that look small or mechanical.
+
+Do not read GitHub issue {{ISSUE_REF}}, its comments, or any pull request.
+````
+
+| Placeholder | Value |
+|---|---|
+| `{{BASE}}` | `origin/<base>`, normally `origin/develop`, the branch the task's PR will target. Run `vrg-git fetch origin` in the worktree first. |
+| `{{REQUIREMENTS_FILE}}` | The absolute path of the round's `requirements.md`, in the round directory ([§3.3](#33-the-requirements-file)). |
+| `{{WORKTREE}}` | The absolute path of the task's worktree. |
+| `{{ISSUE_REF}}` | The task issue, whose comments hold the earlier rounds, as `<owner>/<repo>#<N>`. |
+
+The `Intent:` line is the delegate's input for Spec Compliance: its files
+come first among Spec Compliance's intent sources, ahead of the others. The
+prompt uses paad's terms only (base, diff, finding) and names the issue and
+paths only as a ref and paths. The fallback template's other rules below
+(the requirements file, not the issue; nothing about earlier rounds) hold
+for it too; what the fallback prompt had to say about asking, writing,
+answering *hold* and the return format, the delegate's contract now says.
+
+**The fallback path.** *Fallback path only* ([§1.8](#18-the-two-paths)).
+Every fallback reviewer prompt is this template, with its placeholders
+filled in. It was validated in the re-spike
 ([vergil-project/.github#590](https://github.com/vergil-project/.github/issues/590))
 and is copied here verbatim from its outcome. Do not reword it: changing the
 prompt is a doctrine change.
@@ -1357,38 +1891,36 @@ not settled here.
 
 ### 3.4 Output checks
 
-**Expected paad version: 2.0.2**, the version every re-spike run reported. A
-different version is a warning in the findings comment, not a failure.
+**Expected paad version: 2.0.2**, the version every re-spike run reported.
+On the fallback path a different version is a warning in the findings
+comment, not a failure. On the delegate path the version must be the one
+paad-policy §10 records as validated, or the check fails
+([§1.9](#19-the-delegate-path)).
 
-**Before dispatch:**
+**Before dispatch,** in this order. Any check that fails, or command that
+fails, pauses the run before dispatch ([§3.8](#38-pauses)):
 
-- confirm that `vrg-git status --porcelain` in the worktree is empty, and
-  record the worktree's branch and HEAD SHA;
-- prepare and check the worktree's `paad/`, in this order. Run each command
-  from the worktree root; any check that fails, or command that fails,
-  pauses the run before dispatch ([§3.8](#38-pauses)):
-  1. before anything is created: `paad`, `paad/security` and
-     `paad/code-reviews`, where present, are real directories (`test ! -L`
-     on each, and `test -d` when it exists); `paad/security/.gitignore` is
-     not a symlink (`test ! -L`); and `vrg-git ls-files paad/security` and
-     `vrg-git ls-files paad/code-reviews`, each with no trailing slash,
-     print nothing and exit zero;
-  2. only then, when `paad/security/` is absent, create it as a real
-     directory (`mkdir -p paad/security`); when `paad/security/.gitignore`
-     is absent, create it holding the single line `*`. Never rewrite one
-     that is present. A fresh worktree has neither, and paad needs both;
-  3. after it: `paad/security` is a real directory (`test ! -L` and
+- the checks before dispatch in [§1.10](#110-checks-on-both-paths): the
+  worktree is clean, its branch and HEAD SHA are recorded, and its `paad/`
+  passes the checks before anything is created;
+- *Fallback path only:* prepare the worktree's `paad/`, from the worktree
+  root:
+  1. when `paad/security/` is absent, create it as a real directory
+     (`mkdir -p paad/security`); when `paad/security/.gitignore` is absent,
+     create it holding the single line `*`. Never rewrite one that is
+     present. A fresh worktree has neither, and paad needs both;
+  2. after it: `paad/security` is a real directory (`test ! -L` and
      `test -d`), and `paad/security/.gitignore` is a regular file, not a
      symlink (`test -f` and `test ! -L`), whose content is exactly the
      single line `*`;
-  4. `paad/code-reviews/` is empty or absent, and `paad/security/` holds
+  3. `paad/code-reviews/` is empty or absent, and `paad/security/` holds
      nothing but its `.gitignore`, so every file found there afterwards is
      this round's. Look at these two directories, not at `paad/` as a
      whole: many repos track older paad reports elsewhere under `paad/`;
 - run `vrg-git fetch origin` in the worktree;
-- list the `paad/` of the session's starting directory and of the task repo's
-  main checkout, if different, and keep both listings in the round
-  directory;
+- *Fallback path only:* list the `paad/` of the session's starting
+  directory and of the task repo's main checkout, if different, and keep
+  both listings in the round directory;
 - the task's state directory, `build/.vergil-state/agentic-review/<N>/` in
   the task repo's main clone ([§1.5](#15-state-directories)): check the
   seal first, against the hash kept at the end of the previous round in
@@ -1397,7 +1929,8 @@ different version is a warning in the findings comment, not a failure.
   directory level by level if it is absent, check its mode, and take its
   hash. A seal or listing that fails, or a mode that is not
   `700`, pauses the run before dispatch;
-- list the other tasks' state directories for the sweep's exclusions
+- *Fallback path only:* list the other tasks' state directories for the
+  sweep's exclusions
   (below). Find the candidates with
   `find /tmp /var/tmp "$HOME" -type d -path '*/build/.vergil-state' -prune -print`
   (the sweep's "Permission denied" rule applies); each candidate's clone is
@@ -1410,14 +1943,36 @@ different version is a warning in the findings comment, not a failure.
   scratchpad, or any `.worktrees/`. In each such main clone, list every
   `build/.vergil-state/<kind>/<N>/` directory except this task's own, and
   record each by its path;
-- last, just before dispatch, touch the sweep's marker:
-  `touch <round-dir>/marker`.
+- *Fallback path only:* last, just before dispatch, touch the sweep's
+  marker: `touch <round-dir>/marker`.
 
-**After every review,** check structure, not prose. Run the stray-write
-sweep first, before writing anything else, so your own files do not show in
-it. Then hash the task's state directory again, before you write anything
-there: it must match the hash taken before dispatch
-([§1.5](#15-state-directories)). Then:
+**After every review,** check structure, not prose. *Fallback path only:*
+run the stray-write sweep first, before writing anything else, so your own
+files do not show in it. Then run the checks after the review in
+[§1.10](#110-checks-on-both-paths): the task's state directory's hash,
+before you write anything there, and the worktree's branch, HEAD SHA and
+clean status.
+
+**On the delegate path,** then cut the security section out
+([§1.9](#19-the-delegate-path)); a result whose shape does not allow the
+cut pauses the run ([§3.8](#38-pauses)). Then run
+[§1.9](#19-the-delegate-path)'s output checks, with these values for
+mode 2:
+
+- the first line is `Running paad:agentic-review v<version>`;
+- `Agent types dispatched:` lists `paad:paad-analyst` and nothing else: the
+  six lenses and the Verifier are analysts;
+- each finding carries `Symbol:`, `Excerpt:`, `Fix:`, `Confidence:`,
+  `Scope:` and `Bug class:`, and its severity is `Critical`, `Important` or
+  `Suggestion`;
+- the counts line is present, in paad's form;
+- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`;
+- Spec Compliance did not bail (no `BAIL:` for it under `Agents
+  dispatched:`), and `Intent sources consulted:` lists the requirements file
+  first;
+- `Verifier warnings:` is `none`.
+
+**On the fallback path** (*Fallback path only*):
 
 - the first line is `Running paad:agentic-review v<version>`;
 - there is **no** `Config:` line. Mode 2 adopts no config file, so one means
@@ -1436,12 +1991,11 @@ there: it must match the hash taken before dispatch
 - nothing new appeared under the `paad/` of the session's starting directory
   or of the task repo's main checkout, comparing with the listings made
   before dispatch;
-- the worktree's branch and HEAD SHA are unchanged, and
-  `vrg-git status --porcelain` is empty;
 - the stray-write sweep (below) found nothing.
 
-**The stray-write check.** The reviewer must write nothing outside the
-worktree's `paad/`, including temporary files and copies, and the round fails
+**The stray-write check** (*Fallback path only*). The reviewer must write
+nothing outside the worktree's `paad/`, including temporary files and
+copies, and the round fails
 if it does: whether the reviewer reports the write in its
 `Files written or updated:` list (the file-path check above), or the sweep
 finds it. This is mode 2's form of the structural check in
@@ -1504,8 +2058,19 @@ which check failed and carries no findings, and its response comment
 carries the `Paused:` line ([§3.8](#38-pauses)). A security hold keeps its
 details only in the conversation with the human.
 
-**A repo without the managed `.gitignore` block.** `paad/code-reviews/` is
-ignored only by the managed block that `vrg-gitignore-sync` maintains. In a
+**A blocked result, and a result whose shape does not allow the cut,** on
+the delegate path, pause the run the same way, and neither is ever re-run
+automatically ([§1.9](#19-the-delegate-path)). A blocked result's
+findings comment says only that the round was blocked: the reason is the
+delegate's free text, so it goes to the human in the terminal and stays in
+the round's `result.md`. A result
+that could not be cut posts nothing from the result: the findings comment
+says only that the security section was malformed, and the whole result
+stays in the round's state subdirectory as security material, under a
+`Kept:` line, until the human rules on it.
+
+**A repo without the managed `.gitignore` block** (*Fallback path only*).
+`paad/code-reviews/` is ignored only by the managed block that `vrg-gitignore-sync` maintains. In a
 repo whose `.gitignore` has no managed block, the clean-worktree check fails
 every round. The pause message says so: "`paad/code-reviews/` is not ignored
 in this repo (no managed `.gitignore` block), so the clean-worktree check
@@ -1527,7 +2092,12 @@ ISO 8601.
 - **`agentic-review round <n>: findings`:** `Dispatched: <time>` and
   `Returned: <time>`; the review's cost, `Review cost: totalTokens <t>,
   toolUses <u>, durationMs <d>`, or `Review cost: not reported` when the
-  completion notice does not give them; paad's version, and a counts line
+  completion notice does not give them; the path the round took
+  ([§1.8](#18-the-two-paths)), `Path: delegate` or `Path: fallback
+  (paad:paad-delegate not loaded)`, and on the delegate path the counts of
+  `Config not followed:` and `Defaults applied:` lines (the lines go to the
+  human in the terminal, [§1.9](#19-the-delegate-path)); paad's version,
+  and a counts line
   in paad's form recomputed over the ordinary findings left after
   screening and the hold-back, so it reveals nothing withheld; then each
   of those findings with an ID `R<n>.<i>`, numbered after screening so
@@ -1537,9 +2107,11 @@ ISO 8601.
   `human` with its reason, 1–5), and its location by file and symbol with a
   short code excerpt. Line numbers and SHAs change when `vrg-submit-pr`
   rebases, so give them only as "at the time". Then paad's filtered-out
-  count, with the reasons for non-security candidates only: when any
-  candidate was security-class, or screening withheld a discard, the comment
-  gives the count alone. Then the security count
+  count (on the delegate path, its `Discards:`), with the reasons for
+  non-security candidates only: when any candidate was security-class
+  (on the delegate path, when `Security discards:` is not 0), or screening
+  withheld a discard, the comment gives the count alone. Then the security
+  count
   ([§3.6](#36-security-findings)), any version warning, and the result of
   the output checks; a failed check is noted here.
 - **`agentic-review round <n>: response`:** posted in **every** round,
@@ -1599,9 +2171,27 @@ comment, in this fixed form, one per line:
     worktree's `paad/`. The paused round gets `Finished:` once the ruling
     is carried out. What `dismiss` does depends on where the run paused:
     - after a failed output check: the round's output is used, and its
-      steps 4–7 run through the exception above. A new session no longer
-      has the reviewer's `Files written or updated:` list, so the human's
-      ruling names the files, or the round is run again;
+      steps 4–7 run through the exception above. On the fallback path, a
+      new session no longer has the reviewer's `Files written or updated:`
+      list, so the human's ruling names the files, or the round is run
+      again. On the delegate path the output is the round's hashed
+      `result.md`, with its cut-out `security-1.md`; after a state-directory
+      hash that differed, nothing was written ([§1.9](#19-the-delegate-path)),
+      so `dismiss` does not apply and only `another-round` does;
+    - after a blocked result (delegate path) that passed its other checks:
+      there is no review to use. Delete the round's state subdirectory (it
+      holds only the empty security section and `result.md`), finish the
+      paused response comment with `Finished:`, take the seal, and run the
+      next round number, as for `another-round`. A blocked round never
+      reaches step 6, and so never passes, and it does not count toward the
+      cap. A blocked result that failed another check is kept whole, as
+      below;
+    - after a result whose shape did not allow the cut (delegate path):
+      `dismiss` does not apply. The whole result is security material and
+      is never used to build a record. The human rules `another-round`,
+      which runs the next round number with a fresh reviewer, and rules on
+      the kept file like any security material
+      ([§3.6](#36-security-findings));
     - before dispatch: nothing ran, so the same round is dispatched again
       under its own number (as it is for `another-round`), and it counts
       toward the cap only once it runs;
@@ -1652,7 +2242,8 @@ agentic-review round 2: findings
 Dispatched: 2026-10-30T14:02:11Z
 Returned: 2026-10-30T14:19:47Z
 Review cost: totalTokens 412306, toolUses 87, durationMs 1056210
-paad:agentic-review v2.0.2
+Path: delegate
+paad:agentic-review v2.0.2-preview
 Critical: 0 (in-scope) / 0 (out-of-scope), Important: 1 (in-scope) / 1 (out-of-scope), Suggestion: 1 (in-scope) / 0 (out-of-scope)
 
 Findings
@@ -1690,7 +2281,8 @@ Awaiting a ruling
 
 Security: 0 found.
 Paused: R2.2 and R2.3 need a ruling. 2026-10-30T14:24:05Z
-Kept: 2/report.md sha256:5f0c2a8e9d1b47c3a6e8f2d4b9c1a7e3f5d8b2c6a4e9f1d3b7c5a8e2f4d6b9c1
+Kept: 2/result.md sha256:5f0c2a8e9d1b47c3a6e8f2d4b9c1a7e3f5d8b2c6a4e9f1d3b7c5a8e2f4d6b9c1
+Kept: 2/security-1.md sha256:0d3e7b1c5a9f2e8d4b6c1a3f7e9d2b5c8a4f6e1d3b9c7a2e5f8d4b1c6a3e9f7d
 Human ruling: R2.2 (reason 4) fix: name the delay as a constant after all. 2026-10-30T16:40:12Z
 Human ruling: R2.3 (reason 2) file: file it in intake as found. 2026-10-30T16:40:12Z
 
@@ -1728,14 +2320,20 @@ Security: 1 found; 1 fixed on the branch, 0 recorded, 0 rejected.
 **What is security material.** In each round, before the findings comment
 is posted ([§3.1](#31-the-loop) step 5), the round's security findings are:
 
-- every finding in paad's `paad/security/` files, which step 4 moved to the
-  round's state subdirectory. A non-security finding that paad put there
-  because it shows a security finding's code is sorted and counted as
-  security, not as ordinary;
+- on the delegate path, every finding in the result's security section,
+  which step 3 cut out into the round's state subdirectory
+  ([§1.9](#19-the-delegate-path)), or the whole result when its shape did
+  not allow the cut;
+- on the fallback path (*Fallback path only*), every finding in paad's
+  `paad/security/` files, which step 4 moved to the round's state
+  subdirectory;
+- on both paths, a non-security finding that paad put with the security
+  findings because it shows a security finding's code is sorted and counted
+  as security, not as ordinary;
 - every ordinary finding or discard that **screening** finds qualifies
   under paad's definition ([§1.6](#16-security-findings)). Screen every
-  round, whatever the `Security:` count says: routing by the model is not
-  guaranteed;
+  round, on both paths, whatever the security count says: routing by the
+  model is not guaranteed;
 - every ordinary finding **held back** because its file and symbol match an
   approved security fix in the ruling record (below), whatever screening
   concluded. The requirements never mention an approved security fix
@@ -1745,9 +2343,9 @@ is posted ([§3.1](#31-the-loop) step 5), the round's security findings are:
 
 A screened or held-back finding leaves the findings comment and is counted
 as security. Write its details to a `security-<i>.md` file in the round's
-state subdirectory and hash it ([§1.5](#15-state-directories)). Step 4's
-files and these share one numbering, and no file is written over: check
-`test ! -e` first.
+state subdirectory and hash it ([§1.5](#15-state-directories)). The
+security files of steps 3 and 4 and these share one numbering, and no file
+is written over: check `test ! -e` first.
 
 Security findings get IDs `R<n>.S<i>`, used in the terminal, the ruling
 record and the public `Recorded:` line, which shows no more than the
@@ -1787,10 +2385,10 @@ already ruled on. A match on file and symbol alone does not make a finding
 known: it is known only when you judge it the same problem; when unsure,
 present it (reason 5). It is never restated into the requirements file.
 
-**Recording** (`record` only). paad's security file can hold several
-findings, so first write the one finding's own section to a details file
-of its own in the round's state subdirectory, numbered as above, and hash
-it. Check it against that hash immediately before you pass it on
+**Recording** (`record` only). A security file (the cut-out section, or one
+of paad's `paad/security/` files) can hold several findings, so first
+write the one finding's own section to a details file of its own in the
+round's state subdirectory, numbered as above, and hash it. Check it against that hash immediately before you pass it on
 ([§1.5](#15-state-directories)), and run:
 
 ```bash
@@ -1821,8 +2419,8 @@ carried out; then it is deleted ([§3.1](#31-the-loop) step 7). A security
 file holding only paad's filter reasons (no routed finding) is discards:
 count them; it is never recorded.
 
-**A real security hold** (paad found `paad/security/` unsafe and wrote
-nothing there) is a failed check ([§3.4](#34-output-checks)). The run
+**A real security hold** (*Fallback path only*: paad found
+`paad/security/` unsafe and wrote nothing there) is a failed check ([§3.4](#34-output-checks)). The run
 pauses, any details stay in the conversation with the human, and the issue
 shows only that the check failed.
 
@@ -1885,6 +2483,9 @@ when:
 - an output check fails ([§3.4](#34-output-checks)), including a security
   hold, a state-directory hash that differs after the review, and the repo
   without a managed `.gitignore` block;
+- on the delegate path, the result is blocked, or its shape does not allow
+  the security cut ([§1.9](#19-the-delegate-path)). Neither is re-run
+  automatically;
 - a state-directory check fails before a write
   ([§1.5](#15-state-directories)): a mode that is not `700`, a new round
   subdirectory that already exists, or an entry you did not write. Nothing
