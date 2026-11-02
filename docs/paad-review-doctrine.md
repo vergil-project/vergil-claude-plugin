@@ -976,14 +976,17 @@ review, which says nothing about the design. A broken round is never treated
 as a pass, and its findings are not acted on.
 
 **These exceptions stop at once and ask the human,** with no automatic
-re-run; the procedure below does not apply to them. A state-directory
-check that fails takes precedence over the others:
+re-run; the procedure below does not apply to them, even when a clean
+status, branch or HEAD check failed as well. A state-directory check that
+fails takes precedence over the others. When a round meets more than one
+of the others, every one of them applies: keep what each keeps, and the
+round comment names each exit it met, and nothing more:
 
 - **A pre-dispatch check or command that fails** (no `paad:paad-delegate`
   to dispatch, the clean status, the `paad/` checks, a fetch): dispatch
   nothing, revert nothing and run nothing again. Without the delegate,
-  tell the human the fix [§1.8](#18-the-delegate-requirement) gives. A dirty worktree is shown to the human as a diff
-  (above).
+  tell the human the fix [§1.8](#18-the-delegate-requirement) gives. A
+  dirty worktree is shown to the human as a diff (above).
 - **A state-directory check that fails** (the seal or listing before
   dispatch, a mode, or the hash after the review,
   [§1.5](#15-state-directories)). Leave the state directory as it is,
@@ -993,8 +996,8 @@ check that fails takes precedence over the others:
   there: nothing was cut or written
   ([§1.9](#19-the-delegate-path)), and the human confirms the directory's
   contents before a fresh seal ([§1.5](#15-state-directories)). Then stop.
-- **A blocked result** ([§1.9](#19-the-delegate-path)), whether or not its other checks pass: tell the human its reason, in the
-  terminal only, and any check it failed. If every other check passed,
+- **A blocked result** ([§1.9](#19-the-delegate-path)), whether or not
+  its other checks pass: tell the human its reason, in the terminal only, and any check it failed. If every other check passed,
   delete the round's scratch-copy subdirectory (`<round-id>/`, holding only
   the empty cut-out section) unread, then take the seal
   ([§1.5](#15-state-directories)). If one failed, keep the whole result
@@ -1020,11 +1023,14 @@ check that fails takes precedence over the others:
   material: the cut-out section as `security-1.md` and the rest beside it
   as `result.md`, or, when the cut did not proceed, the whole result as
   `security-1.md` ([§1.9](#19-the-delegate-path)), each hashed as a
-  details file. Post a round comment that names only what happened (a
-  reported write, or a file left in `paad/`) and says `scratch copy kept`,
-  with each kept file's hash ([§2.6](#26-the-round-comment)). The kept
-  files follow [§2.7](#27-security-findings)'s keep and cleanup rules; a
-  new run takes the next round ID.
+  details file. If the branch, HEAD SHA or clean status also changed,
+  revert the worktree as step 1's bullets below say, but leave every
+  reported path and every file in `paad/` where it is, unread. Post a
+  round comment that names only what happened (a reported write, or a
+  file left in `paad/`) and says `scratch copy kept`, with each kept
+  file's hash ([§2.6](#26-the-round-comment)). The kept files follow
+  [§2.7](#27-security-findings)'s keep and cleanup rules; a new run takes
+  the next round ID.
 - **A result whose shape does not allow the security cut**
   ([§1.9](#19-the-delegate-path)): the whole result is already in the
   scratch copy as security material. Post nothing from it; tell the human
@@ -1127,10 +1133,14 @@ Post one comment per round on the planning issue, with
   `classification: trusted authors checked`, confirming that
   `vrg-trusted-authors` ran; the round commit's SHA, or `no commit`; the
   recommendation and its signal; the round-4 note when it applies; the
-  broken-round note (with any recorded skip) when it applies; and the
-  counts of `Config not followed:` lines and `Defaults applied:` lines,
-  never the lines themselves, which go to the human in the terminal
-  ([§1.9](#19-the-delegate-path)).
+  broken-round note (with any recorded skip) when it applies; and, for a
+  round the delegate ran, the counts of `Config not followed:` lines and
+  `Defaults applied:` lines, never the lines themselves, which go to the
+  human in the terminal ([§1.9](#19-the-delegate-path)). A round run
+  interactively at the human's choice
+  ([§2.4](#24-output-checks-and-broken-rounds) step 3) has no such counts:
+  it records `Deviation: run interactively in the main session` with the
+  human's reason instead.
 - **Findings:** one entry per finding, with its round ID
   (`<stage-letter><n>.<i>`: `S` for spec pushback, `P` for plan pushback,
   `A` for alignment; for example `S2.3` is spec pushback round 2, finding 3),
@@ -1747,7 +1757,10 @@ comment, in this fixed form, one per line:
     number). The
     direction says what happens to anything left unread, such as the
     worktree's `paad/`. The paused round gets `Finished:` once the ruling
-    is carried out. What `dismiss` does depends on where the run paused:
+    is carried out. When a round paused for more than one cause, `dismiss`
+    applies only if it applies to every one of them; otherwise only
+    `another-round` does. What `dismiss` does depends on where the run
+    paused:
     - after a failed output check: the round's output is used, and its
       steps 4–7 run through the exception above. The output is the round's
       hashed `result.md`, with its cut-out `security-1.md`; after a state-directory
@@ -2050,9 +2063,10 @@ when:
   [§3.3](#33-the-requirements-file));
 - a pre-dispatch check fails ([§3.4](#34-output-checks)): the session
   cannot dispatch `paad:paad-delegate` (the `Paused:` reason names the
-  fix, [§1.8](#18-the-delegate-requirement)), a `paad/` check, or the
-  state directory's seal, first-round listing or mode
-  ([§1.5](#15-state-directories)). Nothing is dispatched; the round about
+  fix, [§1.8](#18-the-delegate-requirement)), the worktree's clean status
+  or the record of its branch and HEAD SHA, a `paad/` check, the
+  `vrg-git fetch origin`, or the state directory's seal, first-round
+  listing or mode ([§1.5](#15-state-directories)). Nothing is dispatched; the round about
   to run posts only its response comment, with the `Paused:` line;
 - an output check fails ([§3.4](#34-output-checks)), including a
   state-directory hash that differs after the review;

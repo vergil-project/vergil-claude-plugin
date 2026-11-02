@@ -244,11 +244,14 @@ round. The human decides every round. Each round has seven steps:
    - a file in the worktree's `paad/security/` or `paad/code-reviews/`
      other than a `.gitignore`: leave it there, unread, for the human.
 
-   For these last two, keep the whole result in the scratch copy as for a
-   result that could not be cut: the cut-out section as `security-1.md`
-   and the rest as `result.md`, or the whole result as `security-1.md`
-   when the cut did not proceed, each hashed. Post a round comment naming
-   only what happened, with `scratch copy kept` and each file's hash.
+   For these last two, keep the whole result in the scratch copy as
+   security material: the cut-out section as `security-1.md` and the rest
+   as `result.md`, or the whole result as `security-1.md` when the cut did
+   not proceed, each hashed. If the branch, HEAD SHA or clean status also
+   changed, revert the worktree but leave every reported path and `paad/`
+   file in place, unread. These exits take precedence over the broken-round
+   re-run; when a round meets several, apply each, and the round comment
+   names each exit it met, with `scratch copy kept` and each file's hash.
 
    On every such exit, take
    the end-of-round seal once you are done in the state directory; after a
