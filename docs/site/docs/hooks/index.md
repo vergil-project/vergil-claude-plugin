@@ -294,7 +294,8 @@ live-lab state lives there), and `build/.vergil-state/` is the namespace
 for agent state (the [paad review doctrine's state
 directories](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories)).
 Of the main worktree, the hook allows Write and Edit only under
-`build/`, the one place the human can see what agents write. Every
+`build/`, the one place the human can see what agents write, and there
+only to paths git reports as ignored. Every
 target path is normalised first (`.`, `..` and symlinks resolved, for
 new files as well as existing ones) with `python3`, and matched where
 it leads: a path that leads out of `build/` through `..` or a symlink,

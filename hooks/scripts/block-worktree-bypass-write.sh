@@ -139,13 +139,24 @@ fi
 # the only main-worktree path this hook allows. The match is on the
 # normalised path, so a `..` or a symlink that leads out of build/ is
 # matched where it leads, and a build/ that is itself a symlink never
-# matches.
+# matches. A target under build/ is allowed only when git reports it
+# ignored: a build/ the repo does not ignore, or a file tracked there,
+# is source like any other. Any other git result, a failure included,
+# denies.
 case "$resolved" in
   "$main_root"/.worktrees/*)
     exit 0
     ;;
   "$main_root"/build/*)
-    exit 0
+    if ci_out=$(git -C "$main_root" check-ignore -q -- "$resolved" 2>&1); then
+      exit 0
+    else
+      ci_rc=$?
+    fi
+    if [ "$ci_rc" -eq 1 ]; then
+      deny_target "The worktree write guard denies $file_path: it is under the main clone's build/, but git does not report it as ignored (build/ is not ignored, or the file is tracked). Only ignored scratch in build/ may be written; write to your assigned worktree instead."
+    fi
+    deny_target "The worktree write guard could not check $file_path: git check-ignore failed with exit $ci_rc ($(printf '%s' "$ci_out" | head -c 300)). The write cannot be checked, so it is denied."
     ;;
   *)
     jq -n --arg path "$file_path" '{

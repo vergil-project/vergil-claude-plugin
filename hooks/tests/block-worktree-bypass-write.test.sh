@@ -24,7 +24,9 @@ S="$TMP/main"
 mkdir -p "$S/.worktrees/wt/sub" "$S/src" "$S/build/.vergil-state/agentic-review/9001/1"
 git -C "$S" init --quiet
 printf '[project]\n' >"$S/vergil.toml"
-printf '.worktrees/\n' >"$S/.gitignore"
+printf '.worktrees/\nbuild/\n' >"$S/.gitignore"
+printf 'x\n' >"$S/build/tracked.txt"
+git -C "$S" add -f build/tracked.txt
 ln -s "$S" "$S/.worktrees/wt/up"
 ln -s "$S" "$S/.worktrees/wt2"
 ln -s "$S/src" "$S/build/.vergil-state/src"
@@ -36,7 +38,7 @@ L="$TMP/linked"
 mkdir -p "$L/.worktrees" "$L/src" "$L/build"
 git -C "$L" init --quiet
 printf '[project]\n' >"$L/vergil.toml"
-printf '.worktrees/\n' >"$L/.gitignore"
+printf '.worktrees/\nbuild/\n' >"$L/.gitignore"
 ln -s "$L/src" "$L/build/.vergil-state"
 
 # B: a third managed repo whose build is itself a link to its source.
@@ -44,8 +46,15 @@ B="$TMP/buildlink"
 mkdir -p "$B/.worktrees" "$B/src"
 git -C "$B" init --quiet
 printf '[project]\n' >"$B/vergil.toml"
-printf '.worktrees/\n' >"$B/.gitignore"
+printf '.worktrees/\nbuild/\n' >"$B/.gitignore"
 ln -s "$B/src" "$B/build"
+
+# N: a fourth managed repo on the convention that does not ignore build/.
+N="$TMP/notignored"
+mkdir -p "$N/.worktrees" "$N/build"
+git -C "$N" init --quiet
+printf '[project]\n' >"$N/vergil.toml"
+printf '.worktrees/\n' >"$N/.gitignore"
 
 NL=$'\n'
 
@@ -97,6 +106,8 @@ T_NAME=(
 	"normalisation: build path, case 2"
 	"normalisation: build path, case 3"
 	"normalisation: build path, case 4"
+	"write under a build/ that is not ignored is denied"
+	"write to a tracked file under build/ is denied"
 )
 T_PATH=(
 	"$S/.worktrees/wt/new.txt"
@@ -129,6 +140,8 @@ T_PATH=(
 	"$S/build/out/new.txt"
 	"$S/build/scratch/../../src/new.txt"
 	"$B/build/new.txt"
+	"$N/build/new.txt"
+	"$S/build/tracked.txt"
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
@@ -136,6 +149,7 @@ T_CWD=(
 	"$S" "$U" "$U"
 	"/" "$S"
 	"$S" "$S" "$S" "$S" "$S" "$S" "$S" "$S" "$B"
+	"$N" "$S"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
@@ -143,6 +157,7 @@ T_PATHVAR=(
 	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
 	"$NOISY_PATH" "$NOISY_PATH"
 	"" "" "" "" "" "" "" "" ""
+	"" ""
 )
 T_EXPECT=(
 	"allow"
@@ -169,6 +184,8 @@ T_EXPECT=(
 	"allow"
 	"allow"
 	"allow"
+	"deny"
+	"deny"
 	"deny"
 	"deny"
 	"deny"
