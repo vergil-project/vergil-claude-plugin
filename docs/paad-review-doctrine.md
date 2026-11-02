@@ -564,10 +564,15 @@ delegate's text as HTML entities, so decode `&amp;`, `&lt;` and `&gt;` in
 it, and no other entity, in one pass from left to right (`&amp;lt;`
 becomes `&lt;`), before the result is checked, cut, parsed or written
 anywhere: every rule below, `security-1.md` and `result.md` all see the
-delegate's own text. That text is raw, so result text posted in a public
-record goes in a code span or fence longer than its own longest run of
-backticks, or has `&`, `<` and `>` escaped again as it is posted (mode 1:
-[§2.6](#26-the-round-comment); mode 2: [§3.5](#35-task-issue-records)).
+delegate's own text. That text is raw, and it was written after reading
+untrusted content, so it is never posted as markdown. Result text is any
+text copied from the result, such as a location, a symbol, an excerpt or
+a discard reason. Wherever it is posted in a public record, it goes in a
+fenced code block of at least three backticks, longer than the longest
+run of backticks in the text, placed at the top level of the comment and
+never inside a list item. There is no other form: no inline code span and
+no escaping instead (mode 1: [§2.6](#26-the-round-comment); mode 2:
+[§3.5](#35-task-issue-records)).
 Nothing after the review
 starts before then. An answer that arrives after the processing below has
 started is not used: in mode 1 it breaks the round, in mode 2 it pauses
@@ -1171,10 +1176,12 @@ Post one comment per round on the planning issue, with
   descriptions or details.
 - **No marker lines** (`Epic:`, `Docs task:`, `Tasks filed:`), so the queue
   view's marker parsing is unaffected.
-- **Result text is contained.** Any text taken from the result (a claim
-  summary, a discard line) goes in a code span or fence longer than its
-  own longest run of backticks, or has `&`, `<` and `>` escaped again,
-  since the decoded result is raw ([§1.9](#19-the-delegate-path)).
+- **Result text is fenced.** Any text copied from the result (a claim, a
+  location, a discard line) goes in a fenced code block of at least three
+  backticks, longer than the longest run of backticks in the text, at the
+  top level of the comment and never inside a list item: no inline code
+  span and no escaping instead, since the decoded result is raw
+  ([§1.9](#19-the-delegate-path)).
 
 A comment that would pass GitHub's 65,536-character limit is split into
 parts. Each part's first line is the same first line plus `(part <i>/<m>)`.
@@ -1670,8 +1677,8 @@ produce a usable review, which says nothing about the code. A failed round is
 never treated as a pass, and its findings are not acted on unless the human
 rules the check `dismiss` where [§3.5](#35-task-issue-records) allows it
 (below, a reported write and a file left in `paad/` do not, and neither
-does a failed `Scope:` value check, since the findings comment needs each
-finding's scope bucket). Leave the
+does a missing or invalid `Scope:` field, since the findings comment needs
+each finding's scope bucket). Leave the
 worktree's `paad/` and the task's state directory where they are, unread,
 for the human. The round's findings comment notes which check failed and
 carries no findings, and its response comment carries the `Paused:` line
@@ -1801,7 +1808,7 @@ comment, in this fixed form, one per line:
       hashed `result.md`, with its cut-out `security-1.md`; after a state-directory
       hash that differed, nothing was written ([§1.9](#19-the-delegate-path)),
       so `dismiss` does not apply and only `another-round` does. Nor does
-      it apply after a failed `Scope:` value check
+      it apply after a missing or invalid `Scope:` field
       ([§3.4](#34-output-checks)): a finding with no valid scope has no
       bucket in the findings comment, so only `another-round` does;
     - after a blocked result that passed its other checks:
@@ -1861,18 +1868,20 @@ comment, in this fixed form, one per line:
   directory (`build/.vergil-state/agentic-review/<N>/`).
 
 The reviewer's free-text notes are not copied into these comments, and
-security findings appear only as counts. Text taken from the result (an
-excerpt, a symbol, a discard reason) goes in a code span or fence longer
-than its own longest run of backticks, or has `&`, `<` and `>` escaped
-again, since the decoded result is raw ([§1.9](#19-the-delegate-path)).
-A comment that would pass GitHub's
+security findings appear only as counts. Text copied from the result (a
+location, a symbol, an excerpt, a discard reason) goes in a fenced code
+block of at least three backticks, longer than the longest run of
+backticks in the text, at the top level of the comment and never inside
+a list item: no inline code span and no escaping instead, since the
+decoded result is raw ([§1.9](#19-the-delegate-path)). Your own summary
+of a finding is prose outside the block. A comment that would pass GitHub's
 65,536-character limit is split into parts; each part's first line is the
 same first line plus `(part <i>/<m>)`.
 
 **Examples.** Round 2 of an invented task, `example-org/example-repo#9001`,
 which pauses and is resumed.
 
-```text
+````text
 agentic-review round 2: findings
 
 Dispatched: 2026-10-30T14:02:11Z
@@ -1883,27 +1892,45 @@ paad:agentic-review v2.0.2-preview
 Critical: 0 (in-scope) / 0 (out-of-scope), Important: 1 (in-scope) / 1 (out-of-scope), Suggestion: 1 (in-scope) / 0 (out-of-scope)
 
 Findings
-- R2.1 (Important, high; in scope; repair; agent): src/example/fetch.py,
-  `fetch_with_retry`: the retry loop added for 503 responses has no upper
-  bound, so a server that keeps failing hangs the caller.
-  Excerpt: `while response.status == 503: response = session.get(url)`
-  (line 42 at the time).
-- R2.2 (Suggestion, medium; in scope; new; human, reason 4):
-  src/example/fetch.py, `fetch_with_retry`: the retry delay is a bare
-  number with no name.
-  Excerpt: `time.sleep(0.5)` (line 45 at the time).
-- R2.3 (Important, high; out-of-scope bug; new; human, reason 2):
-  src/example/cache.py, `Cache.get`: an expired entry is returned once
-  before it is evicted.
-  Excerpt: `if entry.expired: self.evict(key)` (line 88 at the time).
+
+R2.1 (Important, high; in scope; repair; agent): the retry loop added for
+503 responses has no upper bound, so a server that keeps failing hangs the
+caller. Line 42 at the time.
+
+```text
+src/example/fetch.py
+fetch_with_retry
+while response.status == 503: response = session.get(url)
+```
+
+R2.2 (Suggestion, medium; in scope; new; human, reason 4): the retry delay
+is a bare number with no name. Line 45 at the time.
+
+```text
+src/example/fetch.py
+fetch_with_retry
+time.sleep(0.5)
+```
+
+R2.3 (Important, high; out-of-scope bug; new; human, reason 2): an expired
+entry is returned once before it is evicted. Line 88 at the time.
+
+```text
+src/example/cache.py
+Cache.get
+if entry.expired: self.evict(key)
+```
 
 Filtered out: 2
-- A null-response concern, withdrawn: the caller checks for None.
-- A naming preference with no effect on behaviour.
+
+```text
+A null-response concern, withdrawn: the caller checks for None.
+A naming preference with no effect on behaviour.
+```
 
 Security: 0
 Output checks: passed
-```
+````
 
 ```text
 agentic-review round 2: response
