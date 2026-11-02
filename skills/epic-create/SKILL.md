@@ -189,30 +189,65 @@ the rules; follow it and link to it, never restate it. It runs in three stages
 run `paad:pushback` or `paad:alignment` in the main session; every review is a
 round. The human decides every round. Each round has seven steps:
 
-1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)): run
-   the pre-dispatch steps of [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
-   including the `paad/` checks, the round's empty temporary directory and
-   the state directory's seal and hash (in the first round of a session,
-   the human's confirmation of its listing instead of the seal)
-   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), then
-   start a fresh
-   `general-purpose` subagent **in the background** with the
-   [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt) template,
-   placeholders filled and nothing about earlier rounds added.
+1. **Dispatch** ([§2.2](../../docs/paad-review-doctrine.md#22-one-round)):
+   select the path by the doctrine's selection rule
+   ([§1.8](../../docs/paad-review-doctrine.md#18-the-two-paths)): the
+   delegate path when `paad:paad-delegate` is among the agent types this
+   session can dispatch, otherwise the fallback path, recorded in the round
+   comment as a deviation. Run that path's pre-dispatch steps of
+   [§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds),
+   including the `paad/` checks
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)),
+   on the fallback path the round's empty temporary directory, and the
+   state directory's seal and hash (in the first round of a session, the
+   human's confirmation of its listing instead of the seal)
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
+   start a fresh subagent **in the background** with that path's
+   [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
+   template (`paad:paad-delegate` or `general-purpose`), placeholders
+   filled and nothing about earlier rounds added. If any pre-dispatch
+   check or command fails, dispatch nothing and stop and ask the human:
+   nothing is reverted or re-run.
 2. **Check the output**
-   ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)),
-   including the state directory's hash and the stray-write check. A failed
-   check is a broken round: revert, delete its security files unread, and
-   re-run once; stop and ask the human after a second. A failed
-   state-directory check, or a failed `paad/` check before dispatch, is
-   never re-run: stop and ask the human at once. On every such exit, take
+   ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
+   On the fallback path, the stray-write check. Then, on both paths, the
+   state directory's hash, before anything is written there
+   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-on-both-paths)).
+   If it differs, write nothing there, show the result's security section
+   in the terminal only, and take the state-directory exit below, which
+   overrides every other exit. Otherwise, on the delegate path, cut the
+   security section out into the scratch copy as `security-1.md`, hashed
+   as a details file, before anything else reads the result, and only from
+   a well-formed result; a result whose shape does not allow the cut is
+   written there whole, hashed and treated as security material
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)). A
+   failed check is a broken round: revert, delete its security material
+   unread, and re-run once; stop and ask the human after a second. These
+   are never re-run; stop and ask the human at once, posting nothing from
+   the result
+   ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)):
+   - a failed state-directory check: revert the worktree only, and leave
+     the state directory as it is;
+   - a blocked result: tell the human its reason in the terminal; if its
+     other checks passed, delete the round's scratch-copy subdirectory
+     unread; otherwise keep the whole result there (`security-1.md` and
+     `result.md`) and post a round comment saying only that the round was
+     blocked, with `scratch copy kept` and each file's hash;
+   - a result whose shape does not allow the cut: keep it, and post a
+     round comment naming only the failed shape rule, with `scratch copy
+     kept` and the file's hash;
+   - a delegate that reports `Files written:` other than `none`: show the
+     paths in the terminal only, unread, and keep the scratch copy.
+
+   On every such exit, take
    the end-of-round seal once you are done in the state directory; after a
    failed state-directory check, only once the human has confirmed its
    contents
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 3. **Screen, classify and map severity:** first screen every ordinary finding
    and every discard line
-   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)), then
+   ([§1.6](../../docs/paad-review-doctrine.md#16-security-findings),
+   [§2.7](../../docs/paad-review-doctrine.md#27-security-findings)), then
    classify from trusted-author comments only
    ([§1.2](../../docs/paad-review-doctrine.md#12-classification)) and map
    severity with the [§1.3](../../docs/paad-review-doctrine.md#13-severity)
@@ -239,9 +274,9 @@ round. The human decides every round. Each round has seven steps:
    ([§2.2](../../docs/paad-review-doctrine.md#22-one-round), step 7). The
    human's answer is final; the recommendation is advice.
 
-Repeated broken rounds are evidence for the fallback
-([§2.10](../../docs/paad-review-doctrine.md#210-fallback)), which is a doctrine
-change, not a session decision.
+Repeated broken rounds are recorded in the round comments; changing the
+prompts or the checks to prevent them is a doctrine change, not a session
+decision.
 
 ## Preflight
 
