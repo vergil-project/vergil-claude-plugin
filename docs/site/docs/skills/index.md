@@ -179,17 +179,18 @@ PR tooling's refusal.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR. The same
-flow runs on a cloud VM: `report-ready` pushes a world-readable **relay
-ref** carrying the ready-state, so the Mac no longer needs the VM's
-filesystem, and the human opens the PR worktree-free with
-`vrg-submit-pr <branch> [<branch> …]`. (This retired the former
-`issue-localize` skill, which reconstructed the ready-state locally
-before the relay existed — epic
+flow runs on a cloud VM, except for the agentic-review gate: it needs
+paad's delegate, which only a Lima session loads, so on a cloud VM the
+gate pauses before its first round (see
+[paad review rounds](#paad-review-rounds-what-a-session-needs)). The
+human then accepts the branch as it stands, unreviewed, or moves the
+task to a Lima session. From a cloud VM, `report-ready` pushes a
+world-readable **relay ref** carrying the ready-state, so the Mac no
+longer needs the VM's filesystem, and the human opens the PR
+worktree-free with `vrg-submit-pr <branch> [<branch> …]`. (This retired
+the former `issue-localize` skill, which reconstructed the ready-state
+locally before the relay existed — epic
 [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148).)
-The agentic-review gate is the exception: it needs paad's delegate,
-which only a Lima session loads, so on a cloud VM it pauses before its
-first round (see
-[paad review rounds](#paad-review-rounds-what-a-session-needs)).
 
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (`vrg-pr-workflow`, etc.) at runtime.
