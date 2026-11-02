@@ -65,7 +65,7 @@ unattended runner, `paad:paad-delegate`
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue (locally or on a cloud VM; the agentic-review gate needs a Lima session), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue in a Lima session (the agentic-review gate cannot run on a cloud VM), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
@@ -178,15 +178,14 @@ planning or deferred epic (route it with `intake-review`, expand it with
 PR tooling's refusal.
 
 **When to use.** In the user-agent session, to take an issue from
-implementation through the point where the human opens the PR. The same
-flow runs on a cloud VM, except for the agentic-review gate: it needs
-paad's delegate, which only a Lima session loads, so on a cloud VM the
-gate pauses before its first round (see
-[paad review rounds](#paad-review-rounds-what-a-session-needs)). The
-human then accepts the branch as it stands, unreviewed, or moves the
-task to a Lima session. From a cloud VM, `report-ready` pushes a
-world-readable **relay ref** carrying the ready-state, so the Mac no
-longer needs the VM's filesystem, and the human opens the PR
+implementation through the point where the human opens the PR. Run it
+in a Lima session: the agentic-review gate needs paad's delegate, which
+only a Lima session loads, so the gate cannot run on a cloud VM (see
+[paad review rounds](#paad-review-rounds-what-a-session-needs)). A task
+started on a cloud VM is implemented again in a Lima session, since the
+branch is not pushed before `report-ready`. `report-ready` pushes a
+world-readable **relay ref** carrying the ready-state, so the Mac does
+not need the session's filesystem, and the human opens the PR
 worktree-free with `vrg-submit-pr <branch> [<branch> …]`. (This retired
 the former `issue-localize` skill, which reconstructed the ready-state
 locally before the relay existed — epic

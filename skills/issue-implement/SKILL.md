@@ -396,19 +396,22 @@ the human opens the PR.
 
 ## Cloud / remote sessions — the relay handoff
 
-This skill runs the same on a cloud VM as on the Mac, except for the
-agentic-review gate. The gate needs paad's delegate, which only a Lima
-session loads ([doctrine §1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement),
+**Run this skill in a Lima session.** The agentic-review gate needs paad's
+delegate, which only a Lima session loads
+([doctrine §1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement),
 [paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
-so on a cloud VM the gate pauses before its first round. The human then
-accepts the branch as it stands, unreviewed, or moves the task to a Lima
-session. With the relay tooling
+so the gate cannot run on a cloud VM: there it pauses before its first
+round, and cloud support is not planned. A task started on a cloud VM is
+implemented again in a Lima session: the branch is not pushed before
+`report-ready`, and a Lima VM cannot see a cloud VM's files.
+
+With the relay tooling
 (epic [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),
-the rest of PR development (implement → validate green → `report-ready`)
-runs on the cloud, and only PR **submission and merge** stay human-on-Mac:
+the Mac does not need the session's filesystem, and only PR **submission
+and merge** stay human-on-Mac:
 
 - `report-ready` pushes the **feature branch** and then a **relay ref** to
-  origin carrying the ready-state, so the Mac no longer needs the cloud VM's
+  origin carrying the ready-state, so the Mac no longer needs the session's
   filesystem — no separate `vrg-git push` is needed. (The old `issue-localize`
   skill, which reconstructed `.vergil/pr-workflow.json` locally from the branch
   and issue, is retired — the relay makes that regeneration unnecessary.)
