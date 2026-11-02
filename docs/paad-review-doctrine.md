@@ -217,8 +217,9 @@ issue, finds it. Find the main clone from inside a worktree with
   source. Ignored scratch in its `build/` is not a source edit (the
   worktree convention's `build/` exception), and `build/.vergil-state/`
   is the namespace for agent state. The worktree write hook
-  (`block-worktree-bypass-write`) allows Write and Edit under
-  `build/.vergil-state/` and nowhere else in the main worktree.
+  (`block-worktree-bypass-write`) allows Write and Edit under `build/`
+  and nowhere else in the main worktree. The hook does not guard the
+  state directories: the checks below do.
 - **Creating it.** When the main clone has no `build` (neither `test -e`
   nor `test -L` is true), create it with a plain `mkdir build`: it is the
   repo's ignored scratch directory. `build` must then be a real directory:

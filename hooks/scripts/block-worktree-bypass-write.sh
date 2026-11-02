@@ -3,9 +3,10 @@
 #
 # Blocks file modifications to the main worktree when the parallel-AI-agent
 # worktree convention is active. Forces agents to write to their assigned
-# .worktrees/<name>/ subdirectory instead. The one exception is ignored
-# agent state under the main clone's build/.vergil-state/ (the paad
-# review doctrine's private state directories).
+# .worktrees/<name>/ subdirectory instead. The one exception is the
+# main clone's ignored build/ scratch directory, which holds agent
+# scratch and, under build/.vergil-state/, the paad review doctrine's
+# private state directories.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with
@@ -132,15 +133,18 @@ if ! [ -f "$main_root/.gitignore" ] || ! grep -qxF '.worktrees/' "$main_root/.gi
 fi
 
 # The worktree convention is active. The file must be inside a worktree,
-# or be ignored agent state under the main clone's build/.vergil-state/.
-# The convention keeps the main worktree read-only for source and allows
-# ignored scratch in its build/; build/.vergil-state/ is the agent-state
-# namespace there, and the only main-worktree path this hook allows.
+# or inside the main clone's build/. The convention keeps the main
+# worktree read-only for source and allows ignored scratch in its build/
+# (build/.vergil-state/ is the agent-state namespace there); build/ is
+# the only main-worktree path this hook allows. The match is on the
+# normalised path, so a `..` or a symlink that leads out of build/ is
+# matched where it leads, and a build/ that is itself a symlink never
+# matches.
 case "$resolved" in
   "$main_root"/.worktrees/*)
     exit 0
     ;;
-  "$main_root"/build/.vergil-state/*)
+  "$main_root"/build/*)
     exit 0
     ;;
   *)

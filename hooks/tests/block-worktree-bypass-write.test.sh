@@ -4,7 +4,7 @@
 #
 # Builds a scratch managed repo on the worktree convention and feeds
 # the hook Write payloads for paths in a worktree, in the main worktree
-# and under the main clone's build/.vergil-state/, asserting each
+# and under the main clone's build/, asserting each
 # decision. bash 3.2-compatible: parallel indexed arrays, no
 # associative arrays.
 #
@@ -28,6 +28,8 @@ printf '.worktrees/\n' >"$S/.gitignore"
 ln -s "$S" "$S/.worktrees/wt/up"
 ln -s "$S" "$S/.worktrees/wt2"
 ln -s "$S/src" "$S/build/.vergil-state/src"
+ln -s "$S/src" "$S/build/out"
+ln -s "$S/build" "$S/src/tobuild"
 
 # L: a second managed repo whose build/.vergil-state is itself a link.
 L="$TMP/linked"
@@ -36,6 +38,14 @@ git -C "$L" init --quiet
 printf '[project]\n' >"$L/vergil.toml"
 printf '.worktrees/\n' >"$L/.gitignore"
 ln -s "$L/src" "$L/build/.vergil-state"
+
+# B: a third managed repo whose build is itself a link to its source.
+B="$TMP/buildlink"
+mkdir -p "$B/.worktrees" "$B/src"
+git -C "$B" init --quiet
+printf '[project]\n' >"$B/vergil.toml"
+printf '.worktrees/\n' >"$B/.gitignore"
+ln -s "$B/src" "$B/build"
 
 NL=$'\n'
 
@@ -63,8 +73,8 @@ T_NAME=(
 	"write outside a managed repo is allowed"
 	"write under the state directory is allowed"
 	"write under a new state subdirectory is allowed"
-	"write elsewhere under build/ is denied"
-	"write to a sibling of the state directory is denied"
+	"write elsewhere under build/ is allowed"
+	"write to a sibling of the state directory is allowed"
 	"normalisation: worktree path, case 1"
 	"normalisation: worktree path, case 2"
 	"normalisation: worktree path, case 3"
@@ -78,6 +88,15 @@ T_NAME=(
 	"without python3, a write outside a managed repo is denied"
 	"a python3 that writes to stderr: a write to the main worktree is denied"
 	"a python3 that writes to stderr: a write inside a worktree is allowed"
+	"write under a new build/ subdirectory is allowed"
+	"write with a resolvable dot-dot segment inside build/ is allowed"
+	"write through a link into build/ is allowed"
+	"write to the build directory itself is denied"
+	"write to a sibling with build as a prefix is denied"
+	"normalisation: build path, case 1"
+	"normalisation: build path, case 2"
+	"normalisation: build path, case 3"
+	"normalisation: build path, case 4"
 )
 T_PATH=(
 	"$S/.worktrees/wt/new.txt"
@@ -101,18 +120,29 @@ T_PATH=(
 	"$U/new.txt"
 	"$S/new.txt"
 	"$S/.worktrees/wt/new.txt"
+	"$S/build/scratch/deep/new.txt"
+	"$S/build/.vergil-state/../scratch/new.txt"
+	"$S/src/tobuild/new.txt"
+	"$S/build"
+	"$S/buildx/new.txt"
+	"$S/build/../new.txt"
+	"$S/build/out/new.txt"
+	"$S/build/scratch/../../src/new.txt"
+	"$B/build/new.txt"
 )
 T_CWD=(
 	"$S" "$S" "$S" "$U" "$S" "$S" "$S" "$S"
 	"$S" "$S" "$S" "$S" "$S" "$L" "$S" "$S"
 	"$S" "$U" "$U"
 	"/" "$S"
+	"$S" "$S" "$S" "$S" "$S" "$S" "$S" "$S" "$B"
 )
 T_PATHVAR=(
 	"" "" "" "" "" "" "" ""
 	"" "" "" "" "" "" "" ""
 	"$NOPY_PATH" "$NOPY_PATH" "$NOPY_PATH"
 	"$NOISY_PATH" "$NOISY_PATH"
+	"" "" "" "" "" "" "" "" ""
 )
 T_EXPECT=(
 	"allow"
@@ -121,8 +151,8 @@ T_EXPECT=(
 	"allow"
 	"allow"
 	"allow"
-	"deny"
-	"deny"
+	"allow"
+	"allow"
 	"deny"
 	"deny"
 	"deny"
@@ -136,6 +166,15 @@ T_EXPECT=(
 	"deny"
 	"deny"
 	"allow"
+	"allow"
+	"allow"
+	"allow"
+	"deny"
+	"deny"
+	"deny"
+	"deny"
+	"deny"
+	"deny"
 )
 
 pass=0

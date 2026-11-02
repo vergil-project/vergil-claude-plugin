@@ -87,10 +87,11 @@ This is the first non-Bash matcher in the hook system.
    take its parent to find the main root (same technique as
    `block-protected-branch-work.sh`).
 8. Check whether the normalised path falls inside
-   `<main_root>/.worktrees/*` or `<main_root>/build/.vergil-state/*`.
-9. If so: exit 0 (allow). `build/.vergil-state/` is ignored agent
-   state, the worktree convention's one exception to the read-only
-   main worktree (paad review doctrine §1.5).
+   `<main_root>/.worktrees/*` or `<main_root>/build/*`.
+9. If so: exit 0 (allow). `build/` is the main clone's ignored
+   scratch directory, the worktree convention's one exception to the
+   read-only main worktree; `build/.vergil-state/` within it is the
+   namespace for agent state (paad review doctrine §1.5).
 10. If not: deny.
 
 ### Hook 1 denial message
