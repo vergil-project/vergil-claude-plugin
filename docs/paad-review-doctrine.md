@@ -214,9 +214,11 @@ issue, finds it. Find the main clone from inside a worktree with
   state survives a VM rebuild, as the worktrees do. The reviewer works in
   its worktree under `.worktrees/`, outside the main clone's `build/`.
 - **The read-only exception.** The main worktree stays read-only for
-  source. Ignored scratch under its `build/.vergil-state/` is not a source
-  edit, and the worktree write hook (`block-worktree-bypass-write`) allows
-  Write and Edit there and nowhere else in the main worktree.
+  source. Ignored scratch in its `build/` is not a source edit (the
+  worktree convention's `build/` exception), and `build/.vergil-state/`
+  is the namespace for agent state. The worktree write hook
+  (`block-worktree-bypass-write`) allows Write and Edit under
+  `build/.vergil-state/` and nowhere else in the main worktree.
 - **Creating it.** When the main clone has no `build` (neither `test -e`
   nor `test -L` is true), create it with a plain `mkdir build`: it is the
   repo's ignored scratch directory. `build` must then be a real directory:
