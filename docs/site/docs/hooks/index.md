@@ -137,7 +137,8 @@ convention's allowed locations. It does not match `vrg-commit`.
 [worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
 The hook detects adoption by looking for a `.worktrees/` line in the
 repo's `.gitignore`. On adopted repos, commits must originate from
-inside `.worktrees/<name>/`; the main tree is read-only. On
+inside `.worktrees/<name>/`; the main tree is read-only for source
+(ignored scratch in its `build/` is not a source edit). On
 non-adopted repos, the hook falls back to the legacy behavior of
 blocking commits on `main` or `develop` regardless of directory.
 
@@ -284,14 +285,22 @@ local workflow.
 **What.** Blocks Write/Edit file modifications targeting the main
 worktree when the parallel-AI-agent worktree convention is active.
 
-**Why.** The main worktree is read-only by convention — all edits
-flow through a `.worktrees/<name>/` worktree on a feature branch.
-The one exception is ignored agent state under the main clone's
-`build/.vergil-state/` (the [paad review doctrine's state
-directories](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories)),
-which the hook allows. Every target path is normalised first
-(`.`, `..` and symlinks resolved, for new files as well as existing
-ones) with `python3`. A relative target path is denied. Without
+**Why.** The main worktree is read-only for source by convention — all
+edits flow through a `.worktrees/<name>/` worktree on a feature branch.
+The convention's
+[`build/` exception](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#rules)
+allows ignored scratch in the main clone's `build/` (the MQ lab's shared
+live-lab state lives there), and `build/.vergil-state/` is the namespace
+for agent state (the [paad review doctrine's state
+directories](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories)).
+Of the main worktree, the hook allows Write and Edit only under
+`build/`, the one place the human can see what agents write, and there
+only to paths git reports as ignored. Every
+target path is normalised first (`.`, `..` and symlinks resolved, for
+new files as well as existing ones) with `python3`, and matched where
+it leads: a path that leads out of `build/` through `..` or a symlink,
+or through a `build` that is itself a symlink, is not allowed as
+`build/` scratch. A relative target path is denied. Without
 `python3` the hook denies every Write and Edit, wherever it points; a
 write whose path `python3` cannot normalise is denied.
 Design: `docs/specs/2026-05-09-worktree-write-guard-design.md`.

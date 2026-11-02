@@ -7,7 +7,8 @@
 # 1. If the repo has adopted the parallel-AI-agent worktree convention
 #    (signal: `.worktrees/` line in .gitignore), enforce that commits
 #    originate from a `.worktrees/<name>/` subdirectory. The main tree
-#    is read-only under that convention.
+#    is read-only for source under that convention (ignored scratch in
+#    its build/ is not a source edit).
 #
 # 2. If the repo has NOT adopted the convention, fall back to the
 #    long-standing behavior: block commits on `main` or `develop`.

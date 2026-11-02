@@ -243,7 +243,7 @@ for the rationale.
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
 | `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is the human's Phase-6 action |
 | `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
-| `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored agent state under `build/.vergil-state/` |
+| `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored scratch under the main clone's `build/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 
@@ -259,7 +259,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
 | `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
-| `issue-implement` | USER agent: implement an issue (locally or on a cloud VM), validate to green, record the PR metadata, hand off to the human |
+| `issue-implement` | USER agent: implement an issue in a Lima session (the agentic-review gate cannot run on a cloud VM; see [paad review rounds](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#paad-review-rounds-what-a-session-needs)), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
 | `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |

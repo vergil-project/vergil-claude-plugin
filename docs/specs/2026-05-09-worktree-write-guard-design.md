@@ -87,10 +87,13 @@ This is the first non-Bash matcher in the hook system.
    take its parent to find the main root (same technique as
    `block-protected-branch-work.sh`).
 8. Check whether the normalised path falls inside
-   `<main_root>/.worktrees/*` or `<main_root>/build/.vergil-state/*`.
-9. If so: exit 0 (allow). `build/.vergil-state/` is ignored agent
-   state, the worktree convention's one exception to the read-only
-   main worktree (paad review doctrine §1.5).
+   `<main_root>/.worktrees/*` or `<main_root>/build/*`.
+9. If so: exit 0 (allow), for a path under `build/` only when
+   `git -C <main_root> check-ignore -q` reports it ignored; any other
+   result denies. `build/` is the main clone's ignored scratch
+   directory, the worktree convention's one exception to the read-only
+   main worktree; `build/.vergil-state/` within it is the namespace for
+   agent state (paad review doctrine §1.5).
 10. If not: deny.
 
 ### Hook 1 denial message
@@ -110,7 +113,9 @@ Consistent with the language in `block-protected-branch-work.sh`.
 The other denials each name their own reason: a relative target path;
 `python3` not installed or not on `PATH`; `python3` failing on the
 path, with its error; `python3` returning anything but a single
-absolute path; and no temporary file for `python3`'s error output.
+absolute path; no temporary file for `python3`'s error output; a path
+under `build/` that git does not report ignored; and `git check-ignore`
+failing on a path under `build/`, with its exit code and error.
 
 ### Edge cases
 
@@ -127,6 +132,13 @@ absolute path; and no temporary file for `python3`'s error output.
 - **No `python3`**: every Write and Edit is denied, wherever it
   points (fail closed).
 - **A path that `python3` cannot normalise**: that write is denied.
+- **A path that leaves `build/`** through `..` or a symlink, or a
+  `build` that is itself a symlink: matched where it resolves, so it
+  is not allowed as `build/` scratch.
+- **A tracked file under `build/`, or a `build/` git does not
+  ignore**: git does not report the path ignored, so it is denied.
+- **`git check-ignore` fails** (any exit but 0 or 1): denied (fail
+  closed).
 
 ## Hook 2: `block-github-contents-api.sh`
 

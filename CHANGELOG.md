@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.56] - 2026-11-02
+
+### Documentation
+
+- sweep the docs for paad unattended mode (#892)
+
+### Features
+
+- allow Write and Edit anywhere in the main clone's ignored build/ (#896)
+
 ## [2.1.55] - 2026-11-02
 
 ### Documentation

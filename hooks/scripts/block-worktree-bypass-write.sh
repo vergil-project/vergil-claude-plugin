@@ -3,9 +3,10 @@
 #
 # Blocks file modifications to the main worktree when the parallel-AI-agent
 # worktree convention is active. Forces agents to write to their assigned
-# .worktrees/<name>/ subdirectory instead. The one exception is ignored
-# agent state under the main clone's build/.vergil-state/ (the paad
-# review doctrine's private state directories).
+# .worktrees/<name>/ subdirectory instead. The one exception is the
+# main clone's ignored build/ scratch directory, which holds agent
+# scratch and, under build/.vergil-state/, the paad review doctrine's
+# private state directories.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with
@@ -132,14 +133,30 @@ if ! [ -f "$main_root/.gitignore" ] || ! grep -qxF '.worktrees/' "$main_root/.gi
 fi
 
 # The worktree convention is active. The file must be inside a worktree,
-# or be ignored agent state under the main clone's build/.vergil-state/
-# (the convention's one exception to the read-only main worktree).
+# or inside the main clone's build/. The convention keeps the main
+# worktree read-only for source and allows ignored scratch in its build/
+# (build/.vergil-state/ is the agent-state namespace there); build/ is
+# the only main-worktree path this hook allows. The match is on the
+# normalised path, so a `..` or a symlink that leads out of build/ is
+# matched where it leads, and a build/ that is itself a symlink never
+# matches. A target under build/ is allowed only when git reports it
+# ignored, from any ignore source git reads; a target git does not
+# report ignored, such as a file tracked there, is source like any
+# other. Any other git result, a failure included, denies.
 case "$resolved" in
   "$main_root"/.worktrees/*)
     exit 0
     ;;
-  "$main_root"/build/.vergil-state/*)
-    exit 0
+  "$main_root"/build/*)
+    if ci_out=$(git -C "$main_root" check-ignore -q -- "$resolved" 2>&1); then
+      exit 0
+    else
+      ci_rc=$?
+    fi
+    if [ "$ci_rc" -eq 1 ]; then
+      deny_target "The worktree write guard denies $file_path: it is under the main clone's build/, but git does not report it ignored. Only ignored scratch in build/ may be written; write to your assigned worktree instead."
+    fi
+    deny_target "The worktree write guard could not check $file_path: git check-ignore failed with exit $ci_rc ($(printf '%s' "$ci_out" | head -c 300)). The write cannot be checked, so it is denied."
     ;;
   *)
     jq -n --arg path "$file_path" '{
