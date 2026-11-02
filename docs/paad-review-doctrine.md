@@ -556,7 +556,9 @@ severity and by scope ([§3.4](#34-output-checks)). pushback's one skill-specifi
 is `Outside the spec: <n>`, then one line for each defect in the
 surrounding code that does not block the spec; alignment has none. A
 blocked result has `Findings: 0`
-and `Discards: 0`, and still carries the security section, empty. A skill
+and `Discards: 0`, and still carries the security section, empty: the
+markers with `Security: 0` and `Security discards: 0` between them and
+nothing else. A skill
 the delegate refused without invoking it opens `Running paad:<skill> (not
 invoked)`. The review has returned only when the harness's completion
 notice says the subagent has finished and has no work still running; take
@@ -653,7 +655,8 @@ kept subdirectory: it takes the next round number.
 **The output checks.** Check the structure, not the prose. First read the
 `Status:` line. A blocked result (below) is checked for its frame (the
 announce line, `Status:`, `Findings: 0`, `Discards: 0`, an empty security
-section and `Files written: none`) and for the version, `Config:` and
+section (`Security: 0` and `Security discards: 0` between the markers,
+and nothing else) and `Files written: none`) and for the version, `Config:` and
 `Agent types dispatched:` checks below, but not for the mode's values. For
 a blocked result, in both modes, `Agent types dispatched:` may be `none` or
 list only `paad:paad-analyst`. Then:
@@ -684,8 +687,11 @@ list only `paad:paad-analyst`. Then:
   with no `- ` line after it, or any text after the label but `none`,
   fails; `Findings: <n>`, with `<n>` equal to the number of `### F<i>`
   headings; each finding's native fields; `Discards: <k>`, followed by
-  exactly `<k>` lines, each starting with `- `, as for `Security
-  discards: <k>` (above); the skill-specific fields the mode requires; and `Files written: none` as the last line;
+  exactly `<k>` lines, each starting with `- `, which run up to the next
+  field (the first skill-specific field, or `Files written: none` when
+  the mode requires none); any other line between `Discards: <k>` and
+  that field fails, as for `Security discards: <k>` (above); the
+  skill-specific fields the mode requires; and `Files written: none` as the last line;
 - every severity is a word from that skill's column of the
   [§1.3](#13-severity) table;
 - the mode's own values ([§2.4](#24-output-checks-and-broken-rounds),

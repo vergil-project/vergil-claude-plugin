@@ -205,7 +205,10 @@ is not removed when upstream releases the change).
   `2.0.2-preview` (the announce `v2.0.2-preview`), validated at fleet
   commit `58db477` in
   [vergil-project/.github#843](https://github.com/vergil-project/.github/issues/843),
-  a reduced set of runs by the human's ruling. The version was first
+  with a reduced set of runs. That reduced set is the human's one-off
+  ruling for a change to the contract's wording only, recorded on that
+  issue; it is an exception, not a general rule, and the gate below is
+  unchanged. The version was first
   validated at fleet commit `abf879f` in
   [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733).
   A round whose delegate announces any other version fails its output
