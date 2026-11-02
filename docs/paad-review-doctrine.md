@@ -683,8 +683,9 @@ list only `paad:paad-analyst`. Then:
   followed by one or more lines that each start with `- `. A bare label
   with no `- ` line after it, or any text after the label but `none`,
   fails; `Findings: <n>`, with `<n>` equal to the number of `### F<i>`
-  headings; each finding's native fields; `Discards: <k>`, with `<k>` lines; the skill-specific
-  fields the mode requires; and `Files written: none` as the last line;
+  headings; each finding's native fields; `Discards: <k>`, followed by
+  exactly `<k>` lines, each starting with `- `, as for `Security
+  discards: <k>` (above); the skill-specific fields the mode requires; and `Files written: none` as the last line;
 - every severity is a word from that skill's column of the
   [§1.3](#13-severity) table;
 - the mode's own values ([§2.4](#24-output-checks-and-broken-rounds),
