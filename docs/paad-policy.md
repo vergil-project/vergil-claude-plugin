@@ -30,8 +30,9 @@ visible and can be revisited.
   installed release, through a standing per-host override (section 10).
   That changes which paad a session loads, not this decision: the
   installed paad, which sessions without the override use, stays
-  unpinned. It has no unattended runner, so those sessions run no review
-  round (section 10).
+  unpinned. Today it has no unattended runner, so those sessions run no
+  review round (section 10). A paad release that ships one would change
+  that, an accepted risk (section 10).
 - For now nobody detects drift between paad releases and the workflow's
   expectations: D left drift detection out until real use shows it is needed
   (`epics/568-agentic-review-gate/spec.md` §5). vergil depends on no
@@ -196,8 +197,8 @@ is not removed when upstream releases the change).
   and the fleet expects to run a patch or two ahead of it. There is no plan
   to switch the fleet to a released paad.
 - **The delegate is required.** Each review round runs under
-  `paad:paad-delegate`, paad's unattended runner, and only sessions that
-  load the fleet checkout have it. A session without it runs no review
+  `paad:paad-delegate`, paad's unattended runner, and today only sessions
+  that load the fleet checkout have it. A session without it runs no review
   round: mode 1 stops and tells the human, mode 2 pauses, and the message
   names the fix, which is to start the session with the fleet checkout
   loaded through `vrg-vm session` (the override below)
@@ -239,7 +240,10 @@ is not removed when upstream releases the change).
   changes and syncs with upstream alike), the full automated scenario set
   in [the paad validation gate](paad-validation-gate.md) runs on the new
   commit, in newly started sessions, before reviews resume. The set is
-  not trimmed. Every change that moves `fleet` carries a validation task
+  not trimmed, except that its `Lenses:` scenarios start from the first
+  recorded fleet commit that carries the `Lenses:` input
+  ([V2](https://github.com/vergil-project/.github/issues/858)); each
+  outcome comment says whether they ran. Every change that moves `fleet` carries a validation task
   that runs it and records the outcome and the fleet commit. The human's
   interactive runs are no longer part of the gate. The order is always
   the same: the human moves `fleet`, then the gate runs, and until it
@@ -257,6 +261,13 @@ is not removed when upstream releases the change).
     read-write. An uncommitted edit there changes what every later session
     runs, and nothing checks for it. This is accepted; a read-only mount of
     the fleet checkout is a candidate for the next iteration.
+  - The delegate check
+    ([doctrine §1.8](paad-review-doctrine.md#18-the-delegate-requirement))
+    looks only for the `paad:paad-delegate` agent type. If upstream paad
+    ships its own delegate and a VM update installs it, a session started
+    without the override would pass that check and review with a paad the
+    gate never validated. This is accepted; whether to return to a check
+    is the human's decision.
 
 **Reason.** Unattended mode moves the review-only rules out of vergil's
 prompts and into paad's own contract, where a fresh reviewer cannot read

@@ -492,10 +492,14 @@ type stands in for it. Mode 1 stops and tells the human; mode 2 pauses
 comment, with the `Paused:` line. Either way the message names the fix: start the session with the
 fleet's paad checkout loaded, through `vrg-vm session`
 ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
-and run the round again. Only a session that loads the fleet's paad
+and run the round again. Today only a session that loads the fleet's paad
 checkout has the delegate, so a session started without that override, a
 cloud box, or anyone using this plugin with paad as released today runs no
-review round.
+review round. The check looks only for the agent type, not at which paad
+provides it: if a paad release ships its own delegate and an update
+installs it, a session without the override passes this check and reviews
+with a paad the gate never validated. That is an accepted risk
+([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
 
 **The fleet checkout is not recorded.** Rounds record nothing about it:
 the human records its commit each time they move it
@@ -517,7 +521,12 @@ no-anchoring rule ([§1.1](#11-rules)). It names vergil's things only by
 concrete identifier, such as an issue ref or a path, because everything paad
 reads uses paad's own terms. Under the delegate, agentic-review also takes
 an optional `Lenses:` input, a line naming the lenses to dispatch by their
-identifiers ([§3.4](#34-output-checks)); mode 2 does not send it yet.
+identifiers ([§3.4](#34-output-checks)); mode 2 does not send it yet. The
+fork's change that adds it
+([vergil-project/.github#857](https://github.com/vergil-project/.github/issues/857))
+writes `Agents dispatched:` one line per lens, in §3.4's form: each line
+starts `- <identifier>`, and the identifier is followed by a space or the
+end of the line, never a colon.
 
 **The result.** The delegate's final message is the result, these lines in
 this order (`<…>` are values):
@@ -1681,11 +1690,19 @@ checks, with these values for mode 2:
   are not counted. A mismatch fails the check: the public counts line is
   recomputed from the findings ([§3.5](#35-task-issue-records)), but a
   result that miscounts its own findings is not a usable review;
-- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`. Each
-  lens may be named by its display name or by its identifier (the table
-  below). The field may be on one line, as paad writes it today, or one
-  line per lens, each starting `- <identifier>`, with the rest of the line
-  as today (a `BAIL:` reason, the large-diff partitioning);
+- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`, in one
+  of two forms:
+  - **one line,** as paad writes it today: the lenses follow the label on
+    its own line, each named by its display name or by its identifier (the
+    table below). Each lens is found by its name in the line, not by
+    splitting the line on `, `;
+  - **one line per lens:** the label stands alone on its line, and each
+    following line starts `- <identifier>`, by identifier only, never by
+    display name. The identifier is followed by a space or the end of the
+    line, never a colon, so no such line trips the security cut's shape
+    rule ([§1.9](#19-the-delegate-path)). The rest of the line is as today
+    (a `BAIL:` reason, the large-diff partitioning). A lens with more than
+    one line under the large-diff rule counts once toward the six;
 - Spec Compliance did not bail (no `BAIL:` for it, named either way, under
   `Agents dispatched:`), and `Intent sources consulted:` lists the
   requirements file first;
