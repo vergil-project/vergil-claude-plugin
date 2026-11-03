@@ -492,10 +492,14 @@ type stands in for it. Mode 1 stops and tells the human; mode 2 pauses
 comment, with the `Paused:` line. Either way the message names the fix: start the session with the
 fleet's paad checkout loaded, through `vrg-vm session`
 ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
-and run the round again. Only a session that loads the fleet's paad
+and run the round again. Today only a session that loads the fleet's paad
 checkout has the delegate, so a session started without that override, a
 cloud box, or anyone using this plugin with paad as released today runs no
-review round.
+review round. The check looks only for the agent type, not at which paad
+provides it: if a paad release ships its own delegate and an update
+installs it, a session without the override passes this check and reviews
+with a paad the gate never validated. That is an accepted risk
+([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
 
 **The fleet checkout is not recorded.** Rounds record nothing about it:
 the human records its commit each time they move it
@@ -660,20 +664,15 @@ kept subdirectory: it takes the next round number.
 `Status:` line. A blocked result (below) is checked for its frame (the
 announce line, `Status:`, `Findings: 0`, `Discards: 0`, an empty security
 section (`Security: 0` and `Security discards: 0` between the markers,
-and nothing else) and `Files written: none`) and for the version, `Config:` and
+and nothing else) and `Files written: none`) and for the announce line, `Config:` and
 `Agent types dispatched:` checks below, but not for the mode's values. For
 a blocked result, in both modes, `Agent types dispatched:` may be `none` or
 list only `paad:paad-analyst`. Then:
 
 - the first line is `Running paad:<skill> v<version>` for the skill the
-  prompt named, and `<version>` is exactly the version that
-  [paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)
-  records as validated. Any other version fails the check. This catches a
-  delegate that announces a version the gate has not passed; it cannot
-  tell two builds that announce the same version apart, such as a later
-  fleet commit or an uncommitted edit in the fleet checkout. A moved
-  commit rests on the human holding reviews until the gate passes on it;
-  an uncommitted edit is an accepted risk (paad-policy §10);
+  prompt named. `<version>` is not compared with anything: vergil depends
+  on no specific paad version
+  ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout));
 - no `Config:` line: a config file was followed, which only a config file
   the prompt names may be, and no prompt names one. Each `Config not
   followed: <path>` line is allowed. Show the paths to the human in the
@@ -958,9 +957,6 @@ Rules the template carries, and why:
   number, no earlier findings, no decisions.
 
 ### 2.4 Output checks and broken rounds
-
-**The paad version** must be the one paad-policy §10 records as validated,
-or the check fails ([§1.9](#19-the-delegate-path)).
 
 **Before dispatch,** in this order:
 
@@ -1634,9 +1630,6 @@ not settled here.
 
 ### 3.4 Output checks
 
-**The paad version** must be the one paad-policy §10 records as validated,
-or the check fails ([§1.9](#19-the-delegate-path)).
-
 **Before dispatch,** in this order. Any check that fails, or command that
 fails, pauses the run before dispatch ([§3.8](#38-pauses)):
 
@@ -1906,7 +1899,7 @@ Dispatched: 2026-10-30T14:02:11Z
 Returned: 2026-10-30T14:19:47Z
 Review cost: totalTokens 412306, toolUses 87, durationMs 1056210
 Config not followed: 0. Defaults applied: 0.
-paad:agentic-review v2.0.2-preview
+paad:agentic-review v<version>
 Critical: 0 (in-scope) / 0 (out-of-scope), Important: 1 (in-scope) / 1 (out-of-scope), Suggestion: 1 (in-scope) / 0 (out-of-scope)
 
 Findings
