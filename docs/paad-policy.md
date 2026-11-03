@@ -266,8 +266,12 @@ is not removed when upstream releases the change).
     looks only for the `paad:paad-delegate` agent type. If upstream paad
     ships its own delegate and a VM update installs it, a session started
     without the override would pass that check and review with a paad the
-    gate never validated. This is accepted; whether to return to a check
-    is the human's decision.
+    gate never validated. The same holds for a gate run: if a gate
+    session's override fails to load, the run validates the installed paad
+    rather than the fleet commit. The gate's outcome comment records each
+    run's announce line, so the human can see which paad ran; nothing
+    checks it. This is accepted; whether to return to a check is the
+    human's decision.
 
 **Reason.** Unattended mode moves the review-only rules out of vergil's
 prompts and into paad's own contract, where a fresh reviewer cannot read

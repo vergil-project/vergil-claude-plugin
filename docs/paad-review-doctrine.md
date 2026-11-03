@@ -525,8 +525,10 @@ identifiers ([§3.4](#34-output-checks)); mode 2 does not send it yet. The
 fork's change that adds it
 ([vergil-project/.github#857](https://github.com/vergil-project/.github/issues/857))
 writes `Agents dispatched:` one line per lens, in §3.4's form: each line
-starts `- <identifier>`, and the identifier is followed by a space or the
-end of the line, never a colon.
+starts `- <identifier>`, the identifier is followed by a space or the end
+of the line, never a colon, and each identifier starts exactly one line.
+Under the large-diff rule, both of a lens's instances are described in the
+rest of its one line.
 
 **The result.** The delegate's final message is the result, these lines in
 this order (`<…>` are values):
@@ -1695,14 +1697,20 @@ checks, with these values for mode 2:
   - **one line,** as paad writes it today: the lenses follow the label on
     its own line, each named by its display name or by its identifier (the
     table below). Each lens is found by its name in the line, not by
-    splitting the line on `, `;
+    splitting the line on `, `. A name matches only at the start of the
+    value or right after `, `, and only where it ends at a `,`, a space,
+    a `(` or the end of the line. A `BAIL:` or `NOT DISPATCHED` belongs to
+    the lens name just before it. When a name matches in more than one
+    place, or a `BAIL:` or `NOT DISPATCHED` cannot be tied to one name,
+    the check fails closed;
   - **one line per lens:** the label stands alone on its line, and each
     following line starts `- <identifier>`, by identifier only, never by
     display name. The identifier is followed by a space or the end of the
     line, never a colon, so no such line trips the security cut's shape
-    rule ([§1.9](#19-the-delegate-path)). The rest of the line is as today
-    (a `BAIL:` reason, the large-diff partitioning). A lens with more than
-    one line under the large-diff rule counts once toward the six;
+    rule ([§1.9](#19-the-delegate-path)). Each identifier starts exactly
+    one line. The rest of the line is as today: a `BAIL:` reason, or,
+    under the large-diff rule, both of the lens's instances and the
+    partitioning, described on that one line;
 - Spec Compliance did not bail (no `BAIL:` for it, named either way, under
   `Agents dispatched:`), and `Intent sources consulted:` lists the
   requirements file first;

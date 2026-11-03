@@ -38,10 +38,18 @@ delegate's report on those.
    checkout through `vrg-vm session`'s override: `paad:paad-delegate` is a
    listed agent type.
 4. Each run dispatches `paad:paad-delegate` with the doctrine's prompt for
-   its mode, its placeholders filled and nothing else added: mode 1, the
+   its mode, its placeholders filled: mode 1, the
    [§2.3](paad-review-doctrine.md#23-the-reviewer-prompt) prompt; mode 2,
-   the [§3.2](paad-review-doctrine.md#32-the-reviewer-prompt) prompt. The
-   blocked-input scenarios change only the line they name.
+   the [§3.2](paad-review-doctrine.md#32-the-reviewer-prompt) prompt.
+   `{{ISSUE_REF}}` is the validation task. Nothing else is added, and a
+   run departs from the template only in these ways:
+   - L1, L2 and L4 add their `Lenses:` line after the `Intent:` line
+     (`Lenses:` scenarios, below);
+   - row 1 uses the mode 2 prompt with its `Skill:` line naming
+     `paad:agentic-architecture`;
+   - `{{BASE}}` is the fixture's base commit SHA, not `origin/<base>`;
+   - the blocked-input scenarios (rows 2 and 3) change only the line they
+     name.
 5. The task records the outcome and the fleet commit (below) and closes
    only on SUCCESS. On FAILURE it files fix tasks for the fork; after the
    human moves `fleet` to the fix, every scenario runs again, in newly
@@ -117,7 +125,7 @@ Every run is judged against "cleanly" (below). The expected status is
 
 | # | Scenario | Runs | Skill | Fixture (commit, base) | Reviewed paths | `Intent:` | Expected |
 |---|---|---|---|---|---|---|---|
-| 1 | Unsupported skill | 1 | `paad:agentic-architecture` | `gate-fixtures` `fixture-base` | none | none | `Running paad:agentic-architecture (not invoked)` and `Status: blocked: skill does not support unattended mode`; the skill did not run |
+| 1 | Unsupported skill | 1 | `paad:agentic-architecture` | `gate-fixtures` `fixture-base`, base `main` | none | `intent/paginate.md`, never read, since the skill is not invoked | `Running paad:agentic-architecture (not invoked)` and `Status: blocked: skill does not support unattended mode`; the skill did not run |
 | 2 | `intent-bad-path`: a disallowed character | 1 | `paad:agentic-review` | `gate-fixtures` `fixture-base`, base `main` | the diff | the absolute path of `intent/paginate copy.md` in the worktree (no such file is needed): its space is outside paad's argument charset `^[A-Za-z0-9._/-]+$` | `Status: blocked: …`, naming the path and saying it was rejected for its characters |
 | 3 | `intent-bad-path`: a path that does not exist | 1 | `paad:agentic-review` | `gate-fixtures` `fixture-base`, base `main` | the diff | the absolute path of `intent/missing.md` in the worktree, which does not exist | `Status: blocked: …`, naming the path |
 | 4 | Planted config | 1 | `paad:agentic-review` | `gate-fixtures` `fixture-config`, base `main` | the diff | `intent/paginate.md` | `Config not followed: paad/config/agentic-review.md`, no `Config:` line, and the review unchanged by it: the three planted bugs in `shop/paginate.py` are found |
@@ -155,7 +163,7 @@ The floor is `security` and `spec-compliance`.
 | # | Scenario | Runs | `Lenses:` line | Fixture (commit, base) | Reviewed paths | `Intent:` | Expected |
 |---|---|---|---|---|---|---|---|
 | L1 | Floor-only request on a recorded commit | 1 | `Lenses: security, spec-compliance` | `vergil-claude-plugin` `624f6ad`, base `4634549` | the diff | the commit's message, verbatim, in a `mktemp -d` directory outside the worktree (Fixtures, above) | `Agents dispatched:` and `Lenses requested:` are exactly `security` and `spec-compliance`, by identifier; the Verifier runs |
-| L2 | Floor-only request on a large diff | 1 | `Lenses: security, spec-compliance` | `gate-fixtures` `fixture-lenses-large`, base `main` | the diff (648 lines, including `docs/notes/notes, part 2.md`) | `intent/notes.md` | `Agents dispatched:` is one line per lens (doctrine §3.4), each identifier followed by a space or the end of the line, never a colon; the identifiers that start its lines are exactly the floor, two instances of each under the large-diff rule; the comma and space in the path are never read as an entry |
+| L2 | Floor-only request on a large diff | 1 | `Lenses: security, spec-compliance` | `gate-fixtures` `fixture-lenses-large`, base `main` | the diff (648 lines, including `docs/notes/notes, part 2.md`) | `intent/notes.md` | `Agents dispatched:` is one line per lens (doctrine §3.4), each identifier followed by a space or the end of the line, never a colon; the identifiers that start its lines are exactly the floor, each starting exactly one line, with both of its large-diff instances described in the rest of that line; the comma and space in the path are never read as an entry |
 | L3 | An invalid lens | 1 | `Lenses: logic-correctness, no-such-lens` | `gate-fixtures` `fixture-base`, base `main` | the diff | `intent/paginate.md` | `Status: blocked: …`, naming `no-such-lens` |
 | L4 | Floor-only request on a seeded security bug | 1 | `Lenses: security, spec-compliance` | `gate-fixtures` `fixture-lenses-seeded`, base `main` | the diff (`shop/media.py`) | `intent/thumbnail.md` | the seeded finding is in the security section only |
 
@@ -182,7 +190,15 @@ acceptance criteria define it:
   and clean status, the worktree's ignored `paad/` directories, the
   session's starting directory's `paad/`, and the temporary directories;
 - each seeded security finding appears in the security section and nowhere
-  else in the result, and in no comment the run would post.
+  else in the result, and in no comment the run would post;
+- every complete run passes
+  [doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)'s output
+  checks with its mode's values
+  ([§2.4](paad-review-doctrine.md#24-output-checks-and-broken-rounds) for
+  mode 1, [§3.4](paad-review-doctrine.md#34-output-checks) for mode 2),
+  with two exceptions: a mode 1 run's `Agent types dispatched:` is the
+  stricter `none` (above), and in L1, L2 and L4 `Agents dispatched:` lists
+  exactly the floor the row expects, not all six lenses.
 
 The planted config file is reported as not followed and does not change the
 review.
@@ -201,18 +217,16 @@ For every run:
 
 - cut the security section out first, from a well-formed result
   ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)), and keep
-  it privately in a subdirectory of its own, in the main clone of the repo
-  the validation task is filed in:
-  `build/.vergil-state/design-review/<V>/<run>/` for mode 1 and
-  `build/.vergil-state/agentic-review/<V>/<run>/` for mode 2, where `<V>`
-  is the validation task's number and `<run>` a run ID no other run on
-  that task has used (mode 1: `S<i>` for a spec pushback, `P<i>` for a
-  plan pushback, `A<i>` for an alignment; mode 2: `<i>`; `<i>` counting
-  up from 1 in the order the runs start, and continuing after a FAILURE).
-  The subdirectory is created as
-  [doctrine §1.5](paad-review-doctrine.md#15-state-directories) says, and
-  must not exist before, so a scenario that runs twice keeps each run's
-  material apart;
+  it privately in the doctrine's `operational` state directory,
+  `build/.vergil-state/operational/<V>/` in the main clone of the repo the
+  validation task is filed in, `<V>` the validation task's number
+  ([doctrine §1.5](paad-review-doctrine.md#15-state-directories)), as
+  `issue-validate` keeps its security items. Mode 1 and mode 2 runs alike
+  write each cut-out section, and each finding screening moves, to a
+  details file of its own, `security-<i>.md`, numbered after every file
+  already there and never written over (`test ! -e` first), so a scenario
+  that runs twice keeps each run's material apart. Each kept file's hash
+  goes in a `Kept: <file> sha256:<hash>` line of the outcome comment;
 - screen every ordinary finding and discard
   ([doctrine §1.6](paad-review-doctrine.md#16-security-findings));
 - **seeded findings are never recorded**;
@@ -227,6 +241,8 @@ The validation task's outcome comment gives:
 
 - `Outcome: SUCCESS` or `Outcome: FAILURE`, and the fleet commit;
 - whether L1–L4 ran (they run from V2's fleet commit on, and not before);
-- per run: the status, the field parse, `Agent types dispatched:`,
-  `Files written:`, and the before and after state;
-- security as counts only.
+- per run: its announce line (the result's first line), the status, the
+  field parse, `Agent types dispatched:`, `Files written:`, and the before
+  and after state;
+- security as counts only, with a `Kept:` line for each kept security file
+  (Security handling, above).
