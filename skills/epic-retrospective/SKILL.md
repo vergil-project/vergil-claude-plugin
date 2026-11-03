@@ -240,9 +240,11 @@ On approval:
    `vrg-pr-workflow report-ready --issue <retrospective-task> --title … --summary
    … --notes …`; the **human** runs `vrg-submit-pr`. You never open the PR.
    At the handoff, link the retrospective from the epic:
-   `vrg-epic-docs set --epic <epic-ref> --retrospective
-   epics/<N>-<slug>/retrospective.md`, with `<slug>` taken from the epic's
-   existing `epics/<N>-*/` directory. The link resolves once the PR merges.
+   `vrg-epic-docs set --epic <owner>/<repo>#<N> --retrospective
+   epics/<N>-<slug>/retrospective.md`, with the epic ref fully qualified (the
+   tool refuses a bare `#N` or a URL) and `<slug>` taken from the epic's
+   existing `epics/<N>-*/` directory. The link resolves once the PR merges. If
+   it fails, stop and report its error.
 4. Merging the retrospective's docs PR closes the retrospective task — the **last
    open child** — and `vrg-finalize-pr` rolls up and **closes the epic**.
 
