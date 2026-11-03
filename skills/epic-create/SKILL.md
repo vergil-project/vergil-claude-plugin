@@ -520,8 +520,9 @@ last round comment.
    handoff, link the documents from the epic:
    `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
    --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;
-   that window is accepted. If it fails, stop and report its error. Merging it closes the documentation task. Then
-   delete the planning issue's state directory, `build/.vergil-state/design-review/<M>/` in the docs repo's
+   that window is accepted. If it fails, stop and report its error. Merging
+   it closes the documentation task. Then delete the planning issue's state
+   directory, `build/.vergil-state/design-review/<M>/` in the docs repo's
    main clone, once no kept copy remains in it
    ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
 9. **File the implementation tasks** from the plan, each in the repo where its PR
