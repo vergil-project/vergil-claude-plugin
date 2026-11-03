@@ -465,6 +465,11 @@ last round comment.
      `<org>/.github` for a public target, the repo itself when private); note the
      number **N**. The body carries the `Planning: <owner>/<repo>#<M>` line, and
      the progress comment that follows carries `Epic: <owner>/<repo>#<N>`.
+   - Seed the epic's **Documents** section:
+     `vrg-epic-docs set --epic <home>#<N>`, with `<home>` the home
+     `vrg-epic-create` echoed, adds it to the top of the body with all three
+     entries `pending`. The body you write carries no document lines; the tool
+     owns that section. If it fails, stop and report its error.
    - Create the **documentation task** and the **closing bookends** (the
      **documentation-review** task and the **retrospective** task), each linked
      under N. **File each in the repo where its closing PR will land** (the
@@ -511,8 +516,12 @@ last round comment.
    change the spec and the plan). Each stage runs until the human stops it.
 8. **Docs PR.** Validate (`vrg-container-run -- vrg-validate`) and hand off the
    single spec + plan PR against `.github` — agents record it via
-   `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. Merging it
-   closes the documentation task. Then delete the planning issue's state
+   `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
+   handoff, link the documents from the epic:
+   `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
+   --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;
+   that window is accepted. If it fails, stop and report its error. Merging
+   it closes the documentation task. Then delete the planning issue's state
    directory, `build/.vergil-state/design-review/<M>/` in the docs repo's
    main clone, once no kept copy remains in it
    ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
