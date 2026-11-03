@@ -239,6 +239,10 @@ On approval:
 3. Record the PR metadata and hand off — agents run
    `vrg-pr-workflow report-ready --issue <retrospective-task> --title … --summary
    … --notes …`; the **human** runs `vrg-submit-pr`. You never open the PR.
+   At the handoff, link the retrospective from the epic:
+   `vrg-epic-docs set --epic <epic-ref> --retrospective
+   epics/<N>-<slug>/retrospective.md`, with `<slug>` taken from the epic's
+   existing `epics/<N>-*/` directory. The link resolves once the PR merges.
 4. Merging the retrospective's docs PR closes the retrospective task — the **last
    open child** — and `vrg-finalize-pr` rolls up and **closes the epic**.
 
