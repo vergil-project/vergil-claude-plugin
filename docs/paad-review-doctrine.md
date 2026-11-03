@@ -515,7 +515,9 @@ only the skill and its arguments, the document roles (mode 1) or the
 rules: read the code but never run it, review the whole artifact, and the
 no-anchoring rule ([§1.1](#11-rules)). It names vergil's things only by
 concrete identifier, such as an issue ref or a path, because everything paad
-reads uses paad's own terms.
+reads uses paad's own terms. Under the delegate, agentic-review also takes
+an optional `Lenses:` input, a line naming the lenses to dispatch by their
+identifiers ([§3.4](#34-output-checks)); mode 2 does not send it yet.
 
 **The result.** The delegate's final message is the result, these lines in
 this order (`<…>` are values):
@@ -554,7 +556,8 @@ security cut's shape rule (below) is an expected cause of a broken round;
 the cut still fails closed, and the human rules on it.
 agentic-review's skill-specific fields are its counts line, `Agents
 dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
-consulted:` and `Verifier warnings:`. The counts line counts only the
+consulted:` and `Verifier warnings:`. A `Lenses requested:` line may
+follow `Agents dispatched:`; it is allowed and not checked yet. The counts line counts only the
 findings outside the security section, and must agree with them by
 severity and by scope ([§3.4](#34-output-checks)). pushback's one skill-specific field
 is `Outside the spec: <n>`, then one line for each defect in the
@@ -660,20 +663,15 @@ kept subdirectory: it takes the next round number.
 `Status:` line. A blocked result (below) is checked for its frame (the
 announce line, `Status:`, `Findings: 0`, `Discards: 0`, an empty security
 section (`Security: 0` and `Security discards: 0` between the markers,
-and nothing else) and `Files written: none`) and for the version, `Config:` and
+and nothing else) and `Files written: none`) and for the announce line, `Config:` and
 `Agent types dispatched:` checks below, but not for the mode's values. For
 a blocked result, in both modes, `Agent types dispatched:` may be `none` or
 list only `paad:paad-analyst`. Then:
 
 - the first line is `Running paad:<skill> v<version>` for the skill the
-  prompt named, and `<version>` is exactly the version that
-  [paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)
-  records as validated. Any other version fails the check. This catches a
-  delegate that announces a version the gate has not passed; it cannot
-  tell two builds that announce the same version apart, such as a later
-  fleet commit or an uncommitted edit in the fleet checkout. A moved
-  commit rests on the human holding reviews until the gate passes on it;
-  an uncommitted edit is an accepted risk (paad-policy §10);
+  prompt named. `<version>` is not compared with anything: vergil depends
+  on no specific paad version
+  ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout));
 - no `Config:` line: a config file was followed, which only a config file
   the prompt names may be, and no prompt names one. Each `Config not
   followed: <path>` line is allowed. Show the paths to the human in the
@@ -958,9 +956,6 @@ Rules the template carries, and why:
   number, no earlier findings, no decisions.
 
 ### 2.4 Output checks and broken rounds
-
-**The paad version** must be the one paad-policy §10 records as validated,
-or the check fails ([§1.9](#19-the-delegate-path)).
 
 **Before dispatch,** in this order:
 
@@ -1565,6 +1560,11 @@ come first among Spec Compliance's intent sources, ahead of the others. The
 prompt uses paad's terms only (base, diff, finding) and names the issue and
 paths only as a ref and paths.
 
+The delegate also takes an optional `Lenses:` line, naming the lenses to
+dispatch by their identifiers ([§3.4](#34-output-checks)). The template
+does not carry it, and mode 2 does not send it yet: every round dispatches
+all six lenses.
+
 Rules the template carries, and why:
 
 - **Work in the worktree, with `vrg-git`.** Every Bash command starts with
@@ -1634,9 +1634,6 @@ not settled here.
 
 ### 3.4 Output checks
 
-**The paad version** must be the one paad-policy §10 records as validated,
-or the check fails ([§1.9](#19-the-delegate-path)).
-
 **Before dispatch,** in this order. Any check that fails, or command that
 fails, pauses the run before dispatch ([§3.8](#38-pauses)):
 
@@ -1684,11 +1681,27 @@ checks, with these values for mode 2:
   are not counted. A mismatch fails the check: the public counts line is
   recomputed from the findings ([§3.5](#35-task-issue-records)), but a
   result that miscounts its own findings is not a usable review;
-- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`;
-- Spec Compliance did not bail (no `BAIL:` for it under `Agents
-  dispatched:`), and `Intent sources consulted:` lists the requirements file
-  first;
+- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`. Each
+  lens may be named by its display name or by its identifier (the table
+  below). The field may be on one line, as paad writes it today, or one
+  line per lens, each starting `- <identifier>`, with the rest of the line
+  as today (a `BAIL:` reason, the large-diff partitioning);
+- Spec Compliance did not bail (no `BAIL:` for it, named either way, under
+  `Agents dispatched:`), and `Intent sources consulted:` lists the
+  requirements file first;
 - `Verifier warnings:` is `none`.
+
+The six lenses, by display name and by identifier (the identifiers paad's
+`[ref-loaded:<lens>]` tokens use):
+
+| Lens | Identifier |
+|---|---|
+| Logic & Correctness | `logic-correctness` |
+| Error Handling & Edge Cases | `error-handling` |
+| Contract & Integration | `contract-integration` |
+| Concurrency & State | `concurrency-state` |
+| Security | `security` |
+| Spec Compliance | `spec-compliance` |
 
 **A failed check pauses the run** ([§3.8](#38-pauses)). The reviewer did not
 produce a usable review, which says nothing about the code. A failed round is
@@ -1906,7 +1919,7 @@ Dispatched: 2026-10-30T14:02:11Z
 Returned: 2026-10-30T14:19:47Z
 Review cost: totalTokens 412306, toolUses 87, durationMs 1056210
 Config not followed: 0. Defaults applied: 0.
-paad:agentic-review v2.0.2-preview
+paad:agentic-review v<version>
 Critical: 0 (in-scope) / 0 (out-of-scope), Important: 1 (in-scope) / 1 (out-of-scope), Suggestion: 1 (in-scope) / 0 (out-of-scope)
 
 Findings

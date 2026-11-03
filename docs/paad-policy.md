@@ -34,9 +34,10 @@ visible and can be revisited.
   round (section 10).
 - For now nobody detects drift between paad releases and the workflow's
   expectations: D left drift detection out until real use shows it is needed
-  (`epics/568-agentic-review-gate/spec.md` §5). The output checks in the
-  [review doctrine](paad-review-doctrine.md) fail a round whose delegate
-  announces a version other than the validated one (section 10).
+  (`epics/568-agentic-review-gate/spec.md` §5). vergil depends on no
+  specific paad version, and the [review doctrine](paad-review-doctrine.md)
+  checks none: what keeps a moved fleet checkout honest is the validation
+  gate (section 10).
 
 **Reason.** A pin would not hold where agents run: `vrg-vm update` moves every
 enabled plugin to its latest version. Adopting no config file keeps the
@@ -201,27 +202,12 @@ is not removed when upstream releases the change).
   names the fix, which is to start the session with the fleet checkout
   loaded through `vrg-vm session` (the override below)
   ([doctrine §1.8](paad-review-doctrine.md#18-the-delegate-requirement)).
-- **The validated version.** Review rounds rely only on a delegate
-  whose announced version is the one recorded here as validated: today
-  `2.0.2-preview` (the announce `v2.0.2-preview`), validated at fleet
-  commit `58db477` in
-  [vergil-project/.github#843](https://github.com/vergil-project/.github/issues/843),
-  with a reduced set of runs. That reduced set is the human's one-off
-  ruling for a change to the contract's wording only, recorded on that
-  issue; it is an exception, not a general rule, and the gate below is
-  unchanged. The version was first
-  validated at fleet commit `abf879f` in
-  [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733).
-  A round whose delegate announces any other version fails its output
-  check ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)).
-  The human updates this line when the gate below passes on a version that
-  announces differently. The check compares only the announced version: a
-  later fleet commit, or an uncommitted edit in the fleet checkout, that
-  announces the same version passes it. What keeps a moved commit from
-  reaching reviews unvalidated is the human's process below (reviews held
-  from a move until the gate passes) and the commit the human records, not
-  this check. An uncommitted edit is not covered by either: it is an
-  accepted risk (below).
+- **No version check.** vergil depends on no specific paad version. The
+  delegate's announce line is checked for the skill's name only
+  ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)); the
+  version it announces is compared with nothing. Whether the fleet ever
+  returns to a released paad, and whether versions are checked then, is
+  the human's decision.
 - **The override.** The fleet loads the fork's preview tree through
   `vrg-vm session`'s `--plugin-dir` override: the host file
   `~/.config/vergil/plugin-dirs.toml` lists the fleet checkout's
@@ -249,15 +235,16 @@ is not removed when upstream releases the change).
   - agents never run git in the fleet worktree;
   - the human records the checkout's commit on the issue that tracks each
     move. Review rounds record nothing about it.
-- **The gate.** After every move of the fleet checkout, including a sync
-  with upstream, the validation sets (the seeded and plain scenario sets
-  of
-  [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733),
-  spec §5) pass on the new commit, in newly started sessions, before
-  vergil relies on it. The order is always the same: the human moves
-  `fleet`, then runs the gate, and until the gate passes no session runs
-  a review round that loads the fleet checkout (the human holds those
-  reviews). If
+- **The gate.** After every move of `fleet` (the maintainer's own paad
+  changes and syncs with upstream alike), the full automated scenario set
+  in [the paad validation gate](paad-validation-gate.md) runs on the new
+  commit, in newly started sessions, before reviews resume. The set is
+  not trimmed. Every change that moves `fleet` carries a validation task
+  that runs it and records the outcome and the fleet commit. The human's
+  interactive runs are no longer part of the gate. The order is always
+  the same: the human moves `fleet`, then the gate runs, and until it
+  passes no session runs a review round that loads the fleet checkout
+  (the human holds those reviews). If
   the move changes the unattended contract (the agent's name, the result's
   syntax, the status values or the input fields), the doctrine is updated
   to match before reviews resume.
@@ -284,5 +271,4 @@ a session without the override, a cloud box, or anyone using
 vergil-claude-plugin with paad as released today runs no review round,
 and is told how to get one. Holding reviews from each move of `fleet` until the gate passes is
 what keeps a committed but unvalidated paad change out of the fleet's
-reviews, and it rests on the human's process; the validated-version check
-only catches a delegate that announces a version the gate has not passed.
+reviews, and it rests on the human's process.
