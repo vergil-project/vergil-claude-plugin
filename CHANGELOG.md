@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.57] - 2026-11-03
+
+### Documentation
+
+- drop the paad version check (#911)
+
+### Features
+
+- epic-create and epic-retrospective keep the epic Documents section current (#912)
+
 ## [2.1.56] - 2026-11-02
 
 ### Documentation
