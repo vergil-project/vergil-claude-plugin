@@ -30,13 +30,15 @@ visible and can be revisited.
   installed release, through a standing per-host override (section 10).
   That changes which paad a session loads, not this decision: the
   installed paad, which sessions without the override use, stays
-  unpinned. It has no unattended runner, so those sessions run no review
-  round (section 10).
+  unpinned. Today it has no unattended runner, so those sessions run no
+  review round (section 10). A paad release that ships one would change
+  that, an accepted risk (section 10).
 - For now nobody detects drift between paad releases and the workflow's
   expectations: D left drift detection out until real use shows it is needed
-  (`epics/568-agentic-review-gate/spec.md` §5). The output checks in the
-  [review doctrine](paad-review-doctrine.md) fail a round whose delegate
-  announces a version other than the validated one (section 10).
+  (`epics/568-agentic-review-gate/spec.md` §5). vergil depends on no
+  specific paad version, and the [review doctrine](paad-review-doctrine.md)
+  checks none: what keeps a moved fleet checkout honest is the validation
+  gate (section 10).
 
 **Reason.** A pin would not hold where agents run: `vrg-vm update` moves every
 enabled plugin to its latest version. Adopting no config file keeps the
@@ -195,33 +197,18 @@ is not removed when upstream releases the change).
   and the fleet expects to run a patch or two ahead of it. There is no plan
   to switch the fleet to a released paad.
 - **The delegate is required.** Each review round runs under
-  `paad:paad-delegate`, paad's unattended runner, and only sessions that
-  load the fleet checkout have it. A session without it runs no review
+  `paad:paad-delegate`, paad's unattended runner, and today only sessions
+  that load the fleet checkout have it. A session without it runs no review
   round: mode 1 stops and tells the human, mode 2 pauses, and the message
   names the fix, which is to start the session with the fleet checkout
   loaded through `vrg-vm session` (the override below)
   ([doctrine §1.8](paad-review-doctrine.md#18-the-delegate-requirement)).
-- **The validated version.** Review rounds rely only on a delegate
-  whose announced version is the one recorded here as validated: today
-  `2.0.2-preview` (the announce `v2.0.2-preview`), validated at fleet
-  commit `58db477` in
-  [vergil-project/.github#843](https://github.com/vergil-project/.github/issues/843),
-  with a reduced set of runs. That reduced set is the human's one-off
-  ruling for a change to the contract's wording only, recorded on that
-  issue; it is an exception, not a general rule, and the gate below is
-  unchanged. The version was first
-  validated at fleet commit `abf879f` in
-  [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733).
-  A round whose delegate announces any other version fails its output
-  check ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)).
-  The human updates this line when the gate below passes on a version that
-  announces differently. The check compares only the announced version: a
-  later fleet commit, or an uncommitted edit in the fleet checkout, that
-  announces the same version passes it. What keeps a moved commit from
-  reaching reviews unvalidated is the human's process below (reviews held
-  from a move until the gate passes) and the commit the human records, not
-  this check. An uncommitted edit is not covered by either: it is an
-  accepted risk (below).
+- **No version check.** vergil depends on no specific paad version. The
+  delegate's announce line is checked for the skill's name only
+  ([doctrine §1.9](paad-review-doctrine.md#19-the-delegate-path)); the
+  version it announces is compared with nothing. Whether the fleet ever
+  returns to a released paad, and whether versions are checked then, is
+  the human's decision.
 - **The override.** The fleet loads the fork's preview tree through
   `vrg-vm session`'s `--plugin-dir` override: the host file
   `~/.config/vergil/plugin-dirs.toml` lists the fleet checkout's
@@ -270,6 +257,13 @@ is not removed when upstream releases the change).
     read-write. An uncommitted edit there changes what every later session
     runs, and nothing checks for it. This is accepted; a read-only mount of
     the fleet checkout is a candidate for the next iteration.
+  - The delegate check
+    ([doctrine §1.8](paad-review-doctrine.md#18-the-delegate-requirement))
+    looks only for the `paad:paad-delegate` agent type. If upstream paad
+    ships its own delegate and a VM update installs it, a session started
+    without the override would pass that check and review with a paad the
+    gate never validated. This is accepted; whether to return to a check
+    is the human's decision.
 
 **Reason.** Unattended mode moves the review-only rules out of vergil's
 prompts and into paad's own contract, where a fresh reviewer cannot read
@@ -284,5 +278,4 @@ a session without the override, a cloud box, or anyone using
 vergil-claude-plugin with paad as released today runs no review round,
 and is told how to get one. Holding reviews from each move of `fleet` until the gate passes is
 what keeps a committed but unvalidated paad change out of the fleet's
-reviews, and it rests on the human's process; the validated-version check
-only catches a delegate that announces a version the gate has not passed.
+reviews, and it rests on the human's process.
