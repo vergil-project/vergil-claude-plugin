@@ -236,19 +236,15 @@ is not removed when upstream releases the change).
   - agents never run git in the fleet worktree;
   - the human records the checkout's commit on the issue that tracks each
     move. Review rounds record nothing about it.
-- **The gate.** After every move of `fleet` (the maintainer's own paad
-  changes and syncs with upstream alike), the full automated scenario set
-  in [the paad validation gate](paad-validation-gate.md) runs on the new
-  commit, in newly started sessions, before reviews resume. The set is
-  not trimmed, except that its `Lenses:` scenarios start from the first
-  recorded fleet commit that carries the `Lenses:` input
-  ([V2](https://github.com/vergil-project/.github/issues/858)); each
-  outcome comment says whether they ran. Every change that moves `fleet` carries a validation task
-  that runs it and records the outcome and the fleet commit. The human's
-  interactive runs are no longer part of the gate. The order is always
-  the same: the human moves `fleet`, then the gate runs, and until it
-  passes no session runs a review round that loads the fleet checkout
-  (the human holds those reviews). If
+- **The gate.** After every move of the fleet checkout, including a sync
+  with upstream, the validation sets (the seeded and plain scenario sets
+  of
+  [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733),
+  spec §5) pass on the new commit, in newly started sessions, before
+  vergil relies on it. The order is always the same: the human moves
+  `fleet`, then runs the gate, and until the gate passes no session runs
+  a review round that loads the fleet checkout (the human holds those
+  reviews). If
   the move changes the unattended contract (the agent's name, the result's
   syntax, the status values or the input fields), the doctrine is updated
   to match before reviews resume.
@@ -266,12 +262,8 @@ is not removed when upstream releases the change).
     looks only for the `paad:paad-delegate` agent type. If upstream paad
     ships its own delegate and a VM update installs it, a session started
     without the override would pass that check and review with a paad the
-    gate never validated. The same holds for a gate run: if a gate
-    session's override fails to load, the run validates the installed paad
-    rather than the fleet commit. The gate's outcome comment records each
-    run's announce line, so the human can see which paad ran; nothing
-    checks it. This is accepted; whether to return to a check is the
-    human's decision.
+    gate never validated. This is accepted; whether to return to a check
+    is the human's decision.
 
 **Reason.** Unattended mode moves the review-only rules out of vergil's
 prompts and into paad's own contract, where a fresh reviewer cannot read

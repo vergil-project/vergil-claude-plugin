@@ -519,16 +519,7 @@ only the skill and its arguments, the document roles (mode 1) or the
 rules: read the code but never run it, review the whole artifact, and the
 no-anchoring rule ([§1.1](#11-rules)). It names vergil's things only by
 concrete identifier, such as an issue ref or a path, because everything paad
-reads uses paad's own terms. Under the delegate, agentic-review also takes
-an optional `Lenses:` input, a line naming the lenses to dispatch by their
-identifiers ([§3.4](#34-output-checks)); mode 2 does not send it yet. The
-fork's change that adds it
-([vergil-project/.github#857](https://github.com/vergil-project/.github/issues/857))
-writes `Agents dispatched:` one line per lens, in §3.4's form: each line
-starts `- <identifier>`, the identifier is followed by a space or the end
-of the line, never a colon, and each identifier starts exactly one line.
-Under the large-diff rule, both of a lens's instances are described in the
-rest of its one line.
+reads uses paad's own terms.
 
 **The result.** The delegate's final message is the result, these lines in
 this order (`<…>` are values):
@@ -567,8 +558,7 @@ security cut's shape rule (below) is an expected cause of a broken round;
 the cut still fails closed, and the human rules on it.
 agentic-review's skill-specific fields are its counts line, `Agents
 dispatched:` (its lenses, with each `BAIL:` reason), `Intent sources
-consulted:` and `Verifier warnings:`. A `Lenses requested:` line may
-follow `Agents dispatched:`; it is allowed and not checked yet. The counts line counts only the
+consulted:` and `Verifier warnings:`. The counts line counts only the
 findings outside the security section, and must agree with them by
 severity and by scope ([§3.4](#34-output-checks)). pushback's one skill-specific field
 is `Outside the spec: <n>`, then one line for each defect in the
@@ -1571,11 +1561,6 @@ come first among Spec Compliance's intent sources, ahead of the others. The
 prompt uses paad's terms only (base, diff, finding) and names the issue and
 paths only as a ref and paths.
 
-The delegate also takes an optional `Lenses:` line, naming the lenses to
-dispatch by their identifiers ([§3.4](#34-output-checks)). The template
-does not carry it, and mode 2 does not send it yet: every round dispatches
-all six lenses.
-
 Rules the template carries, and why:
 
 - **Work in the worktree, with `vrg-git`.** Every Bash command starts with
@@ -1692,41 +1677,11 @@ checks, with these values for mode 2:
   are not counted. A mismatch fails the check: the public counts line is
   recomputed from the findings ([§3.5](#35-task-issue-records)), but a
   result that miscounts its own findings is not a usable review;
-- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`, in one
-  of two forms:
-  - **one line,** as paad writes it today: the lenses follow the label on
-    its own line, each named by its display name or by its identifier (the
-    table below). Each lens is found by its name in the line, not by
-    splitting the line on `, `. A name matches only at the start of the
-    value or right after `, `, and only where it ends at a `,`, a space,
-    a `(` or the end of the line. A `BAIL:` or `NOT DISPATCHED` belongs to
-    the lens name just before it. When a name matches in more than one
-    place, or a `BAIL:` or `NOT DISPATCHED` cannot be tied to one name,
-    the check fails closed;
-  - **one line per lens:** the label stands alone on its line, and each
-    following line starts `- <identifier>`, by identifier only, never by
-    display name. The identifier is followed by a space or the end of the
-    line, never a colon, so no such line trips the security cut's shape
-    rule ([§1.9](#19-the-delegate-path)). Each identifier starts exactly
-    one line. The rest of the line is as today: a `BAIL:` reason, or,
-    under the large-diff rule, both of the lens's instances and the
-    partitioning, described on that one line;
-- Spec Compliance did not bail (no `BAIL:` for it, named either way, under
-  `Agents dispatched:`), and `Intent sources consulted:` lists the
-  requirements file first;
+- `Agents dispatched:` lists all six lenses, none `NOT DISPATCHED`;
+- Spec Compliance did not bail (no `BAIL:` for it under `Agents
+  dispatched:`), and `Intent sources consulted:` lists the requirements file
+  first;
 - `Verifier warnings:` is `none`.
-
-The six lenses, by display name and by identifier (the identifiers paad's
-`[ref-loaded:<lens>]` tokens use):
-
-| Lens | Identifier |
-|---|---|
-| Logic & Correctness | `logic-correctness` |
-| Error Handling & Edge Cases | `error-handling` |
-| Contract & Integration | `contract-integration` |
-| Concurrency & State | `concurrency-state` |
-| Security | `security` |
-| Spec Compliance | `spec-compliance` |
 
 **A failed check pauses the run** ([§3.8](#38-pauses)). The reviewer did not
 produce a usable review, which says nothing about the code. A failed round is
