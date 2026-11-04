@@ -86,7 +86,7 @@ your final message to the main session, never posted). On a `record`
 ruling, first check for a trusted author's `Recorded: <ID>` line for it
 (if there is one, it is already recorded), then record it with
 `vrg-security-record`
-([doctrine §3.6](../../../docs/paad-review-doctrine.md#36-security-findings))
+([doctrine §1.7](../../../docs/paad-review-doctrine.md#17-creating-issues))
 and post `Recorded: <ID>`, the ID only; on `reject`, record nothing. Delete
 its details once the ruling is carried out, and record the ruling only as
 §1.7's counts line (`Human ruling: security: <k> findings: …`), never per

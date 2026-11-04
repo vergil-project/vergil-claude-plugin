@@ -30,7 +30,7 @@ export XDG_CONFIG_HOME="$TMP/home/.config"
 # S: a managed repo on the worktree convention, with a worktree, a
 # source directory, a state directory and some links.
 S="$TMP/main"
-mkdir -p "$S/.worktrees/wt/sub" "$S/src" "$S/build/.vergil-state/agentic-review/9001/1"
+mkdir -p "$S/.worktrees/wt/sub" "$S/src" "$S/build/.vergil-state/issue-implement/9001/1"
 git -C "$S" init --quiet
 printf '[project]\n' >"$S/vergil.toml"
 printf '.worktrees/\nbuild/\n' >"$S/.gitignore"
@@ -132,7 +132,7 @@ T_PATH=(
 	"$S/.worktrees/wt/sub/../new.txt"
 	"$S/new.txt"
 	"$U/new.txt"
-	"$S/build/.vergil-state/agentic-review/9001/1/details.md"
+	"$S/build/.vergil-state/issue-implement/9001/1/details.md"
 	"$S/build/.vergil-state/design-review/42/S1/security.md"
 	"$S/build/new.txt"
 	"$S/build/.vergil-state-other/new.txt"

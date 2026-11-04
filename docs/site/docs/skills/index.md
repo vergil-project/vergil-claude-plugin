@@ -24,8 +24,8 @@ never-suppress-a-gate rules are unaffected.
 
 ## paad review rounds: what a session needs
 
-`epic-create`'s design-review rounds and `issue-implement`'s
-agentic-review gate run paad in its unattended mode, through paad's
+`epic-create`'s design-review rounds run paad in its unattended mode,
+through paad's
 unattended runner, `paad:paad-delegate`
 ([doctrine §1.8](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#18-the-delegate-requirement)).
 
@@ -33,9 +33,7 @@ unattended runner, `paad:paad-delegate`
   a session that loads the fleet's paad checkout, a fork's tree that
   tracks upstream and runs a patch or two ahead of it, has one. A session
   without it runs no review round: `epic-create` stops and tells the
-  human, `issue-implement` stops in Preflight before creating a worktree
-  (and its gate pauses if a round finds the delegate missing), and the
-  message names the fix. No other agent type stands in for the delegate.
+  human, and the message names the fix. No other agent type stands in for the delegate.
 - **Turning it on.** On the Mac, create
   `~/.config/vergil/plugin-dirs.toml` listing the fleet checkout's
   `preview/paad`, then start the session with `vrg-vm session`, which
@@ -52,7 +50,7 @@ unattended runner, `paad:paad-delegate`
   installed plugins, so it runs no review round. Cloud support for
   reviews is not planned.
 - **Where agent state lives.** Private review material that must outlive
-  a session or a VM rebuild (security details, a paused round) is kept in
+  a session or a VM rebuild (security details, a kept scratch copy) is kept in
   the main clone's ignored `build/.vergil-state/`, never in a worktree
   ([doctrine §1.5](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#15-state-directories)).
   The worktree convention keeps the main worktree read-only for source
@@ -66,7 +64,7 @@ unattended runner, `paad:paad-delegate`
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue in a Lima session (the agentic-review gate cannot run on a cloud VM), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
@@ -160,15 +158,7 @@ epic", "we're done with this epic".
 ## issue-implement
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via `vrg-validate`, runs the
-**agentic-review gate** — three rounds of `paad:agentic-review` on its
-own branch before the human decides whether to allow more, recorded on the
-task issue: it acts alone only on findings
-that are its own, pauses the whole round for the human on anything else
-(every security finding included), and reviews every change it makes, as
-the
-[paad review doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)
-sets out — then records
+its feature branch, validates to green via `vrg-validate`, then records
 the PR metadata (`.vergil/pr-workflow.json`) with
 `vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
 `report-ready` also pushes the branch to origin, so there is no separate
@@ -179,13 +169,8 @@ planning or deferred epic (route it with `intake-review`, expand it with
 PR tooling's refusal.
 
 **When to use.** In the user-agent session, to take an issue from
-implementation through the point where the human opens the PR. Run it
-in a Lima session: the agentic-review gate needs paad's delegate, which
-only a Lima session loads, so the gate cannot run on a cloud VM (see
-[paad review rounds](#paad-review-rounds-what-a-session-needs)). On a
-cloud VM it stops in Preflight, before creating a worktree and with
-nothing posted on the issue, and tells the human to start the task in a
-Lima session. `report-ready` pushes a
+implementation through the point where the human opens the PR, in a
+Lima or a cloud session alike. `report-ready` pushes a
 world-readable **relay ref** carrying the ready-state, so the Mac does
 not need the session's filesystem, and the human opens the PR
 worktree-free with `vrg-submit-pr <branch> [<branch> …]`. (This retired

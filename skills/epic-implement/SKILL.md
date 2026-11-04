@@ -62,17 +62,10 @@ worktree instruction, and runs the routed skill; it reports its
 (`.worktrees/issue-<N>-<slug>`) and branches (`feature/<N>-<slug>`) are naturally
 unique, so parallel efforts never collide.
 
-Each `issue-implement` run you dispatch, paused before or not, is a new
-session with no human. Before dispatching it, show the human each recorded
-`fix` ruling on the task from a trusted author (`vrg-trusted-authors`),
-with the comment's author and time, any leftover state directory, and,
-where the task's state directory exists, its listing for confirmation
-([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), and
-pass the answers in the dispatch prompt
-([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)). Likewise,
-before dispatching any `issue-validate` or `issue-deploy` run whose task
+Before dispatching any `issue-validate` or `issue-deploy` run whose task
 has an `operational/<N>/` state directory, show the human its listing for
-confirmation and pass the answer in the prompt.
+confirmation and pass the answer in the prompt
+([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 
 ## 4. Batch at the gate, then stop
 
@@ -82,23 +75,7 @@ present everything needing the human:
 
 - PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
 - operational tasks needing a human-gated release;
-- tasks paused at the agentic-review gate, each with its reason (the
-  `Paused: <reason>.` its run reported;
-  [doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)) and the
-  number of items waiting on the human. Present each item as the run
-  reported it: the finding, its reason and the run's recommendation with
-  the alternatives. This conversation is the terminal: security details
-  appear here and nowhere else. You only present the items: file nothing
-  from them and post nothing about them. When the
-  human rules on one, pass **every** ruling the human has made on that task in
-  this session (not only the latest), and the human's confirmation of the
-  task's state-directory listing
-  ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), to a new
-  `issue-implement` run for that task, which continues in its existing
-  worktree. A paused task re-dispatched
-  with no ruling simply stops again and is listed here again; it needs no
-  special handling;
-- every run's items **awaiting a ruling**, paused or not, as its final
+- every run's items **awaiting a ruling**, as its final
   report gives them, security details included and shown only here. File
   and post none of them: pass a task's rulings with no trusted author's
   ruling or `Recorded:` line yet
@@ -110,15 +87,11 @@ present everything needing the human:
   same task, which carries out those
   rulings and nothing else, even on a reported-ready or closed task
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
-  A paused task's rulings go to its resuming run instead. A `fix` ruling on
+  A `fix` ruling on
   a reported-ready task cannot be carried out this way: ask the human to
   rule `file` instead;
 - every fix task an operational run **filed without a ruling** on a FAILURE
   outcome, so the human sees it;
-- tasks split out for out-of-scope additions the gate removed, each listed as
-  **needs scheduling**: only tasks the human approved at a ruling. They are
-  not in the epic's plan, so the human decides when they run
-  ([doctrine §3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff));
 - any problems you got stuck on (see step 5).
 
 **Batch PRs per repository, not across repos.** `vrg-submit-pr` operates on one
