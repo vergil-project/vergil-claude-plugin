@@ -5,8 +5,9 @@
 # worktree convention is active. Forces agents to write to their assigned
 # .worktrees/<name>/ subdirectory instead. The one exception is the
 # main clone's ignored build/ scratch directory, which holds agent
-# scratch and, under build/.vergil-state/, the paad review doctrine's
-# private state directories.
+# scratch and, under build/.vergil-state/, the private state directories
+# the paad review doctrine defines (design-review, issue-implement,
+# upstream-report, operational).
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml (see hooks/scripts/lib/managed-repo-check.sh), with

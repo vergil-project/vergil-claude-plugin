@@ -259,7 +259,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
 | `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
-| `issue-implement` | USER agent: implement an issue in a Lima session (the agentic-review gate cannot run on a cloud VM; see [paad review rounds](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#paad-review-rounds-what-a-session-needs)), validate to green, pass the agentic-review gate, record the PR metadata, hand off to the human |
+| `issue-implement` | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
 | `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |

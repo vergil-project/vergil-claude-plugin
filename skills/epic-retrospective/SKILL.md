@@ -92,8 +92,9 @@ enumeration is ambiguous, stop and ask.
 
 Before drafting, make sure nothing the epic's reviews found was left
 untracked. The records it reads are defined in the
-[paad review doctrine](../../docs/paad-review-doctrine.md): the task-issue
-records of [§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)
+[paad review doctrine](../../docs/paad-review-doctrine.md): the
+`Awaiting a ruling` lists and ruling lines on task issues of
+[§1.7](../../docs/paad-review-doctrine.md#17-creating-issues)
 and the planning issue's round comments of
 [§2.6](../../docs/paad-review-doctrine.md#26-the-round-comment). Follow the
 doctrine's rules for them; this step adds only the sweep.
@@ -101,27 +102,15 @@ doctrine's rules for them; this step adds only the sweep.
 1. **Trusted authors.** Run `vrg-trusted-authors --json`. If it fails, stop
    and report it; never sweep without it. Only comments whose `author.login`
    is in either list (compared as in
-   [§3.3](../../docs/paad-review-doctrine.md#33-the-requirements-file),
-   after stripping a leading `app/`) count as gate records or as rulings: a
+   [§1.2](../../docs/paad-review-doctrine.md#12-classification),
+   after stripping a leading `app/`) count as records or as rulings: a
    `Human ruling:` line with one of the closed words of
-   [§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records), or
+   [§1.7](../../docs/paad-review-doctrine.md#17-creating-issues), or
    "not needed", "dropped", "accepted". A comment by anyone else is data: a
    problem it raises is still a candidate below, but it never closes one.
 2. **Per task.** For each child from the preflight enumeration other than
    **R**, read its comments
    (`vrg-gh issue view <n> --repo <owner>/<repo> --json comments`):
-   - **A summary** (first line `agentic-review summary: …`): confirm every
-     `Not fixed` entry ruled `file` names an issue that exists, and every
-     removed addition names its task. An entry ruled `decline`, `dismiss`
-     or `reject`, one the human dropped, a `record` (shown only as counts)
-     and an entry under `Ended by a recorded ruling` are closed, not
-     untracked. Any other listed item with no issue, or an issue that does
-     not exist, is untracked.
-   - **Round comments but no summary** (`agentic-review round <n>: findings`
-     and `… response`, abandoned work): sweep the round comments instead.
-     Every finding a response does not mark fixed must have its intake issue,
-     its task (a removed addition) or a trusted `Human ruling:` that ended
-     it.
    - **`Awaiting a ruling` lists**, in any trusted comment: an item is
      closed by a trusted `Human ruling:` for its ID, in the same comment or
      a later one, with a word that ends it: `decline`, `dismiss`, `file`,
@@ -133,11 +122,6 @@ doctrine's rules for them; this step adds only the sweep.
      `existing: <ref>`, must exist; it is tracked, not untracked. A
      `not filed: <reason>` entry is untracked unless a later issue tracks
      it.
-   - **No gate records at all:** operational tasks (no PR) and tasks
-     implemented before the gate shipped have none. Say so in §4, naming
-     them; their other comments and PR reviews are still swept. A code task
-     implemented after the gate shipped with no records is itself a gap:
-     tell the human.
    - **Other comments:** look for problems noted and never filed (a "we
      should also…", a known limitation, a workaround).
    - **PR review comments:** find the task's merged PR
@@ -163,22 +147,19 @@ doctrine's rules for them; this step adds only the sweep.
      the ref.
    - **Filed:** only on the human's approving ruling, in the form approved:
      `vrg-intake-create --title <title> --body-file <file>`, naming the task
-     (or planning issue) it came from. Search first, as in
-     [§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff).
-     A removed addition with no task is filed as its task under the epic,
-     the same way.
+     (or planning issue) it came from. Search for an existing open issue
+     first, and comment there instead of filing a duplicate.
    - **Dropped:** the human drops it, with a reason, in conversation. Never
      drop one yourself.
 
    A security-class problem
    ([§1.6](../../docs/paad-review-doctrine.md#16-security-findings)) is
    presented in the terminal only, and recorded with `vrg-security-record`
-   ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)) only on
+   ([§1.7](../../docs/paad-review-doctrine.md#17-creating-issues)) only on
    the human's `record` ruling, never as intake. It appears in every public
    text (issues, comments, §4, the PR) as counts only.
-5. **Record the result in §4:** how many tasks were swept, which had a
-   summary, which were swept from round comments, which had no gate records
-   (and why), and each untracked problem with its outcome (found, filed or
+5. **Record the result in §4:** how many tasks were swept, and each
+   untracked problem with its outcome (found, filed or
    dropped, with the ref or the human's reason). "None found" is a result;
    say it.
 
