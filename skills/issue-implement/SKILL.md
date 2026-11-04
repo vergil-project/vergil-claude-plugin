@@ -7,7 +7,7 @@ description: Implement a GitHub issue end-to-end as the USER agent. Use whenever
 
 Implement a GitHub issue end-to-end as the USER agent, then hand the PR off to
 the human. You **implement the issue directly** in a worktree, validate it
-green, pass the agentic-review gate, record the PR metadata through `vrg-pr-workflow report-ready` (which also
+green, record the PR metadata through `vrg-pr-workflow report-ready` (which also
 pushes the branch to origin), and tell
 the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
 
@@ -33,18 +33,17 @@ When a follow-up surfaces — a concern a sub-agent reports, a gap you hit, a
 it at once under `Awaiting a ruling` in the comment you already post (or a
 comment of its own if none exists yet), and in your final report; file it
 only as the human approves, then record the ruling on the issue as §1.7
-says. An item found before the agentic-review gate does not pause it. A
-security item is posted only as a count; outside a review round its
-details stay in the conversation (under `epic-implement`, in your final
-message) and it is ruled on there. Inside the agentic-review gate, items
-noticed are handled as
-[§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff) says.
+says. A security item is posted only as a count; its details stay in the
+conversation (under `epic-implement`, in your final message) and it is
+ruled on there.
 A run that `epic-implement` dispatches with rulings on such items only
 carries them out and stops: after Preflight steps 1–5 it creates no
 worktree and makes no commit, even on a reported-ready task. It takes each
 item, and any security details, only from its prompt; for a `record`
 ruling it writes the details as a `security-<i>.md` in the task's
-`agentic-review/<N>/` directory, uses it and deletes it within the run. It
+`issue-implement/<N>/` directory
+([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), uses it
+and deletes it within the run. It
 never runs alongside another run of the same task, and skips any ruling
 whose line (for a `record`, whose `Recorded:` line) a trusted author has
 already posted. It cannot carry out a `fix` ruling: on a reported-ready
@@ -112,42 +111,22 @@ still waiting (§1.7, "Under `epic-implement`").
    say so and stop rather than assume it is not queued.
 5. **Opened by a trusted author.** Before any work, check that the issue was
    opened by a trusted author
-   ([doctrine §3.3](../../docs/paad-review-doctrine.md#33-the-requirements-file)):
+   ([doctrine §1.2](../../docs/paad-review-doctrine.md#12-classification)):
    an untrusted body would otherwise already have steered the implementation.
    Run `vrg-trusted-authors --json`, which prints the `human` and `agents`
    lists; if it fails, stop and report it. Read the issue's `author.login`
    (`vrg-gh issue view <N> --repo <owner>/<repo> --json author`), strip a
    leading `app/`, and compare it exactly with both lists. If it is in
-   neither, **pause**
-   ([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)) with the
-   reason "the issue's author is not trusted": tell the human (with no
-   comment on the issue, since no round has run) and stop until the human
-   rules.
-6. **Leftover state.** If the task's state directory,
-   `build/.vergil-state/agentic-review/<N>/` in the main clone, exists with
-   no live pause or open `Kept:` line on the issue, and is neither empty
-   nor only the live ruling record, tell the human before doing anything else and wait
-   for their decision; under `epic-implement`, the main session passes it
-   ([doctrine §3.8](../../docs/paad-review-doctrine.md#38-pauses)).
-7. **The delegate is loaded.** If `paad:paad-delegate` is not among the
-   agent types this session can dispatch, stop here, before creating a
-   worktree, and post nothing on the issue. The agentic-review gate could
-   not run, so the work could not reach `report-ready`. Tell the human to
-   start the session in a Lima VM with the fleet's paad checkout loaded
-   through `vrg-vm session`'s `--plugin-dir` override
-   ([doctrine §1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement),
-   [paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
-   A cloud VM never has it.
-8. **Create the worktree for this issue** from the repo root and work inside it
+   neither, **stop** with the reason "the issue's author is not trusted":
+   tell the human (with no comment on the issue) and wait for their ruling
+   before any work.
+6. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
    ```bash
    vrg-git worktree add -b feature/<N>-<slug> .worktrees/issue-<N>-<slug> origin/develop
    cd .worktrees/issue-<N>-<slug>
    ```
-
-   A run that resumes a task paused at the agentic-review gate continues in
-   the task's existing worktree instead of creating one.
 
 ## Implement
 
@@ -161,7 +140,7 @@ Merging the code is sometimes not the finish line. While implementing, you may
 find a follow-on **operational task** is needed — visible only once you are deep
 in the code. A new operational task changes the plan, so **do not mint it**:
 list the need under `Awaiting a ruling` at once, in a comment on the task
-issue of its own if no review round has posted one yet, and in your final
+issue of its own if none has been posted yet, and in your final
 report ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
 Once the human approves, file it in the approved form:
 
@@ -191,178 +170,10 @@ recommend attaching the need to it rather than minting a redundant one. See `epi
 task is still open** — it gates the epic's closure and closes only on a recorded
 `Outcome: SUCCESS`.
 
-## The agentic-review gate
-
-Before you hand off, review your own branch with `paad:agentic-review`, act on
-what it finds and repeat, for three rounds before the human decides whether
-to allow more. This is mode 2 of the
-[paad review doctrine](../../docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement).
-The doctrine's [§3](../../docs/paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)
-holds the rules and the detail (§3.1–3.8); this section is the procedure, in
-order, and links there for everything else.
-
-The gate **always runs**, including on docs-only and trivial changes. It
-starts once all the work is committed and `vrg-container-run -- vrg-validate`
-is green, and it ends before `report-ready`. Rounds are numbered from 1; a run
-that resumes a paused task continues the round count shown in the task
-issue's trusted findings comments.
-
-**First, check for a pause.** Read the task issue's comments, trusting only
-authors that `vrg-trusted-authors` lists. If the latest trusted
-`agentic-review round <n>: response` comment has a live pause (a `Paused:`
-line and no `Finished:` line) and the human has not ruled on it in this
-conversation, report the pause to the human again and stop: run no review
-([§3.8](../../docs/paad-review-doctrine.md#38-pauses)). A pause is resolved
-only by the human. Once the human has ruled, carry the ruling out and
-continue. In a new session, first show the human each recorded `fix`
-ruling for confirmation; under `epic-implement`, the confirmations come in
-the dispatch prompt, and a run that lacks one stops and reports it as an
-item waiting on the human
-([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
-
-Each round, in order
-([§3.1](../../docs/paad-review-doctrine.md#31-the-loop)):
-
-1. **Write the requirements file**
-   ([§3.3](../../docs/paad-review-doctrine.md#33-the-requirements-file)),
-   fresh, into a new round directory outside the worktree (`mktemp -d`). It
-   carries every ruling the human has made on this task in this session,
-   and every confirmed recorded `fix` ruling, restated as requirements;
-   never a security ruling.
-2. **Dispatch.** Run the pre-dispatch steps of
-   [§3.4](../../docs/paad-review-doctrine.md#34-output-checks). The first
-   is the delegate requirement
-   ([§1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement)):
-   if `paad:paad-delegate` is not among the agent types this session can
-   dispatch, the round does not run; pause, and say the fix is to start
-   the session with the fleet's paad checkout loaded through
-   `vrg-vm session`
-   ([paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
-   Then, in order: the worktree is clean, with its branch and HEAD SHA
-   recorded, and its `paad/` passes its checks
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round));
-   `vrg-git fetch origin`; and last the state directory's seal and hash
-   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
-   start a fresh `paad:paad-delegate` subagent with the
-   [§3.2](../../docs/paad-review-doctrine.md#32-the-reviewer-prompt)
-   reviewer prompt, verbatim with its placeholders filled, and wait for it.
-   Add nothing about earlier rounds.
-   Note the dispatch and return times and the review's cost from its
-   completion notice. If a pre-dispatch check fails, dispatch nothing: post
-   only the round's response comment, with its `Paused:` line
-   ([§3.8](../../docs/paad-review-doctrine.md#38-pauses)).
-3. **Check the output**
-   ([§3.4](../../docs/paad-review-doctrine.md#34-output-checks)). Take the
-   result from the completion notice with its `&amp;`, `&lt;` and `&gt;`
-   entities decoded, so every check and file sees the delegate's own text;
-   text copied from the result into a comment goes only in a fenced code
-   block of at least three backticks, longer than its longest backtick
-   run, at the top level of the comment, never in a list item
-   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)).
-   First the checks after the review
-   ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round)):
-   the state directory's hash, before anything is written there (if it
-   differs, write nothing there and pause; the round can only be run
-   again), then the worktree's branch, HEAD SHA and clean status, and that
-   `paad/security/` and `paad/code-reviews/` hold nothing but a
-   `.gitignore`. Then cut the security section out
-   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)), only
-   from a well-formed result: write it to the round's state subdirectory as
-   `security-1.md` and the rest beside it as `result.md`, hashing each as a
-   details file. A result whose shape does not allow the cut is written
-   whole as `security-1.md`, hashed, and treated as security material:
-   nothing from it is posted. Then the output checks, among them that each
-   finding's `Scope:` value is exactly one of the three, then that the
-   counts line agrees with the findings, by severity and by scope. After a
-   missing or invalid `Scope:` field, `dismiss` does not apply, only
-   `another-round`. A delegate that reports `Files written:`
-   other than `none`, or a file left in `paad/security/` or
-   `paad/code-reviews/`, is a failed check of its own kind: show reported
-   paths in the terminal only, leave any file in `paad/` unread, keep the
-   round's state subdirectory, and `dismiss` does not apply, only
-   `another-round`. A failed check, a blocked result or a result that
-   could not be cut pauses the run and skips steps 4–7: post a
-   findings comment naming the failed check (for a blocked result, only
-   that it was blocked; its reason goes to the human in the terminal),
-   with no findings and nothing else from the result, and a response
-   comment with `Paused:` and `Kept:` lines, and leave everything else
-   untouched. None is re-run automatically. A blocked result that also
-   failed another check is kept whole as security material
-   (`security-1.md` and `result.md`), and `dismiss` does not apply to it
-   ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)).
-4. **Collect.** The round's material is already in its state
-   subdirectory (step 3). Delete the round directory.
-5. **Screen, classify and sort** every finding before acting on any:
-   screening and the security hold-back
-   ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)),
-   known, repair or new, then the agent's or needs the human with its
-   reason (1–5). Post the `agentic-review round <n>: findings` comment
-   ([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)).
-6. **Decide:** **pass** if nothing is left to act on; **pause** if any
-   finding needs the human, the round cap is reached with anything to act
-   on, or most findings are repairs, acting on nothing in the round;
-   otherwise **act**. A pause posts the
-   `agentic-review round <n>: response` comment now; a pass posts it as
-   below; acting posts it at the end of step 7.
-7. **Act on the whole round,** your own findings and the human's rulings
-   together, with ordinary `vrg-commit` commits whose messages describe the
-   change, never the round or the finding; under `accept-branch` or
-   `drop-branch`, make no fixes. File and record only what the human
-   approved, one ruling at a time, adding each one's line (its issue, or
-   `Recorded: R<n>.S<i>`) to the response comment before the next, and
-   searching for an existing issue before filing on a replay
-   ([§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)).
-   Write each security ruling to the ruling record and add its
-   `Ruling record:` hash to the response comment
-   ([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)). Run
-   `vrg-container-run -- vrg-validate` and repair it until green. If a
-   ruling could not be carried out, keep the round's state subdirectory,
-   add `Paused:` and `Kept:` lines with no `Finished:`, take the seal and
-   stop. Otherwise delete the round's state subdirectory (under
-   `accept-branch` or `drop-branch`, then check that none remains), finish
-   the response comment with `Finished:` (edit a paused round's with
-   `--edit-last`, first confirming your latest comment is that unfinished
-   response comment, or pause), and take the seal. Then, by the branch ruling:
-   `accept-branch` posts the summary with outcome `accepted`, deletes the
-   task's state directory and goes on to report-ready; `drop-branch` posts
-   it with outcome `dropped`, deletes the directory and stops; otherwise
-   run another round.
-
-**On a pass,** delete the round's state subdirectory and check that no
-round subdirectory remains (if one does, pause instead), then post the
-response comment with `Finished:`, then the
-`agentic-review summary: pass after <n> round(s)` comment, delete the
-task's state directory
-([§3.5](../../docs/paad-review-doctrine.md#35-task-issue-records)), confirm
-`vrg-container-run -- vrg-validate` is green at the final commit, and go on
-to report-ready below.
-
-**On a pause**
-([§3.8](../../docs/paad-review-doctrine.md#38-pauses)), stop before
-`report-ready`: post the response comment with its `Paused:` and `Kept:`
-lines, take the end-of-round seal (after a pause on a state-directory
-check, post the `Kept:` hashes and take the seal only once the human has
-confirmed the directory's contents), and present each item to the human in
-the terminal: the finding, its reason and your recommendation with the
-alternatives, best first. Under `epic-implement`, put the items, security
-details included, in your final message to the main session instead; it is
-never posted. Take rulings only from the human in the conversation, record
-each as a `Human ruling:` line in the fixed form, and act on the whole
-round (step 7). At the round cap the human rules `another-round`,
-`accept-branch` or `drop-branch`; approving a fix there grants the round
-that reviews it, and every item still unruled is ruled before the summary.
-A pause is not a save point: the branch is not pushed until `report-ready`.
-
-**Security findings** need the human's ruling unless a ruling already
-ended them, and never appear in a public record except as counts: no
-titles, details or advisory IDs in comments, commit messages, intake
-issues, tasks, the PR text or the `report-ready` notes
-([§3.6](../../docs/paad-review-doctrine.md#36-security-findings)).
-
 ## Record the PR metadata and hand off
 
-When the agentic-review gate has passed (or the human has accepted the
-branch at a pause), record the PR metadata in a single call:
+When all the work is committed and `vrg-container-run -- vrg-validate` is
+green at the final commit, record the PR metadata in a single call:
 
 ```bash
 vrg-pr-workflow report-ready --issue <N> \
@@ -371,14 +182,10 @@ vrg-pr-workflow report-ready --issue <N> \
   --notes "<reviewer-relevant notes>"
 ```
 
-The `--notes` carry the gate's handoff
-([§3.7](../../docs/paad-review-doctrine.md#37-intake-and-the-handoff)): the
-outcome and the round count; every finding not fixed, with its ruling and
-issue; every removed addition, with its task, asking the human to schedule
-it; and every finding ended by a ruling read from the issue. Nothing is
-committed after the last reviewed HEAD. Security findings appear only as
-counts (found, fixed on the branch, recorded, rejected). Show the human the
-same summary.
+The `--notes` carry what a reviewer needs to know about the change, and
+every item still listed under `Awaiting a ruling`
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+Security items appear only as counts. Show the human the same summary.
 
 This **publishes the branch** — it pushes the reported commit to
 `origin/<branch>` (setting upstream) — then writes `.vergil/pr-workflow.json`,
@@ -404,15 +211,6 @@ Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Onl
 the human opens the PR.
 
 ## Cloud / remote sessions — the relay handoff
-
-**Run this skill in a Lima session.** The agentic-review gate needs paad's
-delegate, which only a Lima session loads
-([doctrine §1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement),
-[paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
-so the gate cannot run on a cloud VM, and cloud support is not planned.
-On a cloud VM the skill stops in Preflight (step 7), before creating a
-worktree and with nothing posted on the issue; start the task in a Lima
-session instead.
 
 With the relay tooling
 (epic [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),

@@ -51,21 +51,13 @@ workflow off paad's experimental config mechanism while unpinned.
 - **Design-review reports (pushback, alignment) are not written.** The
   planning issue's comments are the record of every design-review round
   (spec §3.2).
-- **agentic-review output** in `issue-implement`'s gate (child epic D):
-  paad writes nothing and returns its findings in its result (section 10).
-  The implementer keeps the result in the task's private state directory
-  and posts its findings, sorted, to the task issue; paad's code-review
-  backlog does not persist
-  ([doctrine §3](paad-review-doctrine.md#3-mode-2-agentic-review-in-issue-implement)).
 - **All other paad reports** (architecture, test-roadmap and so on) are
   committed under `paad/`, as the authors recommend.
 
 **Reason.** The planning issue is the epic's permanent planning log, and
 review history must stay out of the reviewed document so that each round's
 reviewer starts with a fresh context. A report file would be a second, weaker
-copy of that record. For agentic-review, the task issue is the record of each
-round, and a result that is never written to the worktree keeps earlier
-rounds out of the next reviewer's context. Reports with no issue-based
+copy of that record. Reports with no issue-based
 record keep the authors' default.
 
 ## 3. `paad/security/`
@@ -157,7 +149,6 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 
 | Deviation from paad | Reason |
 |---|---|
-| Mode 2 (agentic-review in `issue-implement`) caps autonomous rounds at 3, then pauses for the human | The authors say "repeat" with a human present. Unattended, an unbounded loop is unsafe. |
 | The installed paad is unpinned and follows the latest release | A pin would not hold on agent VMs: `vrg-vm update` moves every enabled plugin to latest. No `paad/config/` file is adopted (section 4). For now nobody detects paad drift (epic 568 spec §5). Review rounds do not use the installed paad (next row). |
 | The fleet's review rounds run paad from a fork's tree, a patch or two ahead of upstream, not from a release | vergil develops paad changes itself (unattended mode first) and proves them in the fleet before offering them upstream. The fork tracks upstream; only the human moves the fleet checkout, and reviews are held until the validation gate passes on it (section 10). |
 | The reviewer's reality check does not read the history of the document under review | Commit history of earlier rounds carries the provenance that umbrella §3.1 keeps out of the reviewer's context. |
@@ -170,9 +161,8 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 ## 9. Review doctrine
 
 The rules for running a paad review more than once on the same artifact are
-in the [paad review doctrine](paad-review-doctrine.md): the common core for
-every repeated review, mode 1 (human-gated design review in `epic-create`),
-and mode 2 (autonomous review in `issue-implement`). Each round runs under
+in the [paad review doctrine](paad-review-doctrine.md): the common core and
+mode 1 (human-gated design review in `epic-create`). Each round runs under
 paad's unattended runner, `paad:paad-delegate`, which the session must
 have loaded (section 10). The doctrine also
 holds the only copy of the table that maps paad's severity scales onto one
@@ -180,9 +170,8 @@ canonical scale; other documents link to it.
 
 ## 10. paad unattended mode and the fleet checkout
 
-**Decision.** The review doctrine's rounds (`epic-create`'s design review
-and `issue-implement`'s agentic-review gate) run paad only in **unattended
-mode**, except the interactive run the human may choose after a second
+**Decision.** The review doctrine's rounds (`epic-create`'s design review)
+run paad only in **unattended mode**, except the interactive run the human may choose after a second
 broken mode 1 round
 ([doctrine §2.4](paad-review-doctrine.md#24-output-checks-and-broken-rounds),
 step 3); `steering-audit`'s own pushback run is unchanged (section 8).
@@ -199,8 +188,8 @@ is not removed when upstream releases the change).
 - **The delegate is required.** Each review round runs under
   `paad:paad-delegate`, paad's unattended runner, and today only sessions
   that load the fleet checkout have it. A session without it runs no review
-  round: mode 1 stops and tells the human, mode 2 pauses, and the message
-  names the fix, which is to start the session with the fleet checkout
+  round: the session stops and tells the human, and the message names the
+  fix, which is to start the session with the fleet checkout
   loaded through `vrg-vm session` (the override below)
   ([doctrine §1.8](paad-review-doctrine.md#18-the-delegate-requirement)).
 - **No version check.** vergil depends on no specific paad version. The
