@@ -29,26 +29,19 @@ through paad's
 unattended runner, `paad:paad-delegate`
 ([doctrine §1.8](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-review-doctrine.md#18-the-delegate-requirement)).
 
-- **The delegate is required.** The released paad has no delegate. Only
-  a session that loads the fleet's paad checkout, a fork's tree that
-  tracks upstream and runs a patch or two ahead of it, has one. A session
-  without it runs no review round: `epic-create` stops and tells the
-  human, and the message names the fix. No other agent type stands in for the delegate.
-- **Turning it on.** On the Mac, create
-  `~/.config/vergil/plugin-dirs.toml` listing the fleet checkout's
-  `preview/paad`, then start the session with `vrg-vm session`, which
-  loads each listed tree with `--plugin-dir`. Deleting the file, or
-  setting `plugin_dirs = []`, turns it off. The override is a permanent
-  arrangement, not a bridge to a paad release. The file's format is in
-  vergil-tooling's
-  [`--plugin-dir` override](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/cli-tools-overview.md#vrg-vm)
-  reference; the entry the fleet uses, the fleet checkout and the rules
-  for moving it are in
-  [paad-policy §10](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout).
-- **Lima only.** Only a Lima VM sees the Mac's projects tree, so only a
-  Lima session can load the checkout. A cloud session launches with the
-  installed plugins, so it runs no review round. Cloud support for
-  reviews is not planned.
+- **The delegate is required.** Upstream's released paad has no
+  delegate. The fleet installs paad from the vergil fork
+  (`wphillipmoore/paad` at ref `develop`), which tracks upstream, runs a
+  patch or two ahead of it and has one. A session without it runs no
+  review round: `epic-create` stops and tells the human, and the message
+  names the fix. No other agent type stands in for the delegate.
+- **Getting it.** Every box, Lima or cloud, gets the delegate through the
+  ordinary plugin refresh. The host's `~/.claude/settings.json` names the
+  fork in its `extraKnownMarketplaces.paad` entry; `vrg-host plugins`
+  installs it on the host and `vrg-vm update --all` on every running VM.
+  A box without the delegate is misconfigured. The settings entry, the
+  rebase process and the rules for changing the fork are in
+  [paad-policy §10](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/paad-policy.md#10-paad-from-the-fork).
 - **Where agent state lives.** Private review material that must outlive
   a session or a VM rebuild (security details, a kept scratch copy) is kept in
   the main clone's ignored `build/.vergil-state/`, never in a worktree

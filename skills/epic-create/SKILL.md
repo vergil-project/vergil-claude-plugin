@@ -195,10 +195,12 @@ round. The human decides every round. Each round has seven steps:
    The first is the delegate requirement
    ([§1.8](../../docs/paad-review-doctrine.md#18-the-delegate-requirement)):
    if `paad:paad-delegate` is not among the agent types this session can
-   dispatch, the round does not run; stop and tell the human the fix, which
-   is to start the session with the fleet's paad checkout loaded through
-   `vrg-vm session`
-   ([paad-policy §10](../../docs/paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+   dispatch, the round does not run; stop and tell the human the box is
+   misconfigured, naming the fix: the host's `~/.claude/settings.json`
+   entry `extraKnownMarketplaces.paad` must name `wphillipmoore/paad` at
+   ref `develop`, then `vrg-host plugins` for the host or
+   `vrg-vm update --all` for the VMs, and a new session
+   ([paad-policy §10](../../docs/paad-policy.md#10-paad-from-the-fork)).
    Then, in order: the docs worktree is clean, with its branch and HEAD SHA
    recorded, and its `paad/` passes its checks
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round));
