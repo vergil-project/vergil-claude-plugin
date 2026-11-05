@@ -84,9 +84,7 @@ every running agent VM, in a human shell, then restart Claude Code. Both
 commands refresh the marketplace and the installed plugins and verify the
 registered repo and ref, and both refuse an agent identity. The ref is `v2.1`
 before and after, so that check does not prove a machine moved.
-`vrg-vm update --all` skips a VM that is not running, and a Lima session
-that loads a vergil tree with `--plugin-dir` runs that tree, not the
-installed plugin. The plugin README's
+`vrg-vm update --all` skips a VM that is not running. The plugin README's
 [Update](https://github.com/vergil-project/vergil-claude-plugin#update)
 section gives the full procedure and how to verify the installed version.
 

@@ -503,21 +503,20 @@ structured result ([§1.9](#19-the-delegate-path)).
 **The delegate is required.** Before each dispatch, look at the agent types
 this session can dispatch: the list the Agent tool offers. If it does not
 include `paad:paad-delegate`, the round does not run, and no other agent
-type stands in for it. Stop and tell the human, naming the fix: start the session with the
-fleet's paad checkout loaded, through `vrg-vm session`
-([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)),
-and run the round again. Today only a session that loads the fleet's paad
-checkout has the delegate, so a session started without that override, a
-cloud box, or anyone using this plugin with paad as released today runs no
-review round. The check looks only for the agent type, not at which paad
-provides it: if a paad release ships its own delegate and an update
-installs it, a session without the override passes this check and reviews
-with a paad the fleet never validated. That is an accepted risk
-([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+type stands in for it. Stop and tell the human that the box is
+misconfigured, naming the fix: the host's `~/.claude/settings.json` must
+name the fork in `extraKnownMarketplaces.paad` (`wphillipmoore/paad` at
+ref `develop`); then run `vrg-host plugins` for the host or
+`vrg-vm update --all` for the VMs, start a new session and run the round
+again ([paad-policy §10](paad-policy.md#10-paad-from-the-fork)). The
+delegate comes from the installed paad: every box, Lima or cloud, installs
+it with paad from the fork. Anyone using this plugin with paad as upstream
+releases it today has no delegate and runs no review round.
 
-**The fleet checkout is not recorded.** Rounds record nothing about it:
-the human records its commit each time they move it
-([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout)).
+**The installed commit is not recorded.** Rounds record nothing about
+which paad commit ran: the human records each commit pushed to the fork's
+`develop` on the issue that tracks the push
+([paad-policy §10](paad-policy.md#10-paad-from-the-fork)).
 
 ### 1.9 The delegate path
 
@@ -672,7 +671,7 @@ list only `paad:paad-analyst`. Then:
 - the first line is `Running paad:<skill> v<version>` for the skill the
   prompt named. `<version>` is not compared with anything: vergil depends
   on no specific paad version
-  ([paad-policy §10](paad-policy.md#10-paad-unattended-mode-and-the-fleet-checkout));
+  ([paad-policy §10](paad-policy.md#10-paad-from-the-fork));
 - no `Config:` line: a config file was followed, which only a config file
   the prompt names may be, and no prompt names one. Each `Config not
   followed: <path>` line is allowed. Show the paths to the human in the
