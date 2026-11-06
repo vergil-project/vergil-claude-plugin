@@ -601,9 +601,8 @@ last round comment.
   each closed by its own same-repo PR.
 - **Cross-org is out of scope:** each org has its own `.github`; never link epics
   or tasks across orgs.
-- Reconstructing epics from an existing backlog is a different job — use
-  `migrate-repo`. Capturing an uncurated idea is `intake-capture`; routing
-  intake items (including into planning) is `intake-review`.
+- Capturing an uncurated idea is `intake-capture`; routing intake items
+  (including into planning) is `intake-review`.
 - **Planning items are not PR-workable.** `issue-implement`, `vrg-pr-workflow
   report-ready`, and `vrg-submit-pr` refuse an issue whose parent is the
   planning (or intake) epic. The planning issue is closed, never implemented;

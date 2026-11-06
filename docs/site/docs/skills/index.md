@@ -65,7 +65,6 @@ unattended runner, `paad:paad-delegate`
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
 | [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
-| [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
 | [deferred-review](#deferred-review) | Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop | Current (2.1) |
 | [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
@@ -296,19 +295,6 @@ triage review skill in the same epic.
 **When to use.** For the periodic intake pass — "review intake", "groom the
 backlog", "process the intake queue", "what's in intake" (and the older
 "review triage" phrasings).
-
-**Status.** Current (Vergil 2.1).
-
-## migrate-repo
-
-**What it does.** Migrates a repo's existing open-issue backlog into the
-epic/task framework: triages the pile into epics, tasks, ad-hoc work, and
-closeable issues so the roadmap and audit reflect reality. Guided,
-resumable, batch-approved, human-in-the-loop.
-
-**When to use.** When onboarding a repo's backlog into the framework —
-`migrate <repo>`, `bring <repo> into the framework`, or "onboard this repo's
-backlog".
 
 **Status.** Current (Vergil 2.1).
 

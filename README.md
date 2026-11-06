@@ -261,7 +261,6 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `intake-review` | Review the intake queue oldest first in batches of 4 and route each item with `vrg-intake-route` |
 | `planning-review` | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create` |
 | `deferred-review` | Review the deferred queue in batches of 4 — re-check each item's revival conditions and recommend keep, refresh, revive, or drop |
-| `migrate-repo` | Migrate a repo's existing open-issue backlog into the epic/task framework |
 | `steering-audit` | Review the steering and settings files against the Claude config ownership model, one finding at a time; `steering-audit user` reviews the user-level files read-only |
 
 Full reference:

@@ -16,7 +16,6 @@ HOST_TOOLS=(
   vrg-finalize-pr
   vrg-pr-await
   vrg-submit-pr
-  vrg-wait-until-green
   vrg-container-run
   gh
   git
