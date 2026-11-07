@@ -201,9 +201,16 @@ How the push can end:
 - **`.github/workflows/**` changes** — GitHub refuses an agent identity's push of
   workflow files. That is expected: `report-ready` warns, **records the state
   anyway**, and the human's `vrg-submit-pr` pushes the branch at submit time.
-- **`origin/<branch>` has diverged** (e.g. you rebased after an earlier push) —
-  the push is refused and `report-ready` stops with nothing recorded. Update the
-  branch with `vrg-git push --force-with-lease`, then re-run `report-ready`.
+- **`origin/<branch>` has diverged on a first report** (you rebased after an
+  earlier push, before any report was recorded) — the plain push is refused and
+  `report-ready` stops with nothing recorded. Update the branch with
+  `vrg-git push --force-with-lease`, then re-run `report-ready`.
+- **A re-report after `vrg-pr-workflow unfreeze` and a rebase** — do **not**
+  force-push by hand; just re-run `report-ready`. It pushes with a lease on the
+  head it recorded last time (`--force-with-lease=refs/heads/<branch>:<head_sha>`),
+  so the rebased branch replaces the reported commit. If `origin/<branch>` has
+  moved off that recorded head, the push is refused with nothing recorded:
+  inspect `origin/<branch>` before re-running, and never force over it.
 - **Any other push failure** — `report-ready` fails with **nothing recorded** and
   no relay ref written. Fix the cause and re-run it.
 
@@ -280,7 +287,9 @@ the frozen branch — the push path refuses it. Leave it: a conflict that surfac
 between report-ready and submit is resolved after the human submits, in
 `pr-watch` (submitting lifts the freeze, so the post-submit rebase/force-push
 there is legitimate). Reopening earlier requires a deliberate
-`vrg-pr-workflow unfreeze`.
+`vrg-pr-workflow unfreeze`. After an unfreeze, rebase and validate as in steps
+1–3, but skip step 4: re-running `report-ready` pushes the rebased branch with a
+lease on the recorded head (see "How the push can end" above).
 
 ## Notes
 
