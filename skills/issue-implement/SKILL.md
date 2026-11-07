@@ -134,6 +134,16 @@ still waiting (§1.7, "Under `epic-implement`").
 green — `vrg-container-run -- vrg-validate` — fixing every failure and
 re-running; **never** suppress a gate.
 
+## A change too big for one PR
+
+If you find mid-task that the change will not fit one reviewable PR (the
+signals are in `epic-create`'s
+[task sizing rule](../epic-create/SKILL.md#task-sizing--split-a-task-too-big-for-one-pr)),
+stop and propose a split into lettered sub-tasks under `Awaiting a ruling`
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)):
+name each sub-task, what it delivers and what it is blocked by. Do not file
+the sub-tasks yourself; splitting creates issues, so the human rules on it.
+
 ## Discovering an operational need (deployment or validation)
 
 Merging the code is sometimes not the finish line. While implementing, you may

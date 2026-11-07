@@ -81,6 +81,24 @@ the **three-skill lifecycle** (`epic-create` → `epic-implement` →
 `epic-retrospective`). Seed these bookend tasks at epic-creation time (step 2
 below) and fill in the specifics per epic.
 
+## Task sizing — split a task too big for one PR
+
+**A task is one reviewable PR.** A task too big for that is split into
+lettered sub-tasks (`13a`, `13b`, `13c`, …), as many as it needs. Each
+sub-task is its own issue and lands on its own PR, and the plan's delivery
+table lists each one with what it is blocked by, so the dependencies between
+them are stated, not implied.
+
+A task is too big when any of these holds:
+
+- it delivers several issues;
+- it spans unrelated parts of a repo;
+- a defect in one part of it would hold up an unrelated fix in another.
+
+The rule applies when the plan is written (step 6), throughout its plan
+pushback rounds (step 7), and during implementation, where `issue-implement`
+proposes a split to the human instead of filing it.
+
 ## Operational tasks — gating on more than merge
 
 Some steps in an epic are proven not by merging a PR but by *running* something
@@ -518,11 +536,14 @@ last round comment.
    the human stops the stage.
 5. **Human review** of the spec. Commit any edits as an ordinary commit.
 6. **`superpowers:writing-plans`** → `epics/<N>-<slug>/plan.md` on the same
-   worktree: one automated pass, no rounds. Its header follows the step 3 rule.
+   worktree: one automated pass, no rounds. Its header follows the step 3 rule,
+   and its tasks follow "Task sizing" above.
    Commit it as an ordinary commit.
 7. **Stage 2: plan pushback rounds** (the plan under review, the spec as
    context), **then Stage 3: alignment rounds** (both under review; they may
    change the spec and the plan). Each stage runs until the human stops it.
+   While walking the human through each plan pushback round, hold the plan to
+   "Task sizing" above, and raise any task it marks too big.
 8. **Docs PR.** Validate (`vrg-container-run -- vrg-validate`) and hand off the
    single spec + plan PR against `.github` — agents record it via
    `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
