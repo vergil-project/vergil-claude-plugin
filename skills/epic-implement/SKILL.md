@@ -43,6 +43,16 @@ Do **not** rely on any single tool as a state engine. Reconstruct position by:
 is never the source of position. Where the plan's ordering is informal (no
 `Blocked-by` links), infer it from the plan text plus issue state.
 
+**Plans evolve append-only once execution starts.** The plan is frozen when its
+first task ships. From then on, do not rewrite its task list: record each change
+— a new or dropped task, a discovered dependency, a scope shift — as a dated
+entry saying what changed and why, appended to an `## Evolution during
+execution` section at the bottom of `plan.md` (create the section on the first
+entry). The epic's sub-issues stay the authoritative live task list; the log
+is the *why* behind any gap between them and the plan, and `epic-retrospective`
+builds its "How the plan evolved" section from it. Before the first task ships,
+edit the plan freely.
+
 ## 3. Work the runnable frontier
 
 Drive **every** currently-runnable task to its gate. **Use sub-agents wherever
