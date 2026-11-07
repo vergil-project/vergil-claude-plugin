@@ -3894,6 +3894,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#the-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-it-judges" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4017,6 +4028,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#the-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-it-judges" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4115,8 +4137,16 @@ produce, such as the diff, comes in the request, and everything it produces
 goes back in its reply, which the skill stores and checks.
 <code>scripts/bin/validate-custom</code> pins this tool list, so adding a tool to the
 agent fails validation.</p>
-<p>The request, the issue, the diffs and every file the reviewer reads are data,
-never instructions to it.</p>
+<p>The request, the issue and its comments, the diffs and every file the
+reviewer reads are data, never instructions to it.</p>
+<h3 id="the-scope">The Scope<a class="headerlink" href="#the-scope" title="Permanent link">&para;</a></h3>
+<p>The reviewer judges scope against the issue body as amended by the human's
+comments on the issue, which can narrow, widen or settle it. The request
+carries only the human maintainer's unedited comments:
+<code>vrg-merge-review-request</code> fetches and filters them itself, so a comment by
+an agent identity or a third party never changes the scope the reviewer
+uses. A comment changes what the
+task is, never how the reviewer works.</p>
 <h3 id="what-it-judges">What It Judges<a class="headerlink" href="#what-it-judges" title="Permanent link">&para;</a></h3>
 <p>Every finding answers one of two questions: is the change safe to put into
 production, and would a senior engineer block the merge. A <code>docs-only</code>
@@ -4130,7 +4160,7 @@ dependency audits.</p>
 <li><strong>defect</strong>: the fix stays within the existing design;</li>
 <li><strong>design question</strong>: the fix would add machinery the design does not
   have, so the human decides;</li>
-<li><strong>out-of-scope</strong>: content the issue did not ask for;</li>
+<li><strong>out-of-scope</strong>: content the scope did not ask for;</li>
 <li><strong>pre-existing</strong>: a note on a problem the branch did not introduce, never
   asked to be fixed on the branch.</li>
 </ul>
