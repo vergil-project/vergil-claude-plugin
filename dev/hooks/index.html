@@ -4618,9 +4618,9 @@ that <em>launch</em> the container cannot assume that environment.</p>
 for key-value lookups. If you genuinely need associative arrays,
 the code belongs inside the container, not in host scripts.</p>
 <h3 id="enforce-host-container-split">enforce-host-container-split<a class="headerlink" href="#enforce-host-container-split" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Checks the routing of every <code>st-*</code>, <code>gh</code>, <code>git</code>, and
-language-toolchain command against the canonical host-vs-container
-split from
+<p><strong>What.</strong> Checks the routing of the host-only workflow tools (a set of
+<code>vrg-*</code> CLIs, <code>gh</code>, <code>git</code> and <code>git-cliff</code>) and the language-toolchain
+commands against the canonical host-vs-container split from
 <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/96">#96</a>.</p>
 <ul>
 <li><strong>Denies</strong> wrapping a host-only tool in <code>vrg-container-run --</code>
