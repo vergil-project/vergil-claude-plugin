@@ -134,6 +134,18 @@ vrg-intake-route <owner>/<repo>#<N> split --into <ref> [--into <ref> …] --reas
   again at the next review.
 - **planning** keeps the item in its repo and moves it under the planning epic
   of the same queue home. `epic-create <ref>` picks it up from there.
+- **A scope change goes to the human.** When the human's ruling narrows
+  or widens what a routed one-off must deliver (or settles a question its
+  body leaves open), it is put on the issue by the human, never as a
+  comment you post and never by editing its body
+  ([doctrine §1.7, "Scope changes"](../../docs/paad-review-doctrine.md#17-creating-issues)):
+  merge review counts only the human's own comments as amending a task's
+  scope. After the route, write the change to a scratch file and, from a
+  clone of the repo the issue now lives in (its `origin` must push there),
+  run `vrg-ruling draft-scope --issue <owner>/<repo>#<N> --text-file <file>`
+  with the issue's ref after the route. It posts nothing; give the human
+  the `vrg-scope-change` command it prints, with the batch results. A
+  split's tasks need none: their bodies carry their scope.
 - **A refusal is information, not an obstacle.** `vrg-intake-route` exits 1 with
   the reason when a route must not run: the item is not under an intake epic,
   the target is cross-org, a one-off names a queue epic, or a private repo's

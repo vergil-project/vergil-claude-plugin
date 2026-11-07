@@ -138,6 +138,19 @@ present everything needing the human:
   same task, which carries out those
   rulings and nothing else, even on a reported-ready or closed task
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+  A ruling that changes a task's scope (work the issue does not ask for, a
+  part of it dropped or split off, an open question settled) is put on the
+  task issue by the human, never as a comment you post (§1.7, "Scope
+  changes"): write the change to a
+  scratch file and, from a clone of the task's repo (its main clone or
+  worktree), run
+  `vrg-ruling draft-scope --issue '<ref>' --text-file <file>`, give the
+  human the `vrg-scope-change --issue '<ref>'` command it prints, and
+  dispatch the run only once they have run it, so the task's merge review
+  judges against it. Never draft one for a task with a ruling request open
+  (a task stopped at merge review, above): `vrg-scope-change` refuses until
+  the resumed run has posted its response, and the reply is that request's
+  ruling.
   A `fix` ruling on
   a reported-ready task cannot be carried out this way: ask the human to
   rule `file` instead. For a task whose run ended `waiting: non-review

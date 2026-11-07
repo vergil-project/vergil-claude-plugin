@@ -64,6 +64,20 @@ out as §1.7 says (security rulings as `Recorded: <ID>` and the counts line
 only); one it could not carry out gets no ruling line and is reported as
 still waiting (§1.7, "Under `epic-implement`").
 
+**A ruling that changes the task's scope** (a `fix` of something the issue
+does not ask for, a split that drops part of it, an open question settled)
+is put on the issue by the human, never as your comment
+([§1.7, "Scope changes"](../../docs/paad-review-doctrine.md#17-creating-issues)).
+With the human present, write the change to a scratch file and, from a
+clone of the task's repo (its worktree will do), run
+`vrg-ruling draft-scope --issue '<owner>/<repo>#<N>' --text-file <file>`;
+give the human the `vrg-scope-change` command it prints, and start the
+merge review only once they have run it, so the review judges against it.
+Draft only when no ruling exchange is open on the issue: never between a
+merge-review request and its response, where `vrg-scope-change` refuses.
+A run that `epic-implement` dispatches drafts none: the main session
+drafts it at the gate.
+
 ## Preflight
 
 1. Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
@@ -175,6 +189,8 @@ stop and propose a split into lettered sub-tasks under `Awaiting a ruling`
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)):
 name each sub-task, what it delivers and what it is blocked by. Do not file
 the sub-tasks yourself; splitting creates issues, so the human rules on it.
+An approved split narrows this task's scope: draft the scope change for
+the human as above.
 
 ## Discovering an operational need (deployment or validation)
 
