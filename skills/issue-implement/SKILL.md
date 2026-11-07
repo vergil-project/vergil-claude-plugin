@@ -19,7 +19,7 @@ research fan-out, parallel sub-tasks, isolated exploration. You need not narrate
 every step for the human to watch: oversight lives in the front-loaded plan and
 at the hard gates (PR submit, merge, release), not in a live transcript. This is
 the **Front-Loaded Judgment, Trusted Execution** doctrine (see the
-[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine-front-loaded-judgment-trusted-execution)).
+[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)).
 
 The one thing that pulls the human back mid-flight is a **problem you cannot
 resolve**: stop and ask rather than thrash or guess. Never fabricate a result and
