@@ -88,9 +88,10 @@ names the open request (`"request"`) and its step. Check for a reply with
 `vrg-ruling read --issue <ref> --request <id> >/dev/null`, discarding its
 output (the run reads the reply itself): exit 3, no reply yet, so the task
 waits at the gate and is **not** dispatched; exit 0, dispatch it as below;
-exit 4, the task is `fatal`; exit 1, a problem (step 5). A task with no
-open request but a merge-review directory (stopped on non-review items, or
-on an error) is dispatched again only as the gate below says. Never
+exit 4, the task is `fatal`; exit 1, a problem (step 5). A task whose
+merge-review directory holds no such request (no `open-request.json`, or
+one marked `"responded"`) stopped on non-review items or on an error, and
+is dispatched again only as the gate below says. Never
 dispatch a task alongside another run of the same task.
 
 ## 4. Batch at the gate, then stop
