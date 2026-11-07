@@ -1,0 +1,20 @@
+{
+  "schema_version": 2,
+  "issue": "957",
+  "branch": "feature/957-merge-review-no-delete",
+  "base": "origin/develop",
+  "status": "ready",
+  "created_at": "2026-11-07T18:34:43Z",
+  "updated_at": "2026-11-07T18:34:43Z",
+  "git": {
+    "base_sha": "68981c717562a5f4fe751cebf257718452c09e3d",
+    "head_sha": "43f38c67394f2c96bab07545c8932105be29bdcd"
+  },
+  "pr_metadata": {
+    "title": "docs(merge-review): leave deleting the private directory to issue-implement",
+    "summary": "The merge-review skill no longer claims to delete its private directory after report-ready, which it never sees; it now says its caller, issue-implement, deletes the directory once report-ready has succeeded, and that the directory must survive until then.",
+    "notes": "Docs only, one file (skills/merge-review/SKILL.md). Replaces handoff step 3 with a rule that the skill never deletes its directory or the parent issue-implement/<N>/, naming issue-implement as owner of the deletion and stating why the directory must survive (resume after a failed report-ready; security details awaiting a record). The refusal to hand off while a security details file awaits a record is unchanged. The skills index does not repeat the wrong statement, so it is untouched. Does not overlap #930's files. Nothing awaiting a ruling.",
+    "linkage": "Ref"
+  },
+  "submitted": null
+}
