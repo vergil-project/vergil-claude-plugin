@@ -14,14 +14,16 @@ code changes are made.
 
 ### Checks Performed
 
-1. **Repository Profile** — reads `vergil.toml` and extracts
+1. **Repository Profile** — reports the repository name (the current
+   directory's name), reads `vergil.toml` and extracts
    `repository_type`, `branching_model`, `primary_language`, and
    `canonical_local_validation_command`
 
 2. **Branch State** — reports the current branch and warns if on a protected
    branch (`main` or `develop`)
 
-3. **Hook Guard** — verifies `vrg-hook-guard` is available
+3. **Hook Guard** — reports where `vrg-hook-guard` is on PATH, or warns that
+   it is not found
 
 ### Status Report
 
@@ -33,7 +35,7 @@ Repository:    <repo name>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <validation command or "not configured">
-Git hooks:     <hooks path or "NOT CONFIGURED">
+Hook guard:    <vrg-hook-guard path or "NOT FOUND">
 =========================
 ```
 

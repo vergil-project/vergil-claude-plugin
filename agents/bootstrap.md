@@ -20,6 +20,8 @@ report at the end. Do NOT make any changes to the repository.
 
 ## 1. Repository Profile
 
+Report the repository name: the name of the current working directory.
+
 Read `vergil.toml` in the current working directory.
 
 If it exists, extract and report from the `[project]` table:
@@ -40,7 +42,8 @@ If the branch is `main` or `develop`, report:
 
 ## 3. Hook Guard
 
-Check if `vrg-hook-guard` is available on PATH and report the result.
+Run `command -v vrg-hook-guard` and report the path it prints, or
+`NOT FOUND` if it prints nothing.
 
 If not found, report:
 **WARNING: vrg-hook-guard not found.** The Claude Code PreToolUse hook
@@ -56,7 +59,7 @@ Repository:    <repo name from directory>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <canonical_local_validation_command or "not configured">
-Git hooks:     <hooks path or "NOT CONFIGURED">
+Hook guard:    <vrg-hook-guard path or "NOT FOUND">
 =========================
 ```
 
