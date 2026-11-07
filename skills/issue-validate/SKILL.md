@@ -35,7 +35,8 @@ transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
 
 ## Preflight
 
-1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`.
+1. Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+   must print `ok`.
 2. Confirm the issue carries the **`validation`** label:
 
    ```bash

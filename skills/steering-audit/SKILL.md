@@ -55,8 +55,9 @@ This skill does not read, write or depend on memory files.
 
 ## Preflight
 
-1. **Repo scope:** confirm you are the **USER** agent (`vrg-whoami --mode` is
-   `user`) — repo-scope dispositions file intake items and open a worktree.
+1. **Repo scope:** confirm you are the **USER** agent
+   (`[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"` must print `ok`)
+   — repo-scope dispositions file intake items and open a worktree.
    Run from the project root of a repo with a `vergil.toml`. Note whether it is
    in the managed fleet (pins `vergil = "v2.1"` and its
    `.github/workflows/ops.yml` calls `ops-github-config`); the template and

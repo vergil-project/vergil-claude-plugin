@@ -15,8 +15,8 @@ re-derives position and continues.
 
 ## Preflight
 
-1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
-   not, stop.
+1. Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+   must print `ok`. If not, stop.
 2. Resolve the epic ref (`<org>/.github#N`, `#N`, or a URL). Read the epic issue.
 
 ## 1. Emit the rename line
