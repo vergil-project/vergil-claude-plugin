@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.60] - 2026-11-07
+
+### Bug fixes
+
+- undo a bad rebase with commands vrg-git allows (#943)
+- use GitHub's double-hyphen anchor for the execution-doctrine link (#946)
+- harden path resolution in the audit write guard (#955)
+- remove the retired standards-and-conventions check (#961)
+
+### Documentation
+
+- drop the manual force-push for a re-report after unfreeze (#941)
+- state the append-only plan-evolution rule (#944)
+- retire starting-work-on-an-issue.md in favour of issue-implement (#947)
+- name the human spec review in the short pipeline chains (#948)
+- retire docs/standards-and-conventions.md (#950)
+- name the vergil-tooling CLIs vrg-* instead of st-* (#951)
+- record decisions for agentic-a11y, vibe, makefile and paad-help (#952)
+- split a task too big for one PR into lettered sub-tasks (#953)
+- ask the human to undo a completed rebase instead of switch -C (#956)
+- compare vrg-whoami --mode in the shell in skill preflights (#959)
+- check the epic body against the spec and plan whenever they change (#960)
+- ask the human to restore a moved branch after a failed round check (#962)
+- leave deleting the private directory to issue-implement (#963)
+
+### Features
+
+- merge-reviewer agent, read-only (#933)
+- start brainstorming from inherited design docs (#940)
+- merge-review skill (#942)
+- run merge-review from issue-implement and resume through epic-implement (#958)
+
+### Refactoring
+
+- remove the migrate-repo skill and a stale host tool entry (#932)
+
 ## [2.1.59] - 2026-11-05
 
 ### Documentation
