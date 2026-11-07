@@ -35,7 +35,7 @@ The run ends with exactly one of these, and tells its caller which:
 | `eligible` | The review or the check passed and no human ruling was needed. | Runs `report-ready` with the eligibility line in `--notes`. |
 | `not-eligible (<reason>)` | Every item is closed, but the run needed the human. | The same. |
 | `stopped: request <id>` | A ruling request is open on the issue. | Ends the run, reporting the request ID. |
-| `waiting: non-review items` | A dispatched run stopped on `issue-implement`'s own items before merge review posted anything. | Ends the run; see [Non-review items first](#non-review-items-first). |
+| `waiting: non-review items` | `issue-implement`'s own items were not all settled at the [non-review gate](#non-review-items-first), so the run stopped on them before merge review posted anything. | Ends the run; see [Non-review items first](#non-review-items-first). |
 | `fatal` | `vrg-ruling` exited 4. | Ends the run. The task never reaches report-ready; see [The resume](#the-resume). |
 | `error` | A command failed; nothing was changed on the issue. | Ends the run with the error shown. A rerun resumes. |
 
@@ -73,6 +73,13 @@ into report-ready's notes.
   review's result is copied word for word into a response.
 
 ## Terms and files
+
+**Human present** means the human started `issue-implement` in this very
+session and is answering you directly in its terminal. A run started by
+another agent is **dispatched**, whatever the driver (`epic-implement`, an
+interactive driver agent, another skill or any subagent dispatch), even
+when that driver is itself talking to the human. A run that cannot tell
+which it is counts as dispatched.
 
 `<ref>` is the task issue, `owner/repo#N`. `<dir>` is the private directory
 the `--ensure-dir` command prints (below). Every file of the run lives in
@@ -145,7 +152,7 @@ that passes `vrg-merge-review-check` against its request.
   a trusted author (`vrg-trusted-authors --json`, a leading `app/` stripped
   from the author) whose body names that step's `request_id`.
   - **Not posted:** nothing of this step is on the issue yet (this includes
-    a dispatched run that stopped on non-review items). If `HEAD` is the
+    a run that stopped at the non-review gate). If `HEAD` is the
     request's `head_sha`, re-run the result check and continue from
     [Decide](#decide) (a review) or Decide again (a check). Otherwise
     delete that step's files and run the step afresh: a review from
@@ -246,17 +253,42 @@ Items in `reask.json` join the next request the run posts. If
 `issue-implement`'s own non-review items (a follow-up issue, an operational
 need, a problem it cannot resolve) are settled outside merge review, under
 the [doctrine's §1.7](../../docs/paad-review-doctrine.md#17-creating-issues),
-and never while an exchange is open. Before posting a review's step
-comment:
+and never while an exchange is open. **The non-review gate** runs
+immediately before merge review's first post on the issue, whatever that
+post is: the review's step comment for any decision, `pass` included, or
+an `M1` or `D1` request. Nothing is posted until the gate passes, and no
+path through this skill skips it.
 
-- **Human present:** settle every pending non-review item in the terminal
-  first.
-- **Dispatched by `epic-implement`:** if any is pending, post them as §1.7's
-  `Awaiting a ruling` and end with `waiting: non-review items`, keeping
-  `result-review.md` and writing no `open-request.json`. The re-dispatched
-  run finds that result with no step comment and continues from Decide
-  ([Starting and resuming](#starting-and-resuming)), reviewing afresh if
-  `HEAD` has moved.
+1. **List the task's non-review items:** every `N0.<i>` and `N0.S<i>` in a
+   trusted author's comment on the issue
+   ([§1.2](../../docs/paad-review-doctrine.md#12-classification)), and
+   every item this run found or held and has not posted yet.
+2. **Mark each one settled or pending.** An item is settled only when a
+   trusted author's ruling line for it is on the issue: its
+   `Human ruling: <ID> <word>: …` line, or for a security item its
+   `Recorded: <ID>` line or a security counts line covering it. Every
+   other item is pending. Posting an item under `Awaiting a ruling` does
+   not settle it, nor does a ruling you could not carry out, nor the
+   thought that report-ready's notes will list it.
+3. **No item pending:** the gate passes.
+4. **Items pending, human present** (as defined in
+   [Terms and files](#terms-and-files)): settle each in the terminal now.
+   Ask the human, carry out the ruling and post its ruling line as §1.7
+   says. Then run the gate again from step 1.
+5. **Items pending, otherwise** (any dispatched run, or one unsure whether
+   the human is present): post every pending item not yet on the issue
+   under §1.7's `Awaiting a ruling`, screened against
+   [§1.6](../../docs/paad-review-doctrine.md#16-security-findings) first,
+   and end with `waiting: non-review items`. Keep any `result-<step>.md`
+   and write no `open-request.json`. This is the default whenever you cannot
+   show every item settled by step 2: when in doubt, stop.
+
+The run that carries out their rulings (a re-dispatch with the rulings in
+its prompt, as `epic-implement`'s gate does, or the human running
+`issue-implement` directly) records each ruling line first, so the gate
+then passes. It finds the kept result with no step comment and continues
+from Decide ([Starting and resuming](#starting-and-resuming)), reviewing
+afresh if `HEAD` has moved.
 
 ## Decide
 
@@ -280,13 +312,19 @@ In this order, from the checked review result:
    dispute is a stop with `human-ruling`, every such item in one request.
    The defects not disputed are fixed in the fix that follows the ruling,
    with the rulings carried out.
-5. **Fix.** Only defects: decision `fix`, go to
+5. **Fix.** Only defects: decision `fix`, then
    [Fix and check](#fix-and-check).
-6. **Pass.** Nothing raised, or only tracked notes: decision `pass`, go to
+6. **Pass.** Nothing raised, or only tracked notes: decision `pass`, then
    [No unfinished business](#no-unfinished-business-and-handoff).
 
-Post the review's step comment ([Records](#records)) after
-[Non-review items first](#non-review-items-first), then stop or go on.
+Every decision, `pass` included, then takes these steps in order before
+anything else:
+
+1. **The [non-review gate](#non-review-items-first).** If it ends the run
+   with `waiting: non-review items`, stop here: post no step comment.
+2. **The review's step comment** ([Records](#records)).
+3. **The decision's next section:** [The stop](#the-stop) (whose step
+   comment is now posted), Fix and check, or No unfinished business.
 
 **Decide again**, for a check: every `fix_status` is `fixed` and the check
 raised no finding: decision `pass`. Anything else: decision `check-failed`,
@@ -357,13 +395,18 @@ check: a recommendation there never offers `fix`.
 
 ## The stop
 
-Every stop goes through one `vrg-ruling request`. On the run's first stop,
+Every stop goes through one `vrg-ruling request`. An `M1` or `D1` stop
+reached before merge review has posted anything on the issue first runs
+the [non-review gate](#non-review-items-first), before writing anything
+below, and goes no further if the gate ends the run. On the run's first stop,
 write its reason to `stop-reason.txt`: `human-ruling` (a Decide stop, or
 `D1`), `too-many-blockers`, `check-failed`, `result-malformed` (`M1`) or
 `fix-base-rebased` (`B1`).
 
 1. **The step comment** comes first, when the stop follows a checked result
-   ([Records](#records)). `M1`, `D1` and `B1` have no checked result to
+   ([Records](#records)); a review's stop has already passed the
+   [non-review gate](#non-review-items-first) and posted it in
+   [Decide](#decide). `M1`, `D1` and `B1` have no checked result to
    count and post none of their own.
 2. **The items file.** Write `ruling-<step>.json`, one item per open
    question, each with your recommendation:
@@ -387,7 +430,7 @@ write its reason to `stop-reason.txt`: `human-ruling` (a Decide stop, or
    result's request_id, or null>}`), replacing any earlier one.
 4. **Then nothing else on the issue** until the human's reply.
 
-**Human present** (the human runs `issue-implement` directly): talk every
+**Human present** ([Terms and files](#terms-and-files)): talk every
 item through in the terminal, showing each security item's
 `security-<ID>.md`. Once the human has decided, write `draft-<step>.json`
 (889's reply items: `text` for an ordinary item, `decision` for a security
@@ -396,9 +439,10 @@ item), run
 from the task worktree, and give the human the `vrg-ruling-reply` command
 it prints. Once they say it is posted, go to [The resume](#the-resume).
 
-**Dispatched by `epic-implement`:** end with `stopped: request <id>`. The
-run never drafts the reply; `epic-implement` talks the items through and
-drafts it, and re-dispatches with only "human response available".
+**Dispatched** (by `epic-implement` or any other driver): end with
+`stopped: request <id>`. The run never drafts the reply; the driver talks
+the items through and drafts it, as `epic-implement`'s gate does, and
+re-dispatches with only "human response available".
 
 ## The resume
 

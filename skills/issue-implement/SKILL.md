@@ -224,14 +224,22 @@ clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
 `build/.vergil-state/issue-implement/<N>/merge-review/` in the main clone,
 by hand while a run is open.
 
-**Non-review items first.** Before the review's step comment is posted,
-every pending non-review item is settled: with the human present, in the
-terminal; under `epic-implement`, the skill posts them as `Awaiting a
-ruling` and ends `waiting: non-review items`. A run that `epic-implement`
-re-dispatches for such a task, with their rulings in its prompt, carries
-them out first (a `fix` included, since the task is still being
-implemented: commit it and validate to green), records each ruling as
-§1.7 says, then runs the skill, which reviews afresh if `HEAD` has moved.
+**Non-review items first.** Merge review posts nothing on the issue until
+every non-review item of the task is settled: the skill's
+[non-review gate](../merge-review/SKILL.md#non-review-items-first) runs
+before its first post, whatever the review decided. An item is settled
+only once a trusted author's ruling line for it (§1.7) is on the issue;
+listing it under `Awaiting a ruling` does not settle it. With the human
+present (the human started this skill in this session and answers you
+directly), settle each pending item in the terminal and post its ruling
+line. Any other run (dispatched by `epic-implement` or by any other
+driver, or unsure which it is) never decides an item itself: the gate
+posts the pending items and ends `waiting: non-review items`, and so does
+any run that cannot show every item settled. A run re-dispatched for such
+a task, with their rulings in its prompt, carries them out first (a `fix`
+included, since the task is still being implemented: commit it and
+validate to green), records each ruling as §1.7 says, then runs the
+skill, which reviews afresh if `HEAD` has moved.
 
 **The outcome** decides what follows:
 
@@ -264,6 +272,9 @@ exactly as the skill gave it (it is also the first line of the closing
 comment on the issue), what a reviewer needs to know about the change, and
 every non-review item still listed under `Awaiting a ruling`
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+Such an item can only be one found after the review's step comment was
+posted. One pending before then stops the run at merge review's
+non-review gate and never travels in the notes.
 The merge review leaves nothing awaiting a ruling, so the notes carry no
 merge-review item. Security items appear only as counts. Show the human
 the same summary.
