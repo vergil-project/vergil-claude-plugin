@@ -271,6 +271,7 @@ Full reference:
 | Agent | Purpose |
 |---|---|
 | `bootstrap` | Session-start preflight: repository profile, branch state, standards reference, hook guard availability |
+| `merge-reviewer` | Read-only pre-PR reviewer (Read, Glob, Grep only), dispatched by `merge-review` for one review or check step; replies with a `merge-review-result` block and prose |
 
 ## Plugin namespace
 
