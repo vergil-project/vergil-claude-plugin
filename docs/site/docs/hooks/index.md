@@ -193,9 +193,9 @@ the code belongs inside the container, not in host scripts.
 
 ### enforce-host-container-split
 
-**What.** Checks the routing of every `st-*`, `gh`, `git`, and
-language-toolchain command against the canonical host-vs-container
-split from
+**What.** Checks the routing of the host-only workflow tools (a set of
+`vrg-*` CLIs, `gh`, `git` and `git-cliff`) and the language-toolchain
+commands against the canonical host-vs-container split from
 [#96](https://github.com/vergil-project/vergil-claude-plugin/issues/96).
 
 - **Denies** wrapping a host-only tool in `vrg-container-run --`

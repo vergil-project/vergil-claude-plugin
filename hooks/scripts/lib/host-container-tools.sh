@@ -31,7 +31,6 @@ CONTAINER_TOOLS=(
   black
   isort
   markdownlint
-  st-markdown-standards
   yamllint
   actionlint
   shellcheck
