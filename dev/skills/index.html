@@ -4335,7 +4335,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#epic-implement">epic-implement</a></td>
-<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit</td>
+<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4345,7 +4345,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
-<td>USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human</td>
+<td>USER agent: implement an issue, validate to green, run <code>merge-review</code> (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4448,6 +4448,15 @@ currently-runnable task to its gate — routing by kind to
 parallel sub-agents where efficient</strong> — then batches everything needing
 the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.</p>
+<p>A code task whose <a href="#merge-review">merge review</a> stopped for a ruling waits
+at the gate with its request ID. <code>epic-implement</code> talks the request's items
+through with the human in the terminal (a security item's details from the
+task's private merge-review directory), drafts the reply with <code>vrg-ruling
+draft</code>, and hands the human the <code>vrg-ruling-reply</code> command. Once the reply
+is posted it re-dispatches the task saying only that a human response is
+available; no merge-review ruling or security detail ever travels in a
+prompt. Its ruling relay through prompts covers only <code>issue-implement</code>'s
+own non-review items.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".</p>
@@ -4472,9 +4481,14 @@ epic", "we're done with this epic".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via <code>vrg-validate</code>, then records
+its feature branch, validates to green via <code>vrg-validate</code>, runs the
+<a href="#merge-review">merge review</a>, then records
 the PR metadata (<code>.vergil/pr-workflow.json</code>) with
-<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
+<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume, with the
+merge review's eligibility line in the notes. A run stopped at merge review
+for a ruling ends there; running the skill on the task again resumes it
+from the task's private merge-review directory, which <code>issue-implement</code>
+deletes once <code>report-ready</code> succeeds.
 <code>report-ready</code> also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
