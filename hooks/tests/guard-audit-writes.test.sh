@@ -14,6 +14,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOK="$SCRIPT_DIR/../scripts/guard-audit-writes.sh"
 ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+# S: a scratch managed repo whose build/ holds a directory link into its
+# source tree, for the path-resolution row.
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+TMP=$(cd "$TMP" && pwd -P)
+S="$TMP/main"
+mkdir -p "$S/src" "$S/build"
+git -C "$S" init --quiet
+printf '[project]\n' >"$S/vergil.toml"
+ln -s "$S/src" "$S/build/out"
+
 # Parallel arrays: one test per index.
 #   T_NAME     — label
 #   T_IDENTITY — value for VRG_IDENTITY_MODE ("" = unset/empty)
@@ -35,10 +46,12 @@ T_NAME=(
   "missing path field fails closed"
   "NotebookEdit path is checked too (deny)"
   "NotebookEdit path is checked too (allow)"
+  "a new file is judged by its resolved path"
 )
 T_IDENTITY=(
   ""
   "user"
+  "audit"
   "audit"
   "audit"
   "audit"
@@ -67,6 +80,7 @@ T_FIELD=(
   "none"
   "notebook_path"
   "notebook_path"
+  "file_path"
 )
 T_PATH=(
   "$ROOT/README.md"
@@ -83,6 +97,7 @@ T_PATH=(
   ""
   "$ROOT/.vergil/pr-template.yml"
   "$ROOT/build/review-aid.ipynb"
+  "$S/build/out/new.py"
 )
 T_EXPECT=(
   "allow"
@@ -99,6 +114,7 @@ T_EXPECT=(
   "deny"
   "deny"
   "allow"
+  "deny"
 )
 
 pass=0
