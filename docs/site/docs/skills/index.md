@@ -128,7 +128,10 @@ draft`, and hands the human the `vrg-ruling-reply` command. Once the reply
 is posted it re-dispatches the task saying only that a human response is
 available; no merge-review ruling or security detail ever travels in a
 prompt. Its ruling relay through prompts covers only `issue-implement`'s
-own non-review items.
+own non-review items. A ruling there that changes a task's scope is drafted
+at the gate with `vrg-ruling draft-scope`, and the human posts it as
+themselves with the `vrg-scope-change` command it prints before the task is
+dispatched; the agents never post scope changes themselves.
 
 **When to use.** In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
@@ -175,7 +178,9 @@ push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
 planning or deferred epic (route it with `intake-review`, expand it with
 `epic-create`, or revive it with `deferred-review` first), mirroring the
-PR tooling's refusal.
+PR tooling's refusal. A ruling that changes the task's scope is drafted
+with `vrg-ruling draft-scope` for the human to post with
+`vrg-scope-change`, before the merge review starts.
 
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR, in a
@@ -345,7 +350,10 @@ a repo's ad-hoc or finite epic, transferring the issue or recreating it when
 GitHub refuses the transfer), **split** (into tasks made with
 `vrg-issue-create`), or **planning** (hand to `epic-create`). The agent closes
 dropped and split items itself. Leaving an item in intake for the next review
-is also an outcome, for items that will be ready within days. Renamed from the
+is also an outcome, for items that will be ready within days. When a ruling
+narrows or widens a routed item's scope, the agent drafts the change with
+`vrg-ruling draft-scope` and the human posts it as themselves with
+`vrg-scope-change`. Renamed from the
 triage review skill in the same epic.
 
 **When to use.** For the periodic intake pass — "review intake", "groom the
