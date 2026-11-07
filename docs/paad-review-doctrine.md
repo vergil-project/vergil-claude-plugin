@@ -1169,33 +1169,39 @@ round comment names each exit it met, and nothing more:
 
 Every other failed check follows these steps:
 
-1. Revert anything the reviewer changed, staged or not, in this order. These
-   are the commands the spike's revert drill ran and confirmed with
-   `vrg-git`:
+1. Revert anything the reviewer changed, staged or not, in this order. The
+   file-level commands are the ones the spike's revert drill ran and
+   confirmed with `vrg-git`; none of them moves the branch:
    - `vrg-git checkout HEAD -- <file>` for each changed tracked file, which
      restores both the index and the file;
    - `vrg-git rm --cached <path>` and then `rm <path>` for each staged new
      file;
    - `rm <path>` for each untracked path;
-   - then, if the branch or HEAD SHA moved, restore it:
-     `vrg-git switch -C <branch> <sha>` on a branch, or
-     `vrg-git switch --detach <sha>` in a detached worktree (`reset` is not
-     on the `vrg-git` allowlist). Restoring the files first means the switch
-     never meets a local change it would overwrite;
+   - then, if the branch or HEAD SHA moved, do not move it back yourself:
+     `vrg-git` denies `reset` on purpose, and no other command stands in
+     for it. Stop, tell the human the branch (or that the worktree is
+     detached) and the recorded HEAD SHA so they can restore it (for
+     example `! git reset --hard <sha>`), and wait until they say it is
+     done. Reverting the files first leaves the worktree clean, so the
+     restore meets no local change;
    - confirm that the HEAD SHA matches the record and
      `vrg-git status --porcelain` is empty. If not, the revert has failed:
      stop and ask the human.
 
-   Delete the broken run's security material unread: the round's whole
-   scratch-copy subdirectory (`<round-id>/`), so the re-run can create it
-   afresh ([§1.5](#15-state-directories)). Then take the seal. Nobody has
-   walked through that material, and the re-run raises those findings
-   again.
-2. Re-run the round once, automatically, with a fresh reviewer.
+   Only once that confirmation passes, delete the broken run's security
+   material unread: the round's whole scratch-copy subdirectory
+   (`<round-id>/`), so the re-run can create it afresh
+   ([§1.5](#15-state-directories)). Then take the seal. Nobody has walked
+   through that material, and the re-run raises those findings again.
+2. Re-run the round once, automatically, with a fresh reviewer. A restore
+   the human ran in step 1 does not change this: it was a revert, not a
+   ruling on the round, so the re-run follows without a further decision.
 3. On a second broken run, stop and ask the human, who chooses: retry; run
    the skill interactively in the main session, the way `epic-create` did
    before rounds (that round is recorded as a deviation); or skip the stage.
-   A skip is recorded in the round comment with the human's reason.
+   A skip is recorded in the round comment with the human's reason. If that
+   run also moved the branch or HEAD SHA, give the recorded SHA in the same
+   stop, as step 1 says; the agent never restores it itself.
 
 Repeated broken rounds are recorded in the round comments; a change to the
 prompts or the checks that would prevent them is a doctrine change.
