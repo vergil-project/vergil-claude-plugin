@@ -55,9 +55,9 @@ unattended runner, `paad:paad-delegate`
 | Skill | Purpose | Status |
 |---|---|---|
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
-| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
+| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human | Current (2.1) |
 | [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
@@ -120,6 +120,16 @@ parallel sub-agents where efficient** — then batches everything needing
 the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.
 
+A code task whose [merge review](#merge-review) stopped for a ruling waits
+at the gate with its request ID. `epic-implement` talks the request's items
+through with the human in the terminal (a security item's details from the
+task's private merge-review directory), drafts the reply with `vrg-ruling
+draft`, and hands the human the `vrg-ruling-reply` command. Once the reply
+is posted it re-dispatches the task saying only that a human response is
+available; no merge-review ruling or security detail ever travels in a
+prompt. Its ruling relay through prompts covers only `issue-implement`'s
+own non-review items.
+
 **When to use.** In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".
@@ -152,9 +162,14 @@ epic", "we're done with this epic".
 ## issue-implement
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via `vrg-validate`, then records
+its feature branch, validates to green via `vrg-validate`, runs the
+[merge review](#merge-review), then records
 the PR metadata (`.vergil/pr-workflow.json`) with
-`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
+`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume, with the
+merge review's eligibility line in the notes. A run stopped at merge review
+for a ruling ends there; running the skill on the task again resumes it
+from the task's private merge-review directory, which `issue-implement`
+deletes once `report-ready` succeeds.
 `report-ready` also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,

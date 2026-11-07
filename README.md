@@ -249,9 +249,9 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | Skill | Purpose |
 |---|---|
 | `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
-| `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
+| `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human — including merge-review requests it drafts replies for, re-dispatching once the human has replied |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
-| `issue-implement` | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human |
+| `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human |
 | `merge-review` | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, and an eligibility line for report-ready's notes |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
@@ -323,7 +323,7 @@ Under the Vergil 2.1 workflow, the agent prepares the change and
 the **human** opens the PR:
 
 1. The USER agent runs `/vergil:issue-implement <issue>` — implement,
-   validate to green, then record the PR metadata via
+   validate to green, run the merge review, then record the PR metadata via
    `vrg-pr-workflow report-ready`, which also pushes the branch.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
 3. Run the emitted `/vergil:pr-watch <PR_URL>` in the USER agent
