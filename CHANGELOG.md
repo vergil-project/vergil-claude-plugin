@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.61] - 2026-11-07
+
+### Bug fixes
+
+- make the non-review gate hard to skip (#973)
+- make the report format match the checks (#975)
+- draft scope changes for vrg-scope-change instead of posting them as the agent (#977)
+
+### Documentation
+
+- record agentic-review as dropped and mark unused paad skills considered, not integrated (#972)
+
+### Features
+
+- pass the human's issue comments to the reviewer as scope amendments (#976)
+
 ## [2.1.60] - 2026-11-07
 
 ### Bug fixes

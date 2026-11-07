@@ -479,7 +479,14 @@ each has its own channel:
   the human is present, otherwise by stopping on them alone before merge
   review posts anything (the skill's `waiting: non-review items`), so the
   merge-review request comes only on the re-dispatch once their rulings
-  are carried out.
+  are carried out. The skill enforces this with its non-review gate,
+  before its first post whatever the review decided. An item counts as
+  settled only once a trusted author's ruling line for it is on the issue
+  (below); listing it under `Awaiting a ruling` does not settle it. The
+  human is present only when the human started the skill in that session
+  and answers the agent directly; a run dispatched by any driver
+  (`epic-implement` or another), or unsure which it is, stops. Stopping is
+  the default whenever a run cannot show every item settled.
 
 **Write each item down at once.** First screen it against
 [§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
@@ -514,6 +521,38 @@ that lists the item, or else in a new one, in this fixed form:
 
 A ruling that could not be carried out gets no line: keep its details and
 report it as still waiting.
+
+**Scope changes.** A ruling that changes what a task must deliver (it adds
+work the issue does not ask for, drops or defers part of what it asks, as a
+split does, or settles a question the issue leaves open) is put on the task
+issue **by the human**, as a `Scope change` comment posted from the human's
+own login. Never post it as a comment from an agent identity, and never
+edit the issue body for it: merge review counts only the human's own
+unedited comments as amending the scope, so an agent's scope comment changes
+nothing it judges against. Write the change alone (plain text, printable
+ASCII, without the `Scope change` header) to a scratch file and, from a
+clone of the issue's repo (its `origin` must push there), run:
+
+```bash
+vrg-ruling draft-scope --issue '<owner>/<repo>#<N>' --text-file <file>
+```
+
+It pushes the draft, posts nothing and prints the human's command,
+`vrg-scope-change --issue '<owner>/<repo>#<N>'`. Give the human that
+command: they run it in their own shell to post the draft as themselves, or
+pass `--text` to post their own words instead. The `Human ruling:` line is
+still posted for a non-review item: it records the ruling, and the human's
+scope change amends the scope.
+
+`vrg-scope-change` refuses while a ruling exchange is open on the issue
+(from a request to its response), so draft one only when none is: before
+the merge review's first step comment, or after the `vrg-ruling respond`
+that closes an exchange. Draft it before the merge review starts wherever
+possible, and let the human post it first, so the review judges against it.
+A merge-review item needs none: the human's reply is its ruling. Under
+`epic-implement`, the main session drafts each scope change at the gate,
+where the human is present, and dispatches the run that carries out the
+ruling once the human has run the command; a dispatched run drafts none.
 
 **Security items** appear in posted comments only as counts, and are
 presented in the terminal only. No public record gives their titles,
