@@ -252,6 +252,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
 | `issue-implement` | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human |
+| `merge-review` | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, and an eligibility line for report-ready's notes |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
 | `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |
