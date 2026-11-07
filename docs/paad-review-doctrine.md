@@ -479,7 +479,14 @@ each has its own channel:
   the human is present, otherwise by stopping on them alone before merge
   review posts anything (the skill's `waiting: non-review items`), so the
   merge-review request comes only on the re-dispatch once their rulings
-  are carried out.
+  are carried out. The skill enforces this with its non-review gate,
+  before its first post whatever the review decided. An item counts as
+  settled only once a trusted author's ruling line for it is on the issue
+  (below); listing it under `Awaiting a ruling` does not settle it. The
+  human is present only when the human started the skill in that session
+  and answers the agent directly; a run dispatched by any driver
+  (`epic-implement` or another), or unsure which it is, stops. Stopping is
+  the default whenever a run cannot show every item settled.
 
 **Write each item down at once.** First screen it against
 [§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
