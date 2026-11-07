@@ -4283,8 +4283,8 @@ its current status — including any tracked work that will
 substantially change it.</p>
 <h2 id="execution-doctrine-front-loaded-judgment-trusted-execution">Execution doctrine — Front-Loaded Judgment, Trusted Execution<a class="headerlink" href="#execution-doctrine-front-loaded-judgment-trusted-execution" title="Permanent link">&para;</a></h2>
 <p>Human judgment is spent <strong>up front</strong> (brainstorm → spec pushback rounds →
-plan → plan pushback rounds → alignment rounds) and at the <strong>hard gates</strong>
-(PR submit, merge, release). Between those,
+human spec review → plan → plan pushback rounds → alignment rounds) and at
+the <strong>hard gates</strong> (PR submit, merge, release). Between those,
 agents run these skills by the most efficient means available —
 <strong>sub-agents are encouraged</strong> for research fan-out and parallel work —
 and only stop mid-flight for a problem they cannot resolve. The plugin
@@ -4330,7 +4330,7 @@ unattended runner, <code>paad:paad-delegate</code>
 <tbody>
 <tr>
 <td><a href="#epic-create">epic-create</a></td>
-<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks</td>
+<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4411,8 +4411,9 @@ gate that closes the epic).</p>
 <h2 id="epic-create">epic-create<a class="headerlink" href="#epic-create" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>entry point</strong> for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
-(brainstorm → spec pushback rounds → writing-plans → plan pushback rounds →
-alignment rounds), creates the finite epic in its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
+(brainstorm → spec pushback rounds → human spec review → writing-plans →
+plan pushback rounds → alignment rounds), creates the finite epic in its
+resolved home, seeds the <strong>bookend tasks</strong> — documentation,
 documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
 spec + plan as a docs PR. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
