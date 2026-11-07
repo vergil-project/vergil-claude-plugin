@@ -269,8 +269,15 @@ human sign-off is needed:
 
 1. `vrg-git fetch origin`
 2. `vrg-git rebase origin/develop` — resolve conflicts, keeping both sides where
-   each adds independent content. `ORIG_HEAD` is your undo
-   (`vrg-git reset --hard ORIG_HEAD`) if the rebase goes wrong.
+   each adds independent content. If the rebase goes wrong, undo it with a
+   command `vrg-git` allows (it denies `reset`):
+   - **Still in progress:** `vrg-git rebase --abort` returns the branch to its
+     pre-rebase state.
+   - **Already completed:** with a clean worktree, find the pre-rebase tip in
+     `vrg-git reflog <branch>` (the entry just before `rebase (finish)`) and
+     restore it with `vrg-git switch -C <branch> <sha>`. If the worktree is not
+     clean or the reflog is unclear, stop and ask the human, who can run
+     `! git reset --hard ORIG_HEAD`.
 3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
 4. `vrg-git push --force-with-lease` to update the branch / PR.
 
