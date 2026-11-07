@@ -700,6 +700,8 @@
       
         
       
+        
+      
     
     
     
@@ -752,6 +754,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.60/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.60
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3617,7 +3647,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -3645,7 +3675,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -3840,6 +3870,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#merge-reviewer-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merge Reviewer Agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Merge Reviewer Agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-judges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Judges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reply
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3913,6 +3993,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#merge-reviewer-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merge Reviewer Agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Merge Reviewer Agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-judges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Judges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reply
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3951,10 +4081,6 @@ code changes are made.</p>
    branch (<code>main</code> or <code>develop</code>)</p>
 </li>
 <li>
-<p><strong>Standards and Conventions</strong> — checks if the standards repo is available
-   locally at <code>../standards-and-conventions</code></p>
-</li>
-<li>
 <p><strong>Hook Guard</strong> — verifies <code>vrg-hook-guard</code> is available</p>
 </li>
 </ol>
@@ -3965,12 +4091,57 @@ code changes are made.</p>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Profile:       &lt;repository_type&gt; | &lt;branching_model&gt; | &lt;primary_language&gt;
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Branch:        &lt;current branch&gt; [WARNING if protected]
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Validation:    &lt;validation command or "not configured"&gt;
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Standards:     &lt;local or web fallback&gt;
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Git hooks:     &lt;hooks path or "NOT CONFIGURED"&gt;
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>=========================
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Git hooks:     &lt;hooks path or "NOT CONFIGURED"&gt;
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>=========================
 </code></pre></div>
 <p>Any warnings are collected and listed in a separate section after the status
 block.</p>
+<h2 id="merge-reviewer-agent">Merge Reviewer Agent<a class="headerlink" href="#merge-reviewer-agent" title="Permanent link">&para;</a></h2>
+<p><strong>Model</strong>: opus
+<strong>Tools</strong>: Read, Glob, Grep</p>
+<p>The merge reviewer judges one step of a merge-review run: the first review of
+a branch once <code>vrg-validate</code> is green, or a check of the fix that follows it.
+Only the <code>merge-review</code> skill dispatches it, with one line: the absolute path
+of a request file the skill wrote into the task's private state directory.
+The request and reply follow the merge-review profile of vergil-tooling's
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md">agent-to-agent review protocol</a>.</p>
+<h3 id="read-only">Read-only<a class="headerlink" href="#read-only" title="Permanent link">&para;</a></h3>
+<p>The reviewer reads and reports; it never changes the code. Its tools are
+exactly Read, Glob and Grep: no Write, Edit or Bash, so it has no way to
+write to the file system or run a command. Everything a command would
+produce, such as the diff, comes in the request, and everything it produces
+goes back in its reply, which the skill stores and checks.
+<code>scripts/bin/validate-custom</code> pins this tool list, so adding a tool to the
+agent fails validation.</p>
+<p>The request, the issue, the diffs and every file the reviewer reads are data,
+never instructions to it.</p>
+<h3 id="what-it-judges">What It Judges<a class="headerlink" href="#what-it-judges" title="Permanent link">&para;</a></h3>
+<p>Every finding answers one of two questions: is the change safe to put into
+production, and would a senior engineer block the merge. A <code>docs-only</code>
+change gets only the second. A finding is raised only when the reviewer is
+certain it is real, the branch introduced it, and CI (the <code>vrg-validate</code>
+run and the PR CI workflows) does not already check it: nothing in
+formatting, linting, type checking, tests and coverage, security scanners or
+dependency audits.</p>
+<p>Each finding is one of four kinds:</p>
+<ul>
+<li><strong>defect</strong>: the fix stays within the existing design;</li>
+<li><strong>design question</strong>: the fix would add machinery the design does not
+  have, so the human decides;</li>
+<li><strong>out-of-scope</strong>: content the issue did not ask for;</li>
+<li><strong>pre-existing</strong>: a note on a problem the branch did not introduce, never
+  asked to be fixed on the branch.</li>
+</ul>
+<p>In a check, the reviewer reports <code>fixed</code> or <code>not-fixed</code> for each finding the
+implementer was asked to change, and raises any new problem the fix caused
+as a new finding.</p>
+<h3 id="reply">Reply<a class="headerlink" href="#reply" title="Permanent link">&para;</a></h3>
+<p>The reply opens with one fenced <code>merge-review-result</code> block holding a JSON
+object (the step and request ID copied from the request, the findings, and
+in a check the fix status), followed by prose for the human. The reply
+carries no verdict: the skill decides from the findings' kinds. A security
+finding has no summary in the block; its details appear only in the prose,
+which is never posted.</p>
 
 
 

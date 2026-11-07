@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../releases/v1.3.0/">
+        <link rel="prev" href="../releases/v1.3.1/">
       
       
         <link rel="next" href="../skills/">
@@ -702,6 +702,8 @@
       
         
       
+        
+      
     
     
     
@@ -754,6 +756,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.60/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.60
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3619,7 +3649,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -3647,7 +3677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -4618,9 +4648,9 @@ that <em>launch</em> the container cannot assume that environment.</p>
 for key-value lookups. If you genuinely need associative arrays,
 the code belongs inside the container, not in host scripts.</p>
 <h3 id="enforce-host-container-split">enforce-host-container-split<a class="headerlink" href="#enforce-host-container-split" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Checks the routing of every <code>st-*</code>, <code>gh</code>, <code>git</code>, and
-language-toolchain command against the canonical host-vs-container
-split from
+<p><strong>What.</strong> Checks the routing of the host-only workflow tools (a set of
+<code>vrg-*</code> CLIs, <code>gh</code>, <code>git</code> and <code>git-cliff</code>) and the language-toolchain
+commands against the canonical host-vs-container split from
 <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/96">#96</a>.</p>
 <ul>
 <li><strong>Denies</strong> wrapping a host-only tool in <code>vrg-container-run --</code>
@@ -4717,7 +4747,9 @@ Tests: <code>hooks/tests/block-worktree-bypass-write.test.sh</code>.</p>
 <p><strong>What.</strong> When <code>VRG_IDENTITY_MODE=audit</code>, denies Write/Edit/
 NotebookEdit calls targeting anything other than <code>.vergil/audit-*</code>
 (the audit's own artifacts) or <code>build/</code> (scratch space) inside the
-worktree. Other identities are never constrained by this hook.</p>
+worktree. Other identities are never constrained by this hook. The
+target path is fully resolved with <code>os.path.realpath</code> before the
+match, for a new file as well as an existing one.</p>
 <p><strong>Why.</strong> The 2.1 workflow spec makes the AUDIT identity "read-only
 by discipline, not by sandbox" — this hook turns the discipline into
 a mechanical gate per the no-honor-system principle. The allowlist

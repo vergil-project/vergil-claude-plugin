@@ -702,6 +702,8 @@
       
         
       
+        
+      
     
     
     
@@ -754,6 +756,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.60/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.60
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3619,7 +3649,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -3647,7 +3677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -3854,6 +3884,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#merge-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#issue-deploy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3924,17 +3965,6 @@
     <span class="md-ellipsis">
       
         intake-review
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#migrate-repo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        migrate-repo
       
     </span>
   </a>
@@ -4124,6 +4154,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#merge-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#issue-deploy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4194,17 +4235,6 @@
     <span class="md-ellipsis">
       
         intake-review
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#migrate-repo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        migrate-repo
       
     </span>
   </a>
@@ -4283,8 +4313,8 @@ its current status — including any tracked work that will
 substantially change it.</p>
 <h2 id="execution-doctrine-front-loaded-judgment-trusted-execution">Execution doctrine — Front-Loaded Judgment, Trusted Execution<a class="headerlink" href="#execution-doctrine-front-loaded-judgment-trusted-execution" title="Permanent link">&para;</a></h2>
 <p>Human judgment is spent <strong>up front</strong> (brainstorm → spec pushback rounds →
-plan → plan pushback rounds → alignment rounds) and at the <strong>hard gates</strong>
-(PR submit, merge, release). Between those,
+human spec review → plan → plan pushback rounds → alignment rounds) and at
+the <strong>hard gates</strong> (PR submit, merge, release). Between those,
 agents run these skills by the most efficient means available —
 <strong>sub-agents are encouraged</strong> for research fan-out and parallel work —
 and only stop mid-flight for a problem they cannot resolve. The plugin
@@ -4330,12 +4360,12 @@ unattended runner, <code>paad:paad-delegate</code>
 <tbody>
 <tr>
 <td><a href="#epic-create">epic-create</a></td>
-<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks</td>
+<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
 <td><a href="#epic-implement">epic-implement</a></td>
-<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit</td>
+<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4345,7 +4375,12 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
-<td>USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human</td>
+<td>USER agent: implement an issue, validate to green, run <code>merge-review</code> (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#merge-review">merge-review</a></td>
+<td>USER agent: the pre-PR merge review <code>issue-implement</code> runs once validation is green — one review by the read-only <code>merge-reviewer</code>, at most one fix and check, every stop through <code>vrg-ruling</code>, every item closed before handoff, and an eligibility line for report-ready's notes</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4384,11 +4419,6 @@ unattended runner, <code>paad:paad-delegate</code>
 <td>Current (2.1)</td>
 </tr>
 <tr>
-<td><a href="#migrate-repo">migrate-repo</a></td>
-<td>Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop</td>
-<td>Current (2.1)</td>
-</tr>
-<tr>
 <td><a href="#deferred-review">deferred-review</a></td>
 <td>Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop</td>
 <td>Current (2.1)</td>
@@ -4411,8 +4441,9 @@ gate that closes the epic).</p>
 <h2 id="epic-create">epic-create<a class="headerlink" href="#epic-create" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>entry point</strong> for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
-(brainstorm → spec pushback rounds → writing-plans → plan pushback rounds →
-alignment rounds), creates the finite epic in its resolved home, seeds the <strong>bookend tasks</strong> — documentation,
+(brainstorm → spec pushback rounds → human spec review → writing-plans →
+plan pushback rounds → alignment rounds), creates the finite epic in its
+resolved home, seeds the <strong>bookend tasks</strong> — documentation,
 documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
 spec + plan as a docs PR. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
@@ -4447,6 +4478,15 @@ currently-runnable task to its gate — routing by kind to
 parallel sub-agents where efficient</strong> — then batches everything needing
 the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.</p>
+<p>A code task whose <a href="#merge-review">merge review</a> stopped for a ruling waits
+at the gate with its request ID. <code>epic-implement</code> talks the request's items
+through with the human in the terminal (a security item's details from the
+task's private merge-review directory), drafts the reply with <code>vrg-ruling
+draft</code>, and hands the human the <code>vrg-ruling-reply</code> command. Once the reply
+is posted it re-dispatches the task saying only that a human response is
+available; no merge-review ruling or security detail ever travels in a
+prompt. Its ruling relay through prompts covers only <code>issue-implement</code>'s
+own non-review items.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".</p>
@@ -4471,9 +4511,14 @@ epic", "we're done with this epic".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="issue-implement">issue-implement<a class="headerlink" href="#issue-implement" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via <code>vrg-validate</code>, then records
+its feature branch, validates to green via <code>vrg-validate</code>, runs the
+<a href="#merge-review">merge review</a>, then records
 the PR metadata (<code>.vergil/pr-workflow.json</code>) with
-<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume.
+<code>vrg-pr-workflow report-ready</code> for <code>vrg-submit-pr</code> to consume, with the
+merge review's eligibility line in the notes. A run stopped at merge review
+for a ruling ends there; running the skill on the task again resumes it
+from the task's private merge-review directory, which <code>issue-implement</code>
+deletes once <code>report-ready</code> succeeds.
 <code>report-ready</code> also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
@@ -4491,6 +4536,40 @@ locally before the relay existed — epic
 <a href="https://github.com/vergil-project/.github/issues/148">vergil-project/.github#148</a>.)</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
+<h2 id="merge-review">merge-review<a class="headerlink" href="#merge-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill. The judgement-level review between a
+green <code>vrg-validate</code> and the PR: is this change good enough to merge? It
+builds a request with <code>vrg-merge-review-request</code>, dispatches the read-only
+<a href="../agents/"><code>merge-reviewer</code></a> agent, and acts only on a result that
+passes <code>vrg-merge-review-check</code>, deciding from the findings' kinds alone.
+The loop is one review, then at most one fix and check. Design questions,
+out-of-scope additions, untracked pre-existing problems, disputes, more
+than five blockers and a failed check all stop for the human through one
+authenticated <code>vrg-ruling</code> request; the human replies with
+<code>vrg-ruling-reply</code>. Every item is closed (fixed, ruled on and carried out,
+filed, or recorded) before handoff. Each step posts one comment, and a
+closing comment carries the eligibility line,
+<code>Merge review: done: &lt;eligible | not-eligible (&lt;reason&gt;)&gt;; accepted-risk &lt;w&gt;</code>,
+which also goes into report-ready's notes. Security findings appear in
+public only by ID or count; their details stay in the task's private state
+directory, <code>build/.vergil-state/issue-implement/&lt;N&gt;/merge-review/</code>, and the
+terminal.</p>
+<p><strong>When to use.</strong> Run by <code>issue-implement</code> once validation is green and
+before <code>vrg-pr-workflow report-ready</code>, and again on the same task to resume
+a run stopped for a ruling. The files, schemas and the result check follow
+vergil-tooling's
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md">agent-to-agent review protocol</a>;
+the ruling channel is its
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/human-replies.md">Human Replies</a>
+guide.</p>
+<p><strong>Prior art.</strong> The high-signal bar and exclusion list come from
+Anthropic's <code>code-review</code> plugin, the silent-failure lens from its
+<code>pr-review-toolkit</code> plugin, the crafted-context reviewer from superpowers'
+<code>requesting-code-review</code>, and out-of-scope additions, spec checking and
+blame-based scope from paad's <code>agentic-review</code>.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires the merge-review tooling CLIs
+(<code>vrg-merge-review-request</code>, <code>vrg-merge-review-check</code>) and <code>vrg-ruling</code> at
+runtime.</p>
 <h2 id="issue-deploy">issue-deploy<a class="headerlink" href="#issue-deploy" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Runs a <code>deployment</code>-labelled task
 end to end: installs or syncs the merged change so it is actually usable
@@ -4588,15 +4667,6 @@ triage review skill in the same epic.</p>
 <p><strong>When to use.</strong> For the periodic intake pass — "review intake", "groom the
 backlog", "process the intake queue", "what's in intake" (and the older
 "review triage" phrasings).</p>
-<p><strong>Status.</strong> Current (Vergil 2.1).</p>
-<h2 id="migrate-repo">migrate-repo<a class="headerlink" href="#migrate-repo" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Migrates a repo's existing open-issue backlog into the
-epic/task framework: triages the pile into epics, tasks, ad-hoc work, and
-closeable issues so the roadmap and audit reflect reality. Guided,
-resumable, batch-approved, human-in-the-loop.</p>
-<p><strong>When to use.</strong> When onboarding a repo's backlog into the framework —
-<code>migrate &lt;repo&gt;</code>, <code>bring &lt;repo&gt; into the framework</code>, or "onboard this repo's
-backlog".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
 <h2 id="deferred-review">deferred-review<a class="headerlink" href="#deferred-review" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Reviews the deferred queue, where evaluated items wait for
