@@ -13,8 +13,8 @@ substantially change it.
 ## Execution doctrine — Front-Loaded Judgment, Trusted Execution
 
 Human judgment is spent **up front** (brainstorm → spec pushback rounds →
-plan → plan pushback rounds → alignment rounds) and at the **hard gates**
-(PR submit, merge, release). Between those,
+human spec review → plan → plan pushback rounds → alignment rounds) and at
+the **hard gates** (PR submit, merge, release). Between those,
 agents run these skills by the most efficient means available —
 **sub-agents are encouraged** for research fan-out and parallel work —
 and only stop mid-flight for a problem they cannot resolve. The plugin
@@ -54,7 +54,7 @@ unattended runner, `paad:paad-delegate`
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
+| [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
@@ -78,8 +78,9 @@ gate that closes the epic).
 
 **What it does.** USER-identity skill and the **entry point** for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
-(brainstorm → spec pushback rounds → writing-plans → plan pushback rounds →
-alignment rounds), creates the finite epic in its resolved home, seeds the **bookend tasks** — documentation,
+(brainstorm → spec pushback rounds → human spec review → writing-plans →
+plan pushback rounds → alignment rounds), creates the finite epic in its
+resolved home, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
 spec + plan as a docs PR. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
