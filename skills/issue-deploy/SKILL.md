@@ -31,7 +31,7 @@ If you cannot actually run a step, say so and stop — **never fabricate or
 partially fake a result.** Use whatever means are efficient to run it (sub-agents
 encouraged); oversight is front-loaded and at the hard gates, not in a live
 transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
-[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine-front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
+[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
 
 ## Preflight
 
