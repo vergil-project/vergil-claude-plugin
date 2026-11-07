@@ -38,16 +38,7 @@ Run `git branch --show-current` and report the current branch.
 If the branch is `main` or `develop`, report:
 **WARNING: On protected branch. Create a feature branch before making changes.**
 
-## 3. Standards and Conventions
-
-Check if `../standards-and-conventions` exists as a directory.
-
-If found, report: **Standards repo: resolved locally.**
-
-If not found, report:
-**WARNING: Standards repo not found locally. Using web source as fallback.**
-
-## 4. Hook Guard
+## 3. Hook Guard
 
 Check if `vrg-hook-guard` is available on PATH and report the result.
 
@@ -65,7 +56,6 @@ Repository:    <repo name from directory>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <canonical_local_validation_command or "not configured">
-Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================
 ```

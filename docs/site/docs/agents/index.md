@@ -21,10 +21,7 @@ code changes are made.
 2. **Branch State** — reports the current branch and warns if on a protected
    branch (`main` or `develop`)
 
-3. **Standards and Conventions** — checks if the standards repo is available
-   locally at `../standards-and-conventions`
-
-4. **Hook Guard** — verifies `vrg-hook-guard` is available
+3. **Hook Guard** — verifies `vrg-hook-guard` is available
 
 ### Status Report
 
@@ -36,7 +33,6 @@ Repository:    <repo name>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <validation command or "not configured">
-Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================
 ```
