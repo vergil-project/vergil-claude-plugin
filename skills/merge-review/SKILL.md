@@ -570,9 +570,13 @@ Then:
 
 1. post the closing comment;
 2. end with `eligible` or `not-eligible (<reason>)`, giving the caller the
-   eligibility line for `--notes`;
-3. once `vrg-pr-workflow report-ready` has succeeded, delete `<dir>`, and
-   its parent `issue-implement/<N>/` if it is then empty.
+   eligibility line for `--notes`.
+
+Never delete `<dir>` or its parent `issue-implement/<N>/`. The caller,
+`issue-implement`, deletes them once `vrg-pr-workflow report-ready` has
+succeeded. Until then `<dir>` must survive: a failed report-ready resumes
+from it, and a `security-<ID>.md` awaiting a record must stay until it is
+recorded.
 
 ## Prior art
 
