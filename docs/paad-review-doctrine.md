@@ -813,7 +813,8 @@ made of rounds:
    spec is written and committed.
 2. The human reviews the spec, and any edits are committed. Then
    `superpowers:writing-plans` writes the plan in one automated pass, with
-   no rounds, and the plan is committed.
+   no rounds, and the plan is committed. Its tasks follow `epic-create`'s
+   [task sizing rule](../skills/epic-create/SKILL.md#task-sizing--split-a-task-too-big-for-one-pr).
 3. **Stage 2: plan pushback rounds** (`paad:pushback` on the plan, with the
    spec as context).
 4. **Stage 3: alignment rounds** (`paad:alignment` on the spec and the
