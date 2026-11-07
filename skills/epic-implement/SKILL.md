@@ -77,6 +77,22 @@ has an `operational/<N>/` state directory, show the human its listing for
 confirmation and pass the answer in the prompt
 ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 
+**Code tasks at merge review.** `issue-implement` runs the `merge-review`
+skill before `report-ready`, and a run can end there instead: `stopped:
+request <id>` (a ruling request open on the task issue), `waiting:
+non-review items`, `fatal` or `error`. Keep each such outcome for the gate.
+On re-entry, find them from the task's merge-review directory,
+`build/.vergil-state/issue-implement/<N>/merge-review/` in the task repo's
+main clone, reading only: an `open-request.json` without `"responded"`
+names the open request (`"request"`) and its step. Check for a reply with
+`vrg-ruling read --issue <ref> --request <id> >/dev/null`, discarding its
+output (the run reads the reply itself): exit 3, no reply yet, so the task
+waits at the gate and is **not** dispatched; exit 0, dispatch it as below;
+exit 4, the task is `fatal`; exit 1, a problem (step 5). A task with no
+open request but a merge-review directory (stopped on non-review items, or
+on an error) is dispatched again only as the gate below says. Never
+dispatch a task alongside another run of the same task.
+
 ## 4. Batch at the gate, then stop
 
 The **gate** is the general boundary where you can no longer proceed without the
@@ -85,8 +101,32 @@ present everything needing the human:
 
 - PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
 - operational tasks needing a human-gated release;
-- every run's items **awaiting a ruling**, as its final
-  report gives them, security details included and shown only here. File
+- every task **stopped at merge review**, with its request ID. Talk each
+  item of the request through with the human in the terminal: the items
+  are in the task's `merge-review/ruling-<step>.json` and its step comment,
+  and a security item's details are in its `merge-review/security-<ID>.md`,
+  shown only here. Once the human has decided, run
+  `vrg-merge-review-request --issue '<ref>' --ensure-dir` and write the
+  reply items (889's `text` for an ordinary item, `decision` for a security
+  item) to `draft-<step>.json` in the directory it prints, then, from the
+  task's worktree (whose `origin` is the task repo, as `vrg-ruling draft`
+  requires), run
+  `vrg-ruling draft --issue '<ref>' --request <id> --items <dir>/draft-<step>.json`
+  and give the human the `vrg-ruling-reply --issue '<ref>' --request <id>`
+  command it prints. Once the human has posted the reply, dispatch one new
+  run of the task's `issue-implement` whose prompt says only that a human
+  response is available: **no ruling text and no security detail ever goes
+  in a prompt** for a merge-review item
+  ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues),
+  "One channel per kind of item"). The run reads the reply from the issue
+  and resumes;
+- every task whose merge review ended `fatal`: it never reaches
+  report-ready, and the human recovers on a new issue (epic 889's spec,
+  §10). Its merge-review directory stays until the human deletes it;
+- every run's **non-review** items **awaiting a ruling**, as its final
+  report gives them, security details included and shown only here.
+  Merge-review items are never among them: they go only through the
+  request above. File
   and post none of them: pass a task's rulings with no trusted author's
   ruling or `Recorded:` line yet
   together, with each
@@ -99,10 +139,16 @@ present everything needing the human:
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
   A `fix` ruling on
   a reported-ready task cannot be carried out this way: ask the human to
-  rule `file` instead;
+  rule `file` instead. For a task whose run ended `waiting: non-review
+  items`, that one new run carries out the rulings (a `fix` included,
+  since the task is still being implemented) before merge review posts
+  anything, then continues the merge review, which may stop again at the
+  next gate;
 - every fix task an operational run **filed without a ruling** on a FAILURE
   outcome, so the human sees it;
-- any problems you got stuck on (see step 5).
+- any problems you got stuck on (see step 5), including a merge review
+  that ended `error`: once the cause is fixed, dispatching the task again
+  resumes it.
 
 **Batch PRs per repository, not across repos.** `vrg-submit-pr` operates on one
 repo at a time — it takes a branch list *within a single repo* — so the unit of
@@ -126,7 +172,9 @@ sub-agent records `report-ready`, that branch is done: `vrg-commit` and the
 `vrg-git` push path refuse further commits until the human submits. When you
 re-derive state, treat a reported-ready (or already-merged) task as finished —
 advance the frontier, do not re-run its issue (a run given rulings only, above,
-is the one exception) or add commits to its branch. More
+is the one exception) or add commits to its branch. Its merge review is
+over and its merge-review directory was deleted at `report-ready`: expect
+none, and look for none. More
 work on a landed task is a **new follow-up issue**, never a mutation of that
 branch.
 

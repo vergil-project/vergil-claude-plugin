@@ -185,7 +185,7 @@ the `build/` of a repo's main clone, never in the reviewer's worktree:
 | Kind | Path, in the main clone of | Used by |
 |---|---|---|
 | `design-review` | `build/.vergil-state/design-review/<M>/<round>/`, the docs repo, `<M>` the planning issue's number | mode 1's scratch copy ([§2.7](#27-security-findings)) |
-| `issue-implement` | `build/.vergil-state/issue-implement/<N>/`, the task repo, `<N>` the task issue's number | a `record` ruling's `security-<i>.md`, written by the run that carries out the human's rulings ([§1.7](#17-creating-issues)) |
+| `issue-implement` | `build/.vergil-state/issue-implement/<N>/`, the task repo, `<N>` the task issue's number | a `record` ruling's `security-<i>.md`, written by the run that carries out the human's rulings ([§1.7](#17-creating-issues)); and `merge-review/`, the working files of the task's merge review (below) |
 | `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
 | `operational` | `build/.vergil-state/operational/<N>/`, the repo the task is filed in, `<N>` the operational task's number | security items found by `issue-validate` and `issue-deploy` ([§1.7](#17-creating-issues)) |
 
@@ -301,10 +301,67 @@ issue, finds it. Find the main clone from inside a worktree with
   the file is deleted once its item's ruling is carried out, and `<N>/`
   once it holds no file.
 - **The `issue-implement` directory** follows the `upstream-report` rules
-  too. It holds only a `record` ruling's details file, a `security-<i>.md`
-  written after a `test ! -e` check, used and deleted within the run that
-  makes the record ([§1.7](#17-creating-issues)); nothing in it is kept,
-  and `<N>/` is deleted once it holds no file.
+  too, at its own level. There it holds only a `record` ruling's details
+  file, a `security-<i>.md` written after a `test ! -e` check, used and
+  deleted within the run that makes the record
+  ([§1.7](#17-creating-issues)); nothing at that level is kept. Its one
+  other entry is `merge-review/` (next bullet), which is not an "other
+  entry" in the sense of **Only your own files**, and which these rules
+  leave out: first check that `<N>/merge-review`, if it exists, is a real
+  directory (`test ! -L`, then `test -d`; otherwise stop), then prune it
+  from the hash and the type check (`find . -path ./merge-review -prune -o
+  -print`, and the same `-prune -o` before `-type f -exec shasum -a 256 {}
+  +` and before `! -type d ! -type f -print`), and from the listing shown
+  to the human. `<N>/` is deleted once it holds no file and no
+  `merge-review/`.
+- **The `merge-review/` directory**,
+  `build/.vergil-state/issue-implement/<N>/merge-review/`, is the working
+  directory of the task's merge review: the `merge-review` skill and
+  `vrg-merge-review-request` write it, and `epic-implement` writes one file
+  there at its gate. It holds:
+  - `issue-body.md` and `epic-tasks.json`, the request builder's inputs,
+    and `design-<n>-<basename>`, each design source fetched from the epic's
+    home repo (the skill);
+  - `request-<step>.json`, `diff-<step>.patch` and `fix-<step>.patch`
+    (`vrg-merge-review-request`);
+  - `result-<step>.md`, the reviewer's reply stored unchanged, and
+    `security-<ID>.md`, one security finding's details (the skill);
+  - `ruling-<step>.json`, a ruling request's items; `draft-<step>.json`,
+    the reply items for `vrg-ruling draft` (the skill with the human
+    present, or `epic-implement` at its gate); `open-request.json`, the open
+    request; `respond-<step>.json`, the response items until `respond`
+    succeeds; and `reask.json`, items still to be asked (the skill);
+  - `stop-reason.txt`, the reason of the run's first stop, and
+    `comment-*.md` and `record-*.md`, bodies for step comments and neutral
+    security-record text (the skill).
+
+  Its checks are those of `vrg-merge-review-request --issue <ref>
+  --ensure-dir`, run immediately before every write to it, writing only to
+  the path it prints: `build/.vergil-state/` and every level down to
+  `merge-review/` is a real directory, not a symlink, and mode 700, absent
+  levels created. None of this section's hash rules apply to it: no
+  directory hash, no seal between rounds, no listing confirmed at the start
+  of a session, and no recorded hash for a details file kept across a stop.
+  That accepts a threat, stated here: a write into `merge-review/` by
+  another session of the same Unix user, between two of the skill's own
+  steps, is not caught. The reviewer cannot make one (its agent has only
+  Read, Glob and Grep), and every session of the shared Unix user is inside
+  the trust boundary, since any of them could change the code, the
+  worktree or the tools as easily. The mode-700 root protects the
+  directory from other users only.
+
+  The directory is kept across a stop and across sessions, since a resumed
+  run reads it. A `restart` ruling on a rebased fix base deletes the step
+  files but keeps `stop-reason.txt` and every `security-<ID>.md` whose
+  record is still due. Once `vrg-pr-workflow report-ready` succeeds,
+  `issue-implement` deletes `merge-review/`, and `<N>/` if it is then
+  empty. The skill refuses to hand off while any `security-<ID>.md` ruled
+  `defer` or `file` has no record, so that deletion never takes details
+  still awaiting one. Nothing after report-ready expects the directory: a
+  re-run of `report-ready` takes the eligibility line from the closing
+  comment on the issue, and a run that carries out rulings on a
+  reported-ready task never touches `merge-review/`. A run that ends
+  `fatal`, or work that is abandoned, leaves it until the human deletes it.
 - **Deleting it.** Mode 1 deletes a round's subdirectory and the task's
   state directory at points its loop already reaches
   ([§2.7](#27-security-findings)). If the work is abandoned, the directory
@@ -320,7 +377,8 @@ directory no running task owns), or into kept material while no session
 runs, is not caught by the directory hash; kept details files are checked
 against their recorded hashes when a later session uses them. No check
 sweeps for writes outside the worktree, so the hash checks alone cover the
-state directory.
+state directory. A merge review's `merge-review/` has no hash checks at
+all, only its mode and real-directory checks (above).
 
 ### 1.6 Security findings
 
@@ -393,12 +451,43 @@ the human's approving ruling, in the form approved. The only exemptions:
   `not filed: <reason>`) and in the final report, so the human sees it at
   the next gate.
 
+**One channel per kind of item.** A code task has two kinds of item, and
+each has its own channel:
+
+- **Merge-review items**: everything the `merge-review` skill raises
+  (findings, untracked pre-existing proposals and security items, and its
+  own stop items `M1`, `D1` and `B1`). They go only through epic 889's
+  authenticated channel: `vrg-ruling request`, the human's
+  `vrg-ruling-reply`, then `vrg-ruling read` and `vrg-ruling respond`, with
+  889's words (for a security item `fix`, `file`, `defer` and `wont-fix`).
+  The reply is the human's approval for any filing it calls for. They take
+  the review's IDs (`R<n>`, `C<n>`, `C<k>.<n>`), never `N0.<i>`, and get no
+  `Awaiting a ruling`, `Human ruling:` or `Recorded:` lines. Their security
+  details live in the task's `merge-review/security-<ID>.md`
+  ([§1.5](#15-state-directories)) and the terminal. `epic-implement` relays
+  no ruling and no security detail for them through a prompt: once the
+  human has replied, it re-dispatches the task saying only that a human
+  response is available, and the run reads the reply from the issue.
+- **Non-review items**: `issue-implement`'s own (follow-up issues,
+  operational needs, problems it cannot resolve). They keep the rest of
+  this section, with one limit: their comments are posted only before the
+  merge review's first step comment or after the `vrg-ruling respond` that
+  closes an exchange, never while one is open (from its request to its
+  response). One found while an exchange is open is held, in the terminal
+  and the final report, and posted after the response. A run with both
+  kinds pending settles the non-review items first: in the terminal when
+  the human is present, otherwise by stopping on them alone before merge
+  review posts anything (the skill's `waiting: non-review items`), so the
+  merge-review request comes only on the re-dispatch once their rulings
+  are carried out.
+
 **Write each item down at once.** First screen it against
 [§1.6](#16-security-findings). List it under `Awaiting a ruling`, with an
 ID `N0.<i>` (`<i>` continues from the highest ID in a trusted author's
 comment on the issue; a security item takes `N0.S<i>`, kept privately,
 with `<i>` continuing past the `security-<i>.md` files in the task's
-private directory and the trusted `Recorded:` lines on the issue), in a
+private directory, at its own level and not in `merge-review/`, and the
+trusted `Recorded:` lines on the issue), in a
 comment the skill already posts on its issue (an operational task: its
 result comment), and in your final report. An item found before any such
 comment exists gets its own comment at once, whose first line is
@@ -432,7 +521,9 @@ details, reasons or advisory IDs: not the comments, the `Human ruling:`
 lines, commit messages, intake issues, tasks, the PR text or the
 `report-ready` notes. An operational task keeps their details in its
 private directory, `operational/<N>/` ([§1.5](#15-state-directories)),
-with a `Kept:` line for each kept file. Anywhere else there is no private
+with a `Kept:` line for each kept file. A merge-review security item's
+details are kept in the task's `merge-review/security-<ID>.md` (above).
+Anywhere else there is no private
 store: the details stay in the conversation, and the item is ruled on in
 the same session (under `epic-implement`, through the main session,
 below).
@@ -468,13 +559,18 @@ carried out (above): a code task's details file is still deleted before
 the run ends, and the details go back to the main session in the run's
 final message.
 
-**Rulings** come only from the human in the conversation, or from
-`epic-implement`'s dispatch prompt (below). A `Human ruling:` line counts
+**Rulings** on non-review items come only from the human in the
+conversation, or from `epic-implement`'s dispatch prompt (below); a ruling
+on a merge-review item comes only from a reply that passes `vrg-ruling
+read`'s checks. A `Human ruling:` line counts
 only from a trusted author ([§1.2](#12-classification)) and only records
 that an item was ruled on; it never authorizes an action.
 
 **Under `epic-implement`,** each run's final message to the main session
-lists its items, security details included, and is never posted. The main
+lists its non-review items, security details included, and is never
+posted; a run stopped at merge review gives only its request ID, and the
+main session talks that request's items through with the human, drafts
+the reply and re-dispatches as the `epic-implement` skill says. The main
 session presents every run's items at the gate, and files and posts none of
 them: it passes a task's rulings that have no trusted author's ruling or
 `Recorded:` line yet together,
@@ -487,7 +583,11 @@ item only from its prompt, skips any ruling whose line (or, for a
 the issue, carries out the rest and nothing else (no worktree, commit,
 procedure or `Outcome:`, even on a closed or reported-ready task), records
 each one as above and stops. It cannot carry out a `fix` ruling: on a
-task already reported ready, the human rules `file` instead. A run that
+task already reported ready, the human rules `file` instead. The one
+exception is a code task whose run ended `waiting: non-review items`,
+still being implemented: its one new run carries out those rulings, a
+`fix` included, and records them before merge review posts anything, then
+continues the merge review. A run that
 needs an answer it was not given stops and reports the question as an
 item waiting on the human.
 
