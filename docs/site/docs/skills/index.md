@@ -58,6 +58,7 @@ unattended runner, `paad:paad-delegate`
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
+| [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
@@ -172,6 +173,45 @@ locally before the relay existed — epic
 
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (`vrg-pr-workflow`, etc.) at runtime.
+
+## merge-review
+
+**What it does.** USER-identity skill. The judgement-level review between a
+green `vrg-validate` and the PR: is this change good enough to merge? It
+builds a request with `vrg-merge-review-request`, dispatches the read-only
+[`merge-reviewer`](../agents/index.md) agent, and acts only on a result that
+passes `vrg-merge-review-check`, deciding from the findings' kinds alone.
+The loop is one review, then at most one fix and check. Design questions,
+out-of-scope additions, untracked pre-existing problems, disputes, more
+than five blockers and a failed check all stop for the human through one
+authenticated `vrg-ruling` request; the human replies with
+`vrg-ruling-reply`. Every item is closed (fixed, ruled on and carried out,
+filed, or recorded) before handoff. Each step posts one comment, and a
+closing comment carries the eligibility line,
+`Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`,
+which also goes into report-ready's notes. Security findings appear in
+public only by ID or count; their details stay in the task's private state
+directory, `build/.vergil-state/issue-implement/<N>/merge-review/`, and the
+terminal.
+
+**When to use.** Run by `issue-implement` once validation is green and
+before `vrg-pr-workflow report-ready`, and again on the same task to resume
+a run stopped for a ruling. The files, schemas and the result check follow
+vergil-tooling's
+[agent-to-agent review protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md);
+the ruling channel is its
+[Human Replies](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/human-replies.md)
+guide.
+
+**Prior art.** The high-signal bar and exclusion list come from
+Anthropic's `code-review` plugin, the silent-failure lens from its
+`pr-review-toolkit` plugin, the crafted-context reviewer from superpowers'
+`requesting-code-review`, and out-of-scope additions, spec checking and
+blame-based scope from paad's `agentic-review`.
+
+**Status.** Current (Vergil 2.1). Requires the merge-review tooling CLIs
+(`vrg-merge-review-request`, `vrg-merge-review-check`) and `vrg-ruling` at
+runtime.
 
 ## issue-deploy
 
