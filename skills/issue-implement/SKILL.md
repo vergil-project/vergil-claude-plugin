@@ -232,7 +232,8 @@ only once a trusted author's ruling line for it (§1.7) is on the issue;
 listing it under `Awaiting a ruling` does not settle it. With the human
 present (the human started this skill in this session and answers you
 directly), settle each pending item in the terminal and post its ruling
-line. Any other run (dispatched by `epic-implement` or by any other
+line; a `fix` among them is committed and validated to green, and the
+skill then reviews afresh, since `HEAD` has moved. Any other run (dispatched by `epic-implement` or by any other
 driver, or unsure which it is) never decides an item itself: the gate
 posts the pending items and ends `waiting: non-review items`, and so does
 any run that cannot show every item settled. A run re-dispatched for such

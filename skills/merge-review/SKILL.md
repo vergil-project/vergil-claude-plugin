@@ -274,7 +274,12 @@ path through this skill skips it.
 4. **Items pending, human present** (as defined in
    [Terms and files](#terms-and-files)): settle each in the terminal now.
    Ask the human, carry out the ruling and post its ruling line as §1.7
-   says. Then run the gate again from step 1.
+   says. A ruling that changes the branch (a `fix`) is committed and
+   validated to green, and the run then goes back to
+   [Where the run stands](#where-the-run-stands): with `HEAD` moved off
+   the request's `head_sha`, it deletes the step's files and reviews
+   afresh, and that review's Decide runs this gate again. Otherwise run
+   the gate again from step 1.
 5. **Items pending, otherwise** (any dispatched run, or one unsure whether
    the human is present): post every pending item not yet on the issue
    under §1.7's `Awaiting a ruling`, screened against
