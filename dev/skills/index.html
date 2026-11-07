@@ -3854,6 +3854,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#merge-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#issue-deploy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4113,6 +4124,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#merge-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge-review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#issue-deploy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4327,6 +4349,11 @@ unattended runner, <code>paad:paad-delegate</code>
 <td>Current (2.1)</td>
 </tr>
 <tr>
+<td><a href="#merge-review">merge-review</a></td>
+<td>USER agent: the pre-PR merge review <code>issue-implement</code> runs once validation is green — one review by the read-only <code>merge-reviewer</code>, at most one fix and check, every stop through <code>vrg-ruling</code>, every item closed before handoff, and an eligibility line for report-ready's notes</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
 <td><a href="#issue-deploy">issue-deploy</a></td>
 <td>USER agent: run a <code>deployment</code> task — install/sync merged changes so they're usable, then record the outcome as a comment</td>
 <td>Current (2.1)</td>
@@ -4464,6 +4491,40 @@ locally before the relay existed — epic
 <a href="https://github.com/vergil-project/.github/issues/148">vergil-project/.github#148</a>.)</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (<code>vrg-pr-workflow</code>, etc.) at runtime.</p>
+<h2 id="merge-review">merge-review<a class="headerlink" href="#merge-review" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill. The judgement-level review between a
+green <code>vrg-validate</code> and the PR: is this change good enough to merge? It
+builds a request with <code>vrg-merge-review-request</code>, dispatches the read-only
+<a href="../agents/"><code>merge-reviewer</code></a> agent, and acts only on a result that
+passes <code>vrg-merge-review-check</code>, deciding from the findings' kinds alone.
+The loop is one review, then at most one fix and check. Design questions,
+out-of-scope additions, untracked pre-existing problems, disputes, more
+than five blockers and a failed check all stop for the human through one
+authenticated <code>vrg-ruling</code> request; the human replies with
+<code>vrg-ruling-reply</code>. Every item is closed (fixed, ruled on and carried out,
+filed, or recorded) before handoff. Each step posts one comment, and a
+closing comment carries the eligibility line,
+<code>Merge review: done: &lt;eligible | not-eligible (&lt;reason&gt;)&gt;; accepted-risk &lt;w&gt;</code>,
+which also goes into report-ready's notes. Security findings appear in
+public only by ID or count; their details stay in the task's private state
+directory, <code>build/.vergil-state/issue-implement/&lt;N&gt;/merge-review/</code>, and the
+terminal.</p>
+<p><strong>When to use.</strong> Run by <code>issue-implement</code> once validation is green and
+before <code>vrg-pr-workflow report-ready</code>, and again on the same task to resume
+a run stopped for a ruling. The files, schemas and the result check follow
+vergil-tooling's
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md">agent-to-agent review protocol</a>;
+the ruling channel is its
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/human-replies.md">Human Replies</a>
+guide.</p>
+<p><strong>Prior art.</strong> The high-signal bar and exclusion list come from
+Anthropic's <code>code-review</code> plugin, the silent-failure lens from its
+<code>pr-review-toolkit</code> plugin, the crafted-context reviewer from superpowers'
+<code>requesting-code-review</code>, and out-of-scope additions, spec checking and
+blame-based scope from paad's <code>agentic-review</code>.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires the merge-review tooling CLIs
+(<code>vrg-merge-review-request</code>, <code>vrg-merge-review-check</code>) and <code>vrg-ruling</code> at
+runtime.</p>
 <h2 id="issue-deploy">issue-deploy<a class="headerlink" href="#issue-deploy" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill. Runs a <code>deployment</code>-labelled task
 end to end: installs or syncs the merged change so it is actually usable
