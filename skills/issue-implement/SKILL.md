@@ -66,8 +66,8 @@ still waiting (§1.7, "Under `epic-implement`").
 
 ## Preflight
 
-1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
-   not, stop — this skill runs in the user-agent session.
+1. Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+   must print `ok`. If not, stop — this skill runs in the user-agent session.
 2. **Not an epic or archive.** Read the issue's own labels:
 
    ```bash

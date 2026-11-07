@@ -49,8 +49,8 @@ or the periodic planning pass. To work one specific item, go straight to
 
 ## Preflight
 
-- Confirm you are the **USER** agent (`vrg-whoami --mode` is `user`). A drop
-  closes issues, which the user identity may do.
+- Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+  must print `ok`. A drop closes issues, which the user identity may do.
 
 ## Workflow
 

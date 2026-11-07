@@ -321,7 +321,8 @@ decision.
 
 ## Preflight
 
-- Confirm you are the **USER** agent (`vrg-whoami --mode` is `user`).
+- Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+  must print `ok`.
 - Confirm the **resolved** epic home for the target repo. The home is derived
   from visibility (`epics.resolve_epic_home`, epic #130): a **public** repo homes
   its epics centrally in `<owner>/.github`; a **private** repo (with a public

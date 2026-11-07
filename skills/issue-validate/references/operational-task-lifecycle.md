@@ -18,8 +18,9 @@ kind-specific concerns.
 
 ## Lifecycle
 
-1. **Preflight.** Confirm you are the **USER** agent (`vrg-whoami --mode` is
-   `user`) and the issue carries the expected operational label
+1. **Preflight.** Confirm you are the **USER** agent
+   (`[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"` must print `ok`)
+   and the issue carries the expected operational label
    (`vrg-gh issue view <N> --json labels`). If the label is wrong for this
    skill, hand it to the right one (`issue-validate` / `issue-deploy`), or to
    `issue-implement` if it is not operational at all.
