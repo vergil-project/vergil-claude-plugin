@@ -307,9 +307,10 @@ Sessions on this repo always start at the project root
 (`~/dev/github/vergil-claude-plugin/`), never inside a
 worktree. Each in-flight issue gets its own worktree under
 `.worktrees/issue-<N>-<slug>/` on a `feature/<N>-<slug>` branch.
-The full procedure (issue resolution, sub-issue creation,
-worktree+branch creation, agent prompt template) lives at
-[`docs/development/starting-work-on-an-issue.md`](docs/development/starting-work-on-an-issue.md).
+The USER agent creates it with `vrg-git worktree add` as part of
+`/vergil:issue-implement <issue>` (see [Ship a change](#ship-a-change)).
+The layout, rules and agent prompt contract are defined by the
+[worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
 
 The worktree convention is enforced by the
 `block-protected-branch-work` hook (raw `git commit` originating

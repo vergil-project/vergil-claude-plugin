@@ -135,7 +135,7 @@ user pushed back on whether this skill earns its independent
 existence — it was rarely invoked as a slash-command, and its
 substantive content is mostly agent-instruction reference. The
 skill has been removed; the substance now lives at
-[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md),
+`docs/development/starting-work-on-an-issue.md` (since retired in [#834](https://github.com/vergil-project/vergil-claude-plugin/issues/834) in favour of `/vergil:issue-implement`),
 referenced from `CLAUDE.md` and `pr-workflow`'s preflight. Catalog
 gets one smaller; the agent reference lives where it's
 consulted.
@@ -352,7 +352,7 @@ cadence that some changes don't need). The PAAD `vibe` and
 
 **Resolved.** `project-issue` was eliminated (#275). Issue
 creation is now direct (`vrg-issue-create`); starting work follows
-[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md).
+`docs/development/starting-work-on-an-issue.md` (since retired in [#834](https://github.com/vergil-project/vergil-claude-plugin/issues/834) in favour of `/vergil:issue-implement`).
 No skill-to-skill chaining needed.
 
 ### Gap 3 — Pre-flight DRY
@@ -407,7 +407,7 @@ discussion the user pushed back on whether `branch-workflow`
 deserved its own skill. It was rarely invoked as a slash-command;
 its substance is mostly agent-instruction reference. The skill was
 removed; the substance now lives at
-[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md),
+`docs/development/starting-work-on-an-issue.md` (since retired in [#834](https://github.com/vergil-project/vergil-claude-plugin/issues/834) in favour of `/vergil:issue-implement`),
 referenced from `CLAUDE.md` and `pr-workflow`'s preflight.
 
 This unblocks step 2 — `pr-workflow` no longer waits on a
