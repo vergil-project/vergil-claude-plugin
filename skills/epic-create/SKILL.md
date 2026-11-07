@@ -301,7 +301,9 @@ round. The human decides every round. Each round has seven steps:
 5. **Commit** the round's changes as one `vrg-commit --type docs --scope
    epic-<N>` whose message names only the change
    ([§2.2](../../docs/paad-review-doctrine.md#22-one-round), step 5). Never
-   rebase the docs branch between rounds.
+   rebase the docs branch between rounds. If the round changed the spec or
+   the plan, run the epic body sync (see "Epic body sync" below) before
+   posting the round comment.
 6. **Post the round comment** on the planning issue
    ([§2.6](../../docs/paad-review-doctrine.md#26-the-round-comment)), with the
    checkpoint and the recommendation
@@ -451,6 +453,26 @@ last round comment.
 - When you create the epic, put a `Planning: <owner>/<repo>#<M>` line (the
   planning issue's ref) in the **epic's body**.
 
+## Epic body sync
+
+The epic body is written in step 2, before the spec exists, and a later spec
+or plan change can leave it stale. Task briefs are drawn from the body, so a
+stale clause there reaches the implementation. Whenever the spec or plan is
+written or changed (each step that names this rule), check the epic body
+against the current spec and plan, and correct it in the same step:
+
+1. Read it: `vrg-gh issue view <N> --repo <home> --json body`.
+2. Compare its prose with the spec and plan as committed. Rewrite or remove,
+   in a temp copy, any statement they no longer support (a removed flag, a
+   changed scope, a renamed mechanism). Keep the `Planning:` line, and leave
+   the **Documents** section exactly as it is: `vrg-epic-docs` owns it.
+3. If anything changed, write it back with
+   `vrg-gh issue edit <N> --repo <home> --body-file <tmp>` and tell the human
+   what was corrected. If nothing changed, write nothing.
+
+The body is public: nothing kept out of public text (such as security advisory
+details, step 9) goes into it.
+
 ## Workflow
 
 0. **Start the planning issue.** Resolve it through the entry points above,
@@ -525,7 +547,8 @@ last round comment.
 3. **Write the spec** on a worktree of the documentation task's branch in the
    epic's **home repo** (`.github` for a public target, the repo itself when
    private), at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens), and
-   commit it as an ordinary commit, not a round commit.
+   commit it as an ordinary commit, not a round commit. Then run the epic
+   body sync (above).
    - **Header rule** ([doctrine §2.8](../../docs/paad-review-doctrine.md#28-no-review-history)):
      a spec or plan header carries `Planning issue` (with "review history is in
      its comments") and `Status`, and the document carries **no review
@@ -535,17 +558,21 @@ last round comment.
      the deference to earlier rounds that fresh reviewers exist to avoid.
 4. **Stage 1: spec pushback rounds** (see "Design review rounds" above), until
    the human stops the stage.
-5. **Human review** of the spec. Commit any edits as an ordinary commit.
+5. **Human review** of the spec. Commit any edits as an ordinary commit, then
+   run the epic body sync (above).
 6. **`superpowers:writing-plans`** → `epics/<N>-<slug>/plan.md` on the same
    worktree: one automated pass, no rounds. Its header follows the step 3 rule,
    and its tasks follow "Task sizing" above.
    Commit it as an ordinary commit.
+   Then run the epic body sync (above).
 7. **Stage 2: plan pushback rounds** (the plan under review, the spec as
    context), **then Stage 3: alignment rounds** (both under review; they may
    change the spec and the plan). Each stage runs until the human stops it.
    While walking the human through each plan pushback round, hold the plan to
    "Task sizing" above, and raise any task it marks too big.
-8. **Docs PR.** Validate (`vrg-container-run -- vrg-validate`) and hand off the
+8. **Docs PR.** Run the epic body sync (above) a last time, against the spec
+   and plan the PR publishes.
+   Validate (`vrg-container-run -- vrg-validate`) and hand off the
    single spec + plan PR against `.github` — agents record it via
    `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
    handoff, link the documents from the epic:
