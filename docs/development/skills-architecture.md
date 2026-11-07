@@ -345,8 +345,10 @@ the question is whether to leave it implicit or formalize it.
 **Recommendation:** leave implicit. Trying to encode a
 "development" skill would either be too thin (re-stating "edit
 files until tests pass") or too prescriptive (locking in a TDD
-cadence that some changes don't need). The PAAD `vibe` and
-`agentic-review` skills cover specific subsets when needed.
+cadence that some changes don't need). The PAAD `agentic-review`
+skill covers a specific subset when needed. PAAD's `vibe` is not
+used: it is a recorded deviation
+([paad-policy §7](../paad-policy.md#7-other-paad-skills)).
 
 ### Gap 2 — A1→B1 chaining
 
