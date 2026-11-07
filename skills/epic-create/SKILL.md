@@ -1,6 +1,6 @@
 ---
 name: epic-create
-description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → spec pushback rounds → plan → plan pushback rounds → alignment rounds → docs PR, where each design-review round is a fresh review-only subagent and the human decides every finding and every further round. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue ("what's in planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
+description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds → docs PR, where each design-review round is a fresh review-only subagent and the human decides every finding and every further round. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue ("what's in planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
 ---
 
 # Epic create
@@ -80,6 +80,24 @@ an epic is not done until its retrospective lands. This is the closing half of
 the **three-skill lifecycle** (`epic-create` → `epic-implement` →
 `epic-retrospective`). Seed these bookend tasks at epic-creation time (step 2
 below) and fill in the specifics per epic.
+
+## Task sizing — split a task too big for one PR
+
+**A task is one reviewable PR.** A task too big for that is split into
+lettered sub-tasks (`13a`, `13b`, `13c`, …), as many as it needs. Each
+sub-task is its own issue and lands on its own PR, and the plan's delivery
+table lists each one with what it is blocked by, so the dependencies between
+them are stated, not implied.
+
+A task is too big when any of these holds:
+
+- it delivers several issues;
+- it spans unrelated parts of a repo;
+- a defect in one part of it would hold up an unrelated fix in another.
+
+The rule applies when the plan is written (step 6), throughout its plan
+pushback rounds (step 7), and during implementation, where `issue-implement`
+proposes a split to the human instead of filing it.
 
 ## Operational tasks — gating on more than merge
 
@@ -283,7 +301,9 @@ round. The human decides every round. Each round has seven steps:
 5. **Commit** the round's changes as one `vrg-commit --type docs --scope
    epic-<N>` whose message names only the change
    ([§2.2](../../docs/paad-review-doctrine.md#22-one-round), step 5). Never
-   rebase the docs branch between rounds.
+   rebase the docs branch between rounds. If the round changed the spec or
+   the plan, run the epic body sync (see "Epic body sync" below) before
+   posting the round comment.
 6. **Post the round comment** on the planning issue
    ([§2.6](../../docs/paad-review-doctrine.md#26-the-round-comment)), with the
    checkpoint and the recommendation
@@ -303,7 +323,8 @@ decision.
 
 ## Preflight
 
-- Confirm you are the **USER** agent (`vrg-whoami --mode` is `user`).
+- Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+  must print `ok`.
 - Confirm the **resolved** epic home for the target repo. The home is derived
   from visibility (`epics.resolve_epic_home`, epic #130): a **public** repo homes
   its epics centrally in `<owner>/.github`; a **private** repo (with a public
@@ -432,6 +453,26 @@ last round comment.
 - When you create the epic, put a `Planning: <owner>/<repo>#<M>` line (the
   planning issue's ref) in the **epic's body**.
 
+## Epic body sync
+
+The epic body is written in step 2, before the spec exists, and a later spec
+or plan change can leave it stale. Task briefs are drawn from the body, so a
+stale clause there reaches the implementation. Whenever the spec or plan is
+written or changed (each step that names this rule), check the epic body
+against the current spec and plan, and correct it in the same step:
+
+1. Read it: `vrg-gh issue view <N> --repo <home> --json body`.
+2. Compare its prose with the spec and plan as committed. Rewrite or remove,
+   in a temp copy, any statement they no longer support (a removed flag, a
+   changed scope, a renamed mechanism). Keep the `Planning:` line, and leave
+   the **Documents** section exactly as it is: `vrg-epic-docs` owns it.
+3. If anything changed, write it back with
+   `vrg-gh issue edit <N> --repo <home> --body-file <tmp>` and tell the human
+   what was corrected. If nothing changed, write nothing.
+
+The body is public: nothing kept out of public text (such as security advisory
+details, step 9) goes into it.
+
 ## Workflow
 
 0. **Start the planning issue.** Resolve it through the entry points above,
@@ -445,6 +486,13 @@ last round comment.
      context, with the instruction not to re-ask it. Open with the first open
      design question; ask one confirming question about the need only if the
      issue states it vaguely or contradicts itself.
+   - **Start from inherited design docs.** When the planning issue names a
+     binding spec or other inherited design documents (an umbrella spec, an
+     earlier epic's design), read them and pass them in too, with the
+     instruction not to open with a broad framing question about intent: that
+     conversation already happened. Ask only about gaps that materially change
+     the outcome, or, if there are none, offer to draft the design straight
+     from the documents.
    - **Never skip it implicitly.** "Skip the questions", "go fast" or "don't
      ask why" mean fewer questions, answered from the issue where possible —
      never no brainstorm. A design is still presented and approved, with the
@@ -499,7 +547,8 @@ last round comment.
 3. **Write the spec** on a worktree of the documentation task's branch in the
    epic's **home repo** (`.github` for a public target, the repo itself when
    private), at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens), and
-   commit it as an ordinary commit, not a round commit.
+   commit it as an ordinary commit, not a round commit. Then run the epic
+   body sync (above).
    - **Header rule** ([doctrine §2.8](../../docs/paad-review-doctrine.md#28-no-review-history)):
      a spec or plan header carries `Planning issue` (with "review history is in
      its comments") and `Status`, and the document carries **no review
@@ -509,14 +558,21 @@ last round comment.
      the deference to earlier rounds that fresh reviewers exist to avoid.
 4. **Stage 1: spec pushback rounds** (see "Design review rounds" above), until
    the human stops the stage.
-5. **Human review** of the spec. Commit any edits as an ordinary commit.
+5. **Human review** of the spec. Commit any edits as an ordinary commit, then
+   run the epic body sync (above).
 6. **`superpowers:writing-plans`** → `epics/<N>-<slug>/plan.md` on the same
-   worktree: one automated pass, no rounds. Its header follows the step 3 rule.
+   worktree: one automated pass, no rounds. Its header follows the step 3 rule,
+   and its tasks follow "Task sizing" above.
    Commit it as an ordinary commit.
+   Then run the epic body sync (above).
 7. **Stage 2: plan pushback rounds** (the plan under review, the spec as
    context), **then Stage 3: alignment rounds** (both under review; they may
    change the spec and the plan). Each stage runs until the human stops it.
-8. **Docs PR.** Validate (`vrg-container-run -- vrg-validate`) and hand off the
+   While walking the human through each plan pushback round, hold the plan to
+   "Task sizing" above, and raise any task it marks too big.
+8. **Docs PR.** Run the epic body sync (above) a last time, against the spec
+   and plan the PR publishes.
+   Validate (`vrg-container-run -- vrg-validate`) and hand off the
    single spec + plan PR against `.github` — agents record it via
    `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
    handoff, link the documents from the epic:
@@ -601,9 +657,8 @@ last round comment.
   each closed by its own same-repo PR.
 - **Cross-org is out of scope:** each org has its own `.github`; never link epics
   or tasks across orgs.
-- Reconstructing epics from an existing backlog is a different job — use
-  `migrate-repo`. Capturing an uncurated idea is `intake-capture`; routing
-  intake items (including into planning) is `intake-review`.
+- Capturing an uncurated idea is `intake-capture`; routing intake items
+  (including into planning) is `intake-review`.
 - **Planning items are not PR-workable.** `issue-implement`, `vrg-pr-workflow
   report-ready`, and `vrg-submit-pr` refuse an issue whose parent is the
   planning (or intake) epic. The planning issue is closed, never implemented;

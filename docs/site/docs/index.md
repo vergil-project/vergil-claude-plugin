@@ -23,7 +23,7 @@ that enforces workflow compliance mechanically.
 
 |Repo|Delivers|Distribution|
 |---|---|---|
-|`vergil-tooling`|Python CLIs (`st-*`), validators|PATH|
+|`vergil-tooling`|Python CLIs (`vrg-*`), validators|PATH|
 |`vergil-claude-plugin`|Hooks, skills, agents|Claude Code plugin|
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the

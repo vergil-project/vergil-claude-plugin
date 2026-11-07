@@ -327,6 +327,62 @@ while [ "$i" -lt "$total" ]; do
   i=$((i + 1))
 done
 
+# List coverage for host-container-tools.sh (#936): every HOST_TOOLS
+# entry is denied when wrapped in vrg-container-run, every
+# CONTAINER_TOOLS entry warns when bare, and no entry carries the
+# retired pre-vrg CLI prefix (the old name of vergil-tooling CLIs).
+# shellcheck source=/dev/null
+source "$SCRIPTS/lib/host-container-tools.sh"
+
+# split_case <name> <command> <expect>
+split_case() {
+  local name="$1" cmd="$2" expect="$3" payload out verdict
+  payload=$(jq -n --arg cmd "$cmd" --arg cwd "$ROOT" \
+    '{tool_input: {command: $cmd, cwd: $cwd}, cwd: $cwd}')
+  out=$(printf '%s' "$payload" \
+    | PATH="$CLEAN_PATH" bash "$SCRIPTS/enforce-host-container-split.sh" 2>&1) || true
+  verdict="allow"
+  if printf '%s' "$out" | grep -q '"permissionDecision": "deny"'; then
+    verdict="deny"
+  elif printf '%s' "$out" | grep -q '"additionalContext"'; then
+    verdict="context"
+  elif [ -n "$out" ]; then
+    verdict="error"
+  fi
+  total=$((total + 1))
+  if [ "$verdict" = "$expect" ]; then
+    echo "PASS [list] $name"
+    pass=$((pass + 1))
+  else
+    echo "FAIL [list] $name — expected $expect, got $verdict"
+    fail=$((fail + 1))
+  fi
+}
+
+for tool in "${HOST_TOOLS[@]}"; do
+  split_case "host-split list: wrapped $tool is denied" \
+    "vrg-container-run -- $tool --help" deny
+done
+for tool in "${CONTAINER_TOOLS[@]}"; do
+  split_case "host-split list: bare $tool warns" "$tool --version" context
+done
+
+total=$((total + 1))
+retired=""
+old_prefix="st"
+for tool in "${HOST_TOOLS[@]}" "${CONTAINER_TOOLS[@]}"; do
+  case "$tool" in
+  "$old_prefix"-*) retired="$retired $tool" ;;
+  esac
+done
+if [ -z "$retired" ]; then
+  echo "PASS [list] host-split list: no entries with the retired pre-vrg prefix"
+  pass=$((pass + 1))
+else
+  echo "FAIL [list] host-split list: entries with the retired pre-vrg prefix:$retired"
+  fail=$((fail + 1))
+fi
+
 echo "----------------------------------------"
 echo "command-matchers: $pass passed, $fail failed, $total total"
 [ "$fail" -eq 0 ]

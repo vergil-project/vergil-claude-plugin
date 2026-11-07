@@ -1,13 +1,14 @@
 ---
 name: issue-implement
-description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. You implement directly in a worktree, then record the PR metadata with `vrg-pr-workflow report-ready`, which writes the `.vergil/pr-workflow.json` that vrg-submit-pr consumes. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Run as the vergil-user agent.
+description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. You implement directly in a worktree, validate to green, run the merge-review skill, then record the PR metadata with `vrg-pr-workflow report-ready`, which writes the `.vergil/pr-workflow.json` that vrg-submit-pr consumes. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Run as the vergil-user agent.
 ---
 
 # Issue Implement
 
 Implement a GitHub issue end-to-end as the USER agent, then hand the PR off to
 the human. You **implement the issue directly** in a worktree, validate it
-green, record the PR metadata through `vrg-pr-workflow report-ready` (which also
+green, run the [merge review](#merge-review), record the PR metadata through
+`vrg-pr-workflow report-ready` (which also
 pushes the branch to origin), and tell
 the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
 
@@ -19,7 +20,7 @@ research fan-out, parallel sub-tasks, isolated exploration. You need not narrate
 every step for the human to watch: oversight lives in the front-loaded plan and
 at the hard gates (PR submit, merge, release), not in a live transcript. This is
 the **Front-Loaded Judgment, Trusted Execution** doctrine (see the
-[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine-front-loaded-judgment-trusted-execution)).
+[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)).
 
 The one thing that pulls the human back mid-flight is a **problem you cannot
 resolve**: stop and ask rather than thrash or guess. Never fabricate a result and
@@ -36,14 +37,25 @@ only as the human approves, then record the ruling on the issue as §1.7
 says. A security item is posted only as a count; its details stay in the
 conversation (under `epic-implement`, in your final message) and it is
 ruled on there.
+These are **non-review items**. What the [merge review](#merge-review)
+raises is not one of them: it goes only through `vrg-ruling`, and §1.7's
+`Awaiting a ruling` and ruling lines never apply to it
+([§1.7, "One channel per kind of item"](../../docs/paad-review-doctrine.md#17-creating-issues)).
+Post a non-review item's comment only before the merge review's first
+step comment or after the `vrg-ruling respond` that closes an exchange,
+never while one is open; hold one found in between until the response has
+landed.
 A run that `epic-implement` dispatches with rulings on such items only
 carries them out and stops: after Preflight steps 1–5 it creates no
-worktree and makes no commit, even on a reported-ready task. It takes each
+worktree and makes no commit, even on a reported-ready task. The exception
+is a task whose run ended `waiting: non-review items`: see
+[Merge review](#merge-review). It takes each
 item, and any security details, only from its prompt; for a `record`
 ruling it writes the details as a `security-<i>.md` in the task's
 `issue-implement/<N>/` directory
 ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)), uses it
-and deletes it within the run. It
+and deletes it within the run, and never touches that directory's
+`merge-review/`. It
 never runs alongside another run of the same task, and skips any ruling
 whose line (for a `record`, whose `Recorded:` line) a trusted author has
 already posted. It cannot carry out a `fix` ruling: on a reported-ready
@@ -54,8 +66,8 @@ still waiting (§1.7, "Under `epic-implement`").
 
 ## Preflight
 
-1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`. If
-   not, stop — this skill runs in the user-agent session.
+1. Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+   must print `ok`. If not, stop — this skill runs in the user-agent session.
 2. **Not an epic or archive.** Read the issue's own labels:
 
    ```bash
@@ -120,7 +132,27 @@ still waiting (§1.7, "Under `epic-implement`").
    neither, **stop** with the reason "the issue's author is not trusted":
    tell the human (with no comment on the issue) and wait for their ruling
    before any work.
-6. **Create the worktree for this issue** from the repo root and work inside it
+6. **A merge review already under way.** From the repo root (the main
+   clone), look for the task's merge-review directory, reading only:
+
+   ```bash
+   test -e build/.vergil-state/issue-implement/<N>/merge-review && \
+     ls -la build/.vergil-state/issue-implement/<N>/merge-review/
+   ```
+
+   If it exists, the task was implemented and validated and its merge
+   review started: a run that stopped for a ruling (`open-request.json`),
+   one whose response is still to post (`respond-<step>.json`), one that
+   stopped on non-review items (a `result-review.md` with no
+   `open-request.json`), or one that ended on an error. **Resume it**: skip
+   step 7 and [Implement](#implement), `cd` into the task's existing
+   worktree (`.worktrees/issue-<N>-<slug>`, on `feature/<N>-<slug>`), carry
+   out any non-review rulings your prompt gives (see
+   [Merge review](#merge-review)), and go straight to
+   [Merge review](#merge-review). The skill works out where its run stands
+   from the directory and the issue. If the directory exists but the task
+   has no worktree, stop and ask the human.
+7. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
    ```bash
@@ -133,6 +165,16 @@ still waiting (§1.7, "Under `epic-implement`").
 **Implement the issue** here with small `vrg-commit` commits. Validate until
 green — `vrg-container-run -- vrg-validate` — fixing every failure and
 re-running; **never** suppress a gate.
+
+## A change too big for one PR
+
+If you find mid-task that the change will not fit one reviewable PR (the
+signals are in `epic-create`'s
+[task sizing rule](../epic-create/SKILL.md#task-sizing--split-a-task-too-big-for-one-pr)),
+stop and propose a split into lettered sub-tasks under `Awaiting a ruling`
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)):
+name each sub-task, what it delivers and what it is blocked by. Do not file
+the sub-tasks yourself; splitting creates issues, so the human rules on it.
 
 ## Discovering an operational need (deployment or validation)
 
@@ -170,10 +212,44 @@ recommend attaching the need to it rather than minting a redundant one. See `epi
 task is still open** — it gates the epic's closure and closes only on a recorded
 `Outcome: SUCCESS`.
 
-## Record the PR metadata and hand off
+## Merge review
 
 When all the work is committed and `vrg-container-run -- vrg-validate` is
-green at the final commit, record the PR metadata in a single call:
+green at the final commit, run the **`merge-review`** skill
+(`vergil:merge-review`) on the task, from its worktree. Follow it exactly:
+its request builder refuses unless the last `vrg-validate` was a full,
+clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
+`--issue '<owner>/<repo>#<N>'`. The same skill resumes a stopped run
+(Preflight step 6); never delete or edit its directory,
+`build/.vergil-state/issue-implement/<N>/merge-review/` in the main clone,
+by hand while a run is open.
+
+**Non-review items first.** Before the review's step comment is posted,
+every pending non-review item is settled: with the human present, in the
+terminal; under `epic-implement`, the skill posts them as `Awaiting a
+ruling` and ends `waiting: non-review items`. A run that `epic-implement`
+re-dispatches for such a task, with their rulings in its prompt, carries
+them out first (a `fix` included, since the task is still being
+implemented: commit it and validate to green), records each ruling as
+§1.7 says, then runs the skill, which reviews afresh if `HEAD` has moved.
+
+**The outcome** decides what follows:
+
+| Outcome | Then |
+|---|---|
+| `eligible` or `not-eligible (<reason>)` | Go on to [Record the PR metadata](#record-the-pr-metadata-and-hand-off), with the eligibility line in `--notes`. |
+| `stopped: request <id>` | End the run; your final report gives the request ID. The human replies with `vrg-ruling-reply`, and running this skill on the task again resumes. With the human present, the skill drafts the reply with them first and resumes once it is posted. |
+| `waiting: non-review items` | End the run; your final report lists the items, security details included. |
+| `fatal` | End the run. The task never reaches report-ready: tell the human, who recovers on a new issue as epic 889's spec (its §10) says. The directory stays until the human deletes it. |
+| `error` | End the run with the error shown. Running this skill again resumes. |
+
+Every `report-ready` follows a merge review that ended `eligible` or
+`not-eligible` at the `HEAD` it reports.
+
+## Record the PR metadata and hand off
+
+When the [merge review](#merge-review) has ended `eligible` or
+`not-eligible (<reason>)`, record the PR metadata in a single call:
 
 ```bash
 vrg-pr-workflow report-ready --issue <N> \
@@ -182,10 +258,31 @@ vrg-pr-workflow report-ready --issue <N> \
   --notes "<reviewer-relevant notes>"
 ```
 
-The `--notes` carry what a reviewer needs to know about the change, and
-every item still listed under `Awaiting a ruling`
+The `--notes` carry the merge review's eligibility line,
+`Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`,
+exactly as the skill gave it (it is also the first line of the closing
+comment on the issue), what a reviewer needs to know about the change, and
+every non-review item still listed under `Awaiting a ruling`
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
-Security items appear only as counts. Show the human the same summary.
+The merge review leaves nothing awaiting a ruling, so the notes carry no
+merge-review item. Security items appear only as counts. Show the human
+the same summary.
+
+**Once `report-ready` has succeeded, delete the merge-review directory**,
+and the task's `issue-implement/<N>/` if it is then empty, from the main
+clone:
+
+```bash
+main=$(dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)")
+rm -r -- "$main/build/.vergil-state/issue-implement/<N>/merge-review"
+rmdir -- "$main/build/.vergil-state/issue-implement/<N>"   # only if `ls -A` shows it empty
+```
+
+The skill refused to hand off while any security details still await a
+record, so nothing private is lost. If a deletion fails, tell the human;
+the handoff stands. From here on nothing expects the directory: re-running
+`report-ready` to fix the prose takes the eligibility line from the
+closing comment on the issue.
 
 This **publishes the branch** — it pushes the reported commit to
 `origin/<branch>` (setting upstream) — then writes `.vergil/pr-workflow.json`,
@@ -201,9 +298,16 @@ How the push can end:
 - **`.github/workflows/**` changes** — GitHub refuses an agent identity's push of
   workflow files. That is expected: `report-ready` warns, **records the state
   anyway**, and the human's `vrg-submit-pr` pushes the branch at submit time.
-- **`origin/<branch>` has diverged** (e.g. you rebased after an earlier push) —
-  the push is refused and `report-ready` stops with nothing recorded. Update the
-  branch with `vrg-git push --force-with-lease`, then re-run `report-ready`.
+- **`origin/<branch>` has diverged on a first report** (you rebased after an
+  earlier push, before any report was recorded) — the plain push is refused and
+  `report-ready` stops with nothing recorded. Update the branch with
+  `vrg-git push --force-with-lease`, then re-run `report-ready`.
+- **A re-report after `vrg-pr-workflow unfreeze` and a rebase** — do **not**
+  force-push by hand; just re-run `report-ready`. It pushes with a lease on the
+  head it recorded last time (`--force-with-lease=refs/heads/<branch>:<head_sha>`),
+  so the rebased branch replaces the reported commit. If `origin/<branch>` has
+  moved off that recorded head, the push is refused with nothing recorded:
+  inspect `origin/<branch>` before re-running, and never force over it.
 - **Any other push failure** — `report-ready` fails with **nothing recorded** and
   no relay ref written. Fix the cause and re-run it.
 
@@ -252,7 +356,8 @@ The contract:
   deliberate.** It requires explicitly running `vrg-pr-workflow unfreeze` first
   (which drops the state back to `implementing` while keeping the recorded
   metadata). There is no silent default — if you are not sure you should reopen,
-  you should not.
+  you should not. New commits after an unfreeze need a fresh
+  [merge review](#merge-review) of the new `HEAD` before the re-report.
 
 ## Resolving conflicts with the base branch
 
@@ -262,10 +367,17 @@ human sign-off is needed:
 
 1. `vrg-git fetch origin`
 2. `vrg-git rebase origin/develop` — resolve conflicts, keeping both sides where
-   each adds independent content. `ORIG_HEAD` is your undo
-   (`vrg-git reset --hard ORIG_HEAD`) if the rebase goes wrong.
+   each adds independent content. If the rebase goes wrong:
+   - **Still in progress:** `vrg-git rebase --abort` returns the branch to its
+     pre-rebase state.
+   - **Already completed:** do not undo it yourself. Stop and ask the human,
+     who can run `! git reset --hard ORIG_HEAD`.
 3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
 4. `vrg-git push --force-with-lease` to update the branch / PR.
+
+A rebase in the middle of a [merge review](#merge-review), between its
+review and its check, is caught by the skill (its `B1` stop): the human
+rules a fresh review or a stop.
 
 **Force-pushing to update your _own_ in-flight PR after a rebase is a normal,
 pre-authorized part of this workflow** — not an exceptional action requiring
@@ -280,7 +392,9 @@ the frozen branch — the push path refuses it. Leave it: a conflict that surfac
 between report-ready and submit is resolved after the human submits, in
 `pr-watch` (submitting lifts the freeze, so the post-submit rebase/force-push
 there is legitimate). Reopening earlier requires a deliberate
-`vrg-pr-workflow unfreeze`.
+`vrg-pr-workflow unfreeze`. After an unfreeze, rebase and validate as in steps
+1–3, but skip step 4: re-running `report-ready` pushes the rebased branch with a
+lease on the recorded head (see "How the push can end" above).
 
 ## Notes
 

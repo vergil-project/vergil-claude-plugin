@@ -38,8 +38,8 @@ deferred queue" — or the periodic deferred pass.
 
 ## Preflight
 
-- Confirm you are the **USER** agent (`vrg-whoami --mode` is `user`). This skill
-  closes issues, which the user identity may do.
+- Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+  must print `ok`. This skill closes issues, which the user identity may do.
 
 ## Workflow
 

@@ -67,17 +67,13 @@ case "$candidate" in
   *) candidate="$PWD/$candidate" ;;
 esac
 
-# Best-effort symlink resolution for existing files; lexical
-# normalization (.. resolution) otherwise.
-if [ -e "$candidate" ]; then
-  resolved=$(python3 -c \
-    "import os,sys; print(os.path.realpath(sys.argv[1]))" \
-    "$candidate" 2>/dev/null || echo "")
-else
-  resolved=$(python3 -c \
-    "import os,sys; print(os.path.normpath(sys.argv[1]))" \
-    "$candidate" 2>/dev/null || echo "")
-fi
+# Resolve every `.`, `..` and symlink in the path, for a new file as
+# well as an existing one: os.path.realpath resolves the existing part
+# of a path and normalises the rest, so the allowlist below is matched
+# against where the write would land. python3 runs isolated (-I).
+resolved=$(python3 -I -c \
+  "import os,sys; print(os.path.realpath(sys.argv[1]))" \
+  "$candidate" 2>/dev/null || echo "")
 if [ -z "$resolved" ]; then
   deny "AUDIT write-guard: could not normalize the path '$file_path'; denied for the audit identity (fail-closed). See issue #442."
 fi

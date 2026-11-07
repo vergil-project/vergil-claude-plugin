@@ -193,9 +193,9 @@ the code belongs inside the container, not in host scripts.
 
 ### enforce-host-container-split
 
-**What.** Checks the routing of every `st-*`, `gh`, `git`, and
-language-toolchain command against the canonical host-vs-container
-split from
+**What.** Checks the routing of the host-only workflow tools (a set of
+`vrg-*` CLIs, `gh`, `git` and `git-cliff`) and the language-toolchain
+commands against the canonical host-vs-container split from
 [#96](https://github.com/vergil-project/vergil-claude-plugin/issues/96).
 
 - **Denies** wrapping a host-only tool in `vrg-container-run --`
@@ -313,7 +313,9 @@ Tests: `hooks/tests/block-worktree-bypass-write.test.sh`.
 **What.** When `VRG_IDENTITY_MODE=audit`, denies Write/Edit/
 NotebookEdit calls targeting anything other than `.vergil/audit-*`
 (the audit's own artifacts) or `build/` (scratch space) inside the
-worktree. Other identities are never constrained by this hook.
+worktree. Other identities are never constrained by this hook. The
+target path is fully resolved with `os.path.realpath` before the
+match, for a new file as well as an existing one.
 
 **Why.** The 2.1 workflow spec makes the AUDIT identity "read-only
 by discipline, not by sandbox" — this hook turns the discipline into

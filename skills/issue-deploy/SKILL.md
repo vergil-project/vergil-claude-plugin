@@ -31,11 +31,12 @@ If you cannot actually run a step, say so and stop — **never fabricate or
 partially fake a result.** Use whatever means are efficient to run it (sub-agents
 encouraged); oversight is front-loaded and at the hard gates, not in a live
 transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
-[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine-front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
+[execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
 
 ## Preflight
 
-1. Confirm you are the **USER** agent: `vrg-whoami --mode` must print `user`.
+1. Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
+   must print `ok`.
 2. Confirm the issue carries the **`deployment`** label
    (`vrg-gh issue view <N> --json labels`). If not, this is the wrong skill.
    If it carries `epic` or `archive`, stop: it is an umbrella, not a task

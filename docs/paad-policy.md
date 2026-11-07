@@ -123,8 +123,11 @@ Section 2 governs new reports only; rewriting history gains nothing.
 ## 7. Other paad skills
 
 **Decision.** The paad skills listed for child F of the epic (umbrella spec
-§4.F) were evaluated one by one with the human. Each is adopted, used by hand
-in a stated place in the workflow, or recorded as a deviation with its reason.
+§4.F), and the four more that paad 2.0.2 ships (`agentic-a11y`, `vibe`,
+`makefile` and `paad-help`, decided in
+vergil-project/vergil-claude-plugin#844), were evaluated one by one with the
+human. Each is adopted, used by hand in a stated place in the workflow, or
+recorded as a deviation with its reason.
 
 | Skill | Decision | Place in the workflow |
 |---|---|---|
@@ -135,6 +138,10 @@ in a stated place in the workflow, or recorded as a deviation with its reason.
 | `agentic-owasp` | Interesting, used by hand | Run by hand in the periodic review. Every finding is security-class, so it is recorded only with `vrg-security-record`, never in public issues. |
 | `agentic-dedup` | Interesting, used by hand | Run by hand in the periodic review. Results feed planning. |
 | `backlog` | **Not adopted: deviation** | paad's code-review backlog is not kept (existing register row), so there is nothing for it to work on. Intake is the system of record; `intake-review` and `deferred-review` cover clean, and routing an intake item to a task covers fix. |
+| `agentic-a11y` | Interesting, used by hand | Run by hand in the periodic review of repos with a user-facing surface: the docs sites and the `vrg-*` CLIs. It is a strategic audit like its siblings and has no unattended mode, so it needs no skill wiring. The review doctrine's §1.3 severity table already maps its scale. |
+| `vibe` | **Not adopted: deviation** | It assumes no issue, worktree or one-PR flow, runs tests directly instead of through `vrg-validate`, leaves its edits uncommitted, and points at `agentic-review`, which the fleet has dropped (register row). |
+| `makefile` | **Not adopted: deviation** | No fleet repo has a Makefile, and `vrg-validate` is the single validation entry point. Recorded here only, with no register row. |
+| `paad-help` | **Adopted** | Answers which paad skills exist, what one does and how to invoke it. Used on request; no skill wiring. |
 
 **Reason.** `agentic-owasp` and `agentic-dedup` are marked EXPERIMENTAL by
 paad, which is a further reason to use them by hand rather than build on them.
@@ -157,6 +164,7 @@ planning-issue comments (spec §3.2). No row below may say otherwise.
 | Design-review rounds are repeated under explicit stop and continue signals, with the human deciding each round | The authors say "revise and repeat as needed" without stop rules. The experiment behind vergil-project/.github#469 showed that unruled repetition compounds complexity. |
 | paad's code-review backlog does not persist; an out-of-scope bug goes to intake when the human rules it filed | Intake is the system of record for follow-on work (umbrella §2.4). Under unattended mode paad neither reads nor writes it. |
 | `paad:backlog` is not used | paad's code-review backlog does not persist and intake is the system of record. The queue-review skills (`intake-review`, `deferred-review`) and the task model cover its clean and fix modes. |
+| `paad:vibe` is not used | It assumes no issue, worktree or one-PR flow, runs tests directly instead of through `vrg-validate`, leaves its edits uncommitted, and points at `agentic-review`, which the fleet has dropped (section 7). |
 | The paad usage policy lives in this one central document rather than in each repo's steering file | The authors suggest recording the policy in the steering file. A single document avoids drift between copies across the fleet. Pointing each repo's steering files at it is handed to child epic E (steering-file review). |
 | `steering-audit` runs pushback findings-only: it collects and returns the findings instead of walking them one at a time, does not edit the reviewed file, and writes no report or other file | `steering-audit` walks the findings itself against the Claude config ownership model. In user scope it must write nothing at all, because the user-level files are personal and have no change control. |
 

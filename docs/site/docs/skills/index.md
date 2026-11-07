@@ -13,8 +13,8 @@ substantially change it.
 ## Execution doctrine — Front-Loaded Judgment, Trusted Execution
 
 Human judgment is spent **up front** (brainstorm → spec pushback rounds →
-plan → plan pushback rounds → alignment rounds) and at the **hard gates**
-(PR submit, merge, release). Between those,
+human spec review → plan → plan pushback rounds → alignment rounds) and at
+the **hard gates** (PR submit, merge, release). Between those,
 agents run these skills by the most efficient means available —
 **sub-agents are encouraged** for research fan-out and parallel work —
 and only stop mid-flight for a problem they cannot resolve. The plugin
@@ -54,10 +54,11 @@ unattended runner, `paad:paad-delegate`
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
-| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human; drafts the terminal retrospective for the human to submit | Current (2.1) |
+| [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
+| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, record the PR metadata, hand off to the human | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human | Current (2.1) |
+| [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
@@ -65,7 +66,6 @@ unattended runner, `paad:paad-delegate`
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
 | [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
-| [migrate-repo](#migrate-repo) | Migrate a repo's existing open-issue backlog into the epic/task framework — guided, resumable, human-in-the-loop | Current (2.1) |
 | [deferred-review](#deferred-review) | Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop | Current (2.1) |
 | [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
@@ -78,8 +78,9 @@ gate that closes the epic).
 
 **What it does.** USER-identity skill and the **entry point** for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
-(brainstorm → spec pushback rounds → writing-plans → plan pushback rounds →
-alignment rounds), creates the finite epic in its resolved home, seeds the **bookend tasks** — documentation,
+(brainstorm → spec pushback rounds → human spec review → writing-plans →
+plan pushback rounds → alignment rounds), creates the finite epic in its
+resolved home, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
 spec + plan as a docs PR. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
@@ -119,6 +120,16 @@ parallel sub-agents where efficient** — then batches everything needing
 the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.
 
+A code task whose [merge review](#merge-review) stopped for a ruling waits
+at the gate with its request ID. `epic-implement` talks the request's items
+through with the human in the terminal (a security item's details from the
+task's private merge-review directory), drafts the reply with `vrg-ruling
+draft`, and hands the human the `vrg-ruling-reply` command. Once the reply
+is posted it re-dispatches the task saying only that a human response is
+available; no merge-review ruling or security detail ever travels in a
+prompt. Its ruling relay through prompts covers only `issue-implement`'s
+own non-review items.
+
 **When to use.** In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".
@@ -151,9 +162,14 @@ epic", "we're done with this epic".
 ## issue-implement
 
 **What it does.** USER-identity skill. Implements a GitHub issue on
-its feature branch, validates to green via `vrg-validate`, then records
+its feature branch, validates to green via `vrg-validate`, runs the
+[merge review](#merge-review), then records
 the PR metadata (`.vergil/pr-workflow.json`) with
-`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume.
+`vrg-pr-workflow report-ready` for `vrg-submit-pr` to consume, with the
+merge review's eligibility line in the notes. A run stopped at merge review
+for a ruling ends there; running the skill on the task again resumes it
+from the task's private merge-review directory, which `issue-implement`
+deletes once `report-ready` succeeds.
 `report-ready` also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
@@ -173,6 +189,45 @@ locally before the relay existed — epic
 
 **Status.** Current (Vergil 2.1). Requires the 2.1 tooling CLIs
 (`vrg-pr-workflow`, etc.) at runtime.
+
+## merge-review
+
+**What it does.** USER-identity skill. The judgement-level review between a
+green `vrg-validate` and the PR: is this change good enough to merge? It
+builds a request with `vrg-merge-review-request`, dispatches the read-only
+[`merge-reviewer`](../agents/index.md) agent, and acts only on a result that
+passes `vrg-merge-review-check`, deciding from the findings' kinds alone.
+The loop is one review, then at most one fix and check. Design questions,
+out-of-scope additions, untracked pre-existing problems, disputes, more
+than five blockers and a failed check all stop for the human through one
+authenticated `vrg-ruling` request; the human replies with
+`vrg-ruling-reply`. Every item is closed (fixed, ruled on and carried out,
+filed, or recorded) before handoff. Each step posts one comment, and a
+closing comment carries the eligibility line,
+`Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`,
+which also goes into report-ready's notes. Security findings appear in
+public only by ID or count; their details stay in the task's private state
+directory, `build/.vergil-state/issue-implement/<N>/merge-review/`, and the
+terminal.
+
+**When to use.** Run by `issue-implement` once validation is green and
+before `vrg-pr-workflow report-ready`, and again on the same task to resume
+a run stopped for a ruling. The files, schemas and the result check follow
+vergil-tooling's
+[agent-to-agent review protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md);
+the ruling channel is its
+[Human Replies](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/human-replies.md)
+guide.
+
+**Prior art.** The high-signal bar and exclusion list come from
+Anthropic's `code-review` plugin, the silent-failure lens from its
+`pr-review-toolkit` plugin, the crafted-context reviewer from superpowers'
+`requesting-code-review`, and out-of-scope additions, spec checking and
+blame-based scope from paad's `agentic-review`.
+
+**Status.** Current (Vergil 2.1). Requires the merge-review tooling CLIs
+(`vrg-merge-review-request`, `vrg-merge-review-check`) and `vrg-ruling` at
+runtime.
 
 ## issue-deploy
 
@@ -296,19 +351,6 @@ triage review skill in the same epic.
 **When to use.** For the periodic intake pass — "review intake", "groom the
 backlog", "process the intake queue", "what's in intake" (and the older
 "review triage" phrasings).
-
-**Status.** Current (Vergil 2.1).
-
-## migrate-repo
-
-**What it does.** Migrates a repo's existing open-issue backlog into the
-epic/task framework: triages the pile into epics, tasks, ad-hoc work, and
-closeable issues so the roadmap and audit reflect reality. Guided,
-resumable, batch-approved, human-in-the-loop.
-
-**When to use.** When onboarding a repo's backlog into the framework —
-`migrate <repo>`, `bring <repo> into the framework`, or "onboard this repo's
-backlog".
 
 **Status.** Current (Vergil 2.1).
 

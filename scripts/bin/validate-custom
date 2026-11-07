@@ -83,8 +83,41 @@ check_skill_frontmatter() {
 	return "$rc"
 }
 
+# agents/<agent>.md must exist with YAML frontmatter whose `tools` is
+# exactly $2. Pins an agent's tool set, so a tool cannot be added to a
+# deliberately restricted agent without this check failing.
+check_agent_tools() {
+	local agent="$1" expected="$2" file tools
+	file="agents/$agent.md"
+	if [[ ! -f "$ROOT/$file" ]]; then
+		echo "ERROR: $file: missing" >&2
+		return 1
+	fi
+	if [[ "$(head -n 1 "$ROOT/$file")" != "---" ]] ||
+		[[ "$(tail -n +2 "$ROOT/$file" | grep -c '^---[[:space:]]*$' || true)" -lt 1 ]]; then
+		echo "ERROR: $file: no YAML frontmatter (must open and close with ---)" >&2
+		return 1
+	fi
+	# frontmatter_value reads the first `tools:` line only; a second one
+	# could override it when the agent loads, so exactly one must exist.
+	if [[ "$(awk 'NR == 1 { next } /^---[[:space:]]*$/ { exit } /^tools:/' "$ROOT/$file" | wc -l)" -ne 1 ]]; then
+		echo "ERROR: $file: frontmatter must have exactly one 'tools' line" >&2
+		return 1
+	fi
+	tools="$(frontmatter_value "$ROOT/$file" tools)"
+	if [[ "$tools" != "$expected" ]]; then
+		echo "ERROR: $file: frontmatter 'tools' is '$tools', must be exactly '$expected'" >&2
+		return 1
+	fi
+	echo "Agent tools: $agent OK ($expected)"
+}
+
 echo "Running: skill frontmatter check"
 check_skill_frontmatter || status=1
+
+# The merge-review reviewer reads and reports only: no Write, Edit or Bash.
+echo "Running: agent tools check"
+check_agent_tools merge-reviewer "Read, Glob, Grep" || status=1
 
 for t in "$ROOT"/hooks/tests/*.test.sh; do
 	echo "Running: $t"

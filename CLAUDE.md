@@ -102,7 +102,8 @@ details are in [`README.md`](README.md).
   guardrails mechanically; scripts in `hooks/scripts/`, tests in
   `hooks/tests/`.
 - `skills/` — one directory per workflow skill, each with a `SKILL.md`.
-- `agents/` — custom subagents (the session `bootstrap` agent).
+- `agents/` — custom subagents (the session `bootstrap` agent and the
+  read-only `merge-reviewer`).
 - `commands/` — user-invokable slash commands (Markdown files); none ship
   today.
 

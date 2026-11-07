@@ -30,7 +30,8 @@ retired continuous-oversight framing; sub-agents remain fine elsewhere.)
 ## Preflight
 
 This skill runs in the **USER** agent session. Confirm with
-`vrg-whoami --mode` (`user`). If `human`, stop — this skill is for the agent.
+`[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`,
+which must print `ok`. If not, stop — this skill is for the agent.
 
 ## Monitor & reconcile
 
