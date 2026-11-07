@@ -445,6 +445,13 @@ last round comment.
      context, with the instruction not to re-ask it. Open with the first open
      design question; ask one confirming question about the need only if the
      issue states it vaguely or contradicts itself.
+   - **Start from inherited design docs.** When the planning issue names a
+     binding spec or other inherited design documents (an umbrella spec, an
+     earlier epic's design), read them and pass them in too, with the
+     instruction not to open with a broad framing question about intent: that
+     conversation already happened. Ask only about gaps that materially change
+     the outcome, or, if there are none, offer to draft the design straight
+     from the documents.
    - **Never skip it implicitly.** "Skip the questions", "go fast" or "don't
      ask why" mean fewer questions, answered from the issue where possible —
      never no brainstorm. A design is still presented and approved, with the
