@@ -79,7 +79,8 @@ gate that closes the epic).
 **What it does.** USER-identity skill and the **entry point** for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
 (brainstorm → spec pushback rounds → human spec review → writing-plans →
-plan pushback rounds → alignment rounds), creates the finite epic in its resolved home, seeds the **bookend tasks** — documentation,
+plan pushback rounds → alignment rounds), creates the finite epic in its
+resolved home, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
 spec + plan as a docs PR. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
