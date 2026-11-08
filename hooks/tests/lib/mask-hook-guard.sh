@@ -46,5 +46,6 @@ mask_tool_path() {
 # Sets CLEAN_PATH to $PATH with vrg-hook-guard masked.
 mask_hook_guard_path() {
 	mask_tool_path "$1" vrg-hook-guard
+	# shellcheck disable=SC2034 # read by the test that sources this file
 	CLEAN_PATH="$MASKED_PATH"
 }

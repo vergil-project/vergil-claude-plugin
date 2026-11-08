@@ -48,6 +48,7 @@ PATH="$saved_path"
 # exits with $STUB_RC.
 STUB_DIR="$TMP/stub"
 mkdir -p "$STUB_DIR"
+# shellcheck disable=SC2016 # the stub's ${STUB_RC:-0} must expand when the stub runs
 printf '#!/usr/bin/env bash\ncat >/dev/null\necho STUB-GUARD-RAN\nexit "${STUB_RC:-0}"\n' \
 	>"$STUB_DIR/vrg-hook-guard"
 chmod +x "$STUB_DIR/vrg-hook-guard"
@@ -92,14 +93,17 @@ verdict() {
 
 # check <name> <expected-verdict> [<stderr-substring>]
 check() {
-	local name="$1" expect="$2" needle="${3:-}" got
+	local name="$1" expect="$2" needle="${3:-}" got with=""
 	got=$(verdict)
+	if [ -n "$needle" ]; then
+		with=" with '$needle'"
+	fi
 	if [ "$got" = "$expect" ] &&
 		{ [ -z "$needle" ] || printf '%s' "$ERR" | grep -qF -- "$needle"; }; then
 		echo "PASS $name"
 		pass=$((pass + 1))
 	else
-		echo "FAIL $name — expected $expect${needle:+ with '$needle'}, got $got (rc=$RC)"
+		echo "FAIL $name — expected $expect$with, got $got (rc=$RC)"
 		printf '%s\n' "$OUT" "$ERR" | head -5 | sed 's/^/       /'
 		fail=$((fail + 1))
 	fi
