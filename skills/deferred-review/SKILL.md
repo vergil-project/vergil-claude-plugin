@@ -144,6 +144,20 @@ vrg-intake-route <owner>/<repo>#<N> drop --reason "<why>"
   `intake-review`: `--epic` defaults to `adhoc`, a cross-repo move transfers the
   issue (or recreates it with a `Moved from <url>` line when GitHub refuses the
   transfer). Report the new ref from the `Routed …, now <ref>` line.
+- **A scope change goes to the human.** When a revival to **one-off** narrows
+  or widens what the item must deliver (conditions that changed while it
+  waited, or the human's ruling, add to it, drop part of it, or settle a
+  question its body leaves open), it is put on the issue by the human, never
+  as a comment you post and never by editing its body
+  ([doctrine §1.7, "Scope changes"](../../docs/paad-review-doctrine.md#17-creating-issues)):
+  merge review counts only the human's own comments as amending a task's
+  scope. After the route, write the change to a scratch file and, from a
+  clone of the repo the issue now lives in (its `origin` must push there),
+  run `vrg-ruling draft-scope --issue <owner>/<repo>#<N> --text-file <file>`
+  with the issue's ref after the route. It posts nothing; give the human
+  the `vrg-scope-change` command it prints, with the batch results. A
+  revival to **intake** or **planning** needs none: those queues re-scope
+  the item themselves.
 - **The agent closes dropped items itself**, through `vrg-intake-route`, once
   the human has confirmed the batch. Do not hand the close back to the human.
 - **A refusal is information, not an obstacle.** `vrg-intake-route` exits 1 with
