@@ -88,7 +88,6 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 
 | File | Written by | Holds |
 |---|---|---|
-| `issue-body.md`, `epic-tasks.json` | this skill | The builder's inputs: the issue body, and the epic's open tasks as a JSON list of `{"ref", "title"}`. |
 | `design-<n>-<basename>` | this skill | A design source fetched from the epic's home repo. |
 | `request-<step>.json`, `diff-<step>.patch`, `fix-<step>.patch` | `vrg-merge-review-request` | The request and its diffs. |
 | `result-<step>.md` | this skill | The reviewer's reply, stored unchanged. |
@@ -171,26 +170,16 @@ Items in `reask.json` join the next request the run posts. If
 
 ## Before the review
 
-1. **The issue body.** Write it to `issue-body.md`:
-   `vrg-gh issue view <N> --repo <owner/repo> --json body --jq .body`.
-2. **The epic.** Read the task's native parent
+The builder reads the issue body and derives the epic's open tasks itself,
+from its `--issue`
+([the protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md)):
+this skill writes neither. It reads the epic only for the design sources.
+
+1. **The epic.** Read the task's native parent
    (`vrg-gh issue view <N> --repo <owner/repo> --json parent`) and the
    parent's labels. A task under an `epic` that is not an `ad-hoc` epic is
-   **under an epic**; an ad-hoc task has no design sources and no epic
-   tasks.
-3. **The epic's open tasks.** For a task under an epic, write
-   `epic-tasks.json` from the epic's sub-issues, leaving out the task itself:
-
-   ```bash
-   vrg-gh issue view <E> --repo <epic owner/repo> --json subIssues --jq \
-     '[.subIssues.nodes[] | select(.state == "OPEN")
-       | {ref: (.url | capture("github\\.com/(?<r>[^/]+/[^/]+)/issues/(?<n>[0-9]+)$")
-                | "\(.r)#\(.n)"), title}]
-      | map(select(.ref != "<ref>"))'
-   ```
-
-   Otherwise write `[]`.
-4. **The design sources.** For a task under an epic, read the epic body's
+   **under an epic**; an ad-hoc task has no design sources.
+2. **The design sources.** For a task under an epic, read the epic body's
    Documents section (between `<!-- vrg-epic-docs -->` and
    `<!-- /vrg-epic-docs -->`). Each entry that links
    `https://github.com/<owner>/<repo>/blob/<branch>/<path>` is a design
@@ -211,18 +200,19 @@ Items in `reask.json` join the next request the run posts. If
    ([The stop](#the-stop)): `retry` fetches again, `proceed-without` runs
    the review without it. `vrg-gh api` is not used: it is denied to the user
    identity.
-5. **The request.**
+3. **The request.**
 
    ```bash
    vrg-merge-review-request --issue '<ref>' --base origin/develop --step review \
-     --issue-body-file <dir>/issue-body.md --epic-tasks-file <dir>/epic-tasks.json \
      [--design-source <dir>/design-<n>-<basename>]...
    ```
 
    It prints the request's path. It refuses unless the worktree is clean and
    the last `vrg-validate` was a full, clean run at `HEAD` that passed every
    stage: commit, run `vrg-container-run -- vrg-validate` to green, and run
-   it again. Any other refusal is an `error`.
+   it again. It also refuses when it cannot read the issue, its parent's
+   labels or the epic's sub-issues. Any refusal other than the validation
+   one is an `error`.
 
    **The human's comments.** The builder reads the issue's comments itself,
    from its `--issue`, for every step (review and checks alike). It keeps
@@ -386,7 +376,6 @@ Otherwise:
 
    ```bash
    vrg-merge-review-request --issue '<ref>' --base origin/develop --step <step> \
-     --issue-body-file <dir>/issue-body.md --epic-tasks-file <dir>/epic-tasks.json \
      [--design-source <path>]... \
      --fix-base <head_sha of request-<prev>.json> \
      --earlier-result <dir>/result-review.md [--earlier-result <dir>/result-check.md ...] \
