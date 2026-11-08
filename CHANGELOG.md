@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.62] - 2026-11-08
+
+### Bug fixes
+
+- stop writing the issue body and epic tasks for the request builder (#984)
+- draft a scope change when a deferred-review one-off revival changes scope (#985)
+
 ## [2.1.61] - 2026-11-07
 
 ### Bug fixes
