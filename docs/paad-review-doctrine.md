@@ -319,8 +319,7 @@ issue, finds it. Find the main clone from inside a worktree with
   directory of the task's merge review: the `merge-review` skill and
   `vrg-merge-review-request` write it, and `epic-implement` writes one file
   there at its gate. It holds:
-  - `issue-body.md` and `epic-tasks.json`, the request builder's inputs,
-    and `design-<n>-<basename>`, each design source fetched from the epic's
+  - `design-<n>-<basename>`, each design source fetched from the epic's
     home repo (the skill);
   - `request-<step>.json`, `diff-<step>.patch` and `fix-<step>.patch`
     (`vrg-merge-review-request`);

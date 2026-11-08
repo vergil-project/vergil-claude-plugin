@@ -374,7 +374,10 @@ each item with what was checked, what was found, and one recommended outcome:
 conditions), **revive** (to intake, planning, or a one-off, guided by the
 `Deferred from:` line), or **drop**. The human confirms each batch in one
 reply, and the agent applies it with `vrg-intake-route`. A condition it cannot
-verify is reported as such, with a keep recommendation. Added in epic
+verify is reported as such, with a keep recommendation. When a revival to
+a one-off changes the item's scope, the agent drafts the change with
+`vrg-ruling draft-scope` and the human posts it as themselves with
+`vrg-scope-change`. Added in epic
 [vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
 
 **When to use.** For the periodic deferred pass — "review deferred", "what's
