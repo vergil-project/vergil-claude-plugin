@@ -154,7 +154,7 @@ T_SCRIPT=(
 T_COMMAND=(
   'git commit -m x'
   'cd foo && git commit'
-  'x=$(git commit -m x)'
+  "x=\$(git commit -m x)"
   '{ git commit -m x; }'
   "vrg-commit --type docs --scope x --message y --body \"line one${NL}git commit mentioned here\""
   'find . -path ./.git -prune'

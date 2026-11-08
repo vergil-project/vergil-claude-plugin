@@ -78,6 +78,7 @@ hook_input_read() {
 # gated hook applies: tool_input.cwd, else the top-level cwd, else ".".
 # Non-string or empty values are skipped rather than erroring.
 hook_input_scope_dir() {
+	# shellcheck disable=SC2034 # read by the hook script that sources this file
 	HOOK_SCOPE_DIR=$(printf '%s' "$HOOK_INPUT" | jq -r \
 		'((.tool_input | objects | .cwd | strings | select(. != ""))
 		  // (.cwd | strings | select(. != ""))
@@ -90,6 +91,7 @@ hook_input_scope_dir() {
 # Sets HOOK_COMMAND to tool_input.command. A missing or non-string
 # command is refused; an empty string is allowed through as-is.
 hook_input_command() {
+	# shellcheck disable=SC2034 # read by the hook script that sources this file
 	HOOK_COMMAND=$(printf '%s' "$HOOK_INPUT" | jq -r \
 		'if (.tool_input | type) != "object" then error("no tool_input object")
 		 elif (.tool_input.command | type) != "string" then error("no command")

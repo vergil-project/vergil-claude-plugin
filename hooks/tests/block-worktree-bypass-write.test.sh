@@ -88,6 +88,7 @@ NOISY_PATH="$NOISY:$PATH"
 # git for every other command.
 GITSHIM="$TMP/gitshim"
 mkdir -p "$GITSHIM"
+# shellcheck disable=SC2016 # the shim's "$@" and "$a" must expand when the shim runs
 printf '#!/usr/bin/env bash\nfor a in "$@"; do\n\tif [ "$a" = check-ignore ]; then\n\t\techo "fatal: shim check-ignore failure" >&2\n\t\texit 128\n\tfi\ndone\nexec %s "$@"\n' "$(command -v git)" >"$GITSHIM/git"
 chmod +x "$GITSHIM/git"
 GITSHIM_PATH="$GITSHIM:$PATH"
@@ -218,9 +219,9 @@ T_EXPECT=(
 # three rows each deny under build/ for one reason, not another: the
 # two not reported ignored, and the check-ignore failure.
 T_REASON=()
-T_REASON[$((${#T_NAME[@]} - 3))]="does not report it ignored"
-T_REASON[$((${#T_NAME[@]} - 2))]="does not report it ignored"
-T_REASON[$((${#T_NAME[@]} - 1))]="could not check"
+T_REASON[${#T_NAME[@]} - 3]="does not report it ignored"
+T_REASON[${#T_NAME[@]} - 2]="does not report it ignored"
+T_REASON[${#T_NAME[@]} - 1]="could not check"
 
 pass=0
 fail=0
