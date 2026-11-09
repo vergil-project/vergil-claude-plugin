@@ -8,7 +8,7 @@
 # This file is meant to be `source`d, not executed directly.
 
 # Host-only: release/git workflow tools, thin gh/git wrappers.
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034 # read by enforce-host-container-split.sh, which sources this file
 HOST_TOOLS=(
   vrg-await
   vrg-commit
@@ -23,7 +23,7 @@ HOST_TOOLS=(
 )
 
 # Container-only: language toolchain validators.
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034 # read by enforce-host-container-split.sh, which sources this file
 CONTAINER_TOOLS=(
   ruff
   mypy
