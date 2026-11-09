@@ -25,7 +25,7 @@ response=$(echo "$input" | jq -r '.tool_response // ""')
 
 # Only trigger after test commands
 is_test_command=false
-if echo "$stripped" | grep -qE '(^|[;&|({]\s*)(pytest|cargo\s+test|go\s+test|bundle\s+exec\s+rspec|ruby\s+-e|rake\s+test|mvn\s+test|uv\s+run\s+pytest)(\s|$)'; then
+if echo "$stripped" | grep -qE '(^|[;&|({]\s*)(pytest|cargo\s+test|go\s+test|uv\s+run\s+pytest)(\s|$)'; then
   is_test_command=true
 fi
 
