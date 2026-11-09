@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.63] - 2026-11-09
+
+### Chores
+
+- shellcheck every shell file and sync the hook guard shim (#994)
+- drop the Java and Ruby test commands from the deprecation-warning hook (#996)
+
 ## [2.1.62] - 2026-11-08
 
 ### Bug fixes
