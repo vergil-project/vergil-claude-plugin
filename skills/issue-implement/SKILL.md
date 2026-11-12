@@ -1,6 +1,6 @@
 ---
 name: issue-implement
-description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. You implement directly in a worktree, validate to green, run the merge-review skill, then record the PR metadata with `vrg-pr-workflow report-ready`, which writes the `.vergil/pr-workflow.json` that vrg-submit-pr consumes. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Run as the vergil-user agent.
+description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. Also takes a list of small same-epic issues and implements them as one batch PR, one commit per issue. You implement directly in a worktree, validate to green, run the merge-review skill, then record the PR metadata with `vrg-pr-workflow report-ready`, which writes the `.vergil/pr-workflow.json` that vrg-submit-pr consumes. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Run as the vergil-user agent.
 ---
 
 # Issue Implement
@@ -11,6 +11,8 @@ green, run the [merge review](#merge-review), record the PR metadata through
 `vrg-pr-workflow report-ready` (which also
 pushes the branch to origin), and tell
 the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
+Given a list of issues, you implement them as one batch: see
+[Batch mode](#batch-mode--a-list-of-issues).
 
 ## Execute efficiently — trust and escalate
 
@@ -146,8 +148,20 @@ drafts it at the gate.
    neither, **stop** with the reason "the issue's author is not trusted":
    tell the human (with no comment on the issue) and wait for their ruling
    before any work.
-6. **A merge review already under way.** From the repo root (the main
-   clone), look for the task's merge-review directory, reading only:
+6. **A batch or a merge review already under way.** First, from the repo
+   root (the main clone), look for the task's batch marker, reading only:
+
+   ```bash
+   test -e build/.vergil-state/issue-implement/<N>/batch && \
+     vrg-pr-workflow batch-show --issue <N>
+   ```
+
+   If the marker exists, the task is a member of a batch: **resume the
+   batch**, never the single issue, as
+   [Resuming a batch](#resuming-a-batch) says, whether or not the task has
+   a merge-review directory. If `batch-show` exits with anything but 0,
+   show its output and stop. With no marker, look for the task's
+   merge-review directory, reading only:
 
    ```bash
    test -e build/.vergil-state/issue-implement/<N>/merge-review && \
@@ -176,7 +190,9 @@ drafts it at the gate.
 
 ## Implement
 
-**Implement the issue** here with small `vrg-commit` commits. Validate until
+**Implement the issue** here with small `vrg-commit` commits (in a batch,
+one first commit per issue and fixups of it: see
+[Each issue, in order](#each-issue-in-order)). Validate until
 green — `vrg-container-run -- vrg-validate` — fixing every failure and
 re-running; **never** suppress a gate.
 
@@ -269,12 +285,15 @@ skill, which reviews afresh if `HEAD` has moved.
 | `error` | End the run with the error shown. Running this skill again resumes. |
 
 Every `report-ready` follows a merge review that ended `eligible` or
-`not-eligible` at the `HEAD` it reports.
+`not-eligible` at the `HEAD` it reports. In a batch, each issue's merge
+review follows this same table, and the rule holds per issue
+([Handing off a batch](#handing-off-a-batch) restates it).
 
 ## Record the PR metadata and hand off
 
 When the [merge review](#merge-review) has ended `eligible` or
-`not-eligible (<reason>)`, record the PR metadata in a single call:
+`not-eligible (<reason>)`, record the PR metadata in a single call (a
+batch names every issue: see [Handing off a batch](#handing-off-a-batch)):
 
 ```bash
 vrg-pr-workflow report-ready --issue <N> \
@@ -389,6 +408,9 @@ The contract:
 
 ## Resolving conflicts with the base branch
 
+In a batch this section does not apply until handoff: a batch never
+rebases onto `develop` (see [A fixed base](#a-fixed-base)).
+
 If `develop` (the base) advances **while you are still implementing** (before you
 report ready) and your branch conflicts with it, resolve it as **routine**. No
 human sign-off is needed:
@@ -423,6 +445,252 @@ there is legitimate). Reopening earlier requires a deliberate
 `vrg-pr-workflow unfreeze`. After an unfreeze, rebase and validate as in steps
 1–3, but skip step 4: re-running `report-ready` pushes the rebased branch with a
 lease on the recorded head (see "How the push can end" above).
+
+## Batch mode — a list of issues
+
+Given more than one issue, implement them as one **batch**: one worktree,
+one branch, one commit per issue in the listed order, and one PR that
+closes them all. Each issue still gets its own validation and its own
+merge review. Everything above holds for each issue unless this section
+says otherwise. A single issue never runs in batch mode.
+
+### What to batch
+
+The tooling enforces the **hard rules** and refuses a batch that breaks
+one, at `batch-start`, at report-ready and at submit: every issue is in
+this repo, has the same parent epic (a finite epic or the repo's ad-hoc
+epic), is not operational, is not directly Blocked-by an open deployment
+task, and was opened by a trusted author, and the batch has 2 to 8
+issues.
+
+The **guidelines** are judgment, yours and the human's:
+
+- **Batch** issues that look small from the issue body and plan entry,
+  before any work: a contained bug fix, an error-message or output fix, a
+  narrow refactor, a docs fix, or a config value change, in one area of
+  the repo, adding no command, flag or schema. As a size cue, about 150
+  changed lines and 6 files each at most, tests included.
+- **Never batch** a security-labelled issue, an issue whose plan entry
+  calls for design work, or a change to a contract other repositories
+  consume (a CLI interface, a config schema, a reusable workflow).
+- **Cap.** 4 issues by default. Up to 8 only when every item is tiny (a
+  typo, a one-line config value, a wording fix; about 30 lines and 3 files
+  at most).
+- **Order.** Respect any Blocked-by links between the listed issues, then
+  the plan's order. `epic-implement` batches only ready tasks independent
+  of each other, so this matters for a list the human hands you directly.
+
+When a list the human gave you breaks a guideline or the order rule, say
+which and ask before starting; never drop, add or reorder an issue
+yourself. Substantial issues keep the single-issue shape.
+
+### Starting a batch
+
+1. Run Preflight step 1 once, then steps 2–5 on **every** listed issue,
+   the trusted-author check included. If any issue fails, start nothing:
+   report every failure and stop. Then run step 6's batch-marker check on
+   each issue: an existing marker means
+   [Resuming a batch](#resuming-a-batch).
+2. From the repo root (the main clone), fetch and start the batch, naming
+   the issues in order:
+
+   ```bash
+   vrg-git fetch origin
+   vrg-pr-workflow batch-start --issue <N1> --issue <N2> …
+   ```
+
+   It runs the hard rules, then writes each member's batch marker
+   (`build/.vergil-state/issue-implement/<N>/batch`): the ordered list and
+   `base_sha`, the `origin/develop` commit now. It prints
+   `{"ok": true, "resumed": <bool>, "issues": […], "base_sha": "<sha>"}`.
+   On a refusal, show its output and stop; it wrote nothing. `"resumed":
+   true` means the members already hold a marker for exactly this list:
+   go to [Resuming a batch](#resuming-a-batch).
+3. Instead of Preflight step 7, create the one batch worktree at
+   `base_sha`, from the repo root, named for the first issue
+   (2–4 token kebab slug after `batch-`), and work inside it:
+
+   ```bash
+   vrg-git worktree add -b feature/<N1>-batch-<slug> .worktrees/issue-<N1>-batch-<slug> <base_sha>
+   cd .worktrees/issue-<N1>-batch-<slug>
+   ```
+
+### A fixed base
+
+A batch never rebases onto `develop` before handoff, so a finished issue
+is never rewritten:
+[Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch)
+does not apply until the batch is handed off. A conflict with a moved
+`develop` is resolved at submit or by `pr-watch`. The **previous issue's
+commit** of the first issue is `base_sha`; of every later issue it is the
+one folded commit of the issue just before it in the list. It is the
+issue's fold base and its merge-review base.
+
+### Each issue, in order
+
+1. **Implement it.** Its first commit is a plain `vrg-commit` whose
+   subject ends in a space and the issue's ref, for example
+   `--message "raise the package-index timeout to one hour (#4148)"`.
+   Every later commit for the issue is `vrg-commit --fixup <its first
+   commit>`, never a plain `vrg-commit`.
+2. **Validate** to green on the committed branch:
+   `vrg-container-run -- vrg-validate`. The stack is cumulative, so this
+   validates the batch up to this issue.
+3. **Merge-review it** as [Merge review](#merge-review) says, on this
+   issue alone (`--issue` this issue's ref). The `merge-review` skill's
+   [In a batch](../merge-review/SKILL.md#in-a-batch) section reads the
+   marker with `batch-show`, diffs against the previous issue's commit,
+   and commits only as fixups of the issue's first commit; it never folds.
+   Its outcome table applies per issue: `stopped: request <id>`,
+   `waiting: non-review items` and `error` end the run, and running this
+   skill again resumes the batch at this issue. `fatal` ends the run: tell
+   the human, and do nothing more to the batch until they rule on it as a
+   [batch stop](#batch-stops).
+4. **Fold it** once its merge review has ended `eligible` or
+   `not-eligible`. Note the tree first, fold onto the previous issue's
+   commit, then check the result:
+
+   ```bash
+   vrg-git rev-parse 'HEAD^{tree}'                      # before
+   vrg-git rebase -i --autosquash <previous issue's commit>
+   vrg-git rev-parse 'HEAD^{tree}'                      # after: must match
+   vrg-git log --format=%s <previous issue's commit>..HEAD
+   ```
+
+   The fold must leave **exactly one commit** for the issue, its subject
+   ending in a space and `(#<N>)`, with the tree unchanged. If the rebase
+   stops on a conflict, run `vrg-git rebase --abort`; if it stops, or any
+   check fails, show the human what you saw and stop with an `error`.
+5. **Move on** to the next issue, on top of this commit.
+
+An issue is **finished** only when its merge review has closed (its
+closing merge-review comment, carrying the eligibility line, is on the
+issue from a trusted author) and its commit is folded. The commit's shape
+alone never counts.
+
+### Resuming a batch
+
+A batch already exists when `batch-start` printed `"resumed": true`,
+Preflight step 6 found a member's marker, or the batch worktree is
+present. Then:
+
+1. Read the list and `base_sha` with `vrg-pr-workflow batch-show --issue
+   <N>` from the main clone. Work that list, never one held in memory or
+   in your prompt: an extraction may have shortened it. If your prompt's
+   list differs from it, say so and stop.
+2. Enter the existing batch worktree: the one `vrg-git worktree list`
+   shows on a `feature/<M>-batch-<slug>` branch, `<M>` the batch's first
+   issue when it started (the name stays when that issue is later
+   extracted). If there is none, or more than one could be it, stop and
+   ask the human.
+3. Continue at the first issue in the list that is not finished. With a
+   `merge-review/` directory, resume its merge review from the state the
+   directory holds (the skill works out where it stands); with none, from
+   the start of its review, finishing and validating its work first. A
+   closed review with its commit not yet folded goes straight to the
+   fold. If any later issue already has a commit on the branch, stop and
+   ask the human.
+
+Carry out any non-review rulings your prompt gives first, as
+[Merge review](#merge-review) says: a batch stop ends
+`waiting: non-review items`, so a run re-dispatched with its ruling goes
+on with the batch.
+
+### Batch stops
+
+Stop at an issue boundary, never reopening a finished issue, when the
+issue you are on:
+
+- proves bigger than it looked (no longer fits the guidelines, needs
+  design, or would need splitting);
+- surfaces a security finding (it goes through the normal security path,
+  [doctrine §1.6](../../docs/paad-review-doctrine.md#16-security-findings));
+- turns out to depend on another task's work being merged or deployed
+  first;
+- collides with an earlier batch issue in a way that would need that
+  issue's commit reworked.
+
+A batch stop is a **non-review item**
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)),
+posted on the stopped issue under the same timing rule as any other. List
+it under `Awaiting a ruling`, marked as a batch stop, naming the issue,
+the reason and the choices: **extract** it, **continue** with it, **hand
+off what is done**, or **unbatch**. The run ends
+`waiting: non-review items`. The ruling arrives as any non-review ruling
+does: from the human in the session, or in `epic-implement`'s dispatch
+prompt. Never take an issue out of the batch yourself. The choices:
+
+- **Extract:** take the issue out as below; the human says whether the
+  batch goes on with the rest or is handed off.
+- **Continue:** go on with the issue in the batch.
+- **Hand off what is done:** extract the stopped issue and every issue
+  after it, then [hand off](#handing-off-a-batch) the finished ones.
+- **Unbatch:** extract every issue; each is redone later as its own PR.
+  Tell the human the batch worktree is then empty of work.
+
+Every choice that extracts takes a tail of the list (the stopped issue
+and those after it, or every issue), so no issue you keep sits after one
+you discard. **Extracting an issue** discards its work and returns it to
+its epic as an ordinary open task:
+
+1. In the batch worktree, discard everything after the last issue you
+   keep (its commit, or `base_sha` when you keep none), committed or not:
+
+   ```bash
+   vrg-git reset --hard <last kept issue's commit>
+   vrg-git clean -fd
+   ```
+
+2. From the main clone, `vrg-pr-workflow batch-extract --issue <N>`. It
+   rewrites every other member's marker without the issue (removing the
+   last one's when fewer than two remain) and removes the issue's whole
+   `issue-implement/<N>/` directory, its `merge-review/` included. It
+   refuses while a `security-*.md` details file is under that directory:
+   record that finding first, as the refusal says. On any other refusal,
+   show its output and stop.
+3. Post the comment the human approved (in the session, or in your
+   dispatch prompt) on the issue, saying why it was pulled.
+4. For a collision, add `Blocked-by: <owner>/<repo>#<M>` to the issue
+   body's `## Dependencies` section (`vrg-gh issue edit <N> --repo
+   <owner>/<repo> --body-file <file>`), `<M>` the batch issue it collided
+   with, so it is not picked up until the batch has merged.
+5. Record the ruling as §1.7 says.
+
+**A batch left with one issue** is a single-issue run from then on, under
+the rules above it,
+[Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch)
+included: `batch-extract` has removed its marker, and the PR is an
+ordinary one, squash-merged. If its merge review has not closed yet,
+rebase it onto `origin/develop` first; if it has, hand it off as it is,
+since a rebase would move the `HEAD` its review judged.
+
+### Handing off a batch
+
+Hand off once every issue in the list is finished. The rule that every
+`report-ready` follows a merge review that ended `eligible` or
+`not-eligible` at the `HEAD` it reports holds per issue: each issue's
+merge review ends at that issue's unfolded head, and the fold that
+follows only combines that issue's own commits, leaving its tree
+unchanged, so no review is re-run after a fold.
+
+Run `report-ready` once, naming every issue in the list's order:
+
+```bash
+vrg-pr-workflow report-ready --issue <N1> --issue <N2> … \
+  --title "<conventional-commit title for the batch>" \
+  --summary "<one substantive sentence: what the batch changes and why>" \
+  --notes "<reviewer-relevant notes>"
+```
+
+It runs the hard rules and the one-commit-per-issue check before anything
+is pushed, records the ordered list, and removes the batch markers. The
+`--notes` carry each issue's eligibility line, exactly as its merge review
+gave it, prefixed with its ref (`#<N>: Merge review: done: …`), then the
+rest as for a single issue. Then delete each issue's `merge-review/`
+directory, and its `issue-implement/<N>/` if then empty, as
+[Record the PR metadata](#record-the-pr-metadata-and-hand-off) says. The
+freeze, the push outcomes and the human's `vrg-submit-pr` are as for a
+single issue.
 
 ## Notes
 
