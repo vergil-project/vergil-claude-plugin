@@ -714,6 +714,8 @@
       
         
       
+        
+      
     
     
     
@@ -766,6 +768,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.66/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.66
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -4525,7 +4555,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#issue-implement">issue-implement</a></td>
-<td>USER agent: implement an issue, validate to green, run <code>merge-review</code> (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human</td>
+<td>USER agent: implement an issue, validate to green, run <code>merge-review</code> (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues becomes one batch PR</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4545,7 +4575,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#pr-watch">pr-watch</a></td>
-<td>USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable</td>
+<td>USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable; on a batch PR, fold each fix into its issue's commit</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4640,6 +4670,17 @@ own non-review items. A ruling there that changes a task's scope is drafted
 at the gate with <code>vrg-ruling draft-scope</code>, and the human posts it as
 themselves with the <code>vrg-scope-change</code> command it prints before the task is
 dispatched; the agents never post scope changes themselves.</p>
+<p>It may batch independent small ready code tasks of one epic and repo into
+one <code>issue-implement</code> run, under that skill's
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch">What to batch</a> guidelines,
+and dispatches the batch to one sub-agent with the batch form of the
+prompt contract. Before every code-task dispatch it checks the task's batch
+marker with <code>vrg-pr-workflow batch-show</code>, so a batch member is only ever
+dispatched as its whole batch. A batch stop (extract, continue, hand off
+what is done, unbatch) is presented at its gate like any other non-review
+item. See its
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier">Work the runnable frontier</a>
+section.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off".</p>
@@ -4715,6 +4756,12 @@ which also goes into report-ready's notes. Security findings appear in
 public only by ID or count; their details stay in the task's private state
 directory, <code>build/.vergil-state/issue-implement/&lt;N&gt;/merge-review/</code>, and the
 terminal.</p>
+<p>In a batch, each issue is still reviewed on its own: the review and its
+checks diff against the previous issue's commit (the batch marker's
+<code>base_sha</code> for the first issue), and every commit the run makes for the
+issue is a <code>vrg-commit --fixup</code> of the issue's first commit, which the
+review never folds; <code>issue-implement</code> folds it afterwards. See its
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#in-a-batch">In a batch</a> section.</p>
 <p><strong>When to use.</strong> Run by <code>issue-implement</code> once validation is green and
 before <code>vrg-pr-workflow report-ready</code>, and again on the same task to resume
 a run stopped for a ruling. The files, schemas and the result check follow
@@ -4754,6 +4801,13 @@ checklist on a validation issue.</p>
 <code>vrg-submit-pr</code>. Monitors the open PR via <code>vrg-pr-await</code> and
 reconciles failing CI checks and human review feedback, pushing
 fixes until the PR is mergeable.</p>
+<p>On a batch PR (one whose body has more than one <code>Closes</code> line), every fix
+is a <code>vrg-commit --fixup</code> of its issue's commit, folded with
+<code>vrg-git rebase -i --autosquash origin/&lt;base&gt;</code> and pushed with
+<code>--force-with-lease</code>, never a new commit. A fix owned by no single issue,
+or a fold that conflicts, stops for the human. See its
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/pr-watch/SKILL.md#batch-prs--fold-every-fix-into-its-issues-commit">Batch PRs</a>
+section.</p>
 <p><strong>When to use.</strong> Run the emitted <code>/vergil:pr-watch &lt;PR_URL&gt;</code> line in
 the USER agent session after the human opens the PR.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
