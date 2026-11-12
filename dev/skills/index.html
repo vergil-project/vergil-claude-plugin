@@ -4620,6 +4620,12 @@ planning or deferred epic (route it with <code>intake-review</code>, expand it w
 PR tooling's refusal. A ruling that changes the task's scope is drafted
 with <code>vrg-ruling draft-scope</code> for the human to post with
 <code>vrg-scope-change</code>, before the merge review starts.</p>
+<p>Given a list of small same-epic issues, it implements them as one
+<strong>batch</strong>: <code>vrg-pr-workflow batch-start</code> checks the batch's hard rules
+and records the list and a fixed base, then each issue is implemented,
+validated, merge-reviewed and folded to one commit in order on one
+branch, and <code>report-ready</code> hands them off as one PR. An issue that turns
+out unsuited to the batch stops it for the human, who may extract it.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR, in a
 Lima or a cloud session alike. <code>report-ready</code> pushes a
