@@ -547,20 +547,18 @@ issue's fold base and its merge-review base.
    the human, and do nothing more to the batch until they rule on it as a
    [batch stop](#batch-stops).
 4. **Fold it** once its merge review has ended `eligible` or
-   `not-eligible`. Note the tree first, fold onto the previous issue's
-   commit, then check the result:
+   `not-eligible`. Fold onto the previous issue's commit, then check the
+   result:
 
    ```bash
-   vrg-git rev-parse 'HEAD^{tree}'                      # before
    vrg-git rebase -i --autosquash <previous issue's commit>
-   vrg-git rev-parse 'HEAD^{tree}'                      # after: must match
    vrg-git log --format=%s <previous issue's commit>..HEAD
    ```
 
    The fold must leave **exactly one commit** for the issue, its subject
-   ending in a space and `(#<N>)`, with the tree unchanged. If the rebase
-   stops on a conflict, run `vrg-git rebase --abort`; if it stops, or any
-   check fails, show the human what you saw and stop with an `error`.
+   ending in a space and `(#<N>)`. If the rebase stops on a conflict, run
+   `vrg-git rebase --abort`; if it stops, or the check fails, show the
+   human what you saw and stop with an `error`.
 5. **Move on** to the next issue, on top of this commit.
 
 An issue is **finished** only when its merge review has closed (its
