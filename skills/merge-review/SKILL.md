@@ -168,6 +168,50 @@ Items in `reask.json` join the next request the run posts. If
 (a crashed run's post landed), adopt the request it names: write
 `open-request.json` for it and stop.
 
+## In a batch
+
+A task can be one issue of a batch: up to 8 same-epic issues on one branch,
+one commit per issue, handed off as one PR (`issue-implement`'s batch
+mode). Merge review still reviews **one issue**: `<ref>` is that issue, and
+its rulings, step comments, closing comment and eligibility line stay on
+it. Only two things change: the base the review and its checks diff
+against, and how the run commits.
+
+On every start and resume, before any step is built, ask from the task
+worktree whether `<ref>` is in a batch:
+
+```bash
+vrg-pr-workflow batch-show --issue '<ref>'
+```
+
+- **Exit 1:** no batch marker. The task is a single issue: `<base>` is
+  `origin/develop` and every commit is a plain `vrg-commit`.
+- **Exit 0:** the task is in a batch. Read the ordered issue list and the
+  `base_sha` it prints, and find two commits on the branch:
+  - **The previous issue's commit.** For the first issue in the list it is
+    `base_sha` itself. For a later issue it is the one commit in
+    `base_sha..HEAD` whose subject ends in a space and `(#<P>)`, `<P>` being
+    the issue just before `<ref>` in the list. That issue is already
+    folded, so there is exactly one.
+  - **The issue's first commit:** the oldest commit in
+    `<previous issue's commit>..HEAD`. Its subject must end in a space and
+    `(#<N>)` for `<ref>`, and must not start with `fixup!`.
+
+  `<base>` is the previous issue's commit as a full SHA, never a moving
+  `origin/develop`: a batch does not rebase before handoff, so a moved
+  `develop` would put other work in the diff. The review and every check
+  use this same `<base>`. Every commit the run makes for the issue (a fix,
+  a revert, a fix that gets back to green) is
+  `vrg-commit --fixup <the issue's first commit>`, never a plain
+  `vrg-commit`, so the issue still folds to one commit. The run never folds
+  (`vrg-git rebase -i --autosquash`): `issue-implement` folds once the run
+  has ended `eligible` or `not-eligible`, so each step's judged `HEAD` stays
+  on the branch and no fix base is rewritten.
+- **Any other exit,** `<ref>` missing from the printed list, no single
+  previous issue's commit, or a first commit that does not carry `<ref>`:
+  an `error`. Show the human the output and stop. Never fall back to
+  `origin/develop`.
+
 ## Before the review
 
 The builder reads the issue body and derives the epic's open tasks itself,
@@ -203,11 +247,12 @@ this skill writes neither. It reads the epic only for the design sources.
 3. **The request.**
 
    ```bash
-   vrg-merge-review-request --issue '<ref>' --base origin/develop --step review \
+   vrg-merge-review-request --issue '<ref>' --base <base> --step review \
      [--design-source <dir>/design-<n>-<basename>]...
    ```
 
-   It prints the request's path. It refuses unless the worktree is clean and
+   `<base>` is `origin/develop`, or in a batch the previous issue's commit
+   ([In a batch](#in-a-batch)). It prints the request's path. It refuses unless the worktree is clean and
    the last `vrg-validate` was a full, clean run at `HEAD` that passed every
    stage: commit, run `vrg-container-run -- vrg-validate` to green, and run
    it again. It also refuses when it cannot read the issue, its parent's
@@ -367,21 +412,25 @@ builder refuses an empty `--fix-id` set.
 Otherwise:
 
 1. Fix every defect, carry out every ruling, and do every filing
-   ([Filing](#filing)). Commit with `vrg-commit`.
+   ([Filing](#filing)). Commit with `vrg-commit`; in a batch, with
+   `vrg-commit --fixup <the issue's first commit>`
+   ([In a batch](#in-a-batch)).
 2. Run `vrg-container-run -- vrg-validate`, fixing every failure and
-   committing, until it is green at the committed `HEAD`. Getting back to
+   committing (in a batch, again as a fixup), until it is green at the committed `HEAD`. Getting back to
    green is not capped and is not a review round.
 3. Build the check. `<prev>` is the step before it: `review` for `check`,
    the previous check for `check-<k>`.
 
    ```bash
-   vrg-merge-review-request --issue '<ref>' --base origin/develop --step <step> \
+   vrg-merge-review-request --issue '<ref>' --base <base> --step <step> \
      [--design-source <path>]... \
      --fix-base <head_sha of request-<prev>.json> \
      --earlier-result <dir>/result-review.md [--earlier-result <dir>/result-check.md ...] \
      --fix-id <ID>... [--ruled-id <ID>...]
    ```
 
+   - `<base>` is the one the review used
+     ([In a batch](#in-a-batch)).
    - `--fix-base` is exactly the `head_sha` recorded in
      `request-<prev>.json`, the `HEAD` the previous step judged. Never pass
      any other commit, such as the current `HEAD` or a guess at the
