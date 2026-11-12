@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.66] - 2026-11-12
+
+### Documentation
+
+- seed the retrospective bookend with --kind retrospective (#997) (#1029)
+- describe batch support in the skills index and README (#1031)
+- add the batch-stop choices to the ruling words (#1032)
+
 ## [2.1.65] - 2026-11-12
 
 ### Features
