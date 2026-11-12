@@ -628,16 +628,19 @@ prompt. Never take an issue out of the batch yourself. The choices:
 - **Unbatch:** extract every issue; each is redone later as its own PR.
   Tell the human the batch worktree is then empty of work.
 
-Every choice that extracts takes a tail of the list (the stopped issue
-and those after it, or every issue), so no issue you keep sits after one
-you discard. **Extracting an issue** discards its work and returns it to
-its epic as an ordinary open task:
+The issues after the stopped one have no work yet, so an extraction only
+ever discards the work of the stopped issue (and, for unbatch, of the
+finished ones before it). Resetting to the last kept issue's commit keeps
+every finished issue you keep, whether or not the issues after the
+stopped one stay in the batch. **Extracting an issue** discards its work
+and returns it to its epic as an ordinary open task:
 
-1. In the batch worktree, discard everything after the last issue you
-   keep (its commit, or `base_sha` when you keep none), committed or not:
+1. In the batch worktree, discard everything after the last finished
+   issue you keep (its commit, or `base_sha` when you keep none),
+   committed or not:
 
    ```bash
-   vrg-git reset --hard <last kept issue's commit>
+   vrg-git reset --hard <last kept finished issue's commit>
    vrg-git clean -fd
    ```
 
