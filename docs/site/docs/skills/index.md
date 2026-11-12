@@ -57,11 +57,11 @@ unattended runner, `paad:paad-delegate`
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues becomes one batch PR | Current (2.1) |
 | [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
-| [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable | Current (2.1) |
+| [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable; on a batch PR, fold each fix into its issue's commit | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
@@ -132,6 +132,18 @@ own non-review items. A ruling there that changes a task's scope is drafted
 at the gate with `vrg-ruling draft-scope`, and the human posts it as
 themselves with the `vrg-scope-change` command it prints before the task is
 dispatched; the agents never post scope changes themselves.
+
+It may batch independent small ready code tasks of one epic and repo into
+one `issue-implement` run, under that skill's
+[What to batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch) guidelines,
+and dispatches the batch to one sub-agent with the batch form of the
+prompt contract. Before every code-task dispatch it checks the task's batch
+marker with `vrg-pr-workflow batch-show`, so a batch member is only ever
+dispatched as its whole batch. A batch stop (extract, continue, hand off
+what is done, unbatch) is presented at its gate like any other non-review
+item. See its
+[Work the runnable frontier](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier)
+section.
 
 **When to use.** In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
@@ -222,6 +234,13 @@ public only by ID or count; their details stay in the task's private state
 directory, `build/.vergil-state/issue-implement/<N>/merge-review/`, and the
 terminal.
 
+In a batch, each issue is still reviewed on its own: the review and its
+checks diff against the previous issue's commit (the batch marker's
+`base_sha` for the first issue), and every commit the run makes for the
+issue is a `vrg-commit --fixup` of the issue's first commit, which the
+review never folds; `issue-implement` folds it afterwards. See its
+[In a batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#in-a-batch) section.
+
 **When to use.** Run by `issue-implement` once validation is green and
 before `vrg-pr-workflow report-ready`, and again on the same task to resume
 a run stopped for a ruling. The files, schemas and the result check follow
@@ -273,6 +292,14 @@ checklist on a validation issue.
 `vrg-submit-pr`. Monitors the open PR via `vrg-pr-await` and
 reconciles failing CI checks and human review feedback, pushing
 fixes until the PR is mergeable.
+
+On a batch PR (one whose body has more than one `Closes` line), every fix
+is a `vrg-commit --fixup` of its issue's commit, folded with
+`vrg-git rebase -i --autosquash origin/<base>` and pushed with
+`--force-with-lease`, never a new commit. A fix owned by no single issue,
+or a fold that conflicts, stops for the human. See its
+[Batch PRs](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/pr-watch/SKILL.md#batch-prs--fold-every-fix-into-its-issues-commit)
+section.
 
 **When to use.** Run the emitted `/vergil:pr-watch <PR_URL>` line in
 the USER agent session after the human opens the PR.
