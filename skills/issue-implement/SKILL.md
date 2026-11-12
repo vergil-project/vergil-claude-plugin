@@ -630,15 +630,19 @@ the reason and the choices: **extract** it, **continue** with it, **hand
 off what is done**, or **unbatch**. The run ends
 `waiting: non-review items`. The ruling arrives as any non-review ruling
 does: from the human in the session, or in `epic-implement`'s dispatch
-prompt. Never take an issue out of the batch yourself. The choices:
+prompt. Never take an issue out of the batch yourself. The choices, each
+with the word its `Human ruling:` line records
+([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues),
+"Ruling lines"):
 
-- **Extract:** take the issue out as below; the human says whether the
-  batch goes on with the rest or is handed off.
-- **Continue:** go on with the issue in the batch.
-- **Hand off what is done:** extract the stopped issue and every issue
-  after it, then [hand off](#handing-off-a-batch) the finished ones.
-- **Unbatch:** extract every issue; each is redone later as its own PR.
-  Tell the human the batch worktree is then empty of work.
+- **Extract** (`extract`): take the issue out as below; the human says
+  whether the batch goes on with the rest or is handed off.
+- **Continue** (`continue`): go on with the issue in the batch.
+- **Hand off what is done** (`handoff`): extract the stopped issue and
+  every issue after it, then [hand off](#handing-off-a-batch) the
+  finished ones.
+- **Unbatch** (`unbatch`): extract every issue; each is redone later as
+  its own PR. Tell the human the batch worktree is then empty of work.
 
 The issues after the stopped one have no work yet, so an extraction only
 ever discards the work of the stopped issue (and, for unbatch, of the

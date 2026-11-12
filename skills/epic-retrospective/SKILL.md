@@ -114,7 +114,9 @@ doctrine's rules for them; this step adds only the sweep.
    - **`Awaiting a ruling` lists**, in any trusted comment: an item is
      closed by a trusted `Human ruling:` for its ID, in the same comment or
      a later one, with a word that ends it: `decline`, `dismiss`, `file`,
-     `record` or `reject`; for `file`, the issue it filed must also exist.
+     `record` or `reject`, or for a batch stop `extract`, `continue`,
+     `handoff` or `unbatch`; for `file`, the issue it filed must also
+     exist.
      A security item, listed only as a count, is closed by a
      `Human ruling: security: …` counts line covering it. An item with no
      such ruling, or ruled `fix` and never fixed, is untracked.

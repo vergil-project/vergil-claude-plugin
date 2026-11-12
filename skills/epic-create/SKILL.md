@@ -63,7 +63,8 @@ carries these bookend tasks:
      **`epic-retrospective`**, the run-once finishing skill whose preflight gate
      refuses to run until every other child of the epic is closed. Its docs PR is
      the epic's closing bookend, and its merge closes the epic. Seed it at
-     creation (title `Retrospective: <epic-slug>`), homed in the epic's home repo.
+     creation with `vrg-issue-create --kind retrospective` (title
+     `Retrospective: <epic-slug>`), homed in the epic's home repo.
 - **Follow-on brainstorm — semi-optional (forward axis).** Reviewing what shipped
   and brainstorming the follow-on epic(s) is a **forward-looking** concern that
   **no longer defines the end of an epic**. Seed it as a bookend **only when a
@@ -530,6 +531,9 @@ details, step 9) goes into it.
      (e.g. `vergil-tooling/docs/site`), so file it there
      (`--repo <owner>/<repo>`) — never blanket `.github`:
      `vrg-issue-create --epic <org>/.github#N --repo <owner>/<repo> --title … `.
+     Create the retrospective task with `--kind retrospective` and the title
+     `Retrospective: <epic-slug>`, so it carries the `retrospective` label
+     that `epic-retrospective` finds it by.
      The documentation-review task is a **multi-repo sweep**: at review time it
      may **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
      linked under N, closed by a same-repo PR) for documentation that lives in
