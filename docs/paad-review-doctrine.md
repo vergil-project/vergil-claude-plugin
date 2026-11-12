@@ -511,7 +511,12 @@ that lists the item, or else in a new one, in this fixed form:
   idea is dropped), `dismiss` (the item is not a problem), `file` (file it
   as an issue, in the approved form), `record` (a security item, recorded
   as an advisory, below) or `reject` (a security item, dropped with no
-  record).
+  record). A batch stop (`issue-implement`'s "Batch stops") takes one of
+  four words of its own: `extract` (the stopped issue leaves the batch and
+  returns to its epic), `continue` (the issue stays in the batch and work
+  on it goes on), `handoff` (the stopped issue and every issue after it
+  leave the batch, and the finished ones are handed off) or `unbatch`
+  (every issue leaves the batch, each to be redone as its own PR).
 - `<ID>: filed as <ref>`, after a `file` ruling's `Human ruling:` line.
 - `Recorded: <ID>`, the ID only, after each security record is made.
 - Security rulings take one line of counts only, by word, in the comment
