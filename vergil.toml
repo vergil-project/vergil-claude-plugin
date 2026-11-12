@@ -5,6 +5,7 @@ branching-model = "library-release"
 release-model = "tagged-release"
 
 [publish]
+release = true
 consumer-refresh = """\
 # Refresh the host's plugins: re-add each declared marketplace at its declared ref,
 # update every install, and verify the registered repo and ref
