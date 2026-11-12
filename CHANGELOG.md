@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.65] - 2026-11-12
+
+### Features
+
+- batch independent ready tasks and resume batches (#1021)
+- resume the last issue of a collapsed batch from the batch worktree (#1023)
+
 ## [2.1.64] - 2026-11-12
 
 ### Build
