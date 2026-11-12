@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.64] - 2026-11-12
+
+### Build
+
+- set [publish].release = true so the plugin can be released (#1017)
+
+### Chores
+
+- sync the managed .claude/settings.json (#1004)
+
+### Features
+
+- review one issue of a batch against the previous issue's commit (#1010) (#1013)
+- fold fixups into the owning issue's commit on a batch PR (#1014)
+- accept a list of issues and implement them as one batch PR (#1015)
+
 ## [2.1.63] - 2026-11-09
 
 ### Chores

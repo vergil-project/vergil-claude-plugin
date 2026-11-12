@@ -1,6 +1,8 @@
 {
   "permissions": {
-    "allow": ["Bash(vrg-*)"]
+    "allow": [
+      "Bash(vrg-*)"
+    ]
   },
   "hooks": {
     "PreToolUse": [
@@ -21,5 +23,6 @@
   "attribution": {
     "commit": "",
     "pr": ""
-  }
+  },
+  "idleCompaction": false
 }

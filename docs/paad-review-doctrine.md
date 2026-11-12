@@ -185,7 +185,7 @@ the `build/` of a repo's main clone, never in the reviewer's worktree:
 | Kind | Path, in the main clone of | Used by |
 |---|---|---|
 | `design-review` | `build/.vergil-state/design-review/<M>/<round>/`, the docs repo, `<M>` the planning issue's number | mode 1's scratch copy ([§2.7](#27-security-findings)) |
-| `issue-implement` | `build/.vergil-state/issue-implement/<N>/`, the task repo, `<N>` the task issue's number | a `record` ruling's `security-<i>.md`, written by the run that carries out the human's rulings ([§1.7](#17-creating-issues)); and `merge-review/`, the working files of the task's merge review (below) |
+| `issue-implement` | `build/.vergil-state/issue-implement/<N>/`, the task repo, `<N>` the task issue's number | a `record` ruling's `security-<i>.md`, written by the run that carries out the human's rulings ([§1.7](#17-creating-issues)); `merge-review/`, the working files of the task's merge review (below); and `batch`, a batch member's marker, written and removed only by `vrg-pr-workflow` (`batch-start`, `batch-extract`, `report-ready`) |
 | `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
 | `operational` | `build/.vergil-state/operational/<N>/`, the repo the task is filed in, `<N>` the operational task's number | security items found by `issue-validate` and `issue-deploy` ([§1.7](#17-creating-issues)) |
 
