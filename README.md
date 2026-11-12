@@ -251,11 +251,11 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
 | `epic-implement` | USER agent: drive an epic's tasks to their human gates, batching what needs the human — including merge-review requests it drafts replies for, re-dispatching once the human has replied |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
-| `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human |
+| `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues is delivered as one batch PR |
 | `merge-review` | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, and an eligibility line for report-ready's notes |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
-| `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable |
+| `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable; on a batch PR, fold each fix into its issue's commit |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
 | `intake-capture` | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` |
