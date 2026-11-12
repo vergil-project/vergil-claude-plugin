@@ -181,7 +181,12 @@ drafts it at the gate.
    [Merge review](#merge-review)), and go straight to
    [Merge review](#merge-review). The skill works out where its run stands
    from the directory and the issue. If the directory exists but the task
-   has no worktree, stop and ask the human.
+   has no worktree, stop and ask the human. With neither a marker nor a
+   merge-review directory, run
+   [Finding its worktree](#a-batch-left-with-one-issue): if it finds the
+   issue's batch worktree, the task is the last issue of a collapsed batch
+   whose run ended before its merge review. Skip step 7, `cd` into that
+   worktree, and continue at [Implement](#implement) on its work there.
 7. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
@@ -701,7 +706,8 @@ live batch never reaches this lookup (its marker sends it to
 were discarded, so no other batch branch carries the issue. If none does,
 the issue has no worktree; if more than one does, stop and ask the human.
 Use this lookup wherever this skill enters the task's existing worktree
-(Preflight step 6, a re-run of `report-ready`), and in
+(Preflight step 6, with or without a merge-review directory, and a re-run
+of `report-ready`), and in
 [Starting a batch](#starting-a-batch), where a match means a single-issue
 run of the issue is under way.
 
