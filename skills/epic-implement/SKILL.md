@@ -91,7 +91,13 @@ naming every issue in order; the run starts the batch and works it as
 rebuild state in a new session. In the task repo's main clone, as the
 merge-review lookup below does, reading only, run
 `vrg-pr-workflow batch-show --issue '<owner>/<repo>#<N>'`. Exit 1: the task
-has no marker and is dispatched on its own (or in a new batch). Exit 0: the
+has no marker and is dispatched on its own (or in a new batch), unless it
+is the last issue of a collapsed batch: one whose work is on a batch
+branch, as `issue-implement`'s
+[Finding its worktree](../issue-implement/SKILL.md#a-batch-left-with-one-issue)
+finds from the same main clone. Such a task, on dispatch and on re-entry,
+is dispatched on its own, never in a new batch, and its prompt names no
+worktree to create: the run finds the batch worktree itself. Exit 0: the
 task is a member of a batch and is dispatched only as its whole batch, never
 alone: the list `batch-show` prints, in its order, never a list you hold in
 memory, since an extraction may have shortened it. After a ruling on a batch
