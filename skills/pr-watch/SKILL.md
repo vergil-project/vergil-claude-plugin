@@ -56,9 +56,47 @@ Loop:
      (resolve, validate green), then `vrg-git push --force-with-lease`.
      Force-pushing your _own_ in-flight PR after a rebase is pre-authorized; see
      *Resolving conflicts with the base branch* in `issue-implement`.
+   - **On a batch PR, fold each fix in. Never add a new commit.** See
+     [Batch PRs](#batch-prs--fold-every-fix-into-its-issues-commit) below.
 4. If you cannot get a check green or cannot satisfy a comment, **stop and ask
    the human** rather than thrashing.
 5. Loop with the updated `--since-sha` / `--since-reviews`.
+
+## Batch PRs — fold every fix into its issue's commit
+
+A PR whose body has more than one `Closes` line is a **batch PR**
+(`vrg-gh pr view <PR_URL> --json body,baseRefName`). It carries exactly one
+commit per issue, in its listed order, each subject ending in `(#<N>)`, and
+finalize rebase-merges it only while that holds. So on a batch PR a CI or
+review fix is never a new commit. Handle each fix like this:
+
+1. **Find the owning issue.** Decide which single issue the fix belongs to,
+   then find that issue's commit:
+   `vrg-git log --format='%H %s' origin/<base>..HEAD`, where `<base>` is the
+   PR's `baseRefName`. It is the commit whose subject ends in `(#<N>)`. If the
+   fix belongs to no single issue (it spans several, or none), **stop and ask
+   the human**, naming the fix and the issues it touches. Do not guess an
+   owner and do not add a commit.
+2. **Commit it as a fixup** of that commit:
+   `vrg-commit --fixup <owning issue's commit SHA>`.
+3. **Fold it:** `vrg-git rebase -i --autosquash origin/<base>`. vrg-git keeps
+   the rebase non-interactive. If the fold conflicts, run
+   `vrg-git rebase --abort` and **stop and ask the human**, naming the fixup
+   and the commit it conflicted on. Never resolve a fold conflict by moving
+   the change to another issue's commit.
+4. **Check the shape and validate.** `vrg-git log --format='%s'
+   origin/<base>..HEAD` must again show exactly one commit per issue, in
+   order, with no `fixup!` subject left. If it does not, stop and ask the
+   human. Then run `vrg-container-run -- vrg-validate` until it is green.
+5. **Push:** `vrg-git push --force-with-lease`. The fold rewrote the
+   branch, so a plain push is refused. The new head re-triggers CI.
+
+Several fixes found in one pass may each go to their own issue's commit
+before the single fold and push. A base-branch rebase (step 3 above) is
+unchanged on a batch PR: it rewrites every commit but keeps one per issue.
+
+A **single-issue PR is unchanged**: commit each fix as a new commit and push
+it, as step 3 says.
 
 ## Why pushing here is allowed (the freeze lifts at submit)
 
