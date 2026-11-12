@@ -487,10 +487,13 @@ yourself. Substantial issues keep the single-issue shape.
 ### Starting a batch
 
 1. Run Preflight step 1 once, then steps 2–5 on **every** listed issue,
-   the trusted-author check included. If any issue fails, start nothing:
-   report every failure and stop. Then run step 6's batch-marker check on
-   each issue: an existing marker means
-   [Resuming a batch](#resuming-a-batch).
+   the trusted-author check included. Then run step 6's batch-marker check
+   on each issue: an existing marker means
+   [Resuming a batch](#resuming-a-batch). An issue with no marker also
+   fails if a single-issue run of it is under way: step 6's merge-review
+   directory exists for it, or `vrg-git worktree list` shows a worktree on
+   a `feature/<N>-` branch for it. If any issue fails, start nothing:
+   report every failure and stop.
 2. From the repo root (the main clone), fetch and start the batch, naming
    the issues in order:
 
