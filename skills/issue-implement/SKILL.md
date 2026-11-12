@@ -174,7 +174,9 @@ drafts it at the gate.
    stopped on non-review items (a `result-review.md` with no
    `open-request.json`), or one that ended on an error. **Resume it**: skip
    step 7 and [Implement](#implement), `cd` into the task's existing
-   worktree (`.worktrees/issue-<N>-<slug>`, on `feature/<N>-<slug>`), carry
+   worktree (`.worktrees/issue-<N>-<slug>`, on `feature/<N>-<slug>`, or,
+   for the last issue of a collapsed batch, the batch worktree that
+   [Finding its worktree](#a-batch-left-with-one-issue) locates), carry
    out any non-review rulings your prompt gives (see
    [Merge review](#merge-review)), and go straight to
    [Merge review](#merge-review). The skill works out where its run stands
@@ -491,8 +493,10 @@ yourself. Substantial issues keep the single-issue shape.
    on each issue: an existing marker means
    [Resuming a batch](#resuming-a-batch). An issue with no marker also
    fails if a single-issue run of it is under way: step 6's merge-review
-   directory exists for it, or `vrg-git worktree list` shows a worktree on
-   a `feature/<N>-` branch for it. If any issue fails, start nothing:
+   directory exists for it, `vrg-git worktree list` shows a worktree on
+   a `feature/<N>-` branch for it, or it is the last issue of a collapsed
+   batch ([Finding its worktree](#a-batch-left-with-one-issue) finds its
+   batch worktree). If any issue fails, start nothing:
    report every failure and stop.
 2. From the repo root (the main clone), fetch and start the batch, naming
    the issues in order:
@@ -573,7 +577,9 @@ alone never counts.
 
 A batch already exists when `batch-start` printed `"resumed": true`,
 Preflight step 6 found a member's marker, or the batch worktree is
-present. Then:
+present while its issues still hold markers (one whose issues hold none
+is a collapsed batch: see
+[A batch left with one issue](#a-batch-left-with-one-issue)). Then:
 
 1. Read the list and `base_sha` with `vrg-pr-workflow batch-show --issue
    <N>` from the main clone. Work that list, never one held in memory or
@@ -660,13 +666,51 @@ and returns it to its epic as an ordinary open task:
    with, so it is not picked up until the batch has merged.
 5. Record the ruling as §1.7 says.
 
-**A batch left with one issue** is a single-issue run from then on, under
+### A batch left with one issue
+
+A batch left with one issue is a single-issue run from then on, under
 the rules above it,
 [Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch)
 included: `batch-extract` has removed its marker, and the PR is an
 ordinary one, squash-merged. If its merge review has not closed yet,
 rebase it onto `origin/develop` first; if it has, hand it off as it is,
 since a rebase would move the `HEAD` its review judged.
+
+Its work stays in the batch worktree, on the batch branch
+(`.worktrees/issue-<M>-batch-<slug>` on `feature/<M>-batch-<slug>`, `<M>`
+the batch's first issue when it started). Never rename or move them, even
+when `<M>` is an extracted issue. The issue's first commit keeps the batch
+form, a subject ending in a space and `(#<N>)`: a finished issue's folded
+commit already has it, and an issue with no work yet makes its first
+commit that way. That subject is the record every later run finds the
+worktree by.
+
+**Finding its worktree.** No marker names the worktree once the batch has
+collapsed, so find it from git, never from a name held in memory or in a
+prompt. From the main clone, list the worktrees with
+`vrg-git worktree list`, and for each one on a `feature/<M>-batch-<slug>`
+branch check whether that branch carries a commit for the issue:
+
+```bash
+vrg-git log --format=%s origin/develop..feature/<M>-batch-<slug> | grep -E ' \(#<N>\)$'
+```
+
+The one batch worktree that does is the issue's worktree. A member of a
+live batch never reaches this lookup (its marker sends it to
+[Resuming a batch](#resuming-a-batch)), and an extracted issue's commits
+were discarded, so no other batch branch carries the issue. If none does,
+the issue has no worktree; if more than one does, stop and ask the human.
+Use this lookup wherever this skill enters the task's existing worktree
+(Preflight step 6, a re-run of `report-ready`), and in
+[Starting a batch](#starting-a-batch), where a match means a single-issue
+run of the issue is under way.
+
+**Its handoff** is a single issue's:
+[Record the PR metadata](#record-the-pr-metadata-and-hand-off) from the
+batch worktree, with the one `--issue <N>`, and the default linkage. The
+human's `vrg-submit-pr` and `vrg-finalize-pr` take the batch branch as it
+is: one issue makes it an ordinary PR, with one linkage line, and it
+squash-merges.
 
 ### Handing off a batch
 
