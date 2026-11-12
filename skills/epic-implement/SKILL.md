@@ -66,11 +66,37 @@ task by its kind label:
 | `deployment` | `issue-deploy` |
 
 **Dispatch parallel efforts as sub-agents using the
-[Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract)** (the worktree convention). Each sub-agent gets one issue, its
-worktree instruction, and runs the routed skill; it reports its
-`report-ready` outcome back to you for the batch. Per-issue worktrees
+[Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract)** (the worktree convention). Each sub-agent gets one issue (or one batch,
+below), its worktree instruction, and runs the routed skill; it reports its
+`report-ready` outcome back to you for the gate. Per-issue worktrees
 (`.worktrees/issue-<N>-<slug>`) and branches (`feature/<N>-<slug>`) are naturally
 unique, so parallel efforts never collide.
+
+**Batching ready tasks.** You may batch independent ready code tasks of one
+repo into one `issue-implement` run, on your own judgment, under the
+guidelines in `issue-implement`'s
+[What to batch](../issue-implement/SKILL.md#what-to-batch); the tooling
+enforces the hard rules there itself. Batch only tasks on the runnable
+frontier, which are independent of each other by construction, in the plan's
+order. Substantial tasks keep one run and one PR each. Name each batch, with
+its issues in order, in the plan of work you show the human after rebuilding
+the epic's state; there is no separate approval step. Dispatch a batch to one
+sub-agent with the **batch form** of the
+[Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract),
+naming every issue in order; the run starts the batch and works it as
+`issue-implement`'s
+[Batch mode](../issue-implement/SKILL.md#batch-mode--a-list-of-issues) says.
+
+**Check the batch marker before every code-task dispatch**, not only when you
+rebuild state in a new session. In the task repo's main clone, as the
+merge-review lookup below does, reading only, run
+`vrg-pr-workflow batch-show --issue '<owner>/<repo>#<N>'`. Exit 1: the task
+has no marker and is dispatched on its own (or in a new batch). Exit 0: the
+task is a member of a batch and is dispatched only as its whole batch, never
+alone: the list `batch-show` prints, in its order, never a list you hold in
+memory, since an extraction may have shortened it. After a ruling on a batch
+item, run it for the first member still in the batch (an extracted issue has
+no marker). Any other exit is a problem (step 5).
 
 Before dispatching any `issue-validate` or `issue-deploy` run whose task
 has an `operational/<N>/` state directory, show the human its listing for
@@ -158,6 +184,20 @@ present everything needing the human:
   since the task is still being implemented) before merge review posts
   anything, then continues the merge review, which may stop again at the
   next gate;
+- every **batch stop**
+  (`issue-implement`'s [Batch stops](../issue-implement/SKILL.md#batch-stops)),
+  presented with its run's other non-review items. A batch stop means
+  something found while working the batch shows the decision to batch these
+  issues would not have been made had it been known up front; revisiting it
+  is the human's call, never yours. The human **extracts** the stopped
+  issue, **continues** with it, **hands off what is done**, or **unbatches**
+  (extraction for every issue, each redone as its own PR). While the
+  batching guidelines are new, the human also asks why the issues were
+  batched together, to refine the guidelines: answer from what you knew
+  when you batched them. Relay the ruling, with any comment the human
+  approved for an extracted issue, in the dispatch prompt of one new run of
+  the same list (the one `batch-show` prints), as the bullet above does for
+  any non-review ruling;
 - every fix task an operational run **filed without a ruling** on a FAILURE
   outcome, so the human sees it;
 - any problems you got stuck on (see step 5), including a merge review
