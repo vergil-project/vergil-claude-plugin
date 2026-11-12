@@ -182,6 +182,13 @@ PR tooling's refusal. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
 `vrg-scope-change`, before the merge review starts.
 
+Given a list of small same-epic issues, it implements them as one
+**batch**: `vrg-pr-workflow batch-start` checks the batch's hard rules
+and records the list and a fixed base, then each issue is implemented,
+validated, merge-reviewed and folded to one commit in order on one
+branch, and `report-ready` hands them off as one PR. An issue that turns
+out unsuited to the batch stops it for the human, who may extract it.
+
 **When to use.** In the user-agent session, to take an issue from
 implementation through the point where the human opens the PR, in a
 Lima or a cloud session alike. `report-ready` pushes a
