@@ -259,9 +259,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
 | `intake-capture` | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` |
-| `intake-review` | Review the intake queue oldest first in batches of 4 and route each item with `vrg-intake-route` |
-| `planning-review` | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create` |
-| `deferred-review` | Review the deferred queue in batches of 4 — re-check each item's revival conditions and recommend keep, refresh, revive, or drop |
+| `epic-review` | USER agent: review the intake, planning or deferred queue with the human in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions |
 | `steering-audit` | Review the steering and settings files against the Claude config ownership model, one finding at a time; `steering-audit user` reviews the user-level files read-only |
 
 Full reference:

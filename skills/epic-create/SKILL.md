@@ -1,6 +1,6 @@
 ---
 name: epic-create
-description: Use as the DEFAULT entry point for non-trivial work — building a feature, a cross-cutting or multi-PR initiative, or promoting a brainstorm into the epic/task framework. epic-create is the outer workflow that runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds → docs PR, where each design-review round is a fresh review-only subagent and the human decides every finding and every further round. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding whether a spec is an epic or a single task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue ("what's in planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
+description: Use as the DEFAULT entry point for non-trivial work — a feature, a cross-cutting or multi-PR initiative, or a brainstorm promoted into the epic/task framework. It runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → spec pushback rounds → human spec review → plan → plan pushback and alignment rounds → docs PR, each review round a fresh review-only subagent, the human deciding every finding and round. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding if a spec is an epic or one task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue and choose what to plan next ("what's in planning", "what should we plan next", "prioritize the planning queue", "what's in planning worth planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
 ---
 
 # Epic create
@@ -368,8 +368,9 @@ progress comment. A planning issue that must wait on an outside condition is
 **deferred** by moving it to the deferred queue, never by a progress-comment
 state:
 `vrg-intake-route <owner>/<repo>#<M> defer --reason "<why>" --revisit-when "<conditions>"`.
-The tool refuses once an `Epic:` marker is recorded, because the development
-epic already exists and deferring the planning issue would orphan it.
+The tool refuses, for defer and drop alike, while any development epic of
+the item is open, because deferring the planning issue would orphan an epic
+still being built; once every one is closed, both are allowed.
 
 ### Entry points
 
@@ -385,7 +386,7 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 | `epic-create <issue>`, issue is in **planning** | Start it, or **resume** it: read its comments (`vrg-gh issue view <M> --repo <owner>/<repo> --comments`), counting only those by trusted authors, and pick up at the recorded resume point (see "Resuming" below). |
 | `epic-create <issue>`, issue is in **intake** | Pull it into planning first — a one-item intake review: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. |
 | `epic-create <issue>`, issue is in **deferred** | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. Read its latest `Deferred <date>:` / `Revisit when:` comment first; if the conditions are plainly unmet, say so and confirm with the human before reviving it. |
-| `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning` (add `--repo <owner>/<private-repo>` for a self-homed private repo): waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on. |
+| `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning` (add `--repo <owner>/<private-repo>` for a self-homed private repo): waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on, as [Choosing what to plan next](#choosing-what-to-plan-next) says. |
 | `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <queue-home> --title "<idea>" --body-file <tmp>` (`<queue-home>` is `<owner>/.github` for a public target, the private repo itself otherwise). |
 
 - An issue under **any other parent** (an ad-hoc or finite epic) is already
@@ -396,6 +397,28 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
   not a failure**: say so and offer the free-text entry point. Do not retry.
   `vrg-queue planning --json` gives each item's `ref` and `epic` as
   `{owner, repo, number}` objects.
+
+#### Choosing what to plan next
+
+The no-argument summary is where the human chooses what to plan next ("what
+should we plan next", "prioritize the planning queue", "what's in planning
+worth planning"). `epic-review planning` only prunes the queue; the choice is
+made here.
+
+- **Plan an epic only when it will be implemented soon.** A plan left sitting
+  goes stale: by the time anyone builds it, it needs a conceptual rebase onto
+  everything built in the meantime. A pile of planned-but-unbuilt epics is
+  waste, not progress.
+- **Usually one pick, rarely more than two or three.** Pick only what the
+  human will start implementing soon. When they want more, say so plainly,
+  name the staleness cost, and ask whether the extra items should wait in the
+  queue instead. The human decides; you only discourage.
+- An item that is important but not near-term is **not** a pick. It stays in
+  the queue; pruning it (defer, drop) is `epic-review planning`'s job.
+- Talk the choice through with the human: what each candidate is, why it
+  matters now and what blocks it. There is no scoring formula. Then work the
+  chosen item as `epic-create <issue>`; with more than one pick, take them
+  one at a time.
 
 ### Resuming
 
@@ -662,7 +685,8 @@ details, step 9) goes into it.
 - **Cross-org is out of scope:** each org has its own `.github`; never link epics
   or tasks across orgs.
 - Capturing an uncurated idea is `intake-capture`; routing intake items
-  (including into planning) is `intake-review`.
+  (including into planning) is `epic-review intake`, and pruning the
+  planning queue is `epic-review planning`.
 - **Planning items are not PR-workable.** `issue-implement`, `vrg-pr-workflow
   report-ready`, and `vrg-submit-pr` refuse an issue whose parent is the
   planning (or intake) epic. The planning issue is closed, never implemented;
