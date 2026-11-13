@@ -4531,7 +4531,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#epic-implement">epic-implement</a></td>
-<td>USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit</td>
+<td>USER agent: drive an epic's tasks, or in its <code>adhoc</code> mode the ad-hoc tasks (org-wide or one repo), to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4660,9 +4660,24 @@ what is done, unbatch) is presented at its gate like any other non-review
 item. See its
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier">Work the runnable frontier</a>
 section.</p>
+<p>Its <strong><code>adhoc</code> mode</strong> works the ad-hoc tasks with the same dispatch, gate
+and batching rules: org-wide with <code>/vergil:epic-implement adhoc</code>, or for
+one repo with <code>adhoc --repo &lt;owner&gt;/&lt;repo&gt;</code> or that repo's ad-hoc epic ref
+(a self-homed private repo's tasks only that way). It collects the tasks
+with <code>vrg-queue adhoc</code>, summarizes them by repo with the in-flight tasks
+apart (a handed-off one is left alone; one to resume goes through the
+development path's re-entry steps), proposes a strategy that judges overlap
+per repo and names what runs at the same time, takes one confirmation, then
+dispatches and gates as the development path does. Its records go on the
+ad-hoc epic of the repo concerned. It reads no plan and drafts no
+retrospective: ad-hoc epics have no plan and never close. Given an intake,
+planning or deferred queue it refuses and points to <code>epic-review</code>; given an
+issue that is not an epic it refuses. Added in epic
+<a href="https://github.com/vergil-project/.github/issues/1077">vergil-project/.github#1077</a>.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
-"pick up epic X where we left off".</p>
+"pick up epic X where we left off" — or on the ad-hoc tasks: "work the
+ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue".</p>
 <p><strong>Boundaries.</strong> It never opens PRs, never merges, and never runs <code>pr-watch</code>
 (a human-triggered exception). It <strong>drafts</strong> the terminal retrospective via
 <code>epic-retrospective</code> but never submits or merges its PR — the retrospective's
