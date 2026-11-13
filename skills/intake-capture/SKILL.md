@@ -15,7 +15,7 @@ into an **intake issue** with near-zero friction, so nothing is dropped.
 An intake item is any issue whose parent is an **intake epic** (`Epic (intake):
 <name>`, labelled `epic` + `intake`). Its membership in the intake queue *is* its
 state — there is no kind label and no category to choose. The item waits there
-until `intake-review` routes it (drop, defer to the deferred queue, one-off,
+until `epic-review intake` routes it (drop, defer to the deferred queue, one-off,
 split, or planning).
 
 ## When to use
@@ -47,7 +47,7 @@ Fire whenever the human wants to record something without stopping to plan it:
    first use). Extra labels are optional via `--label`.
 4. **Report** the new issue URL (the tool prints `Created <url> (intake, under
    <epic>).`) and stop. Do **not** plan, scope, or start work — that is what
-   `intake-review` and `epic-create` are for.
+   `epic-review intake` and `epic-create` are for.
 
 ## Failure handling
 

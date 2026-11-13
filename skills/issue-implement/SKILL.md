@@ -123,19 +123,20 @@ drafts it at the gate.
    buildable yet. Tell the human, mirroring the PR tooling's refusal:
 
    - intake: `--issue (<ref>) is in the intake queue; it is not buildable until
-     it is routed. Route it with intake-review first.`
+     it is routed. Route it with epic-review intake first.`
    - planning: `--issue (<ref>) is in the planning queue; it is not buildable
      until its epic is expanded. Expand it with epic-create first.`
    - deferred: `--issue (<ref>) is in the deferred queue; it is deferred until
-     its revival conditions are met. Revive it with deferred-review first.`
+     its revival conditions are met. Revive it with epic-review deferred first.`
 
    This is the upstream half of the refusal: `vrg-pr-workflow report-ready` and
    `vrg-submit-pr` refuse the same issues by the same native-parent test, so
    implementing one would strand the work with no path to a PR. A deferred item
    is refused here, before any implementation work starts, not at
-   report-ready. Routing it out of the queue (`intake-review` → one-off or
-   split; `epic-create` for planning; `deferred-review` → revive for deferred)
-   is the only way to lift the refusal. If the parent cannot be read,
+   report-ready. Routing it out of the queue (`epic-review intake` → one-off
+   or split; `epic-create` for planning, or `epic-review planning` → one-off
+   for an item small enough for one PR; `epic-review deferred` → revive for
+   deferred) is the only way to lift the refusal. If the parent cannot be read,
    say so and stop rather than assume it is not queued.
 5. **Opened by a trusted author.** Before any work, check that the issue was
    opened by a trusted author
