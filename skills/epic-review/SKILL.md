@@ -80,7 +80,7 @@ there is nothing to resume.
 Given anything that is not a queue, print the one line and stop. Do nothing
 else: no queue read, no comment, no route.
 
-- An ad-hoc epic: `<ref> is an ad-hoc epic; it holds placed work, not a queue.`
+- An ad-hoc epic: `<ref> is an ad-hoc epic; it holds placed work, not a queue. Work it with /vergil:epic-implement <ref>, or every repo's with /vergil:epic-implement adhoc.`
 - A development epic: `<ref> is a development epic; it is worked with /vergil:epic-implement <ref>.`
 - Not an epic: `<ref> is not an epic; review a queue with /vergil:epic-review intake, planning or deferred.`
 

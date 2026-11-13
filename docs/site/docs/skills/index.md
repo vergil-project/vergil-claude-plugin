@@ -55,7 +55,7 @@ unattended runner, `paad:paad-delegate`
 | Skill | Purpose | Status |
 |---|---|---|
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks | Current (2.1) |
-| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
+| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues becomes one batch PR | Current (2.1) |
 | [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
@@ -146,9 +146,25 @@ item. See its
 [Work the runnable frontier](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier)
 section.
 
+Its **`adhoc` mode** works the ad-hoc tasks with the same dispatch, gate
+and batching rules: org-wide with `/vergil:epic-implement adhoc`, or for
+one repo with `adhoc --repo <owner>/<repo>` or that repo's ad-hoc epic ref
+(a self-homed private repo's tasks only that way). It collects the tasks
+with `vrg-queue adhoc`, summarizes them by repo with the in-flight tasks
+apart (a handed-off one is left alone; one to resume goes through the
+development path's re-entry steps), proposes a strategy that judges overlap
+per repo and names what runs at the same time, takes one confirmation, then
+dispatches and gates as the development path does. Its records go on the
+ad-hoc epic of the repo concerned. It reads no plan and drafts no
+retrospective: ad-hoc epics have no plan and never close. Given an intake,
+planning or deferred queue it refuses and points to `epic-review`; given an
+issue that is not an epic it refuses. Added in epic
+[vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
+
 **When to use.** In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
-"pick up epic X where we left off".
+"pick up epic X where we left off" — or on the ad-hoc tasks: "work the
+ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue".
 
 **Boundaries.** It never opens PRs, never merges, and never runs `pr-watch`
 (a human-triggered exception). It **drafts** the terminal retrospective via
