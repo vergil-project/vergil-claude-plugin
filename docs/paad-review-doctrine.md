@@ -436,9 +436,9 @@ operational need, an untracked problem), present it and file it only on
 the human's approving ruling, in the form approved. The only exemptions:
 
 - issues the human asked for or approved directly: through planning
-  (`epic-create`), capture (`intake-capture`), the queue reviews
-  (`intake-review`, `deferred-review`) or a ruling, including a mode 1
-  ruling and the neutral issue `vrg-security-record` pairs with an advisory;
+  (`epic-create`), capture (`intake-capture`), the queue review
+  (`epic-review`) or a ruling, including a mode 1 ruling and the neutral
+  issue `vrg-security-record` pairs with an advisory;
 - the per-repo doc tasks that the documentation-review sweep spawns;
 - the fix task `issue-validate` or `issue-deploy` files for a FAILURE
   outcome, before the result comment records it. Screen the failure

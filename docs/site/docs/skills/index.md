@@ -65,9 +65,7 @@ unattended runner, `paad:paad-delegate`
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
-| [intake-review](#intake-review) | Review the intake queue oldest first in batches of 4 and route each item (drop, defer to the deferred queue, one-off, split, planning) with `vrg-intake-route` | Current (2.1) |
-| [deferred-review](#deferred-review) | Review the deferred queue in batches of 4 — re-check each item's revival conditions against the current state and recommend keep, refresh, revive, or drop | Current (2.1) |
-| [planning-review](#planning-review) | USER agent: rank the planning queue with the human and pick what to expand next with `epic-create`; defer, drop, or leave the rest with `vrg-intake-route`. Core rule: plan only what you mean to implement soon | Current (2.1) |
+| [epic-review](#epic-review) | USER agent: review the intake, planning or deferred queue in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions. Refuses an ad-hoc or development epic | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
 
 The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
@@ -93,7 +91,9 @@ Every run is tracked in a **planning issue** (an open
 child of the planning epic): it is entered from a planning issue, an intake
 issue (pulled into planning), a deferred issue (pulled back into planning after
 its `Revisit when:` conditions are checked), a free-text idea (a new planning
-issue), or with no argument (a `vrg-queue planning` summary). It labels the item `in-progress`,
+issue), or with no argument (a `vrg-queue planning` summary, where the human
+chooses what to plan next: plan an epic only when it will be implemented soon,
+usually one pick at a time). It labels the item `in-progress`,
 records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
 markers, and closes the planning issue once the epic is fully expanded (docs PR
 merged, tasks filed). For a `security` planning issue, it hands each advisory
@@ -104,8 +104,9 @@ every advisory is handed off (see
 [Security items in planning](https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning)).
 
 **When to use.** At the start of significant work — "let's build X", "start an
-epic for this" — or to resume a paused planning session. If the work collapses
-to a single PR, it is a task, not an epic.
+epic for this" — to resume a paused planning session, or to choose what to
+plan next ("what should we plan next", "prioritize the planning queue"). If
+the work collapses to a single PR, it is a task, not an epic.
 
 **Status.** Current (Vergil 2.1).
 
@@ -188,8 +189,8 @@ deletes once `report-ready` succeeds.
 `report-ready` also pushes the branch to origin, so there is no separate
 push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
-planning or deferred epic (route it with `intake-review`, expand it with
-`epic-create`, or revive it with `deferred-review` first), mirroring the
+planning or deferred epic (route it with `epic-review intake`, expand it with
+`epic-create`, or revive it with `epic-review deferred` first), mirroring the
 PR tooling's refusal. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
 `vrg-scope-change`, before the merge review starts.
@@ -370,80 +371,64 @@ or via voice.
 
 **Status.** Current (Vergil 2.1).
 
-## intake-review
+## epic-review
 
-**What it does.** Reviews the intake queue and routes every item into the
-epic/task model. It lists the queue with `vrg-queue intake` (oldest first),
-checks each item's current state (an overlapping or closed issue, a bug that is
-already fixed), and presents batches of 4 with one paragraph per item and a
-recommended route. The human confirms each batch in one reply, and the agent
-applies it with `vrg-intake-route`: **drop**, **defer** (move the item to the
-deferred queue with a required reason and revival conditions, for
-`deferred-review` to bring back), **one-off** (move into
-a repo's ad-hoc or finite epic, transferring the issue or recreating it when
-GitHub refuses the transfer), **split** (into tasks made with
-`vrg-issue-create`), or **planning** (hand to `epic-create`). The agent closes
-dropped and split items itself. Leaving an item in intake for the next review
-is also an outcome, for items that will be ready within days. When a ruling
-narrows or widens a routed item's scope, the agent drafts the change with
-`vrg-ruling draft-scope` and the human posts it as themselves with
-`vrg-scope-change`. Renamed from the
-triage review skill in the same epic.
+**What it does.** Reviews one of the three queues of the epic/task model,
+intake, planning or deferred, putting each item in the right state and
+place with the human. It replaces the three per-queue review skills
+with one shared procedure: the USER-agent check, collect
+the queue with `vrg-queue <mode>` (a missing queue epic is an empty queue),
+check each item's current state and present batches of 4 with one paragraph
+and one recommended outcome per item, take one confirmation per batch, and
+apply it with `vrg-intake-route`. The agent closes dropped and split items
+itself. A refusal from the tool is reported and the human asked for another
+outcome, never worked around. When a ruling narrows or widens a routed
+one-off's scope, the agent drafts the change with `vrg-ruling draft-scope`
+and the human posts it as themselves with `vrg-scope-change`. Each mode ends
+with its tallies.
 
-**When to use.** For the periodic intake pass — "review intake", "groom the
-backlog", "process the intake queue", "what's in intake" (and the older
-"review triage" phrasings).
+The modes differ only in order, check and outcomes:
 
-**Status.** Current (Vergil 2.1).
+- **intake** (oldest first; for a bug, is it already fixed?): **drop**,
+  **defer** (to the deferred queue, with a required reason and revival
+  conditions), **one-off** (into a repo's ad-hoc or finite epic,
+  transferring the issue or recreating it when GitHub refuses the transfer),
+  **split** (into tasks made with `vrg-issue-create`), **planning**, or
+  **leave** for the next review.
+- **planning** (oldest first; is it still valid and still in need of a full
+  epic, and what blocks it?) **prunes the queue and never picks what to plan
+  next**: **leave** (most items), **defer**, **drop**, or, unusually,
+  **one-off** for an item small enough for one PR or whose scope can be cut
+  until it is. Items `epic-create` is expanding (`in-progress`) or has
+  finished (`ready-to-close`) are shown with their latest note and offered
+  only leave; the review never resumes them and never offers them one-off.
+  It ends with the surviving queue sorted oldest first. Choosing what to
+  plan is the human's act, through [epic-create](#epic-create)'s
+  no-argument summary.
+- **deferred** (least recently deferred first) **actually checks** every
+  `Revisit when:` condition against its source (release pages, issue and PR
+  states, dates, upstream status) and reports what it checked: **keep**,
+  **refresh** (re-defer in place), **revive** (to intake, planning or a
+  one-off, guided by the `Deferred from:` line), or **drop**. A condition it
+  cannot verify is reported as such, with a keep recommendation.
 
-## deferred-review
+Drop is an outcome in every mode. A planning item's drop or defer is refused
+only while one of its development epics is open. A review only places items:
+it never implements one or starts `epic-create`. Given an ad-hoc epic or a
+development epic, it prints a one-line refusal pointing to the right command
+and stops; with no argument, it shows the three queue counts and asks which
+to review. Added in epic
+[vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
-**What it does.** Reviews the deferred queue, where evaluated items wait for
-their revival conditions. It lists the queue with `vrg-queue deferred` (least
-recently deferred first), rereads each item's latest deferral comment, and
-**actually checks** its `Revisit when:` conditions against the world — release
-pages, issue and PR states, dates, upstream status. It presents batches of 4,
-each item with what was checked, what was found, and one recommended outcome:
-**keep** (no change), **refresh** (re-defer in place with an updated reason and
-conditions), **revive** (to intake, planning, or a one-off, guided by the
-`Deferred from:` line), or **drop**. The human confirms each batch in one
-reply, and the agent applies it with `vrg-intake-route`. A condition it cannot
-verify is reported as such, with a keep recommendation. When a revival to
-a one-off changes the item's scope, the agent drafts the change with
-`vrg-ruling draft-scope` and the human posts it as themselves with
-`vrg-scope-change`. Added in epic
-[vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
+**When to use.** For the periodic pass of any queue: "review intake", "groom
+the backlog", "process the intake queue", "what's in intake" and the older
+"review triage" phrasings (intake mode); "review planning", "clean up the
+planning queue" (planning mode); "review deferred", "what's deferred",
+"revisit the backlog" (deferred mode). To choose what to plan next, use
+`epic-create` with no argument.
 
-**When to use.** For the periodic deferred pass — "review deferred", "what's
-deferred", "revisit the backlog", "process the deferred queue".
-
-**Status.** Current (Vergil 2.1). Requires the deferred-queue tooling
-(`vrg-queue deferred`, and `vrg-intake-route` with `defer --revisit-when` and
-the `intake` route) at runtime.
-
-## planning-review
-
-**What it does.** Decides, with the human, **what to plan next**. It lists the
-planning queue with `vrg-queue planning`, surfaces `in-progress` items first
-(each with its latest progress note, offering to resume it with `epic-create`
-or defer it), then ranks the waiting items by priority and importance in
-conversation with the human. There is no scoring formula. Each item gets one
-outcome: **pick** (hand to `epic-create <ref>`), **defer**
-(`vrg-intake-route <ref> defer --reason … --revisit-when …`, refused when an
-`Epic:` marker is recorded), **drop** (`vrg-intake-route <ref> drop --reason …`),
-or **leave** (for items expected to be ready within days or a week).
-
-Its core rule is the planning doctrine: **plan an epic only when you mean to
-implement it soon.** A plan left sitting goes stale and needs a conceptual
-rebase onto everything built since, so the skill discourages picking more than
-near-term capacity allows.
-
-**When to use.** "review planning", "what should we plan next", "prioritize the
-planning queue". To work one known item, go straight to `epic-create <ref>`.
-
-**Status.** Current (Vergil 2.1), added in epic
-[vergil-project/.github#508](https://github.com/vergil-project/.github/issues/508).
-It starts simple and is expected to evolve with use.
+**Status.** Current (Vergil 2.1). The planning mode's one-off route needs
+the `vrg-intake-route` release that allows one-off from planning.
 
 ## steering-audit
 
