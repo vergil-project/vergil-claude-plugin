@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.67] - 2026-11-13
+
+### Features
+
+- add epic-review and retire the three queue review skills (#1048)
+
 ## [2.1.66] - 2026-11-12
 
 ### Documentation
