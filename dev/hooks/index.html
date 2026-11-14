@@ -4232,6 +4232,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#guard-merge-review-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        guard-merge-review-results
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4254,6 +4265,34 @@
     <span class="md-ellipsis">
       
         detect-deprecation-warnings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subagentstop-hooks-vergilmerge-reviewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubagentStop Hooks — vergil:merge-reviewer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SubagentStop Hooks — vergil:merge-reviewer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capture-merge-review-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capture-merge-review-result
       
     </span>
   </a>
@@ -4625,6 +4664,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#guard-merge-review-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        guard-merge-review-results
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4647,6 +4697,34 @@
     <span class="md-ellipsis">
       
         detect-deprecation-warnings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subagentstop-hooks-vergilmerge-reviewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubagentStop Hooks — vergil:merge-reviewer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SubagentStop Hooks — vergil:merge-reviewer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#capture-merge-review-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        capture-merge-review-result
       
     </span>
   </a>
@@ -4766,7 +4844,8 @@
 
 <h1 id="hooks">Hooks<a class="headerlink" href="#hooks" title="Permanent link">&para;</a></h1>
 <p>The plugin provides PreToolUse and PostToolUse hooks that enforce
-workflow guardrails mechanically. These replace duplicated documentation
+workflow guardrails mechanically, and one SubagentStop hook that stores
+the merge reviewer's reply. These replace duplicated documentation
 rules across all consuming repos — rules that humans and agents
 alike routinely drift from when enforcement is prose-only.</p>
 <blockquote>
@@ -4794,6 +4873,9 @@ write whose path <code>python3</code> cannot normalise. Detection is a pure-shel
 bash session's CWD looking for the marker, terminating at a
 <code>.git</code> boundary or the filesystem root. No <code>git</code> subprocess; the
 gate's overhead is a handful of <code>stat()</code> calls.</p>
+<p>The SubagentStop hook <code>capture-merge-review-result</code> is not gated
+either: it acts only on a <code>vergil:merge-reviewer</code> stop whose request file
+lies in a task's private directory, which is itself in a managed repo.</p>
 <p><code>block-heredoc</code> is intentionally <strong>not</strong> gated — heredoc syntax in
 CLI invocations breaks unpredictably regardless of which repo
 you're in, so the rule is universal.</p>
@@ -4820,7 +4902,8 @@ rather than letting it through. That covers empty stdin, input that
 is not valid JSON or is not a single JSON object, a missing <code>jq</code>,
 and a payload without the hook's required field
 (<code>tool_input.command</code> for the Bash hooks, <code>tool_input.file_path</code> for
-<code>block-worktree-bypass-write</code>). The hook exits with code 2, the
+<code>block-worktree-bypass-write</code>, <code>tool_input.file_path</code> or
+<code>tool_input.notebook_path</code> for <code>guard-merge-review-results</code>). The hook exits with code 2, the
 PreToolUse blocking exit code, so Claude Code refuses the call and
 shows the agent a stderr message naming the problem:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>block-agent-merge.sh: blocked: the hook input is not valid JSON. This hook cannot check the tool call, so it fails closed and refuses it. This is a hook-protocol problem, not a problem with the command itself.
@@ -4841,7 +4924,9 @@ case keeps its JSON deny. The shared reader is
 See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/776">issue #776</a>.</p>
 <p>The PostToolUse hook <code>detect-deprecation-warnings</code> is advisory and is
 not changed: a PostToolUse hook runs after the tool call, so it has
-nothing to refuse.</p>
+nothing to refuse. The SubagentStop hook <code>capture-merge-review-result</code>
+has no call to refuse either: on any problem it stores nothing and exits
+1 (see <a href="#capture-merge-review-result">its entry</a>).</p>
 <h2 id="pretooluse-hooks-bash">PreToolUse Hooks — Bash<a class="headerlink" href="#pretooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="block-raw-git-commit">block-raw-git-commit<a class="headerlink" href="#block-raw-git-commit" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that call <code>git commit</code> (or
@@ -5038,6 +5123,24 @@ cannot be parsed → blocked with exit 2); fail-open outside it.</p>
 <p><strong>Alternative.</strong> Write audit findings to
 <code>.vergil/audit-feedback.yml</code>; use <code>build/</code> for scratch. Tests:
 <code>hooks/tests/guard-audit-writes.test.sh</code>.</p>
+<h3 id="guard-merge-review-results">guard-merge-review-results<a class="headerlink" href="#guard-merge-review-results" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Denies Write, Edit and NotebookEdit on a stored merge-review
+result, <code>result-&lt;step&gt;.md</code>, its publishable copy, <code>reply-&lt;step&gt;.md</code>, or
+its capture record, <code>capture-&lt;step&gt;.json</code>, in any task's private directory
+(<code>build/.vergil-state/issue-implement/&lt;N&gt;/merge-review/</code>), for every
+identity. The path is matched as given and, with <code>python3</code>, with every
+symlink resolved.</p>
+<p><strong>Why.</strong> The review record must be kept exactly as the reviewer returned
+it. Only <a href="#capture-merge-review-result"><code>capture-merge-review-result</code></a>
+writes these files; an agent that retypes a result can shorten its prose
+while keeping its result block, which <code>vrg-merge-review-check</code> cannot
+see (<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1065">#1065</a>).</p>
+<p><strong>Soft gate.</strong> Bash-command writes are not matched. The capture record's
+SHA-256 is what lets a check catch an edit made any other way.</p>
+<p><strong>Alternative.</strong> Read the result. For a new one, rebuild the step's
+request and dispatch the reviewer again, as the
+<a href="../skills/#merge-review">merge-review skill</a> says. Tests:
+<code>hooks/tests/guard-merge-review-results.test.sh</code>.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="detect-deprecation-warnings">detect-deprecation-warnings<a class="headerlink" href="#detect-deprecation-warnings" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Scans test output and command output for deprecation
@@ -5050,6 +5153,46 @@ while the context is fresh.</p>
 <p><strong>Alternative.</strong> Triage the warning via the <code>deprecation-triage</code>
 skill — either fix it now or capture it in a tracking issue with
 clear resolution criteria.</p>
+<h2 id="subagentstop-hooks-vergilmerge-reviewer">SubagentStop Hooks — vergil:merge-reviewer<a class="headerlink" href="#subagentstop-hooks-vergilmerge-reviewer" title="Permanent link">&para;</a></h2>
+<h3 id="capture-merge-review-result">capture-merge-review-result<a class="headerlink" href="#capture-merge-review-result" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> When a <code>vergil:merge-reviewer</code> subagent stops, stores its last
+message (<code>last_assistant_message</code> in the hook input), byte for byte, as
+<code>result-&lt;step&gt;.md</code> next to the request it answered, and writes
+<code>capture-&lt;step&gt;.json</code> beside it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"merge-review-capture/1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"step"</span><span class="p">:</span><span class="w"> </span><span class="s2">"review"</span><span class="p">,</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w"> </span><span class="nt">"request_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;the request's request_id&gt;"</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w"> </span><span class="nt">"result_sha256"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;SHA-256 of result-review.md&gt;"</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w"> </span><span class="nt">"agent_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;the reviewer subagent's ID&gt;"</span><span class="p">}</span>
+</code></pre></div>
+<p>The reviewer's whole prompt is the absolute path of its request file, so
+the hook reads that path from the first user message of the reviewer's
+transcript (<code>agent_transcript_path</code>). It writes only when the path is a
+<code>request-&lt;step&gt;.json</code> in a task's private directory, the request's <code>step</code>
+matches its name, and <code>vrg-merge-review-request --ensure-dir</code>, run for the
+request's issue from its worktree, prints that same directory.</p>
+<p>It also writes <code>reply-&lt;step&gt;.md</code>, the publishable copy of the same bytes:
+the reply inside a fenced block whose backtick fence is longer than any
+backtick run in the reply, in a collapsed <code>&lt;details&gt;</code> section whose summary
+gives the reply's SHA-256 and size. A reply that does not end in a newline
+gets one before the closing fence, and the summary says so. The skill
+appends this copy unread to the step's public comment when no security
+finding is in the result or, for a check, in an earlier step, so the full reply survives the private directory's
+deletion at report-ready.</p>
+<p>All three files are written mode 600 and moved into place, the capture
+record last.</p>
+<p><strong>Why.</strong> The merge-review skill used to copy the reply out of the
+subagent's output itself. A retyped reply could lose prose while keeping
+its result block, and <code>vrg-merge-review-check</code> checks only the block
+(<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1065">#1065</a>).
+The reviewer keeps its read-only tools (Read, Glob, Grep); the hook does
+the writing.</p>
+<p><strong>Failure mode.</strong> Any other subagent type is a no-op. On any problem the
+hook stores nothing, prints the reason on stderr and exits 1, a
+non-blocking error: exit 2 would keep the reviewer running and change its
+last message. The skill deletes the step's result before each dispatch
+and confirms the capture after it, so a failed capture ends the run with
+<code>error</code> rather than going unseen.</p>
+<p>Tests: <code>hooks/tests/capture-merge-review-result.test.sh</code>.</p>
 <h2 id="hooks-deliberately-not-provided">Hooks deliberately not provided<a class="headerlink" href="#hooks-deliberately-not-provided" title="Permanent link">&para;</a></h2>
 <h3 id="per-edit-linting-validation">Per-edit linting / validation<a class="headerlink" href="#per-edit-linting-validation" title="Permanent link">&para;</a></h3>
 <p>The plugin does <strong>not</strong> ship a <code>PostToolUse</code> Write|Edit hook that
@@ -5109,13 +5252,13 @@ allow, deny, or annotate the action.</p>
 <h3 id="pretooluse-response">PreToolUse response<a class="headerlink" href="#pretooluse-response" title="Permanent link">&para;</a></h3>
 <p>A PreToolUse hook can deny an action by writing JSON to stdout and
 exiting 0:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">"permissionDecision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deny"</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">"permissionDecisionReason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the action is being denied."</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">"permissionDecision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deny"</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">"permissionDecisionReason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the action is being denied."</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
 </code></pre></div>
 <p>Exit 0 with no JSON = allow. Exit 2 = block: Claude Code refuses the
 call and feeds stderr to the agent. The plugin uses exit 2 for input
@@ -5124,12 +5267,12 @@ it cannot parse (see
 other non-zero exit is a non-blocking error, and the call goes ahead.</p>
 <h3 id="posttooluse-response">PostToolUse response<a class="headerlink" href="#posttooluse-response" title="Permanent link">&para;</a></h3>
 <p>A PostToolUse hook can inject context by writing JSON and exiting 0:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PostToolUse"</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PostToolUse"</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">}</span>
 </code></pre></div>
 <p>PostToolUse hooks cannot un-do the tool action; they can only add
 context the agent sees in its next turn. Exit 2 is a fatal hook
@@ -5137,10 +5280,10 @@ error — useful when validation cannot run and the absence of
 validation should be visible.</p>
 <h3 id="stop-response">Stop response<a class="headerlink" href="#stop-response" title="Permanent link">&para;</a></h3>
 <p>A Stop hook can block session exit by returning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"decision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block"</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the session cannot exit."</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"decision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block"</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the session cannot exit."</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">}</span>
 </code></pre></div>
 
 
