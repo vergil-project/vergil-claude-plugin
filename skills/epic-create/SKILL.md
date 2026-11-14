@@ -175,6 +175,34 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
+**Fixture runs — seed one when the change reaches the fixtures.** When an epic
+changes language support, container images, shared CI workflows or release
+tooling, its plan seeds a **fixture run** for each fixture whose language or
+shape the change affects. A fixture run is the change → release → validate trio
+on one language fixture repo, filed with the `fixture-run` skill, which holds the
+list of fixtures:
+
+```bash
+fixture-run <epic-ref> <fixture>[,<fixture>…] --validates "<what ships it and its version>" \
+  --after <the deployment or release task that ships the change> [--after …]
+```
+
+- **Blocked by the release, never only by the code task.** The run's change
+  task is blocked by the deployment or release task that ships the change to the
+  fixtures (a vergil-tooling release, a vergil-actions tag, a container image
+  publish), passed as `--after`. A fixture runs released Vergil, so a run after
+  the merge alone would test the previous release.
+- **Which fixtures.** Those whose language or shape the change affects; a change
+  that affects every language seeds all four.
+- **Approval.** The plan's seeding is the approval `fixture-run` files under.
+  Name each run in the plan, with its fixtures, `--validates` and `--after`, and
+  file it once its `--after` tasks exist.
+
+The rule says *which fixtures* and *when*. It does not replace the epic's other
+validation. Design: epic
+[vergil-project/.github#1091](https://github.com/vergil-project/.github/issues/1091),
+spec §6.5.
+
 ## The interaction doctrine
 
 `epic-create`'s core is a front-loaded analytical pipeline. Getting the
