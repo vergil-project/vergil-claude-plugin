@@ -4621,9 +4621,11 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 </tbody>
 </table>
-<p>The three <code>epic-*</code> skills form the <strong>epic lifecycle</strong>: <code>epic-create</code> (run once) →
-<code>epic-implement</code> (run N times) → <code>epic-retrospective</code> (run once — the terminal
-gate that closes the epic).</p>
+<p>Three of the <code>epic-*</code> skills form the <strong>epic lifecycle</strong>: <code>epic-create</code> (run
+once) → <code>epic-implement</code> (run N times) → <code>epic-retrospective</code> (run once — the
+terminal gate that closes the epic). The fourth, <code>epic-review</code>, works the
+queues upstream of it: it places intake, planning and deferred items, and never
+implements one or starts <code>epic-create</code>.</p>
 <h2 id="epic-create">epic-create<a class="headerlink" href="#epic-create" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>entry point</strong> for non-trivial
 work. It opens into brainstorming, runs the front-loaded pipeline
