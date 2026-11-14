@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # enforce-host-container-split.sh — PreToolUse hook for Bash.
-# Enforces the host-vs-container tool routing rule from #96.
-#
-# - DENY: wrapping a host-only tool in vrg-container-run --
-# - WARN: bare-invoking a container-only tool without vrg-container-run --
+# Warns when a container-only tool is invoked bare on the host (#96,
+# #993). The wrapped form, vrg-container-run -- <tool>, passes
+# silently, and so does a host tool wrapped in vrg-container-run: it
+# fails on its own in the container, and the full vrg-validate before
+# handoff is the backstop.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
 # vergil.toml.
@@ -30,27 +31,15 @@ hook_input_command
 command="$HOOK_COMMAND"
 stripped=$(strip_quoted_segments "$command")
 
-# Check for host tools wrapped in vrg-container-run -- (DENY)
-for tool in "${HOST_TOOLS[@]}"; do
-  if echo "$stripped" | grep -qE "(^|[;&|({]\s*)vrg-container-run\s+--\s+$tool(\s|$)"; then
-    jq -n --arg tool "$tool" '{
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: ("\($tool) is a host command — invoke directly without vrg-container-run wrapping. See issue #96: https://github.com/vergil-project/vergil-claude-plugin/issues/96")
-      }
-    }'
-    exit 0
-  fi
-done
-
-# Check for container tools invoked directly (WARN)
+# A container tool in command position (at the start or after a
+# separator) is a bare host call. Wrapped in vrg-container-run --, the
+# tool follows "-- ", not a separator, so it does not match.
 for tool in "${CONTAINER_TOOLS[@]}"; do
-  if echo "$stripped" | grep -qE "(^|[;&|({]\s*)(vrg-container-run\s+--\s+)?$tool(\s|$)"; then
+  if echo "$stripped" | grep -qE "(^|[;&|({]\s*)$tool(\s|$)"; then
     jq -n --arg tool "$tool" '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        additionalContext: ("WARNING: \($tool) should not be invoked directly. Use vrg-container-run -- vrg-validate for validation — it handles tool routing internally. See issue #168: https://github.com/vergil-project/vergil-claude-plugin/issues/168")
+        additionalContext: ("WARNING: \($tool) runs in the dev container: use vrg-container-run -- \($tool) … for an ad hoc run; a full vrg-container-run -- vrg-validate is still required before handoff.")
       }
     }'
     exit 0

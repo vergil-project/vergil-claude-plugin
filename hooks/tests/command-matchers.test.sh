@@ -75,9 +75,11 @@ T_NAME=(
   "agent-merge: gh pr review --approve"
   "agent-merge: quoted body prose (#450 shape)"
   "agent-merge: gh api PUT merge"
-  "host-split: wrapped host tool denied"
+  "host-split: wrapped host tool allowed"
   "host-split: quoted body mentioning wrapped host tool (#450 shape)"
   "host-split: bare container tool warns"
+  "host-split: wrapped container tool allowed"
+  "host-split: bare container tool after a separator warns"
   "host-split: quoted body mentioning container tool (#450 shape)"
   "deprecation: pytest with warning in output"
   "deprecation: quoted body mentioning pytest (#450 shape)"
@@ -126,6 +128,8 @@ T_SCRIPT=(
   "block-agent-merge.sh"
   "block-agent-merge.sh"
   "block-agent-merge.sh"
+  "enforce-host-container-split.sh"
+  "enforce-host-container-split.sh"
   "enforce-host-container-split.sh"
   "enforce-host-container-split.sh"
   "enforce-host-container-split.sh"
@@ -180,6 +184,8 @@ T_COMMAND=(
   'vrg-container-run -- git status'
   "vrg-commit --type docs --scope x --message y --body \"never do this:${NL}vrg-container-run -- gh pr list\""
   'shellcheck hooks/scripts/lib/command-match.sh'
+  'vrg-container-run -- shellcheck hooks/scripts/lib/command-match.sh'
+  'vrg-container-run -- ruff check . && ruff format .'
   "vrg-commit --type docs --scope x --message y --body \"container tools:${NL}shellcheck runs in the container\""
   'pytest -q'
   "vrg-commit --type docs --scope x --message y --body \"test notes:${NL}pytest emitted warnings\""
@@ -212,7 +218,7 @@ T_CWD=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
   "" "" "" ""
-  "" "" "" ""
+  "" "" "" "" "" ""
   "" "" ""
   "" "" ""
   "SCRATCH" "SCRATCH" "SCRATCH"
@@ -226,7 +232,7 @@ T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
   "" "" ""
   "" "" "" ""
-  "" "" "" ""
+  "" "" "" "" "" ""
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
   "2 passed"
@@ -260,7 +266,9 @@ T_EXPECT=(
   "deny"
   "allow"
   "deny"
-  "deny"
+  "allow"
+  "allow"
+  "context"
   "allow"
   "context"
   "allow"
@@ -343,10 +351,10 @@ while [ "$i" -lt "$total" ]; do
   i=$((i + 1))
 done
 
-# List coverage for host-container-tools.sh (#936): every HOST_TOOLS
-# entry is denied when wrapped in vrg-container-run, every
-# CONTAINER_TOOLS entry warns when bare, and no entry carries the
-# retired pre-vrg CLI prefix (the old name of vergil-tooling CLIs).
+# List coverage for host-container-tools.sh (#936, #993): every
+# CONTAINER_TOOLS entry warns when bare and passes silently when
+# wrapped in vrg-container-run, and no entry carries the retired
+# pre-vrg CLI prefix (the old name of vergil-tooling CLIs).
 # shellcheck source=/dev/null
 source "$SCRIPTS/lib/host-container-tools.sh"
 
@@ -375,18 +383,16 @@ split_case() {
   fi
 }
 
-for tool in "${HOST_TOOLS[@]}"; do
-  split_case "host-split list: wrapped $tool is denied" \
-    "vrg-container-run -- $tool --help" deny
-done
 for tool in "${CONTAINER_TOOLS[@]}"; do
   split_case "host-split list: bare $tool warns" "$tool --version" context
+  split_case "host-split list: wrapped $tool is allowed" \
+    "vrg-container-run -- $tool --version" allow
 done
 
 total=$((total + 1))
 retired=""
 old_prefix="st"
-for tool in "${HOST_TOOLS[@]}" "${CONTAINER_TOOLS[@]}"; do
+for tool in "${CONTAINER_TOOLS[@]}"; do
   case "$tool" in
   "$old_prefix"-*) retired="$retired $tool" ;;
   esac
