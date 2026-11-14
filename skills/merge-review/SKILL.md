@@ -676,7 +676,9 @@ Reviewer usage: <tokens, duration, when the completion notice gave it>
   `security` is above 0, or when the step is a check and any earlier
   step of this run raised a security finding (an earlier step's check
   summary with `security` above 0; re-run `vrg-merge-review-check` on
-  its result to see it): every earlier ID is in a check's `fix_status`.
+  its result to see it): a check's `fix_status` holds one entry for each
+  earlier ID given as a `--fix-id` (its request's `earlier_finding_ids`)
+  and no other.
   Then append nothing from `reply-<step>.md`; end the comment instead
   with the line
   `Reviewer reply: withheld, it holds security details; sha256 <result_sha256 from capture-<step>.json>`.
