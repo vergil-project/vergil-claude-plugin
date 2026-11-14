@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.71] - 2026-11-14
+
+### Bug fixes
+
+- warn only on bare container-tool calls and drop the host-tool deny (#1078)
+
+### Documentation
+
+- document closing a documentation review that changes nothing (#998)
+- name --repo in the queue refusal for a self-homed private repo (#1055)
+
+### Features
+
+- hand human-identity deploy steps to the human, then verify them (#1077)
+
 ## [2.1.70] - 2026-11-14
 
 ### CI
