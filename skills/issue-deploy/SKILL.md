@@ -1,6 +1,6 @@
 ---
 name: issue-deploy
-description: Run a deployment task end-to-end as the USER agent — a `deployment`-labelled issue that installs/syncs merged changes so they are usable, then records the result as a comment. Use when the human asks to deploy, install, roll out, or sync merged work ("deploy #129", "run the deployment", "sync the labels"), or when issue-implement redirects a deployment-labelled issue here. You run the agent-safe deploy steps, record SUCCESS/FAILURE, and close only on SUCCESS — no worktree, no commits, no PR, and never a release. Run as the vergil-user agent.
+description: Run a deployment task end-to-end as the USER agent — a `deployment`-labelled issue that installs/syncs merged changes so they are usable, then records the result as a comment. Use when the human asks to deploy, install, roll out, or sync merged work ("deploy #129", "run the deployment", "sync the labels"), or when issue-implement redirects a deployment-labelled issue here. You run the agent-safe deploy steps, hand each human-run step (one that needs a human identity) to the human and verify it, record SUCCESS/FAILURE, and close only on SUCCESS — no worktree, no commits, no PR, and never a release. Run as the vergil-user agent.
 ---
 
 # Issue Deploy
@@ -28,7 +28,9 @@ If the issue is **not** `deployment`-labelled, stop: a `validation` issue goes t
 ## Never fabricate a result
 
 If you cannot actually run a step, say so and stop — **never fabricate or
-partially fake a result.** Use whatever means are efficient to run it (sub-agents
+partially fake a result.** A step the issue lists as human-run is the
+exception: hand it to the human as
+[below](#hand-the-human-run-steps-to-the-human-then-verify-them). Use whatever means are efficient to run it (sub-agents
 encouraged); oversight is front-loaded and at the hard gates, not in a live
 transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
 [execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
@@ -44,7 +46,8 @@ transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
    drive an epic's tasks, use `epic-implement`. If the labels cannot be read,
    say so and stop.
 3. Read the issue body — a self-contained scaffold: **preconditions**, **deploy
-   steps**, **acceptance criteria**, and a **results template**.
+   steps**, any **human-run steps**, **acceptance criteria**, and a **results
+   template**.
 
 ## Preconditions gate — release is a precondition, not your job
 
@@ -66,6 +69,58 @@ especially:
 Run the issue's **Deploy steps** against the target — install, sync, restart, and
 the like. They are idempotent by design, so a re-run is safe. Capture the real
 output for evidence. You touch no code and open no PR.
+
+## Hand the human-run steps to the human, then verify them
+
+Some deploy steps cannot run under an agent identity. The scaffold lists them
+in a **Human-run steps (need a human identity)** section; with no such section,
+every step is agent-safe. For example, `vrg-github-repo-config apply` needs
+`administration=read` and refuses under an agent identity.
+
+**Never run a human-run step under the agent identity**, not even to show that
+it fails, and never report the task `blocked` because the agent cannot run
+one. That the agent cannot run it is why it is listed; it is not an unmet
+precondition. Work the human-run steps in the order the issue gives them,
+after the agent-safe deploy steps. For each one:
+
+1. **Check its preconditions** with agent-runnable checks: the merged change
+   is present, the target is reachable, and whatever else the step names. If
+   one is unmet, handle it as the [preconditions gate](#preconditions-gate--release-is-a-precondition-not-your-job)
+   says.
+2. **Hand it to the human.** Give the exact, paste-ready command, filled in
+   for this task with no placeholder left, as a `! <command>` line the human
+   runs in the session so its output reaches you. Say what it needs (the
+   human identity, the scope) and what a good result looks like.
+3. **Wait** for the human to run it. Do not go on to the next step, and do
+   not post the result, until they have.
+4. **Verify it** with the step's check, as the issue names it, against the
+   real output: the exit status and output of the human's run, and any
+   agent-runnable check the step adds. Record which evidence came from the
+   human's run and which from your own.
+
+For repo config, the check is the human's `vrg-github-repo-config apply`
+exiting 0: `apply` refuses, exiting 2 and writing nothing, when it cannot read
+every setting first. A `vrg-github-repo-config diff` you run afterwards is
+informational only. Under the agent identity `diff` exits 2, because it does
+not check the admin-scoped settings. That is expected and is not a failure of
+the apply: never treat `diff`'s exit code as the verdict on an apply.
+
+The human's run is then evidence like any other step's: judge it against the
+acceptance criteria and [record the result](#record-the-result-and-close). A
+human-run step that fails is a FAILURE, handled as below, and its retry is the
+human's to run. If the human declines a step or cannot run it, record no
+outcome: say so and stop, leaving the task open.
+
+**With no human to hand a step to** (a run that `epic-implement` dispatches,
+or any run where the human is not answering you in the session), run the
+agent-safe steps and check each human-run step's preconditions, then post no
+outcome and no `blocked` comment. End the run `waiting: human-run steps`,
+giving in your final report each step's precondition result and its
+paste-ready command. The human runs them at the gate. A later run, with the
+human present or given the output of the human's runs in its prompt, checks
+the preconditions again, verifies each step from that output, and records the
+result. Never record a human-run step from a bare claim that it ran, without
+its output.
 
 ## Record the result and close
 

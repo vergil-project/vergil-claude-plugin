@@ -201,39 +201,39 @@ the code belongs inside the container, not in host scripts.
 
 ### enforce-host-container-split
 
-**What.** Checks the routing of the host-only workflow tools (a set of
-`vrg-*` CLIs, `gh`, `git` and `git-cliff`) and the language-toolchain
-commands against the canonical host-vs-container split from
+**What.** Warns (via `additionalContext`, never a deny) when a
+container-only language-toolchain command is invoked bare on the
+host, at the start of a command or after a separator (e.g.,
+`ruff check .`), per the host-vs-container split from
 [#96](https://github.com/vergil-project/vergil-claude-plugin/issues/96).
+The warning names the wrapped form for an ad hoc run and reminds the
+agent that a full `vrg-container-run -- vrg-validate` is still
+required before handoff:
 
-- **Denies** wrapping a host-only tool in `vrg-container-run --`
-  (e.g., `vrg-container-run -- gh issue list`). The host tool needs
-  SSH-agent, host git config, or host `gh` auth — the container
-  can't satisfy those.
-- **Warns** (via `additionalContext`, not deny) when a
-  container-only tool is invoked directly — whether bare
-  (e.g., `ruff check .`) or wrapped in `vrg-container-run --`.
-  Both bypass the canonical validation entry point. The correct
-  command is `vrg-container-run -- vrg-validate`, which handles
-  all tool routing internally.
+```text
+WARNING: ruff runs in the dev container: use vrg-container-run -- ruff … for an ad hoc run; a full vrg-container-run -- vrg-validate is still required before handoff.
+```
 
-The canonical tool lists live in
-`hooks/scripts/lib/host-container-tools.sh` so the same source of
-truth powers both the hook and any future docs/lint.
+The wrapped form, `vrg-container-run -- <tool> …`, passes silently.
+So does a host-only tool wrapped in `vrg-container-run --` (e.g.,
+`vrg-container-run -- gh issue list`): the hook no longer checks it.
+A host tool run in the container fails on its own (it needs the
+SSH agent, the host git config or host `gh` auth), and the full
+`vrg-validate` before handoff is the backstop.
 
-**Why.** The drift that produced #96 — 47 days of agents silently
-wrapping host tools in the container — was caused by documentation
-being the only enforcement mechanism. Issue
-[#168](https://github.com/vergil-project/vergil-claude-plugin/issues/168)
-extended this to also catch agents bypassing the canonical
-validation entry point by calling linters directly (even correctly
-wrapped in `vrg-container-run`). The agent should never invoke
-individual linters — `vrg-validate` handles tool routing internally.
+The container-only tool list lives in
+`hooks/scripts/lib/host-container-tools.sh`.
 
-**Alternative.** For denied commands: invoke the host tool
-directly (drop the `vrg-container-run --` prefix). For warned
-commands: use `vrg-container-run -- vrg-validate` instead of invoking
-individual linters.
+**Why.** Container-only tools are not installed on the host, so a
+bare call fails or, worse, runs a different host version than the
+one validation uses. An ad hoc wrapped run of one linter is a
+legitimate way to iterate
+([#993](https://github.com/vergil-project/vergil-claude-plugin/issues/993));
+the full `vrg-validate` run remains the only gate that counts before
+handoff.
+
+**Alternative.** Wrap the tool: `vrg-container-run -- <tool> …` for an
+ad hoc run, and `vrg-container-run -- vrg-validate` before handoff.
 
 ### block-autoclose-linkage
 

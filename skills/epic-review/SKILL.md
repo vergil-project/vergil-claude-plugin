@@ -81,6 +81,10 @@ Given anything that is not a queue, print the one line and stop. Do nothing
 else: no queue read, no comment, no route.
 
 - An ad-hoc epic: `<ref> is an ad-hoc epic; it holds placed work, not a queue. Work it with /vergil:epic-implement <ref>, or every repo's with /vergil:epic-implement adhoc.`
+  A self-homed private repo's ad-hoc epic (one whose `<owner>/<repo>` is
+  not `<owner>/.github`) is never in the org-wide run, so it gets
+  `<ref> is an ad-hoc epic; it holds placed work, not a queue. Work it with /vergil:epic-implement adhoc --repo <owner>/<repo>.`
+  instead.
 - A development epic: `<ref> is a development epic; it is worked with /vergil:epic-implement <ref>.`
 - Not an epic: `<ref> is not an epic; review a queue with /vergil:epic-review intake, planning or deferred.`
 

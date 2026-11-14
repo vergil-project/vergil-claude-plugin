@@ -204,11 +204,12 @@ deny_command() {
 	block-protected-branch-work.sh) echo "git commit -m x" ;;
 	block-raw-gh-pr-create.sh) echo "gh pr create --title x" ;;
 	block-raw-git-commit.sh) echo "git commit -m x" ;;
-	enforce-host-container-split.sh) echo "vrg-container-run -- vrg-commit" ;;
 	block-heredoc.sh) echo "cat <<EOF" ;;
 	esac
 }
 
+# enforce-host-container-split.sh only warns (#993): it has no deny
+# path, so its offending payload is checked for a warning below.
 for script in $BASH_GATES; do
 	run_hook "$script" "$ROOT" "$(bash_payload "ls -la && echo done" "$ROOT")"
 	check "$script: realistic benign Bash payload is allowed" allow
@@ -216,12 +217,21 @@ for script in $BASH_GATES; do
 	run_hook "$script" "$ROOT" "$(bash_payload "" "$ROOT")"
 	check "$script: empty command string is allowed" allow
 
+	if [ "$script" = enforce-host-container-split.sh ]; then
+		continue
+	fi
 	run_hook "$script" "$ROOT" "$(bash_payload "$(deny_command "$script")" "$SCRATCH")"
 	check "$script: realistic offending Bash payload is denied" deny
 done
 
 run_hook enforce-host-container-split.sh "$ROOT" "$(bash_payload "shellcheck x.sh" "$ROOT")"
-check "enforce-host-container-split.sh: container tool still warns" context
+check "enforce-host-container-split.sh: bare container tool still warns" context
+run_hook enforce-host-container-split.sh "$ROOT" \
+	"$(bash_payload "vrg-container-run -- shellcheck x.sh" "$ROOT")"
+check "enforce-host-container-split.sh: wrapped container tool is allowed" allow
+run_hook enforce-host-container-split.sh "$ROOT" \
+	"$(bash_payload "vrg-container-run -- vrg-commit" "$ROOT")"
+check "enforce-host-container-split.sh: wrapped host tool is allowed" allow
 
 run_hook block-worktree-bypass-write.sh "$ROOT" \
 	"$(write_payload "$SCRATCH/.worktrees/wt/file.txt" "$SCRATCH")"

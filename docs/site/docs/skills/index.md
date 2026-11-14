@@ -160,7 +160,8 @@ per repo and names what runs at the same time, takes one confirmation, then
 dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
-planning or deferred queue it refuses and points to `epic-review`; given an
+planning or deferred queue it refuses and points to `epic-review` (with
+`--repo` for a self-homed private repo's queue); given an
 issue that is not an epic it refuses. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
@@ -212,7 +213,10 @@ planning or deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
 PR tooling's refusal. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
-`vrg-scope-change`, before the merge review starts.
+`vrg-scope-change`, before the merge review starts. An epic's
+documentation review whose own repo needs no change has no PR: the skill
+posts the search evidence on the task and closes it as completed, with no
+ruling needed.
 
 Given a list of small same-epic issues, it implements them as one
 **batch**: `vrg-pr-workflow batch-start` checks the batch's hard rules
@@ -286,7 +290,13 @@ runtime.
 end to end: installs or syncs the merged change so it is actually usable
 (install / sync / release-then-install), then records the result as an
 `Outcome:` comment on the issue. It is *run*, not built — there is no PR,
-and the deployment tooling refuses one.
+and the deployment tooling refuses one. A step the task lists under
+**Human-run steps** (one that needs a human identity, such as
+`vrg-github-repo-config apply`) is never run under the agent identity: the
+skill checks its preconditions, hands the human the paste-ready command,
+waits, then verifies the human's run and records it with the rest. With no
+human present, the run ends `waiting: human-run steps` rather than
+`blocked`.
 
 **When to use.** When the human asks to deploy, install, roll out, or sync
 merged work, or when a later task needs a change deployed and usable rather
@@ -459,8 +469,8 @@ The modes differ only in order, check and outcomes:
 Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
 it never implements one or starts `epic-create`. Given an ad-hoc epic or a
-development epic, it prints a one-line refusal pointing to the right command
-and stops; with no argument, it shows the three queue counts and asks which
+development epic, it prints a one-line refusal pointing to the right command,
+naming `--repo` for a self-homed private repo's ad-hoc epic, and stops; with no argument, it shows the three queue counts and asks which
 to review. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
