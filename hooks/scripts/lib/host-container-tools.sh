@@ -1,26 +1,11 @@
 #!/usr/bin/env bash
-# host-container-tools.sh — canonical tool routing lists per #96.
+# host-container-tools.sh — the container-only tool list (#96, #993).
 #
-# Source of truth for which tools run on the host vs in the container.
-# Consumed by enforce-host-container-split.sh; kept here so the same
-# lists can power future docs/lint if needed.
+# Source of truth for which tools run in the dev container. Consumed
+# by enforce-host-container-split.sh, which warns when one is invoked
+# bare on the host.
 #
 # This file is meant to be `source`d, not executed directly.
-
-# Host-only: release/git workflow tools, thin gh/git wrappers.
-# shellcheck disable=SC2034 # read by enforce-host-container-split.sh, which sources this file
-HOST_TOOLS=(
-  vrg-await
-  vrg-commit
-  vrg-ensure-label
-  vrg-finalize-pr
-  vrg-pr-await
-  vrg-submit-pr
-  vrg-container-run
-  gh
-  git
-  git-cliff
-)
 
 # Container-only: language toolchain validators.
 # shellcheck disable=SC2034 # read by enforce-host-container-split.sh, which sources this file
