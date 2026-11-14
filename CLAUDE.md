@@ -99,7 +99,8 @@ details are in [`README.md`](README.md).
 - `.claude-plugin/plugin.json` — plugin identity and version; its `name`
   (`vergil`) sets the skill namespace. `marketplace.json` publishes it.
 - `hooks/hooks.json` — PreToolUse and PostToolUse hooks that enforce
-  guardrails mechanically; scripts in `hooks/scripts/`, tests in
+  guardrails mechanically, and the SubagentStop hook that stores the merge
+  reviewer's reply; scripts in `hooks/scripts/`, tests in
   `hooks/tests/`.
 - `skills/` — one directory per workflow skill, each with a `SKILL.md`.
 - `agents/` — custom subagents (the session `bootstrap` agent and the

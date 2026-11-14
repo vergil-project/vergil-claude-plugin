@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.70] - 2026-11-14
+
+### CI
+
+- move the nightly ops cron to the 01:xx UTC hour (#1068)
+
+### Documentation
+
+- state exactly what a check's fix_status covers (#1072)
+
+### Features
+
+- capture the reviewer's reply byte for byte and publish it in the step comment (#1070)
+- fail when a hook script is not executable (#1071)
+
 ## [2.1.69] - 2026-11-14
 
 ### Chores

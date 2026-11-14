@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # validate-custom — repo-local validation hook discovered by
-# vrg-validate. Checks every skill's SKILL.md frontmatter, then runs the
-# hook test suites under hooks/tests/.
+# vrg-validate. Checks every skill's SKILL.md frontmatter, the merge
+# reviewer's tool set and the git mode of every hook script, then runs
+# the hook test suites under hooks/tests/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -112,12 +113,76 @@ check_agent_tools() {
 	echo "Agent tools: $agent OK ($expected)"
 }
 
+# Every hook command in $1/hooks/hooks.json must name a script tracked in
+# git at $1 with mode 100755: Claude Code cannot run a hook script that is
+# not executable. Each command must start with ${CLAUDE_PLUGIN_ROOT}/; its
+# first word, less that prefix, is the script's repo-relative path.
+check_hook_modes() {
+	local root="$1" file="hooks/hooks.json" commands command path entry mode
+	# shellcheck disable=SC2016 # the literal prefix hooks.json carries, not an expansion
+	local rc=0 count=0 prefix='${CLAUDE_PLUGIN_ROOT}/'
+	if [[ ! -f "$root/$file" ]]; then
+		echo "ERROR: $file: missing" >&2
+		return 1
+	fi
+	if ! command -v jq >/dev/null 2>&1; then
+		echo "ERROR: $file: jq is required to read hook commands and is not on PATH" >&2
+		return 1
+	fi
+	if ! commands="$(jq -r '.hooks[][].hooks[].command' "$root/$file")"; then
+		echo "ERROR: $file: could not read hook commands (.hooks[][].hooks[].command)" >&2
+		return 1
+	fi
+	while IFS= read -r command; do
+		[[ -n "$command" ]] || continue
+		count=$((count + 1))
+		if [[ "$command" != "$prefix"* ]]; then
+			echo "ERROR: $file: hook command '$command' does not start with $prefix, so its script cannot be checked" >&2
+			rc=1
+			continue
+		fi
+		path="${command#"$prefix"}"
+		path="${path%%[[:space:]]*}"
+		if ! entry="$(git -C "$root" ls-files --stage -- "$path")"; then
+			echo "ERROR: $path: could not read its git mode" >&2
+			rc=1
+			continue
+		fi
+		if [[ -z "$entry" ]]; then
+			echo "ERROR: $path: hook script named in $file is not tracked in git" >&2
+			rc=1
+			continue
+		fi
+		mode="${entry%% *}"
+		if [[ "$mode" != "100755" ]]; then
+			echo "ERROR: $path: hook script named in $file has git mode $mode, must be 100755 (executable)" >&2
+			rc=1
+		fi
+	done <<<"$commands"
+	if [[ "$count" -eq 0 ]]; then
+		echo "ERROR: $file: no hook commands found" >&2
+		rc=1
+	fi
+	if [[ "$rc" -eq 0 ]]; then
+		echo "Hook script modes: $count hook scripts OK"
+	fi
+	return "$rc"
+}
+
+# Sourced (by the hook-modes tests): define the checks, run nothing.
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+	return 0
+fi
+
 echo "Running: skill frontmatter check"
 check_skill_frontmatter || status=1
 
 # The merge-review reviewer reads and reports only: no Write, Edit or Bash.
 echo "Running: agent tools check"
 check_agent_tools merge-reviewer "Read, Glob, Grep" || status=1
+
+echo "Running: hook script mode check"
+check_hook_modes "$ROOT" || status=1
 
 for t in "$ROOT"/hooks/tests/*.test.sh; do
 	echo "Running: $t"
