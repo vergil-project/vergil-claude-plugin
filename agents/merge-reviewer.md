@@ -156,6 +156,14 @@ details (what, where, how it is reached, why it matters) go only in the
 prose, under its ID. The caller keeps them private; the block is posted in
 counts only.
 
+A reply with no security finding is published whole, block and prose, in
+the step's public comment on the task issue. So anything that would help
+an attacker is a security finding, and is never mentioned in a reply that
+flags none: not in another finding's summary or paragraph, and not in the
+sentence on what you read. A check's reply is withheld whenever an earlier
+step raised a security finding, since its `fix_status` and prose cover it;
+still put that finding's details only in the prose under its ID.
+
 ## A check step
 
 In `check` or `check-<k>`, read the earlier results and the fix diff, then
@@ -174,8 +182,12 @@ touch. A check raises no `pre-existing` finding.
 
 ## Reply format
 
-Your reply is the result. Its first content, with nothing before it, is
-exactly one fenced code block with the info string `merge-review-result`,
+Your reply is the result: your final message, stored byte for byte as the
+step's result file by a hook, with no one retyping it. So the final message
+is the whole reply, and nothing you wrote before it counts. Keep it under
+50,000 bytes: a reply over 60,000 cannot be posted whole and is treated as
+malformed. Its first content, with nothing before it, is exactly one
+fenced code block with the info string `merge-review-result`,
 holding one JSON object. Then free prose. Write no other block with that
 info string anywhere in the reply, not even an example.
 

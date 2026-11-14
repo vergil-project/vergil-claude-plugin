@@ -57,7 +57,9 @@ into report-ready's notes.
   comment, filed issues, commit messages, and report-ready's title, summary
   and notes. A security item's details live only in its `security-<ID>.md`
   and the terminal. Every request item for a security finding is
-  `{"id": "<ID>", "security": true}` and nothing else.
+  `{"id": "<ID>", "security": true}` and nothing else. So a step
+  comment carries the reviewer's full reply only when no security finding
+  is in it or, for a check, in an earlier step ([Records](#records)).
 - **One fix step per run.** There is never a second fix round without a
   human ruling.
 - **The issue is single-threaded while an exchange is open.** Between a
@@ -90,7 +92,9 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 |---|---|---|
 | `design-<n>-<basename>` | this skill | A design source fetched from the epic's home repo. |
 | `request-<step>.json`, `diff-<step>.patch`, `fix-<step>.patch` | `vrg-merge-review-request` | The request and its diffs. |
-| `result-<step>.md` | this skill | The reviewer's reply, stored unchanged. |
+| `result-<step>.md` | the plugin's `capture-merge-review-result` hook | The reviewer's reply, stored unchanged ([Review](#review)). |
+| `reply-<step>.md` | the plugin's `capture-merge-review-result` hook | The same reply as a publishable copy: unchanged, in a fenced block inside a collapsed `<details>` section that gives its SHA-256 and size. The step comment carries it ([Records](#records)). |
+| `capture-<step>.json` | the plugin's `capture-merge-review-result` hook | The capture record: the request's `request_id` and the SHA-256 of `result-<step>.md` as stored. |
 | `security-<ID>.md` | this skill | One security finding's details. |
 | `ruling-<step>.json` | this skill | The items of a ruling request (`vrg-ruling`'s request items file). |
 | `draft-<step>.json` | this skill | The reply items for `vrg-ruling draft`, human present only. |
@@ -107,7 +111,7 @@ further check a ruling grants. Finding IDs are `R<n>`, `C<n>` and
 
 ## The private directory
 
-Immediately before **every** write to `<dir>` (each design source, result,
+Immediately before **every** write to `<dir>` (each design source,
 `security-<ID>.md`, items file, `open-request.json`, `respond-<step>.json`
 and every other file in the table), run:
 
@@ -121,6 +125,11 @@ and mode 700, creating absent levels. A non-zero exit stops the run with
 `error`: write nothing, and show the human its message. Writes by the Write
 tool and by shell redirection alike follow this rule. Deleting a file is not
 a write.
+
+The three files of the `capture-merge-review-result` hook are the exception:
+this skill never writes them. The hook runs the same `--ensure-dir` check
+itself before it writes, and the plugin's `guard-merge-review-results` hook
+denies the Write, Edit and NotebookEdit tools on them.
 
 ## Starting and resuming
 
@@ -150,7 +159,7 @@ that passes `vrg-merge-review-check` against its request.
   [No unfinished business](#no-unfinished-business-and-handoff).
 - **Otherwise,** find whether its step comment is on the issue: a comment by
   a trusted author (`vrg-trusted-authors --json`, a leading `app/` stripped
-  from the author) whose body names that step's `request_id`.
+  from the author) whose body has the line `Request: <that step's request_id>`.
   - **Not posted:** nothing of this step is on the issue yet (this includes
     a run that stopped at the non-review gate). If `HEAD` is the
     request's `head_sha`, re-run the result check and continue from
@@ -276,27 +285,47 @@ this skill writes neither. It reads the epic only for the design sources.
 
 ## Review
 
-1. **Dispatch** a fresh `vergil:merge-reviewer` subagent whose whole prompt
-   is one line: the absolute path of `request-<step>.json`. Never give it
-   anything of this session.
-2. **Store** its reply, unchanged, as `result-<step>.md`.
-3. **Check** it:
+1. **Clear the step's result.** Delete any `result-<step>.md`,
+   `reply-<step>.md` and `capture-<step>.json` left from an earlier
+   dispatch of this step, so a failed capture can never leave an old
+   result in place.
+2. **Dispatch** a fresh `vergil:merge-reviewer` subagent whose whole prompt
+   is one line: the absolute path of `request-<step>.json`, and nothing
+   else. Never give it anything of this session.
+3. **The reply is stored for you.** When the reviewer stops, the plugin's
+   `capture-merge-review-result` SubagentStop hook writes its last message,
+   byte for byte, as `result-<step>.md` next to the request, and writes
+   `reply-<step>.md` (the same bytes as a publishable copy, for the step
+   comment: [Records](#records)) and `capture-<step>.json` beside it.
+   Never write, edit or retype `result-<step>.md` or `reply-<step>.md`,
+   and never store the reply from the dispatch's output: what the
+   dispatch returns to you is for reading only. Then confirm the capture:
+   `capture-<step>.json` and `reply-<step>.md` exist, the capture's
+   `request_id` is the request's, and its `result_sha256` is the SHA-256
+   of `result-<step>.md` (`shasum -a 256 <dir>/result-<step>.md`). If any
+   file is missing or does not match, the run ends with `error`: show the
+   human the hook's message from the dispatch, and dispatch no more. A
+   rerun resumes from the step's build.
+4. **Check** it:
    `vrg-merge-review-check --request <dir>/request-<step>.json --result <dir>/result-<step>.md`.
    Exit 0 prints the summary (`counts` by kind, `security`, `fix_status`)
-   that the step comment and the decisions use.
-4. **On a failure**, the result is not acted on in any part. Build the same
+   that the step comment and the decisions use. A result whose
+   `reply-<step>.md` is over 60,000 bytes (`wc -c`) also fails, though
+   the check passed: it is too long to post whole in the step comment,
+   whose limit on GitHub is 65,536 characters.
+5. **On a failure**, the result is not acted on in any part. Build the same
    step again (the builder gives it a new `request_id`, as the protocol
-   requires), dispatch once more, store and check. A second failure is a
+   requires), clear, dispatch once more, confirm the capture and check. A second failure is a
    stop with item `M1` ([The stop](#the-stop)): `retry` runs the step
    again from its build, with the same one re-dispatch; `stop` hands off
    `not-eligible (result-malformed)`.
-5. **Security details.** For each finding with `"security": true`, write
+6. **Security details.** For each finding with `"security": true`, write
    `security-<ID>.md` (if it does not exist yet) from the prose under its ID:
    a one-line private summary first (the advisory summary if it is ever
    recorded), then the location, the details, and your severity on the
    canonical scale (`critical`, `high`, `medium`, `low`) of the
    [doctrine's §1.3](../../docs/paad-review-doctrine.md#13-severity).
-6. If the dispatch's completion notice reports usage (tokens, duration),
+7. If the dispatch's completion notice reports usage (tokens, duration),
    keep it for the step comment.
 
 ## Non-review items first
@@ -446,8 +475,8 @@ Otherwise:
      `not-eligible (fix-base-rebased)`.
    - Any other refusal, the builder's refusal over the human's comments
      included ([Before the review](#before-the-review)), is an `error`.
-4. Dispatch, store `result-<step>.md` and check it, as in
-   [Review](#review), then **Decide again**.
+4. Clear, dispatch, confirm the capture of `result-<step>.md` and check
+   it, as in [Review](#review), then **Decide again**.
 
 A ruling that grants another fix runs the next check, `check-2` up to
 `check-9`, its files named by step. After `check-9` there is no further
@@ -621,6 +650,8 @@ Request: <request_id>
 Fix status: R1 fixed, R3 not fixed
 Edited human comments left out: <e>
 Reviewer usage: <tokens, duration, when the completion notice gave it>
+
+<reply-<step>.md, appended whole>
 ```
 
 - `<decision>` is `pass`, `fix`, `human-ruling` or `too-many-blockers` for a
@@ -630,6 +661,29 @@ Reviewer usage: <tokens, duration, when the completion notice gave it>
   summary, lookup and fix status appear nowhere.
 - The `Request:` line is how a resumed run tells whether this step's
   comment was posted.
+- **The reviewer's full reply** ends the comment, so it survives the
+  deletion of `<dir>` at report-ready exactly as the reviewer returned
+  it. Never type, paste or summarize it into the comment. Write
+  everything above it to `comment-<step>.md`, ending with one blank
+  line, then run the `--ensure-dir` command and append the hook's copy
+  unread: `cat <dir>/reply-<step>.md >> <dir>/comment-<step>.md`. The
+  copy's summary line gives the reply's SHA-256, which matches
+  `capture-<step>.json`, so a reader can check it.
+- **A reply that touches a security finding is never published**, not
+  even in part: its block and prose hold that finding's location and
+  details, or for a check, an earlier security finding's fix status and
+  why it still stands. Withhold the reply when the check summary's
+  `security` is above 0, or when the step is a check and any earlier
+  step of this run raised a security finding (an earlier step's check
+  summary with `security` above 0; re-run `vrg-merge-review-check` on
+  its result to see it): every earlier ID is in a check's `fix_status`.
+  Then append nothing from `reply-<step>.md`; end the comment instead
+  with the line
+  `Reviewer reply: withheld, it holds security details; sha256 <result_sha256 from capture-<step>.json>`.
+  The details stay only in `security-<ID>.md` and the terminal
+  ([Ground rules](#ground-rules)).
+- A `comment-<step>.md` over 65,536 bytes is not posted: end with
+  `error` and show the human its size.
 - `Edited human comments left out: <e>` appears in the review's step
   comment only, and only when `issue_comments_excluded_edited` in
   `request-review.json` is above 0; `<e>` is that number. It tells the

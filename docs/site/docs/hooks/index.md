@@ -1,7 +1,8 @@
 # Hooks
 
 The plugin provides PreToolUse and PostToolUse hooks that enforce
-workflow guardrails mechanically. These replace duplicated documentation
+workflow guardrails mechanically, and one SubagentStop hook that stores
+the merge reviewer's reply. These replace duplicated documentation
 rules across all consuming repos — rules that humans and agents
 alike routinely drift from when enforcement is prose-only.
 
@@ -32,6 +33,10 @@ write whose path `python3` cannot normalise. Detection is a pure-shell walk up f
 bash session's CWD looking for the marker, terminating at a
 `.git` boundary or the filesystem root. No `git` subprocess; the
 gate's overhead is a handful of `stat()` calls.
+
+The SubagentStop hook `capture-merge-review-result` is not gated
+either: it acts only on a `vergil:merge-reviewer` stop whose request file
+lies in a task's private directory, which is itself in a managed repo.
 
 `block-heredoc` is intentionally **not** gated — heredoc syntax in
 CLI invocations breaks unpredictably regardless of which repo
@@ -67,7 +72,8 @@ rather than letting it through. That covers empty stdin, input that
 is not valid JSON or is not a single JSON object, a missing `jq`,
 and a payload without the hook's required field
 (`tool_input.command` for the Bash hooks, `tool_input.file_path` for
-`block-worktree-bypass-write`). The hook exits with code 2, the
+`block-worktree-bypass-write`, `tool_input.file_path` or
+`tool_input.notebook_path` for `guard-merge-review-results`). The hook exits with code 2, the
 PreToolUse blocking exit code, so Claude Code refuses the call and
 shows the agent a stderr message naming the problem:
 
@@ -92,7 +98,9 @@ See [issue #776](https://github.com/vergil-project/vergil-claude-plugin/issues/7
 
 The PostToolUse hook `detect-deprecation-warnings` is advisory and is
 not changed: a PostToolUse hook runs after the tool call, so it has
-nothing to refuse.
+nothing to refuse. The SubagentStop hook `capture-merge-review-result`
+has no call to refuse either: on any problem it stores nothing and exits
+1 (see [its entry](#capture-merge-review-result)).
 
 ## PreToolUse Hooks — Bash
 
@@ -339,6 +347,29 @@ cannot be parsed → blocked with exit 2); fail-open outside it.
 `.vergil/audit-feedback.yml`; use `build/` for scratch. Tests:
 `hooks/tests/guard-audit-writes.test.sh`.
 
+### guard-merge-review-results
+
+**What.** Denies Write, Edit and NotebookEdit on a stored merge-review
+result, `result-<step>.md`, its publishable copy, `reply-<step>.md`, or
+its capture record, `capture-<step>.json`, in any task's private directory
+(`build/.vergil-state/issue-implement/<N>/merge-review/`), for every
+identity. The path is matched as given and, with `python3`, with every
+symlink resolved.
+
+**Why.** The review record must be kept exactly as the reviewer returned
+it. Only [`capture-merge-review-result`](#capture-merge-review-result)
+writes these files; an agent that retypes a result can shorten its prose
+while keeping its result block, which `vrg-merge-review-check` cannot
+see ([#1065](https://github.com/vergil-project/vergil-claude-plugin/issues/1065)).
+
+**Soft gate.** Bash-command writes are not matched. The capture record's
+SHA-256 is what lets a check catch an edit made any other way.
+
+**Alternative.** Read the result. For a new one, rebuild the step's
+request and dispatch the reviewer again, as the
+[merge-review skill](../skills/index.md#merge-review) says. Tests:
+`hooks/tests/guard-merge-review-results.test.sh`.
+
 ## PostToolUse Hooks — Bash
 
 ### detect-deprecation-warnings
@@ -355,6 +386,57 @@ while the context is fresh.
 **Alternative.** Triage the warning via the `deprecation-triage`
 skill — either fix it now or capture it in a tracking issue with
 clear resolution criteria.
+
+## SubagentStop Hooks — vergil:merge-reviewer
+
+### capture-merge-review-result
+
+**What.** When a `vergil:merge-reviewer` subagent stops, stores its last
+message (`last_assistant_message` in the hook input), byte for byte, as
+`result-<step>.md` next to the request it answered, and writes
+`capture-<step>.json` beside it:
+
+```json
+{"schema": "merge-review-capture/1", "step": "review",
+ "request_id": "<the request's request_id>",
+ "result_sha256": "<SHA-256 of result-review.md>",
+ "agent_id": "<the reviewer subagent's ID>"}
+```
+
+The reviewer's whole prompt is the absolute path of its request file, so
+the hook reads that path from the first user message of the reviewer's
+transcript (`agent_transcript_path`). It writes only when the path is a
+`request-<step>.json` in a task's private directory, the request's `step`
+matches its name, and `vrg-merge-review-request --ensure-dir`, run for the
+request's issue from its worktree, prints that same directory.
+
+It also writes `reply-<step>.md`, the publishable copy of the same bytes:
+the reply inside a fenced block whose backtick fence is longer than any
+backtick run in the reply, in a collapsed `<details>` section whose summary
+gives the reply's SHA-256 and size. A reply that does not end in a newline
+gets one before the closing fence, and the summary says so. The skill
+appends this copy unread to the step's public comment when no security
+finding is in the result or, for a check, in an earlier step, so the full reply survives the private directory's
+deletion at report-ready.
+
+All three files are written mode 600 and moved into place, the capture
+record last.
+
+**Why.** The merge-review skill used to copy the reply out of the
+subagent's output itself. A retyped reply could lose prose while keeping
+its result block, and `vrg-merge-review-check` checks only the block
+([#1065](https://github.com/vergil-project/vergil-claude-plugin/issues/1065)).
+The reviewer keeps its read-only tools (Read, Glob, Grep); the hook does
+the writing.
+
+**Failure mode.** Any other subagent type is a no-op. On any problem the
+hook stores nothing, prints the reason on stderr and exits 1, a
+non-blocking error: exit 2 would keep the reviewer running and change its
+last message. The skill deletes the step's result before each dispatch
+and confirms the capture after it, so a failed capture ends the run with
+`error` rather than going unseen.
+
+Tests: `hooks/tests/capture-merge-review-result.test.sh`.
 
 ## Hooks deliberately not provided
 
