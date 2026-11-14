@@ -110,7 +110,7 @@ expect_refusal() {
 		bad "$name" "exit $rc, expected 1"
 	elif ! printf '%s' "$err" | grep -q '^capture-merge-review-result: '; then
 		bad "$name" "no error message on stderr"
-	elif ls "$DIR"/result-* "$DIR"/capture-* "$DIR"/.capture-* >/dev/null 2>&1; then
+	elif ls "$DIR"/result-* "$DIR"/reply-* "$DIR"/capture-* "$DIR"/.capture-* >/dev/null 2>&1; then
 		bad "$name" "files were left in the private directory"
 	else
 		ok "$name"
@@ -149,10 +149,26 @@ else
 	else
 		bad "the capture record binds the request and the result's sha256" "$(cat "$cap")"
 	fi
-	if [ "$(mode_of "$DIR/result-review.md")" = 600 ] && [ "$(mode_of "$cap")" = 600 ]; then
+	if [ "$(mode_of "$DIR/result-review.md")" = 600 ] && [ "$(mode_of "$cap")" = 600 ] &&
+		[ "$(mode_of "$DIR/reply-review.md")" = 600 ]; then
 		ok "the stored files are mode 600"
 	else
-		bad "the stored files are mode 600" "modes $(mode_of "$DIR/result-review.md") $(mode_of "$cap")"
+		bad "the stored files are mode 600" "modes $(mode_of "$DIR/result-review.md") $(mode_of "$cap") $(mode_of "$DIR/reply-review.md")"
+	fi
+	# The publishable copy: the reply inside a four-backtick fence (the
+	# reply's longest run is three), in a collapsed details section.
+	expected="$TMP/expected-reply.md"
+	{
+		printf '<details>\n<summary>Reviewer reply: sha256 %s, %s bytes</summary>\n\n' \
+			"$(sha "$REPLY_FILE")" "$(wc -c <"$REPLY_FILE" | tr -d '[:space:]')"
+		printf '%s\n' '````'
+		cat "$REPLY_FILE"
+		printf '%s\n\n</details>\n' '````'
+	} >"$expected"
+	if cmp -s "$expected" "$DIR/reply-review.md"; then
+		ok "the publishable copy wraps the reply unchanged"
+	else
+		bad "the publishable copy wraps the reply unchanged" "$(diff "$expected" "$DIR/reply-review.md" | head -10)"
 	fi
 	if ls "$DIR"/.capture-* >/dev/null 2>&1; then
 		bad "no temporary file is left" "found $(ls -a "$DIR")"
@@ -174,6 +190,36 @@ if [ "$rc" -eq 0 ] && cmp -s "$REPLY_FILE" "$DIR/result-check-2.md" &&
 else
 	bad "a check step's result replaces an earlier one" "exit $rc: $out"
 fi
+
+# 4. A reply holding a five-backtick run and no final newline: the fence
+#    is six backticks, one newline is added before it, and the summary
+#    says so. The lines between the fences are the reply plus that newline.
+reset_dir
+write_request review
+write_transcript "$DIR/request-review.json"
+SAVED_REPLY="$TMP/reply-saved.md"
+cp "$REPLY_FILE" "$SAVED_REPLY"
+printf '%s\n%s' 'see `````five````` here' 'last line, no newline' >"$REPLY_FILE"
+out=$(payload | bash "$HOOK" 2>&1)
+rc=$?
+copy="$DIR/reply-review.md"
+if [ "$rc" -ne 0 ] || [ ! -f "$copy" ]; then
+	bad "a longer backtick run gets a longer fence" "exit $rc: $out"
+else
+	inner="$TMP/inner.md"
+	awk 'NR > 4' "$copy" | awk -v n="$(($(wc -l <"$copy") - 7))" 'NR <= n' >"$inner"
+	{ cat "$REPLY_FILE"; printf '\n'; } >"$TMP/reply-nl.md"
+	if [ "$(sed -n 4p "$copy")" = '``````' ] &&
+		[ "$(tail -n 3 "$copy" | head -n 1)" = '``````' ] &&
+		sed -n 2p "$copy" | grep -q ', a final newline added before the closing fence</summary>$' &&
+		cmp -s "$TMP/reply-nl.md" "$inner" &&
+		cmp -s "$REPLY_FILE" "$DIR/result-review.md"; then
+		ok "a longer backtick run gets a longer fence"
+	else
+		bad "a longer backtick run gets a longer fence" "$(cat "$copy")"
+	fi
+fi
+cp "$SAVED_REPLY" "$REPLY_FILE"
 
 # Refusals: each leaves nothing behind.
 reset_dir

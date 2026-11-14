@@ -30,6 +30,7 @@ T_NAME=(
   "a review result is denied"
   "a check result is denied"
   "a capture record is denied"
+  "a publishable reply copy is denied"
   "a result reached through a symlink is denied"
   "a relative path to a result is denied"
   "NotebookEdit on a result is denied"
@@ -41,6 +42,7 @@ T_NAME=(
   "a call with no path is refused in a managed repo"
 )
 T_FIELD=(
+  "file_path"
   "file_path"
   "file_path"
   "file_path"
@@ -58,6 +60,7 @@ T_PATH=(
   "$DIR/result-review.md"
   "$DIR/result-check-2.md"
   "$DIR/capture-review.json"
+  "$DIR/reply-check.md"
   "$M/build/link/result-review.md"
   "build/.vergil-state/issue-implement/7/merge-review/result-check.md"
   "$DIR/result-review.md"
@@ -69,6 +72,7 @@ T_PATH=(
   ""
 )
 T_EXPECT=(
+  "deny"
   "deny"
   "deny"
   "deny"

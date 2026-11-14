@@ -2,10 +2,11 @@
 # guard-merge-review-results.sh — PreToolUse hook for
 # Write|Edit|NotebookEdit (vergil-project/vergil-claude-plugin#1065).
 #
-# A merge review's result-<step>.md and capture-<step>.json are written
-# only by the capture-merge-review-result SubagentStop hook, from the
-# reviewer's own reply. This guard denies the Write, Edit and
-# NotebookEdit tools on either file in any task's private directory,
+# A merge review's result-<step>.md, reply-<step>.md (its publishable
+# copy) and capture-<step>.json are written only by the
+# capture-merge-review-result SubagentStop hook, from the reviewer's own
+# reply. This guard denies the Write, Edit and NotebookEdit tools on any
+# of them in any task's private directory,
 #
 #   .../build/.vergil-state/issue-implement/<N>/merge-review/
 #
@@ -48,7 +49,7 @@ case "$candidate" in
 *) candidate="$PWD/$candidate" ;;
 esac
 
-protected_re='/build/\.vergil-state/issue-implement/[^/]+/merge-review/(result-[^/]*\.md|capture-[^/]*\.json)$'
+protected_re='/build/\.vergil-state/issue-implement/[^/]+/merge-review/(result-[^/]*\.md|reply-[^/]*\.md|capture-[^/]*\.json)$'
 
 is_protected() {
 	printf '%s' "$1" | grep -Eq "$protected_re"
@@ -79,7 +80,7 @@ jq -n --arg path "$file_path" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "deny",
-    permissionDecisionReason: ("merge-review result guard: \($path) is a stored merge-review result or its capture record. Only the capture-merge-review-result hook writes these, from the merge reviewer'"'"'s own reply; the agent never writes, edits or retypes them. Read the file instead. To get a new result, rebuild the step'"'"'s request and dispatch the reviewer again, as the merge-review skill says. See vergil-project/vergil-claude-plugin#1065.")
+    permissionDecisionReason: ("merge-review result guard: \($path) is a stored merge-review result, its publishable copy or its capture record. Only the capture-merge-review-result hook writes these, from the merge reviewer'"'"'s own reply; the agent never writes, edits or retypes them. Read the file instead. To get a new result, rebuild the step'"'"'s request and dispatch the reviewer again, as the merge-review skill says. See vergil-project/vergil-claude-plugin#1065.")
   }
 }'
 exit 0

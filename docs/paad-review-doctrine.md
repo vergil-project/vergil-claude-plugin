@@ -323,7 +323,9 @@ issue, finds it. Find the main clone from inside a worktree with
     home repo (the skill);
   - `request-<step>.json`, `diff-<step>.patch` and `fix-<step>.patch`
     (`vrg-merge-review-request`);
-  - `result-<step>.md`, the reviewer's reply stored unchanged, and
+  - `result-<step>.md`, the reviewer's reply stored unchanged,
+    `reply-<step>.md`, the same reply as a publishable copy that the step
+    comment carries whole unless the result has a security finding, and
     `capture-<step>.json`, its capture record with the reply's SHA-256
     (the plugin's `capture-merge-review-result` hook, never the skill);
   - `security-<ID>.md`, one security finding's details (the skill);

@@ -10,7 +10,14 @@
 # first user message names the request; the result goes next to it:
 #
 #   <dir>/request-<step>.json  ->  <dir>/result-<step>.md
+#                                  <dir>/reply-<step>.md
 #                                  <dir>/capture-<step>.json
+#
+# reply-<step>.md is the publishable copy of the same bytes: the reply
+# inside a fenced block in a collapsed <details> section, which the skill
+# appends to the step's public comment, unread and unretyped, so the full
+# reply survives the private directory's deletion at report-ready. The
+# skill publishes it only for a result with no security finding.
 #
 # capture-<step>.json records what was stored:
 #
@@ -106,19 +113,50 @@ ensured=$(cd "$worktree" && vrg-merge-review-request --issue "$issue" --ensure-d
 [ "$ensured" = "$dir" ] || fail "the request file is not in its issue's private directory"
 
 tmp_result=""
+tmp_reply=""
 tmp_capture=""
 # Removes whichever temporary file has not been moved into place.
-trap 'rm -f -- "$tmp_result" "$tmp_capture"' EXIT
+trap 'rm -f -- "$tmp_result" "$tmp_reply" "$tmp_capture"' EXIT
 
 tmp_result=$(mktemp "$dir/.capture-result.XXXXXX") || fail "cannot create a temporary file in the private directory"
+tmp_reply=$(mktemp "$dir/.capture-reply.XXXXXX") || fail "cannot create a temporary file in the private directory"
 tmp_capture=$(mktemp "$dir/.capture-record.XXXXXX") || fail "cannot create a temporary file in the private directory"
-chmod 600 -- "$tmp_result" "$tmp_capture" || fail "cannot make the temporary files private"
+chmod 600 -- "$tmp_result" "$tmp_reply" "$tmp_capture" || fail "cannot make the temporary files private"
 
 # -j writes the string's exact bytes: no added newline, nothing re-encoded.
 printf '%s' "$input" | jq -j '.last_assistant_message' >"$tmp_result" ||
 	fail "cannot write the reviewer's reply"
 digest=$(sha256_of "$tmp_result") || fail "neither sha256sum nor shasum is installed"
 printf '%s' "$digest" | grep -Eq '^[0-9a-f]{64}$' || fail "the reply's sha256 could not be computed"
+
+# The publishable copy: the reply, unchanged, inside a fenced block
+# whose backtick fence is longer than any backtick run in the reply, so
+# nothing in the reply can close it. The block sits in a collapsed
+# <details> section whose summary gives the reply's SHA-256 and size.
+# The fence must start on its own line: a reply that does not end in a
+# newline gets one before the closing fence, and the summary says so.
+bytes=$(wc -c <"$tmp_result" | tr -d '[:space:]') || fail "cannot measure the reviewer's reply"
+longest=$(LC_ALL=C awk '{
+	s = $0
+	while (match(s, /`+/)) {
+		if (RLENGTH > m) { m = RLENGTH }
+		s = substr(s, RSTART + RLENGTH)
+	}
+} END { print m + 0 }' "$tmp_result") || fail "cannot scan the reviewer's reply"
+fence_len=$((longest + 1))
+[ "$fence_len" -ge 4 ] || fence_len=4
+fence=$(printf "%${fence_len}s" "" | tr ' ' '`')
+added=""
+if [ -n "$(tail -c 1 "$tmp_result")" ]; then
+	added=", a final newline added before the closing fence"
+fi
+{
+	printf '<details>\n<summary>Reviewer reply: sha256 %s, %s bytes%s</summary>\n\n' "$digest" "$bytes" "$added"
+	printf '%s\n' "$fence"
+	cat -- "$tmp_result"
+	[ -z "$added" ] || printf '\n'
+	printf '%s\n\n</details>\n' "$fence"
+} >"$tmp_reply" || fail "cannot write the publishable copy of the reply"
 
 jq -n --arg step "$step" --arg rid "$request_id" --arg sha "$digest" --arg aid "$agent_id" '{
 	schema: "merge-review-capture/1",
@@ -128,6 +166,9 @@ jq -n --arg step "$step" --arg rid "$request_id" --arg sha "$digest" --arg aid "
 	agent_id: $aid
 }' >"$tmp_capture" || fail "cannot write the capture record"
 
+# The capture record goes last: once it is in place, so are the others.
+mv -f -- "$tmp_reply" "$dir/reply-$step.md" || fail "cannot store reply-$step.md"
+tmp_reply=""
 mv -f -- "$tmp_result" "$dir/result-$step.md" || fail "cannot store result-$step.md"
 tmp_result=""
 mv -f -- "$tmp_capture" "$dir/capture-$step.json" || fail "cannot store capture-$step.json"

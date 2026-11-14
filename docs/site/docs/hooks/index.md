@@ -350,8 +350,8 @@ cannot be parsed → blocked with exit 2); fail-open outside it.
 ### guard-merge-review-results
 
 **What.** Denies Write, Edit and NotebookEdit on a stored merge-review
-result, `result-<step>.md`, or its capture record,
-`capture-<step>.json`, in any task's private directory
+result, `result-<step>.md`, its publishable copy, `reply-<step>.md`, or
+its capture record, `capture-<step>.json`, in any task's private directory
 (`build/.vergil-state/issue-implement/<N>/merge-review/`), for every
 identity. The path is matched as given and, with `python3`, with every
 symlink resolved.
@@ -408,8 +408,19 @@ the hook reads that path from the first user message of the reviewer's
 transcript (`agent_transcript_path`). It writes only when the path is a
 `request-<step>.json` in a task's private directory, the request's `step`
 matches its name, and `vrg-merge-review-request --ensure-dir`, run for the
-request's issue from its worktree, prints that same directory. Both files
-are written mode 600 and moved into place.
+request's issue from its worktree, prints that same directory.
+
+It also writes `reply-<step>.md`, the publishable copy of the same bytes:
+the reply inside a fenced block whose backtick fence is longer than any
+backtick run in the reply, in a collapsed `<details>` section whose summary
+gives the reply's SHA-256 and size. A reply that does not end in a newline
+gets one before the closing fence, and the summary says so. The skill
+appends this copy unread to the step's public comment when the result has
+no security finding, so the full reply survives the private directory's
+deletion at report-ready.
+
+All three files are written mode 600 and moved into place, the capture
+record last.
 
 **Why.** The merge-review skill used to copy the reply out of the
 subagent's output itself. A retyped reply could lose prose while keeping

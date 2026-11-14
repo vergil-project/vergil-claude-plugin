@@ -239,9 +239,9 @@ for the rationale.
 | `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
 | `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored scratch under the main clone's `build/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
-| `guard-merge-review-results` | PreToolUse/Write\|Edit\|NotebookEdit | Denies writes to a stored merge-review result or its capture record: only the capture hook writes them |
+| `guard-merge-review-results` | PreToolUse/Write\|Edit\|NotebookEdit | Denies writes to a stored merge-review result, its publishable copy or its capture record: only the capture hook writes them |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
-| `capture-merge-review-result` | SubagentStop/vergil:merge-reviewer | Stores the merge reviewer's reply byte for byte as `result-<step>.md`, with a capture record holding its SHA-256 |
+| `capture-merge-review-result` | SubagentStop/vergil:merge-reviewer | Stores the merge reviewer's reply byte for byte as `result-<step>.md`, with a publishable copy for the step comment and a capture record holding its SHA-256 |
 
 Full reference:
 <https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md>.
