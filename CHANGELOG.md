@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.69] - 2026-11-14
+
+### Chores
+
+- sync the managed files with the released templates (#1060)
+
+### Documentation
+
+- count epic-review among the epic-* skills in the lifecycle note (#1059)
+
+### Features
+
+- fixture-run recipe and the epic-create seeding rule (#1061)
+
 ## [2.1.68] - 2026-11-13
 
 ### Features
