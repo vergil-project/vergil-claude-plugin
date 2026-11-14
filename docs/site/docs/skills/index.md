@@ -160,7 +160,8 @@ per repo and names what runs at the same time, takes one confirmation, then
 dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
-planning or deferred queue it refuses and points to `epic-review`; given an
+planning or deferred queue it refuses and points to `epic-review` (with
+`--repo` for a self-homed private repo's queue); given an
 issue that is not an epic it refuses. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
@@ -468,8 +469,8 @@ The modes differ only in order, check and outcomes:
 Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
 it never implements one or starts `epic-create`. Given an ad-hoc epic or a
-development epic, it prints a one-line refusal pointing to the right command
-and stops; with no argument, it shows the three queue counts and asks which
+development epic, it prints a one-line refusal pointing to the right command,
+naming `--repo` for a self-homed private repo's ad-hoc epic, and stops; with no argument, it shows the three queue counts and asks which
 to review. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
