@@ -286,7 +286,13 @@ runtime.
 end to end: installs or syncs the merged change so it is actually usable
 (install / sync / release-then-install), then records the result as an
 `Outcome:` comment on the issue. It is *run*, not built — there is no PR,
-and the deployment tooling refuses one.
+and the deployment tooling refuses one. A step the task lists under
+**Human-run steps** (one that needs a human identity, such as
+`vrg-github-repo-config apply`) is never run under the agent identity: the
+skill checks its preconditions, hands the human the paste-ready command,
+waits, then verifies the human's run and records it with the rest. With no
+human present, the run ends `waiting: human-run steps` rather than
+`blocked`.
 
 **When to use.** When the human asks to deploy, install, roll out, or sync
 merged work, or when a later task needs a change deployed and usable rather
