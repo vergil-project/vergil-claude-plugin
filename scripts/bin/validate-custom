@@ -119,6 +119,7 @@ check_agent_tools() {
 # first word, less that prefix, is the script's repo-relative path.
 check_hook_modes() {
 	local root="$1" file="hooks/hooks.json" commands command path entry mode
+	# shellcheck disable=SC2016 # the literal prefix hooks.json carries, not an expansion
 	local rc=0 count=0 prefix='${CLAUDE_PLUGIN_ROOT}/'
 	if [[ ! -f "$root/$file" ]]; then
 		echo "ERROR: $file: missing" >&2

@@ -53,7 +53,7 @@ run_case() {
 	local name="$1" repo="$2" expect="$3" out rc path ok=1
 	shift 3
 	out="$( (
-		# shellcheck source=../../scripts/bin/validate-custom
+		# shellcheck source=/dev/null
 		source "$VALIDATE_CUSTOM"
 		check_hook_modes "$repo"
 	) 2>&1)"
@@ -81,6 +81,7 @@ run_case() {
 	fi
 }
 
+# shellcheck disable=SC2016 # the literal ${CLAUDE_PLUGIN_ROOT} that hooks.json carries
 P='${CLAUDE_PLUGIN_ROOT}'
 
 repo=$(new_repo exec "$P/hooks/scripts/a.sh")
