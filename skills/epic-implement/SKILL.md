@@ -43,7 +43,7 @@ dispatch, gate and batching rules.
      | Labels | Kind | What to do |
      |---|---|---|
      | no `epic` label (a task, or an `archive`) | not an epic | Print `<ref> is not an epic.` and stop. |
-     | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. |
+     | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. For a self-homed private repo's queue (one whose `<owner>/<repo>` is not `<owner>/.github`), print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind> --repo <owner>/<repo>.` instead: its queues are reviewed only with its own `--repo`. |
      | `epic` + `ad-hoc` | one repo's ad-hoc epic | Run the [`adhoc` mode](#the-adhoc-mode) for that one repo (below). |
      | `epic`, none of the above | development epic | Read the epic issue and go on to step 1. |
 
