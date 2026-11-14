@@ -63,8 +63,8 @@ produce, such as the diff, comes in the request, and everything it produces
 goes back in its reply. The plugin's `capture-merge-review-result`
 SubagentStop hook stores that reply, its final message, byte for byte as the
 step's result, with a capture record holding its SHA-256, so nobody retypes
-it; the skill then checks it. A reply with no security finding is then
-published whole in the step's comment on the task issue, so the full review
+it; the skill then checks it. A reply that touches no security finding (its
+own, or for a check an earlier step's) is then published whole in the step's comment on the task issue, so the full review
 survives handoff.
 `scripts/bin/validate-custom` pins this tool list, so adding a tool to the
 agent fails validation.

@@ -415,8 +415,8 @@ the reply inside a fenced block whose backtick fence is longer than any
 backtick run in the reply, in a collapsed `<details>` section whose summary
 gives the reply's SHA-256 and size. A reply that does not end in a newline
 gets one before the closing fence, and the summary says so. The skill
-appends this copy unread to the step's public comment when the result has
-no security finding, so the full reply survives the private directory's
+appends this copy unread to the step's public comment when no security
+finding is in the result or, for a check, in an earlier step, so the full reply survives the private directory's
 deletion at report-ready.
 
 All three files are written mode 600 and moved into place, the capture

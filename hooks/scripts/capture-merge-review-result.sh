@@ -17,7 +17,8 @@
 # inside a fenced block in a collapsed <details> section, which the skill
 # appends to the step's public comment, unread and unretyped, so the full
 # reply survives the private directory's deletion at report-ready. The
-# skill publishes it only for a result with no security finding.
+# skill publishes it only when no security finding is in the result or,
+# for a check, in an earlier step.
 #
 # capture-<step>.json records what was stored:
 #

@@ -160,7 +160,9 @@ A reply with no security finding is published whole, block and prose, in
 the step's public comment on the task issue. So anything that would help
 an attacker is a security finding, and is never mentioned in a reply that
 flags none: not in another finding's summary or paragraph, and not in the
-sentence on what you read.
+sentence on what you read. A check's reply is withheld whenever an earlier
+step raised a security finding, since its `fix_status` and prose cover it;
+still put that finding's details only in the prose under its ID.
 
 ## A check step
 

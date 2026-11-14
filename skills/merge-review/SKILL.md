@@ -58,8 +58,8 @@ into report-ready's notes.
   and notes. A security item's details live only in its `security-<ID>.md`
   and the terminal. Every request item for a security finding is
   `{"id": "<ID>", "security": true}` and nothing else. So a step
-  comment carries the reviewer's full reply only when the result has no
-  security finding ([Records](#records)).
+  comment carries the reviewer's full reply only when no security finding
+  is in it or, for a check, in an earlier step ([Records](#records)).
 - **One fix step per run.** There is never a second fix round without a
   human ruling.
 - **The issue is single-threaded while an exchange is open.** Between a
@@ -669,10 +669,16 @@ Reviewer usage: <tokens, duration, when the completion notice gave it>
   unread: `cat <dir>/reply-<step>.md >> <dir>/comment-<step>.md`. The
   copy's summary line gives the reply's SHA-256, which matches
   `capture-<step>.json`, so a reader can check it.
-- **A reply with a security finding is never published**, not even in
-  part: its block and prose hold that finding's location and details.
-  When the check summary's `security` is above 0, append nothing from
-  `reply-<step>.md`; end the comment instead with the line
+- **A reply that touches a security finding is never published**, not
+  even in part: its block and prose hold that finding's location and
+  details, or for a check, an earlier security finding's fix status and
+  why it still stands. Withhold the reply when the check summary's
+  `security` is above 0, or when the step is a check and any earlier
+  step of this run raised a security finding (an earlier step's check
+  summary with `security` above 0; re-run `vrg-merge-review-check` on
+  its result to see it): every earlier ID is in a check's `fix_status`.
+  Then append nothing from `reply-<step>.md`; end the comment instead
+  with the line
   `Reviewer reply: withheld, it holds security details; sha256 <result_sha256 from capture-<step>.json>`.
   The details stay only in `security-<ID>.md` and the terminal
   ([Ground rules](#ground-rules)).
