@@ -61,6 +61,7 @@ unattended runner, `paad:paad-delegate`
 | [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
+| [fixture-run](#fixture-run) | USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only, and refuses a run without `--after` | Current (2.1) |
 | [pr-watch](#pr-watch) | USER agent: monitor the open PR through CI/review and reconcile feedback until mergeable; on a batch PR, fold each fix into its issue's commit | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
@@ -68,9 +69,11 @@ unattended runner, `paad:paad-delegate`
 | [epic-review](#epic-review) | USER agent: review the intake, planning or deferred queue in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions. Refuses an ad-hoc or development epic | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
 
-The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
-`epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
-gate that closes the epic).
+Three of the `epic-*` skills form the **epic lifecycle**: `epic-create` (run
+once) → `epic-implement` (run N times) → `epic-retrospective` (run once — the
+terminal gate that closes the epic). The fourth, `epic-review`, works the
+queues upstream of it: it places intake, planning and deferred items, and never
+implements one or starts `epic-create`.
 
 ## epic-create
 
@@ -302,6 +305,31 @@ live-lab check, a post-deploy smoke test — and records PASS/FAIL as an
 checklist on a validation issue.
 
 **Status.** Current (Vergil 2.1).
+
+## fixture-run
+
+**What it does.** USER-identity recipe skill. Files a **fixture run** on one
+or more of the language fixture repos (`vergil-fixture-python-lib`,
+`vergil-fixture-python-app`, `vergil-fixture-rust-lib`,
+`vergil-fixture-rust-app`): per fixture, a trio of tasks linked under the
+epic that needs the run. The change task (run with `issue-implement`) is
+blocked by every `--after` ref, the release or deployment task that ships
+the change. The release task (`deployment`, run with `issue-deploy`) is the
+human's `vrg-release` of the fixture. The validation task (`validation`,
+run with `issue-validate`) checks the CI gates, ops, the release, its
+evidence bundle, the dependency update, the docs site and that nothing
+reached a package registry. It files tasks only and never runs them. The
+skill holds the one list of fixtures, the known gaps and the learned
+ready-to-start conditions.
+
+**When to use.** When an epic's plan seeds a fixture run, which
+`epic-create`'s fixture-run rule asks of every epic that changes language
+support, container images, shared CI workflows or release tooling:
+`fixture-run <epic-ref> <fixture>[,<fixture>…] --validates <what> --after
+<owner/repo#N> [--after …]`.
+
+**Status.** Current (Vergil 2.1). Requires `vrg-issue-create` with
+operational body files (vergil-tooling 2.1.309 or later).
 
 ## pr-watch
 
