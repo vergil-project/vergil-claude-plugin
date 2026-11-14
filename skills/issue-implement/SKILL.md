@@ -51,7 +51,9 @@ A run that `epic-implement` dispatches with rulings on such items only
 carries them out and stops: after Preflight steps 1–5 it creates no
 worktree and makes no commit, even on a reported-ready task. The exception
 is a task whose run ended `waiting: non-review items`: see
-[Merge review](#merge-review). It takes each
+[Merge review](#merge-review), or, for a documentation review that
+changes nothing, its
+[step 3](#a-documentation-review-that-changes-nothing). It takes each
 item, and any security details, only from its prompt; for a `record`
 ruling it writes the details as a `security-<i>.md` in the task's
 `issue-implement/<N>/` directory
@@ -251,6 +253,50 @@ recommend attaching the need to it rather than minting a redundant one. See `epi
 **Never declare the task or its epic done while a paired or epoch operational
 task is still open** — it gates the epic's closure and closes only on a recorded
 `Outcome: SUCCESS`.
+
+## A documentation review that changes nothing
+
+An epic's documentation-review bookend (`epic-create`'s closing bookends) is
+filed in the repo whose docs it reviews. When its sweep finds nothing to
+change in that repo, there is no commit and no PR to close it. Closing it as
+completed, with the search evidence on the issue, is the standard path: it
+needs no ruling.
+
+1. **Finish the sweep first.** Docs in another repo that need work are a
+   per-repo doc task there, which the sweep files itself as it finds them
+   (`epic-implement`'s
+   [Terminal handoff](../epic-implement/SKILL.md#6-terminal-handoff-hybrid)):
+   §1.7 exempts those tasks from the approval rule.
+2. **Remove the unused worktree** from the main clone, if Preflight step 7
+   created one: `vrg-git worktree remove .worktrees/issue-<N>-<slug>`,
+   then `vrg-git branch -D feature/<N>-<slug>`. It holds no commit.
+3. **Settle every other non-review item** the sweep raised (§1.7): a
+   trusted author's ruling line for each must be on the issue before the
+   task is closed. With the human present, settle them in the terminal.
+   Otherwise post the pending ones under `Awaiting a ruling` and end
+   `waiting: non-review items`. The run dispatched with their rulings
+   carries them out and then goes on at step 4, with no worktree and no
+   merge review. A ruling that the docs do need a change in this repo
+   takes the task off this path: that run implements it as any task, from
+   Preflight step 7.
+4. **Post the search evidence** as a comment on the task: what the epic
+   changed, each doc surface checked (`docs/site` and every other doc in
+   the repo), the searches run (terms and paths), why each finding needs no
+   change, and the refs of any per-repo doc tasks the sweep spawned.
+5. **Close it as completed:**
+
+   ```bash
+   vrg-gh issue close <N> --repo <owner>/<repo> --reason completed \
+     --comment "No documentation change needed in this repo: see the search evidence above."
+   ```
+
+The task gets no merge review and no `report-ready`, since there is no
+change to review or hand off. The run's final report is
+`closed: no change`, with the evidence comment's URL. A documentation
+review is never batched (see [What to batch](#what-to-batch)), so this
+path is always a single-issue run's. A task of any other kind that turns out to
+need no change is not closed this way: list it under `Awaiting a ruling`
+for the human.
 
 ## Merge review
 
@@ -479,8 +525,10 @@ The **guidelines** are judgment, yours and the human's:
   the repo, adding no command, flag or schema. As a size cue, about 150
   changed lines and 6 files each at most, tests included.
 - **Never batch** a security-labelled issue, an issue whose plan entry
-  calls for design work, or a change to a contract other repositories
-  consume (a CLI interface, a config schema, a reusable workflow).
+  calls for design work, a change to a contract other repositories
+  consume (a CLI interface, a config schema, a reusable workflow), or a
+  documentation review, whose sweep may end with
+  [no change at all](#a-documentation-review-that-changes-nothing).
 - **Cap.** 4 issues by default. Up to 8 only when every item is tiny (a
   typo, a one-line config value, a wording fix; about 30 lines and 3 files
   at most).

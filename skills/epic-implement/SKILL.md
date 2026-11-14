@@ -234,7 +234,11 @@ present everything needing the human:
   items`, that one new run carries out the rulings (a `fix` included,
   since the task is still being implemented) before merge review posts
   anything, then continues the merge review, which may stop again at the
-  next gate;
+  next gate. A documentation review that changes nothing has no merge
+  review: its run carries out the rulings, then posts the search evidence
+  and closes the task, as `issue-implement`'s
+  [A documentation review that changes nothing](../issue-implement/SKILL.md#a-documentation-review-that-changes-nothing)
+  says;
 - every **batch stop**
   (`issue-implement`'s [Batch stops](../issue-implement/SKILL.md#batch-stops)),
   presented with its run's other non-review items. A batch stop means
@@ -319,6 +323,12 @@ When only the closing bookends remain, drive them **in order**:
   docs need work it **spawns a per-repo doc task** (linked under the epic, closed
   by a same-repo PR) rather than reaching across a repo boundary. See
   `epic-create`'s bookend convention. This runs **before** the retrospective.
+  When the review's own repo needs no change, it has no PR to close it:
+  `issue-implement` posts the search evidence on the task and closes it as
+  completed, the standard path, with no ruling needed (its
+  [A documentation review that changes nothing](../issue-implement/SKILL.md#a-documentation-review-that-changes-nothing)).
+  The run reports `closed: no change`; show it at the gate with the
+  evidence comment's URL.
 - **Retrospective task (terminal — the final gate)** — hand off into
   **`epic-retrospective`**, the run-once finishing skill. Its preflight refuses
   to run until every other child of the epic is closed, so you reach it only once
