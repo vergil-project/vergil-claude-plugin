@@ -68,9 +68,11 @@ unattended runner, `paad:paad-delegate`
 | [epic-review](#epic-review) | USER agent: review the intake, planning or deferred queue in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions. Refuses an ad-hoc or development epic | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
 
-The three `epic-*` skills form the **epic lifecycle**: `epic-create` (run once) →
-`epic-implement` (run N times) → `epic-retrospective` (run once — the terminal
-gate that closes the epic).
+Three of the `epic-*` skills form the **epic lifecycle**: `epic-create` (run
+once) → `epic-implement` (run N times) → `epic-retrospective` (run once — the
+terminal gate that closes the epic). The fourth, `epic-review`, works the
+queues upstream of it: it places intake, planning and deferred items, and never
+implements one or starts `epic-create`.
 
 ## epic-create
 
