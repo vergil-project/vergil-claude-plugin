@@ -4157,6 +4157,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fixture-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fixture-run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pr-watch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4405,6 +4416,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fixture-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fixture-run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pr-watch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4587,6 +4609,11 @@ unattended runner, <code>paad:paad-delegate</code>
 <tr>
 <td><a href="#issue-validate">issue-validate</a></td>
 <td>USER agent: run a <code>validation</code> task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change</td>
+<td>Current (2.1)</td>
+</tr>
+<tr>
+<td><a href="#fixture-run">fixture-run</a></td>
+<td>USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only, and refuses a run without <code>--after</code></td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -4822,6 +4849,27 @@ live-lab check, a post-deploy smoke test — and records PASS/FAIL as an
 <p><strong>When to use.</strong> When the human asks to validate, verify, or run the
 checklist on a validation issue.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
+<h2 id="fixture-run">fixture-run<a class="headerlink" href="#fixture-run" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity recipe skill. Files a <strong>fixture run</strong> on one
+or more of the language fixture repos (<code>vergil-fixture-python-lib</code>,
+<code>vergil-fixture-python-app</code>, <code>vergil-fixture-rust-lib</code>,
+<code>vergil-fixture-rust-app</code>): per fixture, a trio of tasks linked under the
+epic that needs the run. The change task (run with <code>issue-implement</code>) is
+blocked by every <code>--after</code> ref, the release or deployment task that ships
+the change. The release task (<code>deployment</code>, run with <code>issue-deploy</code>) is the
+human's <code>vrg-release</code> of the fixture. The validation task (<code>validation</code>,
+run with <code>issue-validate</code>) checks the CI gates, ops, the release, its
+evidence bundle, the dependency update, the docs site and that nothing
+reached a package registry. It files tasks only and never runs them. The
+skill holds the one list of fixtures, the known gaps and the learned
+ready-to-start conditions.</p>
+<p><strong>When to use.</strong> When an epic's plan seeds a fixture run, which
+<code>epic-create</code>'s fixture-run rule asks of every epic that changes language
+support, container images, shared CI workflows or release tooling:
+<code>fixture-run &lt;epic-ref&gt; &lt;fixture&gt;[,&lt;fixture&gt;…] --validates &lt;what&gt; --after
+&lt;owner/repo#N&gt; [--after …]</code>.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1). Requires <code>vrg-issue-create</code> with
+operational body files (vergil-tooling 2.1.309 or later).</p>
 <h2 id="pr-watch">pr-watch<a class="headerlink" href="#pr-watch" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity post-PR loop, emitted by
 <code>vrg-submit-pr</code>. Monitors the open PR via <code>vrg-pr-await</code> and
