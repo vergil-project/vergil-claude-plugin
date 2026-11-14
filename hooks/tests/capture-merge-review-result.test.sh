@@ -199,6 +199,7 @@ write_request review
 write_transcript "$DIR/request-review.json"
 SAVED_REPLY="$TMP/reply-saved.md"
 cp "$REPLY_FILE" "$SAVED_REPLY"
+# shellcheck disable=SC2016 # literal backticks: the reply's own text
 printf '%s\n%s' 'see `````five````` here' 'last line, no newline' >"$REPLY_FILE"
 out=$(payload | bash "$HOOK" 2>&1)
 rc=$?
