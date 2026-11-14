@@ -4790,7 +4790,8 @@ per repo and names what runs at the same time, takes one confirmation, then
 dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
-planning or deferred queue it refuses and points to <code>epic-review</code>; given an
+planning or deferred queue it refuses and points to <code>epic-review</code> (with
+<code>--repo</code> for a self-homed private repo's queue); given an
 issue that is not an epic it refuses. Added in epic
 <a href="https://github.com/vergil-project/.github/issues/1077">vergil-project/.github#1077</a>.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
@@ -4833,7 +4834,10 @@ planning or deferred epic (route it with <code>epic-review intake</code>, expand
 <code>epic-create</code>, or revive it with <code>epic-review deferred</code> first), mirroring the
 PR tooling's refusal. A ruling that changes the task's scope is drafted
 with <code>vrg-ruling draft-scope</code> for the human to post with
-<code>vrg-scope-change</code>, before the merge review starts.</p>
+<code>vrg-scope-change</code>, before the merge review starts. An epic's
+documentation review whose own repo needs no change has no PR: the skill
+posts the search evidence on the task and closes it as completed, with no
+ruling needed.</p>
 <p>Given a list of small same-epic issues, it implements them as one
 <strong>batch</strong>: <code>vrg-pr-workflow batch-start</code> checks the batch's hard rules
 and records the list and a fixed base, then each issue is implemented,
@@ -5046,8 +5050,8 @@ with its tallies.</p>
 <p>Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
 it never implements one or starts <code>epic-create</code>. Given an ad-hoc epic or a
-development epic, it prints a one-line refusal pointing to the right command
-and stops; with no argument, it shows the three queue counts and asks which
+development epic, it prints a one-line refusal pointing to the right command,
+naming <code>--repo</code> for a self-homed private repo's ad-hoc epic, and stops; with no argument, it shows the three queue counts and asks which
 to review. Added in epic
 <a href="https://github.com/vergil-project/.github/issues/1077">vergil-project/.github#1077</a>.</p>
 <p><strong>When to use.</strong> For the periodic pass of any queue: "review intake", "groom
