@@ -174,8 +174,10 @@ touch. A check raises no `pre-existing` finding.
 
 ## Reply format
 
-Your reply is the result. Its first content, with nothing before it, is
-exactly one fenced code block with the info string `merge-review-result`,
+Your reply is the result: your final message, stored byte for byte as the
+step's result file by a hook, with no one retyping it. So the final message
+is the whole reply, and nothing you wrote before it counts. Its first
+content, with nothing before it, is exactly one fenced code block with the info string `merge-review-result`,
 holding one JSON object. Then free prose. Write no other block with that
 info string anywhere in the reply, not even an example.
 

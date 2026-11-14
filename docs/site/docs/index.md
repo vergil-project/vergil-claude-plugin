@@ -15,7 +15,7 @@ that enforces workflow compliance mechanically.
 
 |Component|Purpose|
 |---|---|
-|[Hooks](hooks/index.md)|Pre/PostToolUse/Stop workflow guardrails|
+|[Hooks](hooks/index.md)|Pre/PostToolUse workflow guardrails and the SubagentStop merge-review capture|
 |[Skills](skills/index.md)|Shared workflow skills (commit, PR, etc.)|
 |[Agents](agents/index.md)|Bootstrap subagent for session context|
 

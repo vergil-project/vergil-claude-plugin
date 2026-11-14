@@ -324,7 +324,9 @@ issue, finds it. Find the main clone from inside a worktree with
   - `request-<step>.json`, `diff-<step>.patch` and `fix-<step>.patch`
     (`vrg-merge-review-request`);
   - `result-<step>.md`, the reviewer's reply stored unchanged, and
-    `security-<ID>.md`, one security finding's details (the skill);
+    `capture-<step>.json`, its capture record with the reply's SHA-256
+    (the plugin's `capture-merge-review-result` hook, never the skill);
+  - `security-<ID>.md`, one security finding's details (the skill);
   - `ruling-<step>.json`, a ruling request's items; `draft-<step>.json`,
     the reply items for `vrg-ruling draft` (the skill with the human
     present, or `epic-implement` at its gate); `open-request.json`, the open
