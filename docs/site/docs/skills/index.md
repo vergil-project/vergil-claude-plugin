@@ -212,7 +212,10 @@ planning or deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
 PR tooling's refusal. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
-`vrg-scope-change`, before the merge review starts.
+`vrg-scope-change`, before the merge review starts. An epic's
+documentation review whose own repo needs no change has no PR: the skill
+posts the search evidence on the task and closes it as completed, with no
+ruling needed.
 
 Given a list of small same-epic issues, it implements them as one
 **batch**: `vrg-pr-workflow batch-start` checks the batch's hard rules
