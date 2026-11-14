@@ -27,6 +27,7 @@ chmod 700 "$MAIN/build/.vergil-state" "$MAIN/build/.vergil-state/issue-implement
 # exact ensure-dir call, or exits STUB_EXIT.
 BIN="$TMP/bin"
 mkdir -p "$BIN"
+# shellcheck disable=SC2016 # the stub's variables must expand when the stub runs
 printf '%s\n' \
 	'#!/usr/bin/env bash' \
 	'if [ "${STUB_EXIT:-0}" != 0 ]; then echo "ERROR: refused" >&2; exit "$STUB_EXIT"; fi' \
@@ -103,7 +104,7 @@ mode_of() {
 # leaves no result, capture or temporary file.
 expect_refusal() {
 	local name="$1" rc err
-	err=$(payload "${PAYLOAD_AGENT:-vergil:merge-reviewer}" ${PAYLOAD_FLAG:-} | bash "$HOOK" 2>&1 >/dev/null)
+	err=$(payload "${PAYLOAD_AGENT:-vergil:merge-reviewer}" "${PAYLOAD_FLAG:-}" | bash "$HOOK" 2>&1 >/dev/null)
 	rc=$?
 	if [ "$rc" -ne 1 ]; then
 		bad "$name" "exit $rc, expected 1"

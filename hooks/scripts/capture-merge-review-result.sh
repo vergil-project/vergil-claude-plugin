@@ -107,10 +107,8 @@ ensured=$(cd "$worktree" && vrg-merge-review-request --issue "$issue" --ensure-d
 
 tmp_result=""
 tmp_capture=""
-cleanup() {
-	rm -f -- "$tmp_result" "$tmp_capture"
-}
-trap cleanup EXIT
+# Removes whichever temporary file has not been moved into place.
+trap 'rm -f -- "$tmp_result" "$tmp_capture"' EXIT
 
 tmp_result=$(mktemp "$dir/.capture-result.XXXXXX") || fail "cannot create a temporary file in the private directory"
 tmp_capture=$(mktemp "$dir/.capture-record.XXXXXX") || fail "cannot create a temporary file in the private directory"
