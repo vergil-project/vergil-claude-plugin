@@ -5335,6 +5335,12 @@ into broken cleanup behavior just to satisfy the hook.</p>
 scripts in <code>hooks/scripts/</code>. Each hook receives the tool input as
 JSON on stdin and returns a JSON response indicating whether to
 allow, deny, or annotate the action.</p>
+<p>Every script that <code>hooks.json</code> names must be tracked in git at mode
+<code>100755</code> (executable): Claude Code cannot run a hook script that is not.
+The repo's custom validator, <code>scripts/bin/validate-custom</code>
+(<code>check_hook_modes</code>), fails the <code>vrg-validate</code> pipeline when one is
+untracked or has any other mode. Each <code>hooks.json</code> command must start
+with <code>${CLAUDE_PLUGIN_ROOT}/</code> so the check can find its script.</p>
 <h3 id="pretooluse-response">PreToolUse response<a class="headerlink" href="#pretooluse-response" title="Permanent link">&para;</a></h3>
 <p>A PreToolUse hook can deny an action by writing JSON to stdout and
 exiting 0:</p>
