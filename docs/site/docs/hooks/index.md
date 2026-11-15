@@ -507,6 +507,13 @@ scripts in `hooks/scripts/`. Each hook receives the tool input as
 JSON on stdin and returns a JSON response indicating whether to
 allow, deny, or annotate the action.
 
+Every script that `hooks.json` names must be tracked in git at mode
+`100755` (executable): Claude Code cannot run a hook script that is not.
+The repo's custom validator, `scripts/bin/validate-custom`
+(`check_hook_modes`), fails the `vrg-validate` pipeline when one is
+untracked or has any other mode. Each `hooks.json` command must start
+with `${CLAUDE_PLUGIN_ROOT}/` so the check can find its script.
+
 ### PreToolUse response
 
 A PreToolUse hook can deny an action by writing JSON to stdout and
