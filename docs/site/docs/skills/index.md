@@ -306,7 +306,7 @@ end to end: installs or syncs the merged change so it is actually usable
 `Outcome:` comment on the issue. It is *run*, not built — there is no PR,
 and the deployment tooling refuses one. A step the task lists under
 **Human-run steps** (one that needs a human identity, such as
-`vrg-github-repo-config apply`) is never run under the agent identity: the
+`vrg-github-repo-config update`) is never run under the agent identity: the
 skill checks its preconditions, hands the human the paste-ready command,
 waits, then verifies the human's run and records it with the rest. With no
 human present, the run ends `waiting: human-run steps` rather than
@@ -503,7 +503,7 @@ the `vrg-intake-route` release that allows one-off from planning.
 **What it does.** The judgment layer of the recurring steering review, checked
 against the
 [Claude config ownership model](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md)
-(the nightly `vrg-github-repo-config audit` is the mechanical layer). It
+(the nightly `vrg-github-repo-config update` is the mechanical layer). It
 inventories the files, re-verifies the model's platform facts against the live
 Claude Code docs and reports any drift first, then runs its own mechanical
 checks: the config audit (repo scope), every named path exists, every named

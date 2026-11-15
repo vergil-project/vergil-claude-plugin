@@ -66,9 +66,9 @@ record keep the authors' default.
 
 **Decision.** Nothing under `paad/security/` is ever committed. It is ignored
 twice: by the `paad/security/.gitignore` (containing `*`) that paad 2.0
-creates itself, and by a `paad/security/` line in the managed `.gitignore`
-block that `vrg-gitignore-sync` maintains in every repo (added by epic #500,
-plan Task 1).
+creates itself, and by a `paad/security/` line (added by epic #500, plan
+Task 1) in the managed `.gitignore` block, which the nightly `github-config`
+job keeps in sync in every repo through `vrg-github-repo-config update`.
 
 **Reason.** Security findings must never reach a public repository. The
 managed line is defence in depth behind paad's own file. How the details are
