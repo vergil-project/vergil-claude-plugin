@@ -143,6 +143,14 @@ result and paste-ready `! <command>` line, and once the human has run them
 it dispatches one new `issue-deploy` run whose prompt carries the output of
 those runs, which verifies them and records the outcome.
 
+A documentation fix that a task's run, its merge review or the main
+session leaves for the epic's documentation-review sweep is recorded at
+once as a comment on the epic's documentation-review bookend, with its
+file and line, what is wrong and what found it. A dispatched run names
+the item in its final report and `epic-implement` posts it; the sweep
+then starts from that list. A sweep item is not a new issue and needs no
+ruling.
+
 It may batch independent small ready code tasks of one epic and repo into
 one `issue-implement` run, under that skill's
 [What to batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch) guidelines,

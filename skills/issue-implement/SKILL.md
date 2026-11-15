@@ -254,6 +254,29 @@ recommend attaching the need to it rather than minting a redundant one. See `epi
 task is still open** — it gates the epic's closure and closes only on a recorded
 `Outcome: SUCCESS`.
 
+## Documentation left for the sweep
+
+A documentation fix you leave for the epic's documentation-review sweep
+(a stale page outside this task's scope, a comment a rebase made stale, a
+doc a later task will make wrong) is recorded on the epic's
+documentation-review bookend, as `epic-implement`'s
+[Documentation items for the sweep](../epic-implement/SKILL.md#3-work-the-runnable-frontier)
+says. A dispatched run names each one in its final report, under
+`Left for the documentation-review sweep`, with its file and line (or the
+branch, if not yet merged), what is wrong, and what found it (this run or
+its merge review), and does not post on the bookend itself: the driver
+records it. With the human present, post it on the bookend yourself in
+that form. A sweep item is not a non-review item: it needs no ruling and
+never goes under `Awaiting a ruling`. Screen it against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings) first: a
+security-class item is a security item, never a sweep item. An ad-hoc
+task has no bookend: a documentation gap it finds outside its scope is a
+follow-up, under `Awaiting a ruling`.
+
+The documentation-review task itself starts from that list: before its own
+search, read its own issue's comments (it is the bookend) and take every
+item not recorded as fixed into the sweep.
+
 ## A documentation review that changes nothing
 
 An epic's documentation-review bookend (`epic-create`'s closing bookends) is
@@ -266,7 +289,9 @@ needs no ruling.
    per-repo doc task there, which the sweep files itself as it finds them
    (`epic-implement`'s
    [Terminal handoff](../epic-implement/SKILL.md#6-terminal-handoff-hybrid)):
-   §1.7 exempts those tasks from the approval rule.
+   §1.7 exempts those tasks from the approval rule. The sweep includes
+   every item recorded on the bookend
+   ([Documentation left for the sweep](#documentation-left-for-the-sweep)).
 2. **Remove the unused worktree** from the main clone, if Preflight step 7
    created one: `vrg-git worktree remove .worktrees/issue-<N>-<slug>`,
    then `vrg-git branch -D feature/<N>-<slug>`. It holds no commit.
@@ -281,8 +306,8 @@ needs no ruling.
    Preflight step 7.
 4. **Post the search evidence** as a comment on the task: what the epic
    changed, each doc surface checked (`docs/site` and every other doc in
-   the repo), the searches run (terms and paths), why each finding needs no
-   change, and the refs of any per-repo doc tasks the sweep spawned.
+   the repo), the searches run (terms and paths), why each finding (each
+   item recorded on the bookend included) needs no change, and the refs of any per-repo doc tasks the sweep spawned.
 5. **Close it as completed:**
 
    ```bash
