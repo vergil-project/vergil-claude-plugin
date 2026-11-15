@@ -4798,6 +4798,18 @@ own non-review items. A ruling there that changes a task's scope is drafted
 at the gate with <code>vrg-ruling draft-scope</code>, and the human posts it as
 themselves with the <code>vrg-scope-change</code> command it prints before the task is
 dispatched; the agents never post scope changes themselves.</p>
+<p>A deployment task whose <code>issue-deploy</code> run ended <code>waiting: human-run steps</code>
+also waits at the gate: <code>epic-implement</code> shows each step's precondition
+result and paste-ready <code>! &lt;command&gt;</code> line, and once the human has run them
+it dispatches one new <code>issue-deploy</code> run whose prompt carries the output of
+those runs, which verifies them and records the outcome.</p>
+<p>A documentation fix that a task's run, its merge review or the main
+session leaves for the epic's documentation-review sweep is recorded at
+once as a comment on the epic's documentation-review bookend, with its
+file and line, what is wrong and what found it. A dispatched run names
+the item in its final report and <code>epic-implement</code> posts it; the sweep
+then starts from that list. A sweep item is not a new issue and needs no
+ruling.</p>
 <p>It may batch independent small ready code tasks of one epic and repo into
 one <code>issue-implement</code> run, under that skill's
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch">What to batch</a> guidelines,
