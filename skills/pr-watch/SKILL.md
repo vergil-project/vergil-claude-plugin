@@ -118,4 +118,6 @@ never a mutation of the merged branch.
 ## Notes
 
 - You never merge the PR. When the checks are green, the **human** reviews and
-  merges (auto-merge is disabled fleet-wide).
+  merges. Repositories allow auto-merge so the automation App's sync PRs on
+  `automation/*` branches merge on CI alone. Agents never turn it on, and the
+  human still reviews and merges every feature and bugfix PR.
