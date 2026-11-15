@@ -137,6 +137,12 @@ at the gate with `vrg-ruling draft-scope`, and the human posts it as
 themselves with the `vrg-scope-change` command it prints before the task is
 dispatched; the agents never post scope changes themselves.
 
+A deployment task whose `issue-deploy` run ended `waiting: human-run steps`
+also waits at the gate: `epic-implement` shows each step's precondition
+result and paste-ready `! <command>` line, and once the human has run them
+it dispatches one new `issue-deploy` run whose prompt carries the output of
+those runs, which verifies them and records the outcome.
+
 It may batch independent small ready code tasks of one epic and repo into
 one `issue-implement` run, under that skill's
 [What to batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch) guidelines,

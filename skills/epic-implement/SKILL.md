@@ -179,6 +179,21 @@ present everything needing the human:
 
 - PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
 - operational tasks needing a human-gated release;
+- every deployment task whose `issue-deploy` run ended `waiting: human-run
+  steps` (its
+  [human-run steps](../issue-deploy/SKILL.md#hand-the-human-run-steps-to-the-human-then-verify-them)):
+  show each step's precondition result and its paste-ready `! <command>`
+  line, as the run's final report gives them, in the issue's order. Never
+  run one yourself, under any identity. Once the human has run them,
+  dispatch one new `issue-deploy` run of the task, never alongside another
+  run of the same task, whose prompt carries each step's command and the
+  full output and exit status of the human's run of it: the run checks the
+  preconditions again, verifies each step from that output and records the
+  result. A step the human declines or cannot run gets no dispatch: the
+  task stays open, and you say so at the gate. The run's task is not
+  finished until it records an outcome, so on re-entry a task left waiting
+  is dispatched again as any runnable deployment task, and its run ends
+  `waiting` again until the human's output reaches it;
 - every task **stopped at merge review**, with its request ID. Talk each
   item of the request through with the human in the terminal: the items
   are in the task's `merge-review/ruling-<step>.json` and its step comment,
