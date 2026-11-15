@@ -171,6 +171,25 @@ one marked `"responded"`) stopped on non-review items or on an error, and
 is dispatched again only as the gate below says. Never
 dispatch a task alongside another run of the same task.
 
+**Documentation items for the sweep.** Whenever a task's run, its merge
+review or this session leaves a documentation fix for the epic's
+documentation-review sweep (a stale page, a comment a rebase made stale, a
+doc a later task will make wrong), record it at once as a comment on the
+epic's documentation-review bookend issue, so the sweep starts from a
+list. A dispatched run names each such item in its final report; it never
+posts on the bookend itself. Give each item its file and line (or the
+branch, if not yet merged), what is wrong, and which task or review found
+it, and put items that arrive together in one comment. Before posting,
+check that each item still holds on the current `develop` (or on the
+named branch); when a later task fixes an item already listed, post a
+comment that records it as fixed, naming the fixing PR. A sweep item is
+not a new issue and not a non-review item: it needs no ruling and never
+goes under `Awaiting a ruling` (step 5). Screen it against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings) first: a
+security-class item is never recorded this way. In the `adhoc` mode there
+is no bookend, so nothing is left for a sweep: a documentation gap found
+there is a follow-up, as step 5 says.
+
 ## 4. Batch at the gate, then stop
 
 The **gate** is the general boundary where you can no longer proceed without the
@@ -179,6 +198,21 @@ present everything needing the human:
 
 - PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
 - operational tasks needing a human-gated release;
+- every deployment task whose `issue-deploy` run ended `waiting: human-run
+  steps` (its
+  [human-run steps](../issue-deploy/SKILL.md#hand-the-human-run-steps-to-the-human-then-verify-them)):
+  show each step's precondition result and its paste-ready `! <command>`
+  line, as the run's final report gives them, in the issue's order. Never
+  run one yourself, under any identity. Once the human has run them,
+  dispatch one new `issue-deploy` run of the task, never alongside another
+  run of the same task, whose prompt carries each step's command and the
+  full output and exit status of the human's run of it: the run checks the
+  preconditions again, verifies each step from that output and records the
+  result. A step the human declines or cannot run gets no dispatch: the
+  task stays open, and you say so at the gate. The run's task is not
+  finished until it records an outcome, so on re-entry a task left waiting
+  is dispatched again as any runnable deployment task, and its run ends
+  `waiting` again until the human's output reaches it;
 - every task **stopped at merge review**, with its request ID. Talk each
   item of the request through with the human in the terminal: the items
   are in the task's `merge-review/ruling-<step>.json` and its step comment,
@@ -319,7 +353,10 @@ When only the closing bookends remain, drive them **in order**:
 
 - **Documentation-review task (first)** — drive the sweep: verify the epic's
   changes are reflected in the docs across every repo it touched, especially
-  `docs/site`. Its own same-repo doc edits are mechanical; where **other** repos'
+  `docs/site`. The sweep starts from the items recorded on its bookend issue
+  ([Documentation items for the sweep](#3-work-the-runnable-frontier)):
+  its run reads those comments first and treats every item not recorded as
+  fixed as part of its list, alongside its own search. Its own same-repo doc edits are mechanical; where **other** repos'
   docs need work it **spawns a per-repo doc task** (linked under the epic, closed
   by a same-repo PR) rather than reaching across a repo boundary. See
   `epic-create`'s bookend convention. This runs **before** the retrospective.

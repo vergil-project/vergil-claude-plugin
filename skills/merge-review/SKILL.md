@@ -738,6 +738,16 @@ Then:
 2. end with `eligible` or `not-eligible (<reason>)`, giving the caller the
    eligibility line for `--notes`.
 
+**Documentation left for the sweep.** A stale or loose doc that the run
+leaves for the epic's documentation-review sweep (a note in the reviewer's
+prose below the bar, a comment the fix made stale) is not an item of the
+run and changes no decision or outcome. Name each one to the caller, with
+its file and line, what is wrong and the step that found it, so
+`issue-implement` reports it as its
+[Documentation left for the sweep](../issue-implement/SKILL.md#documentation-left-for-the-sweep)
+says. Never post it on the bookend, and never name one that touches a
+security finding.
+
 Never delete `<dir>` or its parent `issue-implement/<N>/`. The caller,
 `issue-implement`, deletes them once `vrg-pr-workflow report-ready` has
 succeeded. Until then `<dir>` must survive: a failed report-ready resumes

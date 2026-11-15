@@ -137,6 +137,20 @@ at the gate with `vrg-ruling draft-scope`, and the human posts it as
 themselves with the `vrg-scope-change` command it prints before the task is
 dispatched; the agents never post scope changes themselves.
 
+A deployment task whose `issue-deploy` run ended `waiting: human-run steps`
+also waits at the gate: `epic-implement` shows each step's precondition
+result and paste-ready `! <command>` line, and once the human has run them
+it dispatches one new `issue-deploy` run whose prompt carries the output of
+those runs, which verifies them and records the outcome.
+
+A documentation fix that a task's run, its merge review or the main
+session leaves for the epic's documentation-review sweep is recorded at
+once as a comment on the epic's documentation-review bookend, with its
+file and line, what is wrong and what found it. A dispatched run names
+the item in its final report and `epic-implement` posts it; the sweep
+then starts from that list. A sweep item is not a new issue and needs no
+ruling.
+
 It may batch independent small ready code tasks of one epic and repo into
 one `issue-implement` run, under that skill's
 [What to batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch) guidelines,
@@ -292,7 +306,7 @@ end to end: installs or syncs the merged change so it is actually usable
 `Outcome:` comment on the issue. It is *run*, not built — there is no PR,
 and the deployment tooling refuses one. A step the task lists under
 **Human-run steps** (one that needs a human identity, such as
-`vrg-github-repo-config apply`) is never run under the agent identity: the
+`vrg-github-repo-config update`) is never run under the agent identity: the
 skill checks its preconditions, hands the human the paste-ready command,
 waits, then verifies the human's run and records it with the rest. With no
 human present, the run ends `waiting: human-run steps` rather than
@@ -489,7 +503,7 @@ the `vrg-intake-route` release that allows one-off from planning.
 **What it does.** The judgment layer of the recurring steering review, checked
 against the
 [Claude config ownership model](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/claude-config-ownership.md)
-(the nightly `vrg-github-repo-config audit` is the mechanical layer). It
+(the nightly `vrg-github-repo-config update` is the mechanical layer). It
 inventories the files, re-verifies the model's platform facts against the live
 Claude Code docs and reports any drift first, then runs its own mechanical
 checks: the config audit (repo scope), every named path exists, every named
