@@ -14,8 +14,8 @@ Read it at the start of every run. It is the rule set this skill checks
 against: the placement rule, the ownership table, the platform facts, the
 local-settings rule and the recurring-review section.
 
-The nightly config audit (`vrg-github-repo-config audit`) covers what a machine
-can check. This skill is the **judgment** layer: it re-verifies the model's
+The nightly config update (`vrg-github-repo-config update`, run by the ops
+`github-config` job) covers what a machine can check. This skill is the **judgment** layer: it re-verifies the model's
 platform facts, runs its own mechanical checks, has `/paad:pushback` review
 each steering file, then walks every finding with the human, one at a time.
 The human decides every disposition.

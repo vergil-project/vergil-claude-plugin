@@ -74,8 +74,8 @@ output for evidence. You touch no code and open no PR.
 
 Some deploy steps cannot run under an agent identity. The scaffold lists them
 in a **Human-run steps (need a human identity)** section; with no such section,
-every step is agent-safe. For example, `vrg-github-repo-config apply` needs
-`administration=read` and refuses under an agent identity.
+every step is agent-safe. For example, `vrg-github-repo-config update` refuses
+the agent identity modes (`user`, `audit`) and exits 2.
 
 **Never run a human-run step under the agent identity**, not even to show that
 it fails, and never report the task `blocked` because the agent cannot run
@@ -98,12 +98,14 @@ after the agent-safe deploy steps. For each one:
    agent-runnable check the step adds. Record which evidence came from the
    human's run and which from your own.
 
-For repo config, the check is the human's `vrg-github-repo-config apply`
-exiting 0: `apply` refuses, exiting 2 and writing nothing, when it cannot read
-every setting first. A `vrg-github-repo-config diff` you run afterwards is
-informational only. Under the agent identity `diff` exits 2, because it does
-not check the admin-scoped settings. That is expected and is not a failure of
-the apply: never treat `diff`'s exit code as the verdict on an apply.
+For repo config, the check is the human's `vrg-github-repo-config update`
+exiting 0: the repo is in sync, or its sync PR merged. Exit 1 means drift it
+could not fix (its sync PR is still opened); exit 2 means it could not audit
+or converge, refused an agent identity, or its sync PR did not merge. A
+`vrg-github-repo-config diff` you run afterwards is informational only. Under
+the agent identity `diff` exits 2, because it does not check the admin-scoped
+settings. That is expected and is not a failure of the update: never treat
+`diff`'s exit code as the verdict on an update.
 
 The human's run is then evidence like any other step's: judge it against the
 acceptance criteria and [record the result](#record-the-result-and-close). A

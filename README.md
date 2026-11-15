@@ -333,8 +333,9 @@ the **human** opens the PR:
    session to monitor the PR through CI and review and reconcile
    feedback until it is mergeable.
 
-Auto-merge is disabled fleet-wide; you review and merge
-feature/bugfix PRs manually.
+Repositories allow auto-merge so the automation App's sync PRs on
+`automation/*` branches merge on CI alone. Agents never turn it on,
+and you still review and merge every feature and bugfix PR yourself.
 
 ### Cut a release
 
