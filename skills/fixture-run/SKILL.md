@@ -50,7 +50,7 @@ both on the Rust fixtures:
 | Language | Check | Gap |
 |---|---|---|
 | rust | Dependency update | `vrg-update-deps` has no Cargo updater, so the release's dependency update cannot restore a rolled-back crate. The Rust change task also skips the rollback. |
-| rust | Evidence bundle | The CI evidence bundles name only Python's tools and reports. |
+| rust | Evidence bundle: quality gate | The quality gate's tools and reports are still Python's (`ruff`, `mypy`) for a Rust repo; the test, audit and security gates are per-language. The fix is designed in [vergil-project/vergil-tooling#4416](https://github.com/vergil-project/vergil-tooling/issues/4416); evidence in the #410 comments [6895915051](https://github.com/vergil-project/.github/issues/410#issuecomment-6895915051) and [6895947053](https://github.com/vergil-project/.github/issues/410#issuecomment-6895947053). |
 
 When #410 closes a gap, its row is removed here (a change to this skill), the
 same check becomes its proof, and a failure of it is an ordinary failure
