@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.72] - 2026-11-15
+
+### Documentation
+
+- present deploy tasks waiting on human-run steps at the gate (#1076)
+- record documentation left for the sweep on the epic's documentation-review bookend (#1008)
+- name repo-config update over apply and the retired sync tools (#1086)
+- stop saying auto-merge is disabled fleet-wide (#1087)
+- narrow the Rust evidence-bundle known gap to the quality gate (#1089)
+
 ## [2.1.71] - 2026-11-14
 
 ### Bug fixes
