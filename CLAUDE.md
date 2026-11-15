@@ -67,8 +67,12 @@ paad usage policy and deviations:
 
 ## Validation in this repo
 
-The repo's custom validator, `scripts/bin/validate-custom` (which runs
-the hook test suites under `hooks/tests/`), is part of the `vrg-validate`
+The repo's custom validator, `scripts/bin/validate-custom`, makes four
+checks: every `skills/*/SKILL.md` has frontmatter with a `name` matching
+its directory and a `description`; the `merge-reviewer` agent's tool set is
+exactly `Read, Glob, Grep`; every hook script `hooks/hooks.json` names is
+tracked at git mode `100755`; and the hook test suites under `hooks/tests/`
+pass. It is part of the `vrg-validate`
 pipeline locally and also runs in PR CI as the `quality / custom` job (from
 vergil-actions v2.1.58). Its log is kept as `quality-custom.log` in the
 `quality / evidence` artifact.

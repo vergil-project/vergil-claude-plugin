@@ -83,7 +83,12 @@ work. It opens into brainstorming, runs the front-loaded pipeline
 plan pushback rounds → alignment rounds), creates the finite epic in its
 resolved home, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
-spec + plan as a docs PR. Each design-review round is a fresh review-only
+spec + plan as a docs PR. It also seeds the operational (deployment and
+validation) tasks the plan needs, and when an epic changes language support,
+container images, shared CI workflows or release tooling, its plan seeds a
+**fixture run** for each fixture whose language or shape the change affects,
+filed with [fixture-run](#fixture-run) once the release that ships the change
+is filed. Each design-review round is a fresh review-only
 subagent; the main session walks the human through its findings and records the
 round on the planning issue, and the human decides every further round. The
 rules are mode 1 of the
