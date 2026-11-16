@@ -299,7 +299,12 @@ this skill writes neither. It reads the epic only for the design sources.
    comment: [Records](#records)) and `capture-<step>.json` beside it.
    Never write, edit or retype `result-<step>.md` or `reply-<step>.md`,
    and never store the reply from the dispatch's output: what the
-   dispatch returns to you is for reading only. Then confirm the capture:
+   dispatch returns to you is for reading only. It is not the reviewer's
+   exact text either: the completion notice escapes `&`, `<` and `>` as
+   HTML entities, while the hook stores the reviewer's own text. Read the
+   reply from `result-<step>.md`, never from the notice, wherever this
+   skill uses it, and never decode or otherwise fix either one by hand.
+   Then confirm the capture:
    `capture-<step>.json` and `reply-<step>.md` exist, the capture's
    `request_id` is the request's, and its `result_sha256` is the SHA-256
    of `result-<step>.md` (`shasum -a 256 <dir>/result-<step>.md`). If any
@@ -320,7 +325,8 @@ this skill writes neither. It reads the epic only for the design sources.
    again from its build, with the same one re-dispatch; `stop` hands off
    `not-eligible (result-malformed)`.
 6. **Security details.** For each finding with `"security": true`, write
-   `security-<ID>.md` (if it does not exist yet) from the prose under its ID:
+   `security-<ID>.md` (if it does not exist yet) from the prose under its ID
+   in `result-<step>.md`:
    a one-line private summary first (the advisory summary if it is ever
    recorded), then the location, the details, and your severity on the
    canonical scale (`critical`, `high`, `medium`, `low`) of the
