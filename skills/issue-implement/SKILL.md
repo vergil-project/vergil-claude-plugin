@@ -716,7 +716,8 @@ with the word its `Human ruling:` line records
   every issue after it, then [hand off](#handing-off-a-batch) the
   finished ones.
 - **Unbatch** (`unbatch`): extract every issue; each is redone later as
-  its own PR. Tell the human the batch worktree is then empty of work.
+  its own PR. The batch worktree is then empty of work and is removed
+  (step 5 below).
 
 The issues after the stopped one have no work yet, so an extraction only
 ever discards the work of the stopped issue (and, for unbatch, of the
@@ -747,7 +748,30 @@ and returns it to its epic as an ordinary open task:
    body's `## Dependencies` section (`vrg-gh issue edit <N> --repo
    <owner>/<repo> --body-file <file>`), `<M>` the batch issue it collided
    with, so it is not picked up until the batch has merged.
-5. Record the ruling as §1.7 says.
+5. **Remove the batch worktree when no work is left in it**: when you
+   reset to `base_sha` in step 1 and `batch-extract` has left fewer than
+   two issues in the batch (an extraction of the batch's first issue
+   with one issue left, or an unbatch). An issue still in the batch then
+   has no commit, so no later run could find the worktree by its
+   subject ([Finding its worktree](#a-batch-left-with-one-issue)), and
+   the worktree would be stranded. From the main clone, check that it
+   holds no edit and no commit, then remove it and its branch:
+
+   ```bash
+   (cd .worktrees/issue-<M>-batch-<slug> && vrg-git status --porcelain)
+   vrg-git log --oneline origin/develop..feature/<M>-batch-<slug>
+   vrg-git worktree remove .worktrees/issue-<M>-batch-<slug>
+   vrg-git branch -D feature/<M>-batch-<slug>
+   ```
+
+   Both checks must print nothing. If either prints anything or fails,
+   or `worktree remove` refuses, stop and ask the human: never pass
+   `--force`, and never remove a worktree holding uncommitted edits or a
+   commit. An issue left in the batch is then an ordinary open task. If
+   the human ruled that the batch goes on with it, run it as a single
+   issue from [Preflight](#preflight) step 7, in a new worktree of its
+   own.
+6. Record the ruling as §1.7 says.
 
 ### A batch left with one issue
 
@@ -764,9 +788,11 @@ Its work stays in the batch worktree, on the batch branch
 the batch's first issue when it started). Never rename or move them, even
 when `<M>` is an extracted issue. The issue's first commit keeps the batch
 form, a subject ending in a space and `(#<N>)`: a finished issue's folded
-commit already has it, and an issue with no work yet makes its first
-commit that way. That subject is the record every later run finds the
-worktree by.
+commit already has it. That subject is the record every later run finds
+the worktree by. A batch left with one issue that has no work yet keeps
+no batch worktree: step 5 of extracting an issue
+([Batch stops](#batch-stops)) removes it, and the issue runs as an
+ordinary single issue in a worktree of its own.
 
 **Finding its worktree.** No marker names the worktree once the batch has
 collapsed, so find it from git, never from a name held in memory or in a
