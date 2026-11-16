@@ -730,6 +730,8 @@
       
         
       
+        
+      
     
     
     
@@ -782,6 +784,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.74/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.74
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5030,7 +5060,8 @@ checklist on a validation issue.</p>
 <p><strong>What it does.</strong> USER-identity recipe skill. Files a <strong>fixture run</strong> on one
 or more of the language fixture repos (<code>vergil-fixture-python-lib</code>,
 <code>vergil-fixture-python-app</code>, <code>vergil-fixture-rust-lib</code>,
-<code>vergil-fixture-rust-app</code>): per fixture, a trio of tasks linked under the
+<code>vergil-fixture-rust-app</code>, <code>vergil-fixture-ts-lib</code>,
+<code>vergil-fixture-ts-app</code>): per fixture, a trio of tasks linked under the
 epic that needs the run. The change task (run with <code>issue-implement</code>) is
 blocked by every <code>--after</code> ref, the release or deployment task that ships
 the change. The release task (<code>deployment</code>, run with <code>issue-deploy</code>) is the
@@ -5154,6 +5185,14 @@ with its tallies.</p>
   one-off, guided by the <code>Deferred from:</code> line), or <strong>drop</strong>. A condition it
   cannot verify is reported as such, with a keep recommendation.</li>
 </ul>
+<p>Planning and deferred items carry an estimated <strong>epic size</strong> (<code>epic-size:S</code>
+to <code>XL</code>, derived from an estimated task count), which the review writes only
+through <code>vrg-intake-route … size</code> or <code>planning --tasks … --reason …</code>: intake
+mode sizes every item it routes to planning, planning mode sizes each
+waiting item that is unsized or in error, and deferred mode sizes an unsized
+item it revives to planning. An item whose sizing is in error shows as <code>!</code>
+and gets a recommended <code>size</code> re-run; <code>vrg-queue</code>'s exit 2 for such items is
+a complete listing, not a failure.</p>
 <p>Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
 it never implements one or starts <code>epic-create</code>. Given an ad-hoc epic or a
