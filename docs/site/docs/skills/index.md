@@ -340,7 +340,8 @@ checklist on a validation issue.
 **What it does.** USER-identity recipe skill. Files a **fixture run** on one
 or more of the language fixture repos (`vergil-fixture-python-lib`,
 `vergil-fixture-python-app`, `vergil-fixture-rust-lib`,
-`vergil-fixture-rust-app`): per fixture, a trio of tasks linked under the
+`vergil-fixture-rust-app`, `vergil-fixture-ts-lib`,
+`vergil-fixture-ts-app`): per fixture, a trio of tasks linked under the
 epic that needs the run. The change task (run with `issue-implement`) is
 blocked by every `--after` ref, the release or deployment task that ships
 the change. The release task (`deployment`, run with `issue-deploy`) is the
