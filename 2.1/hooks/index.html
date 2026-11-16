@@ -728,6 +728,8 @@
       
         
       
+        
+      
     
     
     
@@ -780,6 +782,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.73/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.73
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5244,7 +5274,10 @@ clear resolution criteria.</p>
 <p><strong>What.</strong> When a <code>vergil:merge-reviewer</code> subagent stops, stores its last
 message (<code>last_assistant_message</code> in the hook input), byte for byte, as
 <code>result-&lt;step&gt;.md</code> next to the request it answered, and writes
-<code>capture-&lt;step&gt;.json</code> beside it:</p>
+<code>capture-&lt;step&gt;.json</code> beside it. The hook input carries the reviewer's
+own text, unlike the subagent's completion notice, which escapes <code>&amp;</code>, <code>&lt;</code>
+and <code>&gt;</code> as HTML entities, so the stored result is never escaped or
+decoded:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"merge-review-capture/1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"step"</span><span class="p">:</span><span class="w"> </span><span class="s2">"review"</span><span class="p">,</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w"> </span><span class="nt">"request_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;the request's request_id&gt;"</span><span class="p">,</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w"> </span><span class="nt">"result_sha256"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;SHA-256 of result-review.md&gt;"</span><span class="p">,</span>
@@ -5335,6 +5368,12 @@ into broken cleanup behavior just to satisfy the hook.</p>
 scripts in <code>hooks/scripts/</code>. Each hook receives the tool input as
 JSON on stdin and returns a JSON response indicating whether to
 allow, deny, or annotate the action.</p>
+<p>Every script that <code>hooks.json</code> names must be tracked in git at mode
+<code>100755</code> (executable): Claude Code cannot run a hook script that is not.
+The repo's custom validator, <code>scripts/bin/validate-custom</code>
+(<code>check_hook_modes</code>), fails the <code>vrg-validate</code> pipeline when one is
+untracked or has any other mode. Each <code>hooks.json</code> command must start
+with <code>${CLAUDE_PLUGIN_ROOT}/</code> so the check can find its script.</p>
 <h3 id="pretooluse-response">PreToolUse response<a class="headerlink" href="#pretooluse-response" title="Permanent link">&para;</a></h3>
 <p>A PreToolUse hook can deny an action by writing JSON to stdout and
 exiting 0:</p>
