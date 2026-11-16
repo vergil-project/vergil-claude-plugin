@@ -5244,7 +5244,10 @@ clear resolution criteria.</p>
 <p><strong>What.</strong> When a <code>vergil:merge-reviewer</code> subagent stops, stores its last
 message (<code>last_assistant_message</code> in the hook input), byte for byte, as
 <code>result-&lt;step&gt;.md</code> next to the request it answered, and writes
-<code>capture-&lt;step&gt;.json</code> beside it:</p>
+<code>capture-&lt;step&gt;.json</code> beside it. The hook input carries the reviewer's
+own text, unlike the subagent's completion notice, which escapes <code>&amp;</code>, <code>&lt;</code>
+and <code>&gt;</code> as HTML entities, so the stored result is never escaped or
+decoded:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span><span class="nt">"schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"merge-review-capture/1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"step"</span><span class="p">:</span><span class="w"> </span><span class="s2">"review"</span><span class="p">,</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w"> </span><span class="nt">"request_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;the request's request_id&gt;"</span><span class="p">,</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w"> </span><span class="nt">"result_sha256"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;SHA-256 of result-review.md&gt;"</span><span class="p">,</span>
