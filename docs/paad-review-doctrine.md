@@ -512,11 +512,17 @@ that lists the item, or else in a new one, in this fixed form:
   faithful account of what the human said, in clear prose (paraphrase
   dictated words), with when the human answered, in UTC, ISO 8601. The
   word is one of a closed set: `fix` (change the branch; only while the
-  task is still being implemented), `decline` (no change and no issue; the
-  idea is dropped), `dismiss` (the item is not a problem), `file` (file it
-  as an issue, in the approved form), `record` (a security item, recorded
-  as an advisory, below) or `reject` (a security item, dropped with no
-  record). A batch stop (`issue-implement`'s "Batch stops") takes one of
+  task is still being implemented), `accept` (the item's proposed answer
+  is adopted as written; the branch already does it, so nothing changes
+  and no issue is filed), `decline` (no change and no issue; the idea is
+  dropped), `dismiss` (the item is not a problem), `file` (file it as an
+  issue, in the approved form), `record` (a security item, recorded as an
+  advisory, below) or `reject` (a security item, dropped with no record).
+  `accept` applies only to an item that carries a proposal, such as a
+  design question with a proposed answer, never to a defect. Use `dismiss`
+  for an item judged not to be a problem and `accept` for a proposal
+  adopted as written: an accepted proposal recorded as `dismiss` reads as
+  its rejection. A batch stop (`issue-implement`'s "Batch stops") takes one of
   four words of its own: `extract` (the stopped issue leaves the batch and
   returns to its epic), `continue` (the issue stays in the batch and work
   on it goes on), `handoff` (the stopped issue and every issue after it

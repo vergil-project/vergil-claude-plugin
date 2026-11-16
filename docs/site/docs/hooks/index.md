@@ -394,7 +394,10 @@ clear resolution criteria.
 **What.** When a `vergil:merge-reviewer` subagent stops, stores its last
 message (`last_assistant_message` in the hook input), byte for byte, as
 `result-<step>.md` next to the request it answered, and writes
-`capture-<step>.json` beside it:
+`capture-<step>.json` beside it. The hook input carries the reviewer's
+own text, unlike the subagent's completion notice, which escapes `&`, `<`
+and `>` as HTML entities, so the stored result is never escaped or
+decoded:
 
 ```json
 {"schema": "merge-review-capture/1", "step": "review",
@@ -506,6 +509,13 @@ Hooks are defined in `hooks/hooks.json` and implemented as shell
 scripts in `hooks/scripts/`. Each hook receives the tool input as
 JSON on stdin and returns a JSON response indicating whether to
 allow, deny, or annotate the action.
+
+Every script that `hooks.json` names must be tracked in git at mode
+`100755` (executable): Claude Code cannot run a hook script that is not.
+The repo's custom validator, `scripts/bin/validate-custom`
+(`check_hook_modes`), fails the `vrg-validate` pipeline when one is
+untracked or has any other mode. Each `hooks.json` command must start
+with `${CLAUDE_PLUGIN_ROOT}/` so the check can find its script.
 
 ### PreToolUse response
 

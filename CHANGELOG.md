@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.73] - 2026-11-16
+
+### Bug fixes
+
+- remove the batch worktree when an extraction leaves it with no work (#1098)
+- read the reviewer's reply from the captured result, never the escaped completion notice (#1099)
+
+### Chores
+
+- sync the managed files with the released templates (#1096)
+
+### Documentation
+
+- document fixture-run seeding, hook script modes and validate-custom's checks (#1095)
+- add an accept ruling word for a proposal adopted as written (#1097)
+
 ## [2.1.72] - 2026-11-15
 
 ### Documentation
