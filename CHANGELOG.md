@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.74] - 2026-11-16
+
+### Features
+
+- add the TypeScript fixtures and per-gap known-gap records (#1107)
+- retire the Rust known gaps and turn on the Rust dependency rollback (#1108)
+- size planning items in epic-review and read vrg-queue exit 2 (#1109)
+
 ## [2.1.73] - 2026-11-16
 
 ### Bug fixes
