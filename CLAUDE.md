@@ -27,9 +27,9 @@ run it with `! <command>` in the prompt.
 
 ## Validation
 
-`vrg-container-run -- vrg-validate` is the only validation command. Don't run
-linters, formatters or tests outside it; a tool it doesn't invoke is not part
-of the pipeline.
+- Every linter, formatter and test runs through `vrg-container-run`, never directly on the host.
+- Running one tool ad hoc while working is fine: `vrg-container-run -- markdownlint --fix <file>`, one test file.
+- Work is finished only when a full `vrg-container-run -- vrg-validate` passes; it is the gate before handoff.
 
 ## PR handoff
 
