@@ -394,7 +394,10 @@ clear resolution criteria.
 **What.** When a `vergil:merge-reviewer` subagent stops, stores its last
 message (`last_assistant_message` in the hook input), byte for byte, as
 `result-<step>.md` next to the request it answered, and writes
-`capture-<step>.json` beside it:
+`capture-<step>.json` beside it. The hook input carries the reviewer's
+own text, unlike the subagent's completion notice, which escapes `&`, `<`
+and `>` as HTML entities, so the stored result is never escaped or
+decoded:
 
 ```json
 {"schema": "merge-review-capture/1", "step": "review",
