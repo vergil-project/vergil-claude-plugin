@@ -72,8 +72,13 @@ there is nothing to resume.
   ```
 
   Report each queue's count (a queue whose epic does not exist yet is
-  empty), then ask the human which queue to review. Never pick one
-  yourself, even when only one queue has items.
+  shown as `no queue yet`: it is empty), then ask the human which queue to
+  review. Never pick one yourself, even when only one queue has items.
+  **Exit 2 is not a failure**: every queue was read and the listing is
+  complete, but one or more planning or deferred items have their sizing in
+  error (see [Epic size](#epic-size)). Report the counts as usual, name the
+  `!` items, and ask. Exit 1 is a real failure (a queue that could not be
+  read is named on stderr): report it and stop.
 
 ### Refusals
 
@@ -109,16 +114,58 @@ vrg-queue <intake|planning|deferred> --repo <owner>/<repo>   # a self-homed priv
 
 The text output is a header line (`<kind> queue for <name> in <home>: N open
 item(s)`) and one line per item in the mode's order:
-`<owner>/<repo>#<N>  <age>  <state>  <title>  — <latest note>`. Add `--json`
+`<owner>/<repo>#<N>  <age>  <state>  <title>  — <latest note>`. A planning or
+deferred line also shows the item's [epic size](#epic-size) after its age:
+`<owner>/<repo>#<N>  <age>  <size>  <state>  <title>  — <note>`. Add `--json`
 for a machine-readable list (`ref`, and for planning `epic`, are
 `{owner, repo, number}` objects; also `title`, `created_at`, `state`,
-`note`). Report the count and the one-line list to the human.
+`note`, and for planning and deferred `epic_size`, `estimated_tasks`,
+`confidence` and `size_error`, each `null` when it does not apply). Report
+the count and the one-line list to the human.
+
+**Exit 2 is a complete listing, not a failure.** `vrg-queue` exits 2 when it
+read the queue but one or more items have their sizing in error: the
+listing on stdout is complete (`--json` included), each such item is shown
+as `!`, and stderr names each one as `vrg-queue: <ref>: <error>`. Show the
+list, flag the `!` items, and carry on with the review; the mode's section
+says how a `!` item is repaired.
 
 **A missing queue is an empty queue, not a failure.** If `vrg-queue` exits 1
 with `no open 'Epic (<kind>): <name>' <kind> epic in <home>`, nothing has
 ever been placed in that queue (its epic is created on first use). Report
 "no <kind> queue yet — nothing to review" and stop. Do not retry, and do not
-create the epic. Any other error is a real failure: report it and stop.
+create the epic. Any other exit 1 is a real failure: report it and stop.
+
+#### Epic size
+
+Every planning and deferred item can carry an estimated **epic size**: how
+big its epic would be once `epic-create` expands it, counted in tasks
+(bookends and operational tasks included). The task count is the estimate,
+and the size is derived from it: **S** 1–9, **M** 10–19, **L** 20–39,
+**XL** 40+. It is recorded as an `epic-size:<S|M|L|XL>` label and a dated
+`Sized <date>: …` comment by a trusted author, both written by one command:
+
+```bash
+vrg-intake-route <owner>/<repo>#<N> size --tasks <n> [--confidence high|med|low] --reason "<one line>"
+```
+
+`--confidence` defaults to `med`. The route neither moves nor closes the
+item; it prints `Sized <ref>: epic-size <X>, about <n> tasks.`, and a
+re-run with new values is a re-estimate (the latest sizing comment wins).
+The size column reads `M/14` (size and task count), `?` for an unsized item
+and `!` for an item in error: a label without its sizing comment, a sizing
+comment without its label, the two disagreeing, several size labels, or a
+malformed sizing comment. The note says which (`size: <error>`, after a
+`held: …` or deferral note when there is one). Re-running `size` with the
+right estimate repairs every one of them.
+
+`vrg-queue planning` also takes `--sort age|size|tasks` (default `age`,
+oldest first; `size` orders S, M, L, XL, then unsized, then in error;
+`tasks` orders by task count, then unsized, then in error) and
+`--size <list>` (a comma list of `S`, `M`, `L`, `XL` and `unsized`), for the
+planning view only. A filter always keeps the items in error, and its header
+says how many it shows: `planning queue for <name> in <home>: <N> open
+item(s), <M> shown`.
 
 ### 3. Present a batch of 4
 
@@ -152,9 +199,10 @@ vrg-intake-route <owner>/<repo>#<N> drop --reason "<why>"
 vrg-intake-route <owner>/<repo>#<N> defer --reason "<why now is not the time>" \
   --revisit-when "<what to check to know it can come back>"
 vrg-intake-route <owner>/<repo>#<N> one-off --repo <owner>/<target-repo> [--epic adhoc|#<E>|<owner>/<repo>#<E>]
-vrg-intake-route <owner>/<repo>#<N> planning
+vrg-intake-route <owner>/<repo>#<N> planning [--tasks <n> [--confidence high|med|low] --reason "<one line>"]
 vrg-intake-route <owner>/<repo>#<N> intake
 vrg-intake-route <owner>/<repo>#<N> split --into <ref> [--into <ref> …] --reason "<why>"
+vrg-intake-route <owner>/<repo>#<N> size --tasks <n> [--confidence high|med|low] --reason "<one line>"
 ```
 
 Which routes a mode offers is in its section. Rules for every mode:
@@ -183,6 +231,11 @@ Which routes a mode offers is in its section. Rules for every mode:
   Report the new ref from the `Routed …, now <ref> (by transfer|recreate).`
   line. A one-off whose work lands in the item's own repo is just
   reparented.
+- **planning** with `--tasks` and `--reason` (given together or not at all;
+  `--confidence` needs `--tasks`) reparents the item, then sizes it as
+  `size` does, printing the `Sized …` line after the `Routed …` one. A bad
+  sizing is refused before anything changes. Without them the item keeps
+  any size it already has.
 - **leave** and **keep** run nothing.
 - **A scope change goes to the human.** When the human's ruling narrows or
   widens what a routed one-off must deliver (or settles a question its body
@@ -259,7 +312,12 @@ Then route the original with one `--into` per new task. A bare `#N` in
 `--into` reads against the item's repo, so qualify cross-repo tasks.
 
 **planning** keeps the item in its repo and moves it under the planning epic
-of the same queue home. It is not a request to plan it now.
+of the same queue home. It is not a request to plan it now. **It always
+carries a size**: an item recommended for planning gets, in its paragraph, a
+recommended task count (with the size it derives), a confidence and a
+one-line reason, confirmed with the batch, and the route passes them:
+`planning --tasks <n> --reason "<why>"`, adding `--confidence high|low`
+when it is not `med`.
 
 **Tallies:** dropped · deferred · one-off · split · planning · left in intake
 · remaining unreviewed.
@@ -294,11 +352,25 @@ tool allows them, that is when every development epic of the item is
 closed. **Never offer one-off for them**, and never resume or finish them
 here: the human does that with `epic-create <ref>`.
 
+**Sizing rides alongside the outcome.** Every **waiting** item that is
+unsized (`?`) or in error (`!`) gets, in its paragraph, a recommended task
+count (with the size it derives), a confidence and a one-line reason. A
+sized item gets a re-size only when the review shows its estimate is off.
+The human confirms the sizes with the batch, and after the batch's routes
+each confirmed size is applied with
+`vrg-intake-route <ref> size --tasks <n> [--confidence …] --reason "<why>"`.
+Skip it for an item the batch defers, drops or moves out as a one-off. An
+`in-progress` or `ready-to-close` item in error (`!`) gets a recommended
+`size` re-run too, confirmed with the batch, though its only outcome is
+leave. Sizing is not an outcome, and it has no tally.
+
 **At the end of the pass**, show the surviving queue as a sorted list,
-oldest first, with each item's state and latest note (run
-`vrg-queue planning` again for it), to help the human choose what to plan.
-Choosing an item and running `epic-create` on it is the human's act, outside
-the review.
+oldest first, with each item's size, state and latest note (run
+`vrg-queue planning` again for it; exit 2 is a complete list, with its `!`
+items flagged), to help the human choose what to plan. When the human asks
+for it by size, run `vrg-queue planning --sort size` instead; oldest first
+stays the default. Choosing an item and running `epic-create` on it is the
+human's act, outside the review.
 
 **Tallies:** left · deferred · dropped · one-off · remaining unreviewed.
 
@@ -344,6 +416,13 @@ Each item gets one of four outcomes:
 | **revive** | The conditions are met. Move the item out with `intake` (it needs a fresh look), `planning` (it needs a full epic) or `one-off` (it is ready work). The `Deferred from:` line guides the choice: an item deferred from an ad-hoc epic usually returns as a one-off to that repo, one from planning returns to planning, and one from intake returns to intake, or straight to one-off or planning when its destination is already clear. |
 | **drop** | The item is no longer needed: overtaken, obsolete, or not feasible for years. |
 
+**Sizes.** A deferred item keeps its size through a refresh and a revive to
+planning. A revive to planning of an unsized item carries a size, recommended
+in its paragraph and confirmed with the batch, as intake mode's planning
+route does (`planning --tasks <n> --reason "<why>"`). A `!` item that is
+kept or refreshed gets a recommended `size` re-run, confirmed with the batch
+and applied after the batch's routes.
+
 **Checking is the point.** A deferred queue reviewed from the comments alone
 is just a reread. The value of this mode is that it looks at the world (the
 release, the issue, the date) before recommending.
@@ -374,4 +453,9 @@ revived as one-off · dropped · remaining unreviewed.
   through the development epic the human expands it into with
   `epic-create`.
 - **Start simple.** This is a conversation, not a scoring system. Do not
-  invent fields, labels or priority scores.
+  invent fields, labels or priority scores. The one exception is the
+  `epic-size:*` label family, written only through `vrg-intake-route`
+  (`size`, or `planning --tasks …`), never by hand.
+- **Sizing reasons are public.** A `security` item's sizing reason stays
+  neutral, like every other public text about it: it never describes the
+  finding.

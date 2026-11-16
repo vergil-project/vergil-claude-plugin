@@ -423,8 +423,18 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 - `vrg-queue planning` exits 1 with `no open 'Epic (planning): <name>' planning
   epic in <home>` when no planning queue exists yet. That is **an empty queue,
   not a failure**: say so and offer the free-text entry point. Do not retry.
-  `vrg-queue planning --json` gives each item's `ref` and `epic` as
-  `{owner, repo, number}` objects.
+  Any other exit 1 is a real failure: report it and stop.
+- `vrg-queue planning` exits **2** when it read the queue but one or more
+  items have their epic size in error. That is **a complete listing, not a
+  failure**: summarize it as usual and flag the `!` items (stderr names each
+  as `vrg-queue: <ref>: <error>`); repairing them is `epic-review planning`'s
+  job.
+- Each line shows the item's epic size after its age: `M/14` (size and
+  estimated task count), `?` unsized, `!` in error (`epic-review`'s
+  [Epic size](../epic-review/SKILL.md#epic-size) has the scale and the
+  errors). `vrg-queue planning --json` gives each item's `ref` and `epic` as
+  `{owner, repo, number}` objects, and `epic_size`, `estimated_tasks`,
+  `confidence` and `size_error`, each `null` when it does not apply.
 
 #### Choosing what to plan next
 
@@ -443,6 +453,10 @@ made here.
   queue instead. The human decides; you only discourage.
 - An item that is important but not near-term is **not** a pick. It stays in
   the queue; pruning it (defer, drop) is `epic-review planning`'s job.
+- **For the small-end cadence,** `vrg-queue planning --sort size --size S`
+  lists the small items (an estimated 1–9 tasks) oldest first, plus any item
+  whose size is in error; the header says how many of the open items it
+  shows.
 - Talk the choice through with the human: what each candidate is, why it
   matters now and what blocks it. There is no scoring formula. Then work the
   chosen item as `epic-create <issue>`; with more than one pick, take them
@@ -672,7 +686,9 @@ details, step 9) goes into it.
      body or report-ready notes — refer to the problem by its issue ref and
      GHSA ID alone.
 10. **Close the planning issue — only when it is ready.** Run `vrg-queue
-    planning` (with `--repo` for a private home). If it shows the item
+    planning` (with `--repo` for a private home). Exit 2 is a complete
+    listing (some item's size is in error), not a failure: read this item's
+    state and note from it as usual. If it shows the item
     `ready-to-close`, close it:
     `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed --comment
     "Planned as <owner>/<repo>#<N>"`. Otherwise the docs PR has not merged yet
