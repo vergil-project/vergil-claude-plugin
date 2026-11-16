@@ -62,7 +62,7 @@ REPLY_FILE="$TMP/reply.md"
 printf '%s\n' '```merge-review-result' \
 	'{"schema": "merge-review-result/1", "step": "review", "request_id": "x", "findings": []}' \
 	'```' '' 'Nothing met the bar — I read the diff “in full”.' \
-	'The branch is `lifecycle/rust-add-<x.y>`; `a && b > c` runs; `&lt;N&gt;` is literal.' \
+	'The branch is lifecycle/rust-add-<x.y>; a && b > c runs; &lt;N&gt; is literal.' \
 	'' '' >"$REPLY_FILE"
 
 # payload [<agent_type>] [--no-message]
