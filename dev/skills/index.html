@@ -5190,7 +5190,11 @@ to <code>XL</code>, derived from an estimated task count), which the review writ
 through <code>vrg-intake-route … size</code> or <code>planning --tasks … --reason …</code>: intake
 mode sizes every item it routes to planning, planning mode sizes each
 waiting item that is unsized or in error, and deferred mode sizes an unsized
-item it revives to planning. An item whose sizing is in error shows as <code>!</code>
+item it revives to planning. A one-off clears the item's size: it removes
+the <code>epic-size:*</code> labels and posts a <code>Size cleared &lt;date&gt;: …</code> marker, and
+only sizing comments after the latest such marker count, so an item that
+later returns to planning starts unsized. An item whose sizing is in error
+shows as <code>!</code>
 and gets a recommended <code>size</code> re-run; <code>vrg-queue</code>'s exit 2 for such items is
 a complete listing, not a failure.</p>
 <p>Drop is an outcome in every mode. A planning item's drop or defer is refused
