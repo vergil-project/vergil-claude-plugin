@@ -50,8 +50,6 @@ and it does not count against the run. Today's known gaps:
 
 | Language | Check | Gap | Recorded on |
 |---|---|---|---|
-| rust | Dependency update | `vrg-update-deps` has no Cargo updater, so the release's dependency update cannot restore a rolled-back crate. The Rust change task also skips the rollback. | [vergil-project/.github#410](https://github.com/vergil-project/.github/issues/410) |
-| rust | Evidence bundle: quality gate | The quality gate's tools and reports are still Python's (`ruff`, `mypy`) for a Rust repo; the test, audit and security gates are per-language. The fix is designed in [vergil-project/vergil-tooling#4416](https://github.com/vergil-project/vergil-tooling/issues/4416); evidence in the #410 comments [6895915051](https://github.com/vergil-project/.github/issues/410#issuecomment-6895915051) and [6895947053](https://github.com/vergil-project/.github/issues/410#issuecomment-6895947053). | [vergil-project/.github#410](https://github.com/vergil-project/.github/issues/410) |
 | typescript | Dependency update | `vrg-update-deps` has no npm updater, so the release's dependency update cannot restore a rolled-back package. The TypeScript change task also skips the rollback. | [vergil-project/.github#1209](https://github.com/vergil-project/.github/issues/1209) |
 
 When the work on a row's issue closes its gap, the row is removed here (a
@@ -191,16 +189,16 @@ from [the list](#the-fixtures), `<what>`, `<epic-ref>`, and the trio refs
 `<a>` and `<r>`. Copy the
 [learned conditions](#learned-ready-to-start-conditions) and, for the
 fixture's language, the [known gaps](#known-gaps) as they stand when the
-run is filed. The other fields (`vX.Y.Z`, `<package>`, `<older>`, `<range>`,
-`<a's merge commit>`) are filled by the agent that runs the task, from what
-it finds.
+run is filed. The other fields (`vX.Y.Z`, `<package>`, `<crate>`, `<older>`,
+`<range>`, `<requirement>`, `<a's merge commit>`) are filled by the agent that
+runs the task, from what it finds.
 
 ### (a) Change task
 
 Keep only the rollback paragraph for the fixture's language and drop its
-`<Python:>`, `<Rust:>` or `<TypeScript:>` marker: **Python** rolls a
-dependency back; **Rust** and **TypeScript** each skip the rollback while
-their dependency-update known gap stands.
+`<Python:>`, `<Rust:>` or `<TypeScript:>` marker: **Python** and **Rust**
+each roll a dependency back; **TypeScript** skips the rollback while its
+dependency-update known gap stands.
 
 ````markdown
 A fixture run on `vergil-project/<repo>` (<language> <shape>), validating
@@ -248,9 +246,18 @@ issue and in the report-ready notes as one line:
 `Rolled back: <package> <locked version> -> <older> (declared <range>)`.
 
 <Rust:>
-**Dependency rollback: skipped.** `vrg-update-deps` has no Cargo updater (a
-known gap recorded on vergil-project/.github#410), so nothing would restore
-a rolled-back crate. Leave `Cargo.lock` alone.
+**Dependency rollback.** In the same change, move one crate back to an
+earlier version **in `Cargo.lock` only** (for example
+`cargo update --package '<crate>' --precise '<older>'`), staying within its
+`Cargo.toml` requirement, so the locked install (`--locked`) still passes:
+a transitive crate, or a direct dependency whose requirement's floor is
+below its locked version. A crate locked at its own floor cannot be rolled
+back without editing `Cargo.toml`, which a run never does. Leaving
+`Cargo.toml` as it is gives the release's dependency update a guaranteed
+upgrade to make. The earlier version must pass the cargo-deny audit, so the
+PR never goes red for the wrong reason. Record it on this issue and in the
+report-ready notes as one line:
+`Rolled back: <crate> <locked version> -> <older> (declared <requirement>)`.
 
 <TypeScript:>
 **Dependency rollback: skipped.** `vrg-update-deps` has no npm updater (a
