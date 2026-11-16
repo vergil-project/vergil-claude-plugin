@@ -38,24 +38,24 @@ other change to this skill (spec §6.6).
 | `python-app` | `vergil-project/vergil-fixture-python-app` | python | `application` |
 | `rust-lib` | `vergil-project/vergil-fixture-rust-lib` | rust | `library` |
 | `rust-app` | `vergil-project/vergil-fixture-rust-app` | rust | `application` |
+| `ts-lib` | `vergil-project/vergil-fixture-ts-lib` | typescript | `library` |
+| `ts-app` | `vergil-project/vergil-fixture-ts-app` | typescript | `application` |
 
 ## Known gaps
 
-A check that fails because of a gap already recorded on
-[vergil-project/.github#410](https://github.com/vergil-project/.github/issues/410)
-is a **known gap**: the validation task records it, with its evidence, as a
-comment on #410, and it does not count against the run. Today's known gaps,
-both on the Rust fixtures:
+A check that fails because of a gap listed below is a **known gap**: the
+validation task records it, with its evidence, as a comment on the issue in
+the row's **Recorded on** column (the issue whose work will close that gap),
+and it does not count against the run. Today's known gaps:
 
-| Language | Check | Gap |
-|---|---|---|
-| rust | Dependency update | `vrg-update-deps` has no Cargo updater, so the release's dependency update cannot restore a rolled-back crate. The Rust change task also skips the rollback. |
-| rust | Evidence bundle: quality gate | The quality gate's tools and reports are still Python's (`ruff`, `mypy`) for a Rust repo; the test, audit and security gates are per-language. The fix is designed in [vergil-project/vergil-tooling#4416](https://github.com/vergil-project/vergil-tooling/issues/4416); evidence in the #410 comments [6895915051](https://github.com/vergil-project/.github/issues/410#issuecomment-6895915051) and [6895947053](https://github.com/vergil-project/.github/issues/410#issuecomment-6895947053). |
+| Language | Check | Gap | Recorded on |
+|---|---|---|---|
+| typescript | Dependency update | `vrg-update-deps` has no npm updater, so the release's dependency update cannot restore a rolled-back package. The TypeScript change task also skips the rollback. | [vergil-project/.github#1209](https://github.com/vergil-project/.github/issues/1209) |
 
-When #410 closes a gap, its row is removed here (a change to this skill), the
-same check becomes its proof, and a failure of it is an ordinary failure
-again. Removing the dependency-update row also turns the rollback on for that
-language.
+When the work on a row's issue closes its gap, the row is removed here (a
+change to this skill), the same check becomes its proof, and a failure of it
+is an ordinary failure again. Removing the dependency-update row also turns
+the rollback on for that language.
 
 ## Learned ready-to-start conditions
 
@@ -189,15 +189,16 @@ from [the list](#the-fixtures), `<what>`, `<epic-ref>`, and the trio refs
 `<a>` and `<r>`. Copy the
 [learned conditions](#learned-ready-to-start-conditions) and, for the
 fixture's language, the [known gaps](#known-gaps) as they stand when the
-run is filed. The other fields (`vX.Y.Z`, `<package>`, `<older>`, `<range>`,
-`<a's merge commit>`) are filled by the agent that runs the task, from what
-it finds.
+run is filed. The other fields (`vX.Y.Z`, `<package>`, `<crate>`, `<older>`,
+`<range>`, `<requirement>`, `<a's merge commit>`) are filled by the agent that
+runs the task, from what it finds.
 
 ### (a) Change task
 
 Keep only the rollback paragraph for the fixture's language and drop its
-`<Python:>` or `<Rust:>` marker: **Python** rolls a dependency back; **Rust**
-skips the rollback while its dependency-update known gap stands.
+`<Python:>`, `<Rust:>` or `<TypeScript:>` marker: **Python** and **Rust**
+each roll a dependency back; **TypeScript** skips the rollback while its
+dependency-update known gap stands.
 
 ````markdown
 A fixture run on `vergil-project/<repo>` (<language> <shape>), validating
@@ -245,9 +246,23 @@ issue and in the report-ready notes as one line:
 `Rolled back: <package> <locked version> -> <older> (declared <range>)`.
 
 <Rust:>
-**Dependency rollback: skipped.** `vrg-update-deps` has no Cargo updater (a
-known gap recorded on vergil-project/.github#410), so nothing would restore
-a rolled-back crate. Leave `Cargo.lock` alone.
+**Dependency rollback.** In the same change, move one crate back to an
+earlier version **in `Cargo.lock` only** (for example
+`cargo update --package '<crate>' --precise '<older>'`), staying within its
+`Cargo.toml` requirement, so the locked install (`--locked`) still passes:
+a transitive crate, or a direct dependency whose requirement's floor is
+below its locked version. A crate locked at its own floor cannot be rolled
+back without editing `Cargo.toml`, which a run never does. Leaving
+`Cargo.toml` as it is gives the release's dependency update a guaranteed
+upgrade to make. The earlier version must pass the cargo-deny audit, so the
+PR never goes red for the wrong reason. Record it on this issue and in the
+report-ready notes as one line:
+`Rolled back: <crate> <locked version> -> <older> (declared <requirement>)`.
+
+<TypeScript:>
+**Dependency rollback: skipped.** `vrg-update-deps` has no npm updater (a
+known gap recorded on vergil-project/.github#1209), so nothing would restore
+a rolled-back package. Leave `package-lock.json` alone.
 
 ## Submit and merge
 
@@ -313,7 +328,7 @@ change task vergil-project/<repo>#<a>'s merge.
 ### (b) Validation task
 
 The known-gaps line is the fixture language's rows of [Known gaps](#known-gaps),
-or `none` for a language with no row.
+each with its **Recorded on** issue, or `none` for a language with no row.
 
 ````markdown
 ## Intro
@@ -380,16 +395,17 @@ names, versions):
    fixture's package. The release's provenance attestation and the
    fixture's own Pages site are not artifacts in this sense.
 
-**Known gaps** for <language>: <the language's known-gap rows, or "none">.
-A check that fails only because of a known gap recorded on
-vergil-project/.github#410 is reported as a known gap: post its evidence as
-a comment on #410 and list it in the result. It does not count as a failure.
+**Known gaps** for <language>: <the language's known-gap rows, each with
+its Recorded on issue, or "none">. A check that fails only because of one of
+these known gaps is reported as a known gap: post its evidence as a comment
+on the row's issue and list it in the result. It does not count as a
+failure.
 
 ## Acceptance
 
 - `Outcome: SUCCESS` only if every precondition passed and every check
   passed or is a known gap, each known gap listed in the result as
-  `Known gap: <check> — <link to its #410 comment>`.
+  `Known gap: <check> — <link to its comment on the row's issue>`.
 - Otherwise `Outcome: FAILURE`. File each failure in the repo that owns the
   broken behaviour (for example vergil-tooling or vergil-containers), never
   in the fixture, as `issue-validate`'s failure fix tasks. If the right fix

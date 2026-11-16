@@ -340,7 +340,8 @@ checklist on a validation issue.
 **What it does.** USER-identity recipe skill. Files a **fixture run** on one
 or more of the language fixture repos (`vergil-fixture-python-lib`,
 `vergil-fixture-python-app`, `vergil-fixture-rust-lib`,
-`vergil-fixture-rust-app`): per fixture, a trio of tasks linked under the
+`vergil-fixture-rust-app`, `vergil-fixture-ts-lib`,
+`vergil-fixture-ts-app`): per fixture, a trio of tasks linked under the
 epic that needs the run. The change task (run with `issue-implement`) is
 blocked by every `--after` ref, the release or deployment task that ships
 the change. The release task (`deployment`, run with `issue-deploy`) is the
@@ -484,6 +485,15 @@ The modes differ only in order, check and outcomes:
   **refresh** (re-defer in place), **revive** (to intake, planning or a
   one-off, guided by the `Deferred from:` line), or **drop**. A condition it
   cannot verify is reported as such, with a keep recommendation.
+
+Planning and deferred items carry an estimated **epic size** (`epic-size:S`
+to `XL`, derived from an estimated task count), which the review writes only
+through `vrg-intake-route … size` or `planning --tasks … --reason …`: intake
+mode sizes every item it routes to planning, planning mode sizes each
+waiting item that is unsized or in error, and deferred mode sizes an unsized
+item it revives to planning. An item whose sizing is in error shows as `!`
+and gets a recommended `size` re-run; `vrg-queue`'s exit 2 for such items is
+a complete listing, not a failure.
 
 Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
