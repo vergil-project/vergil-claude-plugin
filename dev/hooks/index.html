@@ -4429,6 +4429,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pretooluse-hooks-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PreToolUse Hooks — Skill
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PreToolUse Hooks — Skill">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#warn-stale-plugin-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        warn-stale-plugin-version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#posttooluse-hooks-bash" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4861,6 +4889,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pretooluse-hooks-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PreToolUse Hooks — Skill
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PreToolUse Hooks — Skill">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#warn-stale-plugin-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        warn-stale-plugin-version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#posttooluse-hooks-bash" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5041,7 +5097,8 @@ and the per-repo hook guard in
 <p>Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.</p>
 <h2 id="managed-repo-gating">Managed-repo gating<a class="headerlink" href="#managed-repo-gating" title="Permanent link">&para;</a></h2>
-<p>Every hook below <strong>except <code>block-heredoc</code></strong> is gated on a
+<p>Every hook below <strong>except <code>block-heredoc</code></strong> and
+<a href="#warn-stale-plugin-version"><code>warn-stale-plugin-version</code></a> is gated on a
 managed-repo check. A repo is "managed" when <code>vergil.toml</code>
 exists at the repo root.</p>
 <p>When the marker is not present, the gated hooks short-circuit to a
@@ -5077,8 +5134,10 @@ delimiter in <code>&lt;&lt;'EOF'</code>, which stripping would remove.</p>
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/specs/2026-06-05-450-command-matcher-quoting-design.md"><code>docs/specs/2026-06-05-450-command-matcher-quoting-design.md</code></a>.
 See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/450">issue #450</a>.</p>
 <h2 id="malformed-input-fails-closed">Malformed input fails closed<a class="headerlink" href="#malformed-input-fails-closed" title="Permanent link">&para;</a></h2>
-<p>Every PreToolUse hook below refuses a tool call it cannot check
-rather than letting it through. That covers empty stdin, input that
+<p>Every PreToolUse hook below except
+<a href="#warn-stale-plugin-version"><code>warn-stale-plugin-version</code></a>, which warns and
+never blocks, refuses a tool call it cannot check rather than letting it
+through. That covers empty stdin, input that
 is not valid JSON or is not a single JSON object, a missing <code>jq</code>,
 and a payload without the hook's required field
 (<code>tool_input.command</code> for the Bash hooks, <code>tool_input.file_path</code> for
@@ -5317,6 +5376,42 @@ SHA-256 is what lets a check catch an edit made any other way.</p>
 request and dispatch the reviewer again, as the
 <a href="../skills/#merge-review">merge-review skill</a> says. Tests:
 <code>hooks/tests/guard-merge-review-results.test.sh</code>.</p>
+<h2 id="pretooluse-hooks-skill">PreToolUse Hooks — Skill<a class="headerlink" href="#pretooluse-hooks-skill" title="Permanent link">&para;</a></h2>
+<h3 id="warn-stale-plugin-version">warn-stale-plugin-version<a class="headerlink" href="#warn-stale-plugin-version" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Before each Skill call for a <code>vergil:</code> skill, compares the
+plugin folder the session loaded (<code>CLAUDE_PLUGIN_ROOT</code>, a version
+directory under <code>~/.claude/plugins/cache/&lt;marketplace&gt;/vergil/</code>) with the
+<code>installPath</code> that <code>~/.claude/plugins/installed_plugins.json</code> records for
+<code>vergil@&lt;marketplace&gt;</code>. The install that applies is the local-scope, then
+the project-scope entry whose <code>projectPath</code> is the session's project
+(<code>CLAUDE_PROJECT_DIR</code>, else the payload's <code>cwd</code>), else the user-scope
+entry. Paths are compared with symlinks resolved. On a mismatch it adds a
+warning to the agent's context naming the loaded and the installed
+version, and telling the agent to stop and ask the human to run
+<code>/reload-plugins</code> (or restart the session) before relying on the skill.
+<code>CLAUDE_CONFIG_DIR</code>, when set, replaces <code>~/.claude</code>.</p>
+<p><strong>Why.</strong> A running session keeps serving the plugin version it loaded at
+start, even after a newer one is installed. An agent that trusts the
+loaded skill after an upgrade can silently do what the release removed
+(<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1129">#1129</a>).
+Claude Code tells the human "Plugins changed. Run /reload-plugins to
+activate.", but that notice never reaches the agent, and an agent cannot
+run a slash command itself.</p>
+<p><strong>Warns, never blocks.</strong> The hook only adds context: it never denies the
+call, so a session that cannot reload (a remote one, say) is not trapped.
+It is not gated on a managed repo, and it is the one PreToolUse hook that
+does not <a href="#malformed-input-fails-closed">fail closed</a>: every problem that
+stops the check (unparseable or empty input, an unset
+<code>CLAUDE_PLUGIN_ROOT</code>, a missing or unreadable <code>installed_plugins.json</code>, no
+install record for the session, an entry with no <code>installPath</code>) is
+reported in the added context as a check that could not run, never
+treated as a match. Without <code>jq</code> it can build no response, so it prints
+the problem to stderr and exits 1, a non-blocking error. A plugin root
+outside the plugin cache, such as a <code>claude --plugin-dir</code> source mount,
+has no install record to compare with, so the hook is silent there.</p>
+<p><strong>Alternative.</strong> Ask the human to run <code>/reload-plugins</code> in the session, or
+to restart it, then invoke the skill again. Tests:
+<code>hooks/tests/warn-stale-plugin-version.test.sh</code>.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="detect-deprecation-warnings">detect-deprecation-warnings<a class="headerlink" href="#detect-deprecation-warnings" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Scans test output and command output for deprecation
@@ -5450,14 +5545,24 @@ call and feeds stderr to the agent. The plugin uses exit 2 for input
 it cannot parse (see
 <a href="#malformed-input-fails-closed">Malformed input fails closed</a>). Any
 other non-zero exit is a non-blocking error, and the call goes ahead.</p>
-<h3 id="posttooluse-response">PostToolUse response<a class="headerlink" href="#posttooluse-response" title="Permanent link">&para;</a></h3>
-<p>A PostToolUse hook can inject context by writing JSON and exiting 0:</p>
+<p>A PreToolUse hook can also add context for the agent without a decision,
+and the call then goes ahead as usual
+(<a href="#warn-stale-plugin-version"><code>warn-stale-plugin-version</code></a> does this):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PostToolUse"</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="posttooluse-response">PostToolUse response<a class="headerlink" href="#posttooluse-response" title="Permanent link">&para;</a></h3>
+<p>A PostToolUse hook can inject context by writing JSON and exiting 0:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PostToolUse"</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">}</span>
 </code></pre></div>
 <p>PostToolUse hooks cannot un-do the tool action; they can only add
 context the agent sees in its next turn. Exit 2 is a fatal hook
@@ -5465,10 +5570,10 @@ error — useful when validation cannot run and the absence of
 validation should be visible.</p>
 <h3 id="stop-response">Stop response<a class="headerlink" href="#stop-response" title="Permanent link">&para;</a></h3>
 <p>A Stop hook can block session exit by returning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">"decision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block"</span><span class="p">,</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the session cannot exit."</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">"decision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block"</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the session cannot exit."</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">}</span>
 </code></pre></div>
 
 

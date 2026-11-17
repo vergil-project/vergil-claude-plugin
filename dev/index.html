@@ -4619,7 +4619,8 @@ model and
 <h3 id="updating">Updating<a class="headerlink" href="#updating" title="Permanent link">&para;</a></h3>
 <p>A machine picks up a release, or a rollback, when its plugins are next
 updated. Run <code>vrg-host plugins</code> for the host and <code>vrg-vm update --all</code> for
-every running agent VM, in a human shell, then restart Claude Code. Both
+every running agent VM, in a human shell, then run <code>/reload-plugins</code> in each
+running Claude Code session or restart it. Both
 commands refresh the marketplace and the installed plugins and verify the
 registered repo and ref, and both refuse an agent identity. The ref is <code>v2.1</code>
 before and after, so that check does not prove a machine moved.
