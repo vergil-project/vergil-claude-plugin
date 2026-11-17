@@ -309,7 +309,10 @@ put after an overlapping one waits for a later pass, once that one has
 merged, so a repo's ready set never holds both.
 
 Batch each repo **once** and stop. Your responsibility **ends here.** The human
-takes each batch through `vrg-submit-pr` → merge/finalize. **Do not run `pr-watch`** — it is
+submits each batch with `vrg-submit-pr`, which opens its PRs with auto-merge on
+(a batch PR rebase-merges, any other PR squash-merges) and finalizes by default:
+`vrg-finalize-pr` watches the PRs land and settles `develop`, and never merges.
+**Do not run `pr-watch`** — it is
 a rare, human-triggered exception the human invokes only if a gate goes red. When
 the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
 re-derive state and advance to the next frontier.
