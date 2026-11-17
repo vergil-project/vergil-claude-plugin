@@ -321,8 +321,8 @@ issue, finds it. Find the main clone from inside a worktree with
   there at its gate. It holds:
   - `design-<n>-<basename>`, each design source fetched from the epic's
     home repo (the skill);
-  - `request-<step>.json`, `diff-<step>.patch` and `fix-<step>.patch`
-    (`vrg-merge-review-request`);
+  - `request-<step>.json`, `diff-<step>.patch`, `fix-<step>.patch` and,
+    on a batch PR, `commits-<step>.patch` (`vrg-merge-review-request`);
   - `result-<step>.md`, the reviewer's reply stored unchanged,
     `reply-<step>.md`, the same reply as a publishable copy that the step
     comment carries whole unless it, or for a check an earlier step, has

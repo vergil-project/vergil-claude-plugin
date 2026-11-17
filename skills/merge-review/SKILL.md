@@ -96,7 +96,7 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 | File | Written by | Holds |
 |---|---|---|
 | `design-<n>-<basename>` | this skill | A design source fetched from the epic's home repo. |
-| `request-<step>.json`, `diff-<step>.patch`, `fix-<step>.patch` | `vrg-merge-review-request` | The request and its diffs. |
+| `request-<step>.json`, `diff-<step>.patch`, `fix-<step>.patch`, `commits-<step>.patch` | `vrg-merge-review-request` | The request and its diffs; `commits-<step>.patch` on a batch PR only ([Fix to an open PR](#fix-to-an-open-pr)). |
 | `result-<step>.md` | the plugin's `capture-merge-review-result` hook | The reviewer's reply, stored unchanged ([Review](#review)). |
 | `reply-<step>.md` | the plugin's `capture-merge-review-result` hook | The same reply as a publishable copy: unchanged, in a fenced block inside a collapsed `<details>` section that gives its SHA-256 and size. The step comment carries it ([Records](#records)). |
 | `capture-<step>.json` | the plugin's `capture-merge-review-result` hook | The capture record: the request's `request_id` and the SHA-256 of `result-<step>.md` as stored. |
@@ -274,6 +274,21 @@ never scoped to the fix: the reviewer judges the whole branch, as before
 report-ready. [In a batch](#in-a-batch)'s `batch-show` check is not made:
 report-ready removed the batch markers. A PR whose body has more than one
 `Closes` line is a batch PR (`vrg-gh pr view <PR_URL> --json body`).
+
+**Every step names the PR.** The review and every check pass
+`--pr <PR_URL>` to `vrg-merge-review-request`, on a single-issue PR too.
+The builder reads the PR itself: it refuses a PR that is not open, not in
+`<ref>`'s repository or not headed by the current branch, and a
+single-issue PR whose body does not link `<ref>`. On a batch PR it also
+refuses unless `<ref>` is one of its `Closes` refs, every commit of
+`origin/develop..HEAD` names one of its issues and each issue has a
+commit. It adds every other issue's scope (`batch_issues`), the issue each
+commit belongs to (`batch_commits`) and each commit's own patch
+(`commits-<step>.patch`), so the reviewer judges each commit against its
+own issue's scope
+([the protocol's A batch PR](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md#a-batch-pr)).
+A check refuses batch issues other than those of the step before it. Any
+such refusal is an `error`.
 On it, every commit the run makes (a fix, a revert, a fix that gets back
 to green) is `vrg-commit --fixup <the commit of <ref>>`, the one commit in
 `origin/develop..HEAD` whose subject ends in a space and `(#<N>)`. The run
@@ -338,11 +353,12 @@ this skill writes neither. It reads the epic only for the design sources.
 
    ```bash
    vrg-merge-review-request --issue '<ref>' --base <base> --step review \
-     [--design-source <dir>/design-<n>-<basename>]...
+     [--design-source <dir>/design-<n>-<basename>]... [--pr <PR_URL>]
    ```
 
    `<base>` is `origin/develop`, or in a batch the previous issue's commit
-   ([In a batch](#in-a-batch)). It prints the request's path. It refuses unless the worktree is clean and
+   ([In a batch](#in-a-batch)). `--pr` is given on a
+   [fix to an open PR](#fix-to-an-open-pr) only. It prints the request's path. It refuses unless the worktree is clean and
    the last `vrg-validate` was a full, clean run at `HEAD` that passed every
    stage: commit, run `vrg-container-run -- vrg-validate` to green, and run
    it again. It also refuses when it cannot read the issue, its parent's
@@ -539,14 +555,15 @@ Otherwise:
 
    ```bash
    vrg-merge-review-request --issue '<ref>' --base <base> --step <step> \
-     [--design-source <path>]... \
+     [--design-source <path>]... [--pr <PR_URL>] \
      --fix-base <head_sha of request-<prev>.json> \
      --earlier-result <dir>/result-review.md [--earlier-result <dir>/result-check.md ...] \
      --fix-id <ID>... [--ruled-id <ID>...]
    ```
 
    - `<base>` is the one the review used
-     ([In a batch](#in-a-batch)).
+     ([In a batch](#in-a-batch)), and `--pr` is given exactly when the
+     review gave it ([Fix to an open PR](#fix-to-an-open-pr)).
    - `--fix-base` is exactly the `head_sha` recorded in
      `request-<prev>.json`, the `HEAD` the previous step judged. Never pass
      any other commit, such as the current `HEAD` or a guess at the
