@@ -20,7 +20,8 @@ to achieve the intent correctly when the hook blocks you.
 
 ## Managed-repo gating
 
-Every hook below **except `block-heredoc`** is gated on a
+Every hook below **except `block-heredoc`** and
+[`warn-stale-plugin-version`](#warn-stale-plugin-version) is gated on a
 managed-repo check. A repo is "managed" when `vergil.toml`
 exists at the repo root.
 
@@ -67,8 +68,10 @@ See [issue #450](https://github.com/vergil-project/vergil-claude-plugin/issues/4
 
 ## Malformed input fails closed
 
-Every PreToolUse hook below refuses a tool call it cannot check
-rather than letting it through. That covers empty stdin, input that
+Every PreToolUse hook below except
+[`warn-stale-plugin-version`](#warn-stale-plugin-version), which warns and
+never blocks, refuses a tool call it cannot check rather than letting it
+through. That covers empty stdin, input that
 is not valid JSON or is not a single JSON object, a missing `jq`,
 and a payload without the hook's required field
 (`tool_input.command` for the Bash hooks, `tool_input.file_path` for
@@ -370,6 +373,48 @@ request and dispatch the reviewer again, as the
 [merge-review skill](../skills/index.md#merge-review) says. Tests:
 `hooks/tests/guard-merge-review-results.test.sh`.
 
+## PreToolUse Hooks — Skill
+
+### warn-stale-plugin-version
+
+**What.** Before each Skill call for a `vergil:` skill, compares the
+plugin folder the session loaded (`CLAUDE_PLUGIN_ROOT`, a version
+directory under `~/.claude/plugins/cache/<marketplace>/vergil/`) with the
+`installPath` that `~/.claude/plugins/installed_plugins.json` records for
+`vergil@<marketplace>`. The install that applies is the local-scope, then
+the project-scope entry whose `projectPath` is the session's project
+(`CLAUDE_PROJECT_DIR`, else the payload's `cwd`), else the user-scope
+entry. Paths are compared with symlinks resolved. On a mismatch it adds a
+warning to the agent's context naming the loaded and the installed
+version, and telling the agent to stop and ask the human to run
+`/reload-plugins` (or restart the session) before relying on the skill.
+`CLAUDE_CONFIG_DIR`, when set, replaces `~/.claude`.
+
+**Why.** A running session keeps serving the plugin version it loaded at
+start, even after a newer one is installed. An agent that trusts the
+loaded skill after an upgrade can silently do what the release removed
+([#1129](https://github.com/vergil-project/vergil-claude-plugin/issues/1129)).
+Claude Code tells the human "Plugins changed. Run /reload-plugins to
+activate.", but that notice never reaches the agent, and an agent cannot
+run a slash command itself.
+
+**Warns, never blocks.** The hook only adds context: it never denies the
+call, so a session that cannot reload (a remote one, say) is not trapped.
+It is not gated on a managed repo, and it is the one PreToolUse hook that
+does not [fail closed](#malformed-input-fails-closed): every problem that
+stops the check (unparseable or empty input, an unset
+`CLAUDE_PLUGIN_ROOT`, a missing or unreadable `installed_plugins.json`, no
+install record for the session, an entry with no `installPath`) is
+reported in the added context as a check that could not run, never
+treated as a match. Without `jq` it can build no response, so it prints
+the problem to stderr and exits 1, a non-blocking error. A plugin root
+outside the plugin cache, such as a `claude --plugin-dir` source mount,
+has no install record to compare with, so the hook is silent there.
+
+**Alternative.** Ask the human to run `/reload-plugins` in the session, or
+to restart it, then invoke the skill again. Tests:
+`hooks/tests/warn-stale-plugin-version.test.sh`.
+
 ## PostToolUse Hooks — Bash
 
 ### detect-deprecation-warnings
@@ -537,6 +582,19 @@ call and feeds stderr to the agent. The plugin uses exit 2 for input
 it cannot parse (see
 [Malformed input fails closed](#malformed-input-fails-closed)). Any
 other non-zero exit is a non-blocking error, and the call goes ahead.
+
+A PreToolUse hook can also add context for the agent without a decision,
+and the call then goes ahead as usual
+([`warn-stale-plugin-version`](#warn-stale-plugin-version) does this):
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "additionalContext": "Message surfaced to the agent."
+  }
+}
+```
 
 ### PostToolUse response
 
