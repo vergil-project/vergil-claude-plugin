@@ -274,6 +274,14 @@ never scoped to the fix: the reviewer judges the whole branch, as before
 report-ready. [In a batch](#in-a-batch)'s `batch-show` check is not made:
 report-ready removed the batch markers. A PR whose body has more than one
 `Closes` line is a batch PR (`vrg-gh pr view <PR_URL> --json body`).
+On it, every commit the run makes (a fix, a revert, a fix that gets back
+to green) is `vrg-commit --fixup <the commit of <ref>>`, the one commit in
+`origin/develop..HEAD` whose subject ends in a space and `(#<N>)`. The run
+never folds: `pr-watch` folds after the run ends, and the fold changes no
+tree, so no step is re-run. A defect whose fix belongs to no single
+issue's commit is an `error`: show the human the defect and the issues it
+touches, and commit nothing; a rerun resumes at its fix. On a
+single-issue PR every commit is a plain `vrg-commit`.
 
 **Every step names the PR.** The review and every check pass
 `--pr <PR_URL>` to `vrg-merge-review-request`, on a single-issue PR too.
@@ -289,14 +297,6 @@ own issue's scope
 ([the protocol's A batch PR](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md#a-batch-pr)).
 A check refuses batch issues other than those of the step before it. Any
 such refusal is an `error`.
-On it, every commit the run makes (a fix, a revert, a fix that gets back
-to green) is `vrg-commit --fixup <the commit of <ref>>`, the one commit in
-`origin/develop..HEAD` whose subject ends in a space and `(#<N>)`. The run
-never folds: `pr-watch` folds after the run ends, and the fold changes no
-tree, so no step is re-run. A defect whose fix belongs to no single
-issue's commit is an `error`: show the human the defect and the issues it
-touches, and commit nothing; a rerun resumes at its fix. On a
-single-issue PR every commit is a plain `vrg-commit`.
 
 **The closing comment** carries the eligibility line on the task issue,
 as [Records](#records) says, and is where the outcome lives: there is no
