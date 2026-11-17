@@ -1,6 +1,6 @@
 ---
 name: merge-review
-description: Pre-PR merge review of a task branch, run by issue-implement once `vrg-container-run -- vrg-validate` is green on the committed branch and before `vrg-pr-workflow report-ready`. Asks one question, "is this change good enough to merge?" — one review by the read-only `vergil:merge-reviewer`, at most one fix and check, every stop for the human through `vrg-ruling`, every raised item closed before handoff, and a closing comment carrying the eligibility line for report-ready's notes. Also resumes a run stopped at merge review once the human has replied. Not a general code review and not for a branch with no task issue.
+description: Pre-PR merge review of a task branch, run by issue-implement once `vrg-container-run -- vrg-validate` is green on the committed branch and before `vrg-pr-workflow report-ready`. Asks one question, "is this change good enough to merge?" — one review by the read-only `vergil:merge-reviewer`, at most one fix and check, every stop for the human through `vrg-ruling`, every raised item closed before handoff, and a closing comment carrying the eligibility line for report-ready's notes. Also reviews a fix to an open, submitted PR as a whole branch before pr-watch pushes it, and resumes a run stopped at merge review once the human has replied. Not a general code review and not for a branch with no task issue.
 ---
 
 # Merge review
@@ -8,8 +8,10 @@ description: Pre-PR merge review of a task branch, run by issue-implement once `
 Merge review is the judgement-level check between a green `vrg-validate` and
 the PR. CI covers everything deterministic; merge review asks whether the
 change is good enough to merge, the way a second engineer would. It runs in
-the USER agent session, inside `issue-implement`, on the task's worktree. A
-stopped run is resumed by running this skill again on the same task.
+the USER agent session, inside `issue-implement`, on the task's worktree.
+`pr-watch` also runs it on an open, submitted PR, before it pushes a fix:
+see [Fix to an open PR](#fix-to-an-open-pr). A stopped run is resumed by
+running this skill again on the same task.
 
 The loop has exactly one iteration before the human: **review**, then at
 most one **fix** and **check**. Any further fix and check is the human's
@@ -42,7 +44,9 @@ The run ends with exactly one of these, and tells its caller which:
 The **eligibility line** is the closing comment's first line,
 `Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`
 ([Records](#records)). It is the only thing from merge review that goes
-into report-ready's notes.
+into report-ready's notes. A run on an open PR has no report-ready and
+its caller is `pr-watch`
+([Fix to an open PR](#fix-to-an-open-pr)).
 
 ## Ground rules
 
@@ -77,7 +81,8 @@ into report-ready's notes.
 
 ## Terms and files
 
-**Human present** means the human started `issue-implement` in this very
+**Human present** means the human started `issue-implement` (or, for a
+[fix to an open PR](#fix-to-an-open-pr), `pr-watch`) in this very
 session and is answering you directly in its terminal. A run started by
 another agent is **dispatched**, whatever the driver (`epic-implement`, an
 interactive driver agent, another skill or any subagent dispatch), even
@@ -103,6 +108,7 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 | `reask.json` | this skill | Request items still to be asked: a reply's unclear items, and an `M1`, `D1` or `B1` reached while carrying out a reply. |
 | `stop-reason.txt` | this skill | The eligibility reason of the run's first stop; never overwritten. |
 | `comment-*.md`, `record-*.md` | this skill | Bodies for step comments and neutral security-record text. |
+| `open-pr.json` | this skill | `{"pr": "<PR_URL>"}`: the run is a [fix to an open PR](#fix-to-an-open-pr). |
 
 Steps are `review`, `check`, then `check-<k>` (`k` from 2 to 9) for each
 further check a ruling grants. Finding IDs are `R<n>`, `C<n>` and
@@ -133,7 +139,10 @@ denies the Write, Edit and NotebookEdit tools on them.
 
 ## Starting and resuming
 
-Run the `--ensure-dir` command, then look at what `<dir>` holds:
+Run the `--ensure-dir` command, then look at what `<dir>` holds. A run on
+an open PR first takes the start check of
+[Fix to an open PR](#fix-to-an-open-pr), then this table, where
+`open-pr.json` counts for nothing:
 
 | Found | Go to |
 |---|---|
@@ -220,6 +229,78 @@ vrg-pr-workflow batch-show --issue '<ref>'
   previous issue's commit, or a first commit that does not carry `<ref>`:
   an `error`. Show the human the output and stop. Never fall back to
   `origin/develop`.
+
+On an open PR this check is not made: see
+[Fix to an open PR](#fix-to-an-open-pr).
+
+## Fix to an open PR
+
+Once `vrg-submit-pr` has opened a PR with auto-merge on, a pushed fix that
+turns CI green merges with no further human step. So `pr-watch` runs this
+skill before it pushes any fix that is not a clean rebase: a resolved
+conflict, a CI fix or any other code change. A rebase onto
+`origin/develop` that resolves no conflict changes none of the branch's
+own code and is pushed with no review. The whole run is the one above,
+with the same reviewer, outcomes, rulings and records; only what this
+section names differs.
+
+**The caller gives** the task issue `<ref>` and the PR's URL. The fix is
+committed (on a batch PR, folded as `pr-watch` folds it) and
+`vrg-container-run -- vrg-validate` is green at `HEAD`; the request
+builder refuses otherwise. The submit lifted the branch's freeze, so the
+run's own commits are allowed. On a batch PR, `<ref>` is the issue whose
+commit the fix changes, and the run's rulings, step comments and closing
+comment go on that issue.
+
+**A fresh review state.** The private directory from before report-ready
+was deleted at handoff, so the run starts its own. After the
+`--ensure-dir` command:
+
+- **`<dir>` is empty:** write `open-pr.json`, `{"pr": "<PR_URL>"}`, and
+  go on to [Starting and resuming](#starting-and-resuming), which finds
+  nothing and starts at [Before the review](#before-the-review).
+- **`open-pr.json` names this PR:** a run on this PR stopped part-way;
+  resume it through [Starting and resuming](#starting-and-resuming).
+- **Anything else** (no `open-pr.json` while other files are there, or
+  one naming another PR): an `error`. It is state from before handoff, or
+  from another run: show the human the listing, and never delete or reuse
+  it.
+
+**A whole-branch review.** First `vrg-git fetch origin`, so
+`origin/develop` is the base the PR merges onto. `<base>` is
+`origin/develop` for the review and every check, on a batch PR too. A
+rebase leaves no earlier reviewed `HEAD` to diff from, so the review is
+never scoped to the fix: the reviewer judges the whole branch, as before
+report-ready. [In a batch](#in-a-batch)'s `batch-show` check is not made:
+report-ready removed the batch markers. A PR whose body has more than one
+`Closes` line is a batch PR (`vrg-gh pr view <PR_URL> --json body`).
+On it, every commit the run makes (a fix, a revert, a fix that gets back
+to green) is `vrg-commit --fixup <the commit of <ref>>`, the one commit in
+`origin/develop..HEAD` whose subject ends in a space and `(#<N>)`. The run
+never folds: `pr-watch` folds after the run ends, and the fold changes no
+tree, so no step is re-run. A defect whose fix belongs to no single
+issue's commit is an `error`: show the human the defect and the issues it
+touches, and commit nothing; a rerun resumes at its fix. On a
+single-issue PR every commit is a plain `vrg-commit`.
+
+**The closing comment** carries the eligibility line on the task issue,
+as [Records](#records) says, and is where the outcome lives: there is no
+report-ready. The pre-handoff run's closing comment is already on the
+issue, so "already posted" means a closing comment by a trusted author
+posted after this run's review step comment (the one whose `Request:`
+line is the `request_id` of this run's `request-review.json`).
+
+**No report-ready.** The run ends `eligible` or `not-eligible (<reason>)`
+and hands the eligibility line to `pr-watch`, which pushes only on
+`eligible`. Once the closing comment is posted, the run deletes `<dir>`,
+and its parent `issue-implement/<N>/` if then empty, as `issue-implement`
+does after report-ready
+([Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off));
+the handoff refusal of
+[No unfinished business](#no-unfinished-business-and-handoff) has kept
+every `security-<ID>.md` whose record is due. A rerun that finds the
+closing comment posted but `<dir>` still there ends with the same outcome
+and deletes it. A later fix to the same PR starts a fresh state again.
 
 ## Before the review
 
@@ -699,7 +780,7 @@ Reviewer usage: <tokens, duration, when the completion notice gave it>
   made by editing a comment did not reach it.
 
 **The closing comment**, one per run, posted after any `vrg-ruling respond`
-and before report-ready:
+and before report-ready (on an open PR, before `pr-watch` pushes):
 
 ```text
 Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>
@@ -715,7 +796,8 @@ the run raised and its closing state, security items by ID and outcome
 only; build it from the run's files and the step comments and responses on
 the issue. It is the one place the eligibility line lives on the issue. A
 resumed run that finds its closing comment already posted by a trusted
-author does not post another.
+author does not post another; on an open PR, only one posted after this
+run's review step comment is its own ([Fix to an open PR](#fix-to-an-open-pr)).
 
 ## Eligibility
 
@@ -742,7 +824,8 @@ Then:
 
 1. post the closing comment;
 2. end with `eligible` or `not-eligible (<reason>)`, giving the caller the
-   eligibility line for `--notes`.
+   eligibility line for `--notes` (on an open PR, for `pr-watch`, after
+   deleting `<dir>`: [Fix to an open PR](#fix-to-an-open-pr)).
 
 **Documentation left for the sweep.** A stale or loose doc that the run
 leaves for the epic's documentation-review sweep (a note in the reviewer's
@@ -758,7 +841,9 @@ Never delete `<dir>` or its parent `issue-implement/<N>/`. The caller,
 `issue-implement`, deletes them once `vrg-pr-workflow report-ready` has
 succeeded. Until then `<dir>` must survive: a failed report-ready resumes
 from it, and a `security-<ID>.md` awaiting a record must stay until it is
-recorded.
+recorded. The one exception is a run on an open PR, which has no
+report-ready and deletes them itself once its closing comment is posted
+([Fix to an open PR](#fix-to-an-open-pr)).
 
 ## Prior art
 
