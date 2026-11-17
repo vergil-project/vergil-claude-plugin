@@ -203,6 +203,31 @@ validation. Design: epic
 [vergil-project/.github#1091](https://github.com/vergil-project/.github/issues/1091),
 spec §6.5.
 
+**Fresh `dev-` images — seed a validation of the CD build.** When a later step
+of an epic depends on freshly published `dev-` images (it runs against the
+images the develop CD build publishes from a merged change), the plan says so,
+naming the step and the change it needs published, and seeds a **validation**
+task for that CD build:
+
+```bash
+vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
+  --title "Validate: the develop CD build publishes <what>" \
+  --blocked-by <org>/<repo>#<TASK>
+```
+
+- **Why.** `vrg-finalize-pr` no longer waits on CD: it reports the develop CD
+  run's link and status and moves on (`--wait-cd` restores the wait). So a
+  merged PR is no proof that its images were published. After a burst of merges
+  the `dev-` images can also lag the `develop` head by up to one publish.
+- **The check.** Its precondition is the merge of the task it is blocked by. Its
+  procedure confirms that the develop CD run for a commit containing that change
+  succeeded and that the `dev-` images it published carry the change.
+- **The dependent step** is blocked by this validation, never only by the merge.
+
+Design: epic
+[vergil-project/.github#1218](https://github.com/vergil-project/.github/issues/1218),
+spec §6.5.
+
 ## The interaction doctrine
 
 `epic-create`'s core is a front-loaded analytical pipeline. Getting the
