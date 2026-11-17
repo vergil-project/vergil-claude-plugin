@@ -732,6 +732,8 @@
       
         
       
+        
+      
     
     
     
@@ -784,6 +786,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.75/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.75
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5016,6 +5046,13 @@ checks diff against the previous issue's commit (the batch marker's
 issue is a <code>vrg-commit --fixup</code> of the issue's first commit, which the
 review never folds; <code>issue-implement</code> folds it afterwards. See its
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#in-a-batch">In a batch</a> section.</p>
+<p>A fix to an open PR, which <code>pr-watch</code> reviews before it pushes, is
+reviewed as the whole branch against <code>origin/develop</code>, and every step
+passes <code>--pr &lt;PR_URL&gt;</code> to <code>vrg-merge-review-request</code>. On a batch PR the
+request then carries every batch issue's scope and the issue each commit
+belongs to, and the reviewer judges each commit against its own issue's
+scope. See its
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr">Fix to an open PR</a> section.</p>
 <p><strong>When to use.</strong> Run by <code>issue-implement</code> once validation is green and
 before <code>vrg-pr-workflow report-ready</code>, and again on the same task to resume
 a run stopped for a ruling. The files, schemas and the result check follow
@@ -5190,7 +5227,11 @@ to <code>XL</code>, derived from an estimated task count), which the review writ
 through <code>vrg-intake-route … size</code> or <code>planning --tasks … --reason …</code>: intake
 mode sizes every item it routes to planning, planning mode sizes each
 waiting item that is unsized or in error, and deferred mode sizes an unsized
-item it revives to planning. An item whose sizing is in error shows as <code>!</code>
+item it revives to planning. A one-off clears the item's size: it removes
+the <code>epic-size:*</code> labels and posts a <code>Size cleared &lt;date&gt;: …</code> marker, and
+only sizing comments after the latest such marker count, so an item that
+later returns to planning starts unsized. An item whose sizing is in error
+shows as <code>!</code>
 and gets a recommended <code>size</code> re-run; <code>vrg-queue</code>'s exit 2 for such items is
 a complete listing, not a failure.</p>
 <p>Drop is an outcome in every mode. A planning item's drop or defer is refused
