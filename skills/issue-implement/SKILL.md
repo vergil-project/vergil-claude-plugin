@@ -438,7 +438,10 @@ How the push can end:
   no relay ref written. Fix the cause and re-run it.
 
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
-the human opens the PR.
+the human opens the PR. Submitting is the human's consent to merge:
+`vrg-submit-pr` opens the PR with auto-merge on, so it merges by itself once
+its CI is green, and finalizes by default (`vrg-finalize-pr` watches and
+settles, and never merges).
 
 ## Cloud / remote sessions — the relay handoff
 
@@ -607,7 +610,8 @@ A batch never rebases onto `develop` before handoff, so a finished issue
 is never rewritten:
 [Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch)
 does not apply until the batch is handed off. A conflict with a moved
-`develop` is resolved at submit or by `pr-watch`. The **previous issue's
+`develop` surfaces once the PR is submitted (submit does not rebase) and
+is resolved by `pr-watch`. The **previous issue's
 commit** of the first issue is `base_sha`; of every later issue it is the
 one folded commit of the issue just before it in the list. It is the
 issue's fold base and its merge-review base.
@@ -818,9 +822,9 @@ run of the issue is under way.
 **Its handoff** is a single issue's:
 [Record the PR metadata](#record-the-pr-metadata-and-hand-off) from the
 batch worktree, with the one `--issue <N>`, and the default linkage. The
-human's `vrg-submit-pr` and `vrg-finalize-pr` take the batch branch as it
-is: one issue makes it an ordinary PR, with one linkage line, and it
-squash-merges.
+human's `vrg-submit-pr` takes the batch branch as it is: one issue makes
+it an ordinary PR, with one linkage line, and it squash-merges through
+auto-merge once its CI is green.
 
 ### Handing off a batch
 
@@ -848,7 +852,8 @@ rest as for a single issue. Then delete each issue's `merge-review/`
 directory, and its `issue-implement/<N>/` if then empty, as
 [Record the PR metadata](#record-the-pr-metadata-and-hand-off) says. The
 freeze, the push outcomes and the human's `vrg-submit-pr` are as for a
-single issue.
+single issue, except that the batch PR rebase-merges through auto-merge,
+so each issue's commit lands on `develop` as it is.
 
 ## Notes
 

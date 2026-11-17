@@ -261,8 +261,9 @@ post-finalization action — not the agent's.
 unconditionally.
 
 **Why.** Under the 2.1 workflow agents have no merge path at all:
-the per-VM GitHub App credentials cannot merge, and merging is the
-human's Phase-6 action (`vrg-finalize-pr`). Skill prose saying "do
+the per-VM GitHub App credentials cannot merge, and merging is a
+human action: the human's `vrg-submit-pr` turns auto-merge on, and
+`vrg-finalize-pr` only watches and settles. Skill prose saying "do
 not merge" is advisory; agents rationalize past it. This hook makes
 the rule mechanical — an ergonomic fast-fail on top of the hard
 credential gate. The deny applies to **all identities** and all
@@ -272,8 +273,8 @@ shipped) was removed in [#441](https://github.com/vergil-project/vergil-claude-p
 See [#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
 for the original motivating incident.
 
-**Alternative.** Hand the PR URL to the human, who merges and
-finalizes via `vrg-finalize-pr`.
+**Alternative.** Hand the PR URL to the human. The human's `vrg-submit-pr`
+opened it with auto-merge on, so it merges by itself once CI is green.
 
 ### block-github-contents-api
 

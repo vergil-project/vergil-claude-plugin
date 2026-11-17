@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # block-agent-merge.sh — PreToolUse hook for Bash.
 # Unconditionally denies gh pr merge / gh pr review --approve and the
-# equivalent gh api calls. Under the 2.1 workflow agents have no merge
-# path at all (credential-enforced); merging is the human's Phase-6
-# action via vrg-finalize-pr. This hook is the ergonomic fast-fail on
+# equivalent gh api calls. Agents have no merge path at all
+# (credential-enforced); merging is a human action: the human's
+# vrg-submit-pr turns auto-merge on. This hook is the ergonomic fast-fail on
 # top of that hard credential gate.
 # Note: vrg-gh also rejects pr merge for non-escalated contexts.
 #
@@ -51,10 +51,12 @@ if [ "$is_merge_command" = false ]; then
   exit 0
 fi
 
-jq -n '{
+reason='Agents never merge or approve PRs. Merging is a human action: the human'"'"'s `vrg-submit-pr` turns auto-merge on. Hand the PR URL to the human. This applies to all identities and all branches, release PRs included. See issue #441.'
+
+jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "deny",
-    permissionDecisionReason: "Agents never merge or approve PRs. Merging is a human action (Phase 6 of the 2.1 workflow, via vrg-finalize-pr) -- hand the PR URL to the human. This applies to all identities and all branches, release PRs included. See issue #441."
+    permissionDecisionReason: $reason
   }
 }'
