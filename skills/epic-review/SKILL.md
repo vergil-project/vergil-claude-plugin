@@ -159,6 +159,12 @@ malformed sizing comment. The note says which (`size: <error>`, after a
 `held: …` or deferral note when there is one). Re-running `size` with the
 right estimate repairs every one of them.
 
+A one-off ends an item's size, from any queue: it removes the item's
+`epic-size:*` labels and posts a dated `Size cleared <date>: …` marker (see
+**one-off** in [Apply the batch](#5-apply-the-batch)). Only the sizing
+comments after the latest such marker count, so an item that later returns
+to planning starts unsized.
+
 `vrg-queue planning` also takes `--sort age|size|tasks` (default `age`,
 oldest first; `size` orders S, M, L, XL, then unsized, then in error;
 `tasks` orders by task count, then unsized, then in error) and
@@ -230,7 +236,13 @@ Which routes a mode offers is in its section. Rules for every mode:
   on stderr. Either way it re-links the resulting issue under the epic.
   Report the new ref from the `Routed …, now <ref> (by transfer|recreate).`
   line. A one-off whose work lands in the item's own repo is just
-  reparented.
+  reparented. A one-off also **clears the item's size**: a recreated issue
+  never carries an `epic-size:*` label, and a transferred or same-repo
+  issue has every one removed once the move has settled. When the item
+  carried a size (a label or any `Sized …` comment), that issue then gets
+  the marker
+  `Size cleared <YYYY-MM-DD>: moved out of planning as a one-off.`,
+  so its earlier sizing comments no longer count.
 - **planning** with `--tasks` and `--reason` (given together or not at all;
   `--confidence` needs `--tasks`) reparents the item, then sizes it as
   `size` does, printing the `Sized …` line after the `Routed …` one. A bad

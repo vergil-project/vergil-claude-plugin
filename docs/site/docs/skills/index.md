@@ -284,6 +284,14 @@ issue is a `vrg-commit --fixup` of the issue's first commit, which the
 review never folds; `issue-implement` folds it afterwards. See its
 [In a batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#in-a-batch) section.
 
+A fix to an open PR, which `pr-watch` reviews before it pushes, is
+reviewed as the whole branch against `origin/develop`, and every step
+passes `--pr <PR_URL>` to `vrg-merge-review-request`. On a batch PR the
+request then carries every batch issue's scope and the issue each commit
+belongs to, and the reviewer judges each commit against its own issue's
+scope. See its
+[Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr) section.
+
 **When to use.** Run by `issue-implement` once validation is green and
 before `vrg-pr-workflow report-ready`, and again on the same task to resume
 a run stopped for a ruling. The files, schemas and the result check follow
@@ -491,7 +499,11 @@ to `XL`, derived from an estimated task count), which the review writes only
 through `vrg-intake-route … size` or `planning --tasks … --reason …`: intake
 mode sizes every item it routes to planning, planning mode sizes each
 waiting item that is unsized or in error, and deferred mode sizes an unsized
-item it revives to planning. An item whose sizing is in error shows as `!`
+item it revives to planning. A one-off clears the item's size: it removes
+the `epic-size:*` labels and posts a `Size cleared <date>: …` marker, and
+only sizing comments after the latest such marker count, so an item that
+later returns to planning starts unsized. An item whose sizing is in error
+shows as `!`
 and gets a recommended `size` re-run; `vrg-queue`'s exit 2 for such items is
 a complete listing, not a failure.
 

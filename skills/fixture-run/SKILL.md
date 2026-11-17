@@ -63,7 +63,13 @@ the rollback on for that language.
 one fixture are serialized. Every other condition is learned from the runs
 and recorded here, one bullet each, with the run that found it:
 
-- None yet.
+- The fixture's managed files match the released vergil-tooling:
+  `vrg-github-repo-config diff` shows no `local` drift. The agent identity
+  cannot run that check (it exits 2 under it), so the human runs it and
+  confirms the result before the change task starts. If there is drift,
+  the human syncs the files with `vrg-github-repo-config update` (merged as
+  its own `chore(repo-config)` PR) first. Found by
+  vergil-project/vergil-fixture-rust-app#20.
 
 A run that finds a new condition lists it under `Awaiting a ruling` on its
 change task

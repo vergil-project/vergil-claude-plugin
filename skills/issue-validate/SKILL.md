@@ -73,6 +73,18 @@ Never fabricate a result to move past a failed precondition.
 Run the issue's **Commands** exactly as recorded, against the live target.
 Capture the real output — you will paste it into the result as evidence.
 
+**One fresh invocation per acceptance check.** A live check is only as
+strong as the way it was run. Exercise each acceptance check with its own
+fresh invocation of the skill or command under test: a new run of the
+command, or a fresh subagent that loads the skill itself for that one
+check. Never load the skill once and apply its rules to each check's
+input: matching the skill's text is not the same as running it.
+
+Where a fresh invocation is impossible, exercise the check the best way you
+can, and say how in the result: the [result comment](#record-the-result-and-close)
+names, for each such check, how it was actually exercised. Never call a
+check "run" when it was not invoked fresh.
+
 ## Record the result and close
 
 Judge the run against the issue's **Acceptance criteria**. On FAILURE, file
@@ -86,6 +98,10 @@ vrg-gh issue comment <N> --body "- Outcome: SUCCESS
 - Evidence: <command output / observations>"
 ```
 
+The evidence for each acceptance check says how it was exercised: a fresh
+invocation, or, where that was impossible, what was done instead
+([Run the checklist](#run-the-checklist)).
+
 For a failure screened as security-class, the comment gives `Outcome:
 FAILURE`, neutral evidence that does not describe the weakness, and the
 security count only; the details go to `operational/<N>/`, with a `Kept:`
@@ -93,7 +109,10 @@ line
 ([lifecycle step 4](references/operational-task-lifecycle.md#lifecycle)).
 
 - **SUCCESS →** close the issue, citing the result; closing it lets the epic roll
-  up:
+  up. The close is a step of its own, run only after the result comment
+  command has exited 0 and printed the comment's URL; never run the two in
+  one batch. If the result comment fails, do not close: fix the cause and
+  post the result first.
 
   ```bash
   vrg-gh issue close <N> --comment "Validated — see the SUCCESS result above."
