@@ -206,8 +206,19 @@ like this:
    issue's commit, stop and ask the human the same way.
 2. **Commit it as a fixup** of that commit:
    `vrg-commit --fixup <owning issue's commit SHA>`.
-3. **Fold it:** `vrg-git rebase -i --autosquash origin/develop`. vrg-git
-   keeps the rebase non-interactive. If the fold conflicts, run
+3. **Fold it onto the branch's own base**, never onto a moved `develop`:
+
+   ```bash
+   vrg-git rebase -i --autosquash "$(vrg-git merge-base HEAD origin/develop)"
+   ```
+
+   A fold onto `origin/develop` itself would also rebase the branch
+   whenever `develop` has moved since the last fetch, as it often does
+   while other PRs of the same submit land. Folding onto the merge base
+   only combines each fixup with its commit. Moving onto a newer
+   `develop` is a separate, routine rebase
+   ([Kinds of fix](#kinds-of-fix)). vrg-git keeps the rebase
+   non-interactive. If the fold conflicts, run
    `vrg-git rebase --abort` and **stop and ask the human**, naming the fixup
    and the commit it conflicted on. Never resolve a fold conflict by moving
    the change to another issue's commit.
@@ -218,8 +229,11 @@ like this:
    issue as the merge review's `<ref>`. The review's own commits are
    fixups of that issue's commit, and the review never folds: once it has
    ended `eligible`, fold again as in step 3 and check the shape as in
-   step 4, before the batch check. The fold changes no tree, so nothing
-   is re-validated or re-reviewed.
+   step 4, before the batch check. The review fetched `origin`, but the
+   fold is onto the branch's own base, so it changes no tree, and nothing
+   is re-validated or re-reviewed. If the fold's tree differs from the
+   reviewed `HEAD`'s (`vrg-git diff --quiet <reviewed HEAD> HEAD` exits
+   non-zero), stop and ask the human; push nothing.
 
 Several fixes found in one pass may each go to their own issue's commit
 before the single fold, review and push, so long as they belong to one

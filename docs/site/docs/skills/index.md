@@ -385,7 +385,8 @@ or off: auto-merge off or a provenance violation stops it for the human.
 
 On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
-`vrg-git rebase -i --autosquash origin/develop` and pushed with
+`vrg-git rebase -i --autosquash` onto the branch's merge base with
+`origin/develop` (so a fold never rebases) and pushed with
 `--force-with-lease`, never a new commit. Before every push, a clean
 rebase included, it runs
 `vrg-pr-workflow batch-check --pr <PR_URL> --head <sha>` on the head about
