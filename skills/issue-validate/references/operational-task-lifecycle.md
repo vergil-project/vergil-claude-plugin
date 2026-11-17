@@ -50,7 +50,8 @@ kind-specific concerns.
    `operational/<N>/` as below.
 5. **Close on SUCCESS / hold open on FAILURE.**
    - **SUCCESS →** close the issue citing the result; closing lets the epic roll
-     up.
+     up. Close only after the result comment has posted (its command exited
+     0 with the comment's URL); if it failed, the task stays open.
    - **FAILURE →** do **not** close. Leave the task — and its epic — open.
 
 **A run given rulings only.** When `epic-implement` dispatches a run with

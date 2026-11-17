@@ -143,7 +143,10 @@ line
 ([lifecycle step 4](../issue-validate/references/operational-task-lifecycle.md#lifecycle)).
 
 - **SUCCESS →** close the issue, citing the result; closing lets the epic (and
-  any downstream validation) proceed:
+  any downstream validation) proceed. The close is a step of its own, run
+  only after the result comment command has exited 0 and printed the
+  comment's URL; never run the two in one batch. If the result comment
+  fails, do not close: fix the cause and post the result first.
 
   ```bash
   vrg-gh issue close <N> --comment "Deployed — see the SUCCESS result above."
