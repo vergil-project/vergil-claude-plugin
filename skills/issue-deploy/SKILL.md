@@ -61,6 +61,22 @@ especially:
   is published; do not perform it.
 - Confirm the target is reachable.
 
+**Checking that a release tag contains a merge.** The GitHub compare API is
+out of reach (`vrg-gh api` is denied to the user identity), so check it with
+git, from the repo's main clone:
+
+```bash
+vrg-git ls-remote origin refs/tags/<tag> 'refs/tags/<tag>^{}'
+vrg-git merge-base --is-ancestor <merge-sha> <tag-sha>; echo $?
+```
+
+`ls-remote` prints the tag's SHA and, for an annotated tag, a second
+`<tag>^{}` line with the commit it points to; either serves as `<tag-sha>`.
+`merge-base --is-ancestor` exits 0 when the tag contains the merge and 1 when
+it does not. It works only once the main clone has fetched the tag
+(`vrg-git fetch origin tag <tag>`): with a SHA the clone does not hold, it
+fails with exit 128 instead of answering.
+
 **If any precondition is unmet:** comment `blocked: preconditions not met —
 <which>` and **stop** — do not run the deploy, do not close. Never fabricate.
 
