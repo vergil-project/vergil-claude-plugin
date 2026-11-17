@@ -1048,11 +1048,16 @@ doctrine change.
 The prompt for `paad:paad-delegate` ([§1.9](#19-the-delegate-path)) was
 validated with the delegate in
 [vergil-project/.github#733](https://github.com/vergil-project/.github/issues/733)
-and is copied here verbatim from its drafted prompts, with that issue's one
-amendment: the rule to read the code and never run it, placed after the
-working-directory paragraph. In two validation runs before the amendment, a
-specialist ran the code under review to confirm a finding and left an
-untracked cache in the worktree.
+and is copied here verbatim from its drafted prompts, with two amendments.
+The first is that issue's: the rule to read the code and never run it,
+placed after the working-directory paragraph. In two validation runs before
+the amendment, a specialist ran the code under review to confirm a finding
+and left an untracked cache in the worktree. The second is the reality
+check's rule to fetch nothing
+([vergil-project/vergil-claude-plugin#1118](https://github.com/vergil-project/vergil-claude-plugin/issues/1118)):
+in one round the delegate fetched a local clone the prompt did not name and
+reported it after `Files written: none`, which broke the result's
+last-line check.
 
 ````text
 Skill: paad:{{SKILL}}
@@ -1066,7 +1071,7 @@ Read the code in the working directory; do not run, import or execute it, and te
 
 Review the whole document, including mechanisms that look like recent additions. Removing a mechanism, step or task is a legitimate finding.
 
-Reality check: read the recent `origin/develop` history of these repositories, already fetched: {{REPOS}}. Do not read the history, diffs or commit messages of `{{DOC_DIR}}`, and do not read GitHub issue {{ISSUE_REF}} or its comments.
+Reality check: read the recent `origin/develop` history of these repositories, already fetched: {{REPOS}}. Do not fetch, pull or otherwise update any repository, named here or not. Do not read the history, diffs or commit messages of `{{DOC_DIR}}`, and do not read GitHub issue {{ISSUE_REF}} or its comments.
 ````
 
 | Placeholder | Value |
@@ -1094,7 +1099,10 @@ Rules the template carries, and why:
   under review left untracked files in the worktree.
 - **The git history rule.** The reality check reads the recent
   `origin/develop` history of the repos the documents name, for conflicts
-  between the artifact and the code. It never reads the history, diffs or
+  between the artifact and the code. It fetches nothing: the session
+  fetches each named repo before dispatch
+  ([§2.4](#24-output-checks-and-broken-rounds)), and a fetch is a write
+  outside the delegate's read-only contract. It never reads the history, diffs or
   commit messages of the epic's own directory, and never reads the
   planning issue: anchoring on earlier rounds is what
   [§1.1](#11-rules) rules out.
