@@ -191,6 +191,17 @@ fenced code block with the info string `merge-review-result`,
 holding one JSON object. Then free prose. Write no other block with that
 info string anywhere in the reply, not even an example.
 
+**The reply has no surrounding code fence.** Never wrap the whole reply in
+a fence of any kind: no `` ```markdown ``, no four backticks, no tildes. The reply's first line is
+the `` ```merge-review-result `` line itself, and its last line is your last
+line of prose. A reply wrapped in a fence fails the caller's format check and
+is not acted on.
+
+Below is an example of a whole reply. The four-backtick fence around it
+belongs to this page only, to display the example: it is **not** part of
+the reply, so do not copy it. Everything between that fence's opening and
+closing lines is the reply, exactly as you send it.
+
 ````markdown
 ```merge-review-result
 {
