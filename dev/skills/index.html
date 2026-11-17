@@ -5119,7 +5119,11 @@ operational body files (vergil-tooling 2.1.309 or later).</p>
 <p><strong>What it does.</strong> USER-identity post-submit loop. <code>vrg-submit-pr</code> opens
 each PR with auto-merge on, so a PR lands by itself once its required
 checks are green. pr-watch blocks on <code>vrg-pr-await &lt;PR&gt;</code>, which waits for
-the merge: exit 0 means the PR merged and the watch is done; exit 1 means
+the merge for up to <code>$VRG_FINALIZE_DEADLINE</code> (7200s by default). It is one
+wait per pass, never polled: a background command where the harness
+notifies on its exit (Claude Code stops a foreground command at 600s), and
+otherwise a foreground wait kept under the harness's command timeout and
+repeated on <code>timed_out</code> up to the full deadline. Exit 0 means the PR merged and the watch is done; exit 1 means
 it cannot merge, and the JSON's <code>reason</code> names why. A failing required
 check (<code>check_failed</code>) or a conflict with <code>develop</code> (<code>conflict</code>) is fixed
 and pushed, and the wait runs again. Auto-merge off, a closed PR, an
