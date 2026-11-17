@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.75] - 2026-11-17
+
+### Documentation
+
+- say that a one-off clears an item's epic size (#1114)
+- close a task only after its result comment has posted (#1115)
+- add the managed-files-in-sync learned condition (#1116)
+- seed a CD-build validation when an epic needs fresh dev images (#1126)
+- tell the review delegate to fetch nothing in its reality check (#1118)
+- require one fresh invocation per acceptance check (#1124)
+- say how to check that a release tag contains a merge (#1128)
+- forbid a code fence around the reviewer's reply (#1130)
+
+### Features
+
+- review a fix to an open PR as a whole branch (#1127)
+- judge each batch PR commit against its own issue's scope (#1135)
+
 ## [2.1.74] - 2026-11-16
 
 ### Features
