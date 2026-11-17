@@ -144,17 +144,24 @@ vrg-host plugins        # the host
 vrg-vm update --all     # every running agent VM
 ```
 
-Then restart Claude Code: end the sessions already running on the host and
-in each VM, and start new ones. A running session keeps the plugin version
-it loaded; the next session start loads the updated one. Both
+Then load the new version into every Claude Code session already running
+on the host and in each VM: a running session keeps the plugin version it
+loaded. Run `/reload-plugins` in each running session, or restart it (end
+it and start a new one); either way the session then loads the updated
+version. Both
 commands refresh the marketplace and the installed plugins and verify the
 registered repo and ref. Both refuse an agent identity, so an agent asks
 the human to run them. Where Claude Code's background auto-update is on, it
 does the marketplace and plugin update on its own.
 
-Use these commands, not an in-session `/plugin marketplace update` and
-`/reload-plugins`: that pair does not switch a changed `ref` and verifies
-nothing, and this README does not document it.
+Use these commands to update, not an in-session `/plugin marketplace
+update`: it does not switch a changed `ref` and verifies nothing, and this
+README does not document it. `/reload-plugins` after these commands is
+fine: it only loads into the session what they installed. A session that
+missed the reload warns its agent: the
+[`warn-stale-plugin-version`](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md#warn-stale-plugin-version)
+hook flags a `vergil:` skill served from an older version than the one
+installed.
 
 This is the procedure in vergil-tooling's
 [Pick the move up on each machine](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/releasing.md#pick-the-move-up-on-each-machine)
@@ -212,7 +219,8 @@ base VM), then check it again.
 
 PreToolUse and PostToolUse hooks that enforce guardrails
 mechanically, and a SubagentStop hook that stores the merge reviewer's
-reply. Every hook below **except `block-heredoc`** and
+reply. Every hook below **except `block-heredoc`**,
+`warn-stale-plugin-version` (which only warns) and
 `capture-merge-review-result` (which acts only on a merge reviewer's stop)
 is gated on a managed-repo check: a repo must contain
 `vergil.toml` at its root for the hook to fire. In repos
@@ -240,6 +248,7 @@ for the rationale.
 | `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored scratch under the main clone's `build/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `guard-merge-review-results` | PreToolUse/Write\|Edit\|NotebookEdit | Denies writes to a stored merge-review result, its publishable copy or its capture record: only the capture hook writes them |
+| `warn-stale-plugin-version` | PreToolUse/Skill | Warns the agent, never blocks, when a `vergil:` skill is served from an older plugin version than the one installed; asks it to have the human run `/reload-plugins` or restart |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 | `capture-merge-review-result` | SubagentStop/vergil:merge-reviewer | Stores the merge reviewer's reply byte for byte as `result-<step>.md`, with a publishable copy for the step comment and a capture record holding its SHA-256 |
 

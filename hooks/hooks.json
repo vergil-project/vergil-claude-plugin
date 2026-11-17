@@ -76,6 +76,16 @@
             "statusMessage": "Checking for a write to a stored merge-review result..."
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/warn-stale-plugin-version.sh",
+            "statusMessage": "Checking the loaded vergil plugin version..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
