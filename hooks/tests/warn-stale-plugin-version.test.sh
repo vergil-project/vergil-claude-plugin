@@ -112,7 +112,7 @@ check() {
 		echo "PASS [$total] $name"
 		pass=$((pass + 1))
 	else
-		echo "FAIL [$total] $name — expected $expect${expect_text:+ with '$expect_text'}, got $verdict (rc=$rc)"
+		echo "FAIL [$total] $name — expected $expect${expect_text:+ with \"$expect_text\"}, got $verdict (rc=$rc)"
 		printf '%s\n%s\n' "$out" "$err" | head -8 | sed 's/^/       /'
 		fail=$((fail + 1))
 	fi
