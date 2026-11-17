@@ -284,6 +284,14 @@ issue is a `vrg-commit --fixup` of the issue's first commit, which the
 review never folds; `issue-implement` folds it afterwards. See its
 [In a batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#in-a-batch) section.
 
+A fix to an open PR, which `pr-watch` reviews before it pushes, is
+reviewed as the whole branch against `origin/develop`, and every step
+passes `--pr <PR_URL>` to `vrg-merge-review-request`. On a batch PR the
+request then carries every batch issue's scope and the issue each commit
+belongs to, and the reviewer judges each commit against its own issue's
+scope. See its
+[Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr) section.
+
 **When to use.** Run by `issue-implement` once validation is green and
 before `vrg-pr-workflow report-ready`, and again on the same task to resume
 a run stopped for a ruling. The files, schemas and the result check follow
