@@ -51,7 +51,7 @@ if [ "$is_merge_command" = false ]; then
   exit 0
 fi
 
-reason='Agents never merge or approve PRs. Merging is a human action: the human'"'"'s `vrg-submit-pr` turns auto-merge on. Hand the PR URL to the human. This applies to all identities and all branches, release PRs included. See issue #441.'
+reason="Agents never merge or approve PRs. Merging is a human action: the human's \`vrg-submit-pr\` turns auto-merge on. Hand the PR URL to the human. This applies to all identities and all branches, release PRs included. See issue #441."
 
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
