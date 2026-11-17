@@ -18,7 +18,7 @@ You run it when `vrg-submit-pr` prints `/vergil:pr-watch <PR_URL>`, when
 [Finalize's reasons](#finalizes-reasons--what-to-do-for-each)), or when the
 human asks.
 
-## `vrg-pr-await` waits for the merge — run it in the foreground, don't poll
+## `vrg-pr-await` waits for the merge — one wait per pass, don't poll
 
 `vrg-pr-await <PR_URL>` **blocks** until the PR merges or can no longer
 merge as it stands, and its exit status says which. It takes the PR and
@@ -26,9 +26,27 @@ nothing else: the old `--since-sha` and `--since-reviews` flags are gone
 and are refused. A new review or a new commit never ends the wait.
 
 - **Run one `vrg-pr-await`, then wait for it to return.** CI can take
-  minutes; that wait *is* the call doing its job. Do not background it (`&` /
-  `run_in_background`), do not `sleep`-and-retry, and do not poll GitHub
-  separately in a loop. Do not start other work while it waits.
+  minutes; that wait *is* the call doing its job. It can last up to
+  `$VRG_FINALIZE_DEADLINE` (7200s by default), longer than many harnesses
+  let a foreground command run, so wait for it the way the harness allows:
+  - **The harness notifies when a background command exits** (in Claude
+    Code, a Bash call with `run_in_background`; its foreground calls stop
+    at 600s): start `vrg-pr-await <PR_URL>` as a background command and
+    wait for the completion notification. Then read the command's exit
+    status and its stdout, and act on them as below.
+  - **It cannot notify on exit:** run `vrg-pr-await` in the foreground
+    with `$VRG_FINALIZE_DEADLINE` set below the harness's command timeout,
+    and above `$VRG_ORPHAN_GRACE` (300s by default) so an orphaned check
+    can still be named: for example `VRG_FINALIZE_DEADLINE=540
+    vrg-pr-await <PR_URL>` under a 600s cap. Such a **short wait** ends in
+    `timed_out` whenever CI outlasts it; the `timed_out` row of
+    [Cannot merge](#cannot-merge--what-to-do-for-each-reason) says how it
+    loops.
+
+  Either way it is **one wait per pass**: do not `&` the command, do not
+  read or poll its output before it exits, do not `sleep`-and-retry, and
+  do not poll GitHub separately in a loop. Do not start other work while
+  it waits.
 - **The exit status is the answer.** Act on it directly, and never re-read
   the PR's state to reinterpret an exit:
 
@@ -87,7 +105,10 @@ Loop:
    [Review comments](#review-comments--found-and-handled-here) says. Each
    change one asks for is a fix, pushed only through
    [Before every push](#before-every-push).
-2. **Wait for the merge:**
+2. **Wait for the merge**, as a background command where the harness
+   notifies on its exit, otherwise as a short wait, as
+   [`vrg-pr-await` waits for the merge](#vrg-pr-await-waits-for-the-merge--one-wait-per-pass-dont-poll)
+   says:
 
    ```bash
    vrg-pr-await <PR_URL>
@@ -116,7 +137,7 @@ not your worktree's `HEAD`, stop and ask the human.
 | `auto_merge_off` | Stop at once: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
 | `closed` | Stop and tell the human. Never reopen it. |
 | `orphaned_check` | Stop and tell the human, naming the `orphaned_checks`. They stayed pending after their workflow runs completed and will never conclude, so the PR cannot merge. Recovery is the human's: re-run the stuck job, or close and reopen the PR to re-run the gate. Push nothing. |
-| `timed_out` | Stop and tell the human that `$VRG_FINALIZE_DEADLINE` passed with the PR still pending. Auto-merge is still on, so it may land by itself; the human decides whether to watch it again. Push nothing. |
+| `timed_out` | After a short wait whose waits together have not yet reached the normal deadline (7200s, or the `$VRG_FINALIZE_DEADLINE` the session already had), loop from step 1 with another short wait. Otherwise stop and tell the human that `$VRG_FINALIZE_DEADLINE` passed with the PR still pending. Auto-merge is still on, so it may land by itself; the human decides whether to watch it again. Push nothing. |
 
 ### Review comments — found and handled here
 
