@@ -269,7 +269,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
 | `fixture-run` | USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only |
-| `pr-watch` | USER agent: monitor the open PR through CI/review and reconcile feedback until it is mergeable; on a batch PR, fold each fix into its issue's commit |
+| `pr-watch` | USER agent: wait on the open PR with `vrg-pr-await` until it auto-merges, fixing a failing check or a conflict and handling review comments along the way; on a batch PR, fold each fix into its issue's commit |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
 | `intake-capture` | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` |
@@ -339,8 +339,8 @@ the **human** opens the PR:
    `vrg-pr-workflow report-ready`, which also pushes the branch.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
 3. Run the emitted `/vergil:pr-watch <PR_URL>` in the USER agent
-   session to monitor the PR through CI and review and reconcile
-   feedback until it is mergeable.
+   session. It waits on the PR until it auto-merges, fixing a failing
+   check or a conflict and handling review comments along the way.
 
 Repositories allow auto-merge so the automation App's sync PRs on
 `automation/*` branches merge on CI alone. Agents never turn it on,

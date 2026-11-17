@@ -62,7 +62,7 @@ unattended runner, `paad:paad-delegate`
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [fixture-run](#fixture-run) | USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only, and refuses a run without `--after` | Current (2.1) |
-| [pr-watch](#pr-watch) | USER agent: watch a submitted PR, which auto-merges once green, and reconcile CI, conflicts and review feedback; merge-review every fix but a clean rebase before pushing it; on a batch PR, fold each fix into its issue's commit and run the batch check before every push | Current (2.1) |
+| [pr-watch](#pr-watch) | USER agent: wait on a submitted PR with `vrg-pr-await` until it auto-merges (exit 0) or cannot merge (exit 1, with a reason), fix a failing check or conflict and stop for the human on any other reason, and handle review comments it reads itself; merge-review every fix but a clean rebase before pushing it; on a batch PR, fold each fix into its issue's commit and run the batch check before every push | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
@@ -373,9 +373,18 @@ operational body files (vergil-tooling 2.1.309 or later).
 
 **What it does.** USER-identity post-submit loop. `vrg-submit-pr` opens
 each PR with auto-merge on, so a PR lands by itself once its required
-checks are green. pr-watch monitors a PR via `vrg-pr-await` and reconciles
-failing CI checks, conflicts with `develop` and human review feedback. A
-review comment is addressed but never holds the merge. Because every push
+checks are green. pr-watch blocks on `vrg-pr-await <PR>`, which waits for
+the merge: exit 0 means the PR merged and the watch is done; exit 1 means
+it cannot merge, and the JSON's `reason` names why. A failing required
+check (`check_failed`) or a conflict with `develop` (`conflict`) is fixed
+and pushed, and the wait runs again. Auto-merge off, a closed PR, an
+orphaned check or the deadline passing (`timed_out`) stops for the human.
+Any other exit is a tool error and stops it too. A new review never ends
+the wait, so pr-watch reads the PR's review, conversation and inline
+comments itself, before each wait and after it returns, and acts only on
+the trusted human's. A review comment is addressed but never holds the
+merge: one still unaddressed when the PR merges becomes a proposed
+follow-up issue. Because every push
 can merge, a clean rebase onto `origin/develop` is pushed with no review,
 and every other fix is reviewed first through merge-review's
 [Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr)
@@ -399,7 +408,9 @@ section.
 the USER agent session after the human opens the PR, or on a PR that
 `vrg-finalize-pr` reports as not merged.
 
-**Status.** Current (Vergil 2.1).
+**Status.** Current (Vergil 2.1). Requires `vrg-pr-await`'s merge
+contract: exit 0 merged, 1 cannot merge, 2 any other error
+(vergil-tooling#4648, in vergil-tooling 2.1.323 or later).
 
 <!-- dependency-update retired (#427): dependency updates are now a
 deterministic vergil-tooling utility, not a skill. -->
