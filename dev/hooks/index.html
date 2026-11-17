@@ -5286,8 +5286,9 @@ post-finalization action — not the agent's.</p>
 <code>gh pr review --approve</code>, or the equivalent <code>gh api</code> calls —
 unconditionally.</p>
 <p><strong>Why.</strong> Under the 2.1 workflow agents have no merge path at all:
-the per-VM GitHub App credentials cannot merge, and merging is the
-human's Phase-6 action (<code>vrg-finalize-pr</code>). Skill prose saying "do
+the per-VM GitHub App credentials cannot merge, and merging is a
+human action: the human's <code>vrg-submit-pr</code> turns auto-merge on, and
+<code>vrg-finalize-pr</code> only watches and settles. Skill prose saying "do
 not merge" is advisory; agents rationalize past it. This hook makes
 the rule mechanical — an ergonomic fast-fail on top of the hard
 credential gate. The deny applies to <strong>all identities</strong> and all
@@ -5296,8 +5297,8 @@ allow-list (delegated to a <code>vrg-check-pr-merge</code> tool that was never
 shipped) was removed in <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/441">#441</a>.
 See <a href="https://github.com/vergil-project/vergil-claude-plugin/issues/162">#162</a>
 for the original motivating incident.</p>
-<p><strong>Alternative.</strong> Hand the PR URL to the human, who merges and
-finalizes via <code>vrg-finalize-pr</code>.</p>
+<p><strong>Alternative.</strong> Hand the PR URL to the human. The human's <code>vrg-submit-pr</code>
+opened it with auto-merge on, so it merges by itself once CI is green.</p>
 <h3 id="block-github-contents-api">block-github-contents-api<a class="headerlink" href="#block-github-contents-api" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies <code>gh api</code> calls that write (PUT/POST/DELETE) to the
 GitHub Contents API. Reads (GET) are allowed.</p>
