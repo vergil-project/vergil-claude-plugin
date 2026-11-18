@@ -1493,7 +1493,8 @@ Existing published specs and plans are not rewritten.
   free-text idea, its step 0 creates one. The planning issue is the
   permanent record of the design review.
 - Links run both ways: the epic body's `Planning:` line, the spec header's
-  `Planning issue` line, and the planning issue's closing comment
-  `Planned as <epic ref>`.
+  `Planning issue` line, and the `Planned as <epic ref>` line in the
+  planning issue's handoff comment. The epic's docs PR closes the planning
+  issue when it merges.
 - The planning issue is never moved to the epic it produced. It closes in
   the planning epic and drains into its archive.

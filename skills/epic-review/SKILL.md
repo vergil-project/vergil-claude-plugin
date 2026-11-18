@@ -26,7 +26,9 @@ routed to ad hoc is not implemented here, and a planning review never starts
 `epic-create`. Buildable work lives in a development epic, worked by
 `epic-implement <epic>`, or in a repo's ad-hoc epic. Expanding a planning item
 into a development epic is the human's own act: they choose the item and run
-`epic-create <ref>` on it.
+`epic-create <ref>` on it. Closing a planning item whose planning has already
+finished (`ready-to-close`, see [Planning mode](#planning-mode)) is
+bookkeeping, not processing.
 
 The human can stop at any point. Unreviewed items stay where they are, so
 there is nothing to resume.
@@ -355,14 +357,39 @@ For a **waiting** item, one of four outcomes:
 | **drop** | `vrg-intake-route <ref> drop --reason …` closes it as not planned. For an item no longer needed or overtaken. |
 | **one-off** | `vrg-intake-route <ref> one-off --repo …` moves it to a repo's ad-hoc or finite epic. Unusual but legitimate: the item is small enough for one PR, or its scope can be cut until it is. A cut in scope goes to the human as a scope change through `vrg-ruling draft-scope` (step 5). |
 
-**`in-progress` and `ready-to-close` items belong to `epic-create`.** An
-`in-progress` item is being expanded; a `ready-to-close` one has been fully
-expanded and waits for `epic-create` to close it. Show each with its latest
-note and how long it has sat (read its comments when the one-line note is
-not enough), and offer only **leave**. Offer defer or drop only where the
-tool allows them, that is when every development epic of the item is
-closed. **Never offer one-off for them**, and never resume or finish them
-here: the human does that with `epic-create <ref>`.
+**`in-progress` items belong to `epic-create`.** An `in-progress` item is
+being expanded. Show each with its latest note and how long it has sat (read
+its comments when the one-line note is not enough), and offer only
+**leave**. Offer defer or drop only where the tool allows them, that is when
+every development epic of the item is closed. **Never offer one-off for
+them**, and never resume or finish them here: the human does that with
+`epic-create <ref>`.
+
+**A `ready-to-close` item was missed: close it.** Its planning is done (its
+epic exists, every task is filed and its docs PR has merged), but nothing
+closed it. Normally the docs PR's merge closes the planning issue
+(`epic-create` step 10). An item still showing `ready-to-close` is one from
+before that, or one whose docs PR did not carry the close. Check the epic
+the item's latest `Epic:` marker names
+(`vrg-gh issue view <E> --repo <owner>/<repo> --json state,stateReason`):
+
+- **The epic is open, or closed as completed:** recommend **close**. Once
+  the batch is confirmed, run
+  `vrg-gh issue close <N> --repo <owner>/<repo> --reason completed --comment
+  "Planned as <epic ref>"`, then
+  `vrg-gh issue edit <N> --repo <owner>/<repo> --remove-label in-progress`.
+- **The epic was closed as not planned** (abandoned): the item is not
+  planned, whatever its markers say, and needs planning again. It is not
+  closable. Offer **leave**, **defer** or **drop**, as the tool allows.
+
+`vrg-queue planning` never shows an item `ready-to-close` while a security
+advisory still tracks it, so a held item is `in-progress` and is never
+closed here.
+
+| Outcome | Effect |
+| --- | --- |
+| **close** | `vrg-gh issue close <N> … --reason completed --comment "Planned as <epic ref>"`, then remove `in-progress`. Only for a `ready-to-close` item whose epic was not abandoned. |
+| **leave** | No route. |
 
 **Sizing rides alongside the outcome.** Every **waiting** item that is
 unsized (`?`) or in error (`!`) gets, in its paragraph, a recommended task
@@ -371,10 +398,10 @@ sized item gets a re-size only when the review shows its estimate is off.
 The human confirms the sizes with the batch, and after the batch's routes
 each confirmed size is applied with
 `vrg-intake-route <ref> size --tasks <n> [--confidence …] --reason "<why>"`.
-Skip it for an item the batch defers, drops or moves out as a one-off. An
-`in-progress` or `ready-to-close` item in error (`!`) gets a recommended
-`size` re-run too, confirmed with the batch, though its only outcome is
-leave. Sizing is not an outcome, and it has no tally.
+Skip it for an item the batch defers, drops, closes or moves out as a
+one-off. An `in-progress` item, or a `ready-to-close` item left open, in
+error (`!`) gets a recommended `size` re-run too, confirmed with the batch.
+Sizing is not an outcome, and it has no tally.
 
 **At the end of the pass**, show the surviving queue as a sorted list,
 oldest first, with each item's size, state and latest note (run
@@ -384,7 +411,7 @@ for it by size, run `vrg-queue planning --sort size` instead; oldest first
 stays the default. Choosing an item and running `epic-create` on it is the
 human's act, outside the review.
 
-**Tallies:** left · deferred · dropped · one-off · remaining unreviewed.
+**Tallies:** left · closed · deferred · dropped · one-off · remaining unreviewed.
 
 ## Deferred mode
 

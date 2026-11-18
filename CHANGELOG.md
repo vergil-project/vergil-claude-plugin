@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.77] - 2026-11-18
+
+### Documentation
+
+- describe merge-review's open-PR entry and the auto-merge submit and finalize flow (#1154)
+- close the planning issue from the docs PR; file tasks before handoff (#1155)
+
 ## [2.1.76] - 2026-11-18
 
 ### Bug fixes
