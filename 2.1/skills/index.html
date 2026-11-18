@@ -740,6 +740,8 @@
       
         
       
+        
+      
     
     
     
@@ -792,6 +794,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.79/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.79
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -4534,6 +4564,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hoshin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hoshin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-skills-work-technical" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4793,6 +4834,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hoshin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hoshin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-skills-work-technical" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4946,6 +4998,11 @@ unattended runner, <code>paad:paad-delegate</code>
 <td>Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only <code>/paad:pushback</code>, then walk each finding with the human. <code>steering-audit user</code> reviews the user-level files read-only</td>
 <td>Current (2.1)</td>
 </tr>
+<tr>
+<td><a href="#hoshin">hoshin</a></td>
+<td>USER agent: run the hōshin kanri review cadence — <code>start</code> each working day, optional <code>end</code> or <code>end &lt;level&gt;</code> — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen and the human's approval; skips merge review on purpose, so its handoff carries no eligibility line</td>
+<td>Current (2.1)</td>
+</tr>
 </tbody>
 </table>
 <p>Three of the <code>epic-*</code> skills form the <strong>epic lifecycle</strong>: <code>epic-create</code> (run
@@ -5046,7 +5103,9 @@ with <code>vrg-queue adhoc</code>, summarizes them by repo with the in-flight ta
 apart (a handed-off one is left alone; one to resume goes through the
 development path's re-entry steps), proposes a strategy that judges overlap
 per repo and names what runs at the same time, takes one confirmation, then
-dispatches and gates as the development path does. Its records go on the
+dispatches and gates as the development path does. It skips any task
+titled <code>Logbook:</code>, naming it in the summary: a logbook task belongs to the
+<a href="#hoshin">hoshin</a> run that filed it. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to <code>epic-review</code> (with
@@ -5240,7 +5299,10 @@ and every other fix is reviewed first through merge-review's
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr">Fix to an open PR</a>
 entry and pushed only when eligible. After a fix it tells the human to
 rerun <code>vrg-finalize-pr &lt;PR&gt;</code>. It never merges and never turns auto-merge on
-or off: auto-merge off or a provenance violation stops it for the human.</p>
+or off: auto-merge off or a provenance violation stops it for the human.
+It never fixes a logbook PR (one titled <code>Logbook:</code>): it tells the human to
+close the PR with its task and redo the run through <a href="#hoshin">hoshin</a>, and
+stops.</p>
 <p>On a batch PR (one whose body has more than one <code>Closes</code> line), every fix
 is a <code>vrg-commit --fixup</code> of its issue's commit, folded with
 <code>vrg-git rebase -i --autosquash</code> onto the branch's merge base with
@@ -5411,6 +5473,46 @@ settings or instruction-file behavior — "audit steering files", "review
 CLAUDE.md", "review Claude settings", "steering audit".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1), added in epic
 <a href="https://github.com/vergil-project/.github/issues/558">vergil-project/.github#558</a>.</p>
+<h2 id="hoshin">hoshin<a class="headerlink" href="#hoshin" title="Permanent link">&para;</a></h2>
+<p><strong>What it does.</strong> USER-identity skill that runs the fleet's 方針管理 hōshin
+kanri review cadence and writes its public logbook, the
+<code>docs/site/docs/logbook/</code> tree of <code>vergil-project/docs</code>.
+<code>/vergil:hoshin start</code> works out from the date (in the time zone the
+logbook records) and the logbook which reviews are due: it closes any
+period left open, by a late <code>end</code> review or a "not performed" entry, runs
+the daily 朝礼 chōrei, then opens any new year, quarter, month or week from
+the largest level down, and names any week or longer period with no
+entries. <code>/vergil:hoshin end</code> closes the day (終礼 shūrei), and
+<code>end &lt;week|month|quarter|year&gt;</code> closes that period with every smaller one
+still open. Each review runs its level's checklist with the human, ends
+with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
+the run: a private repo's in that repo, a security finding as a security
+record, and a public one only after the security screen and the human's
+approval of its text.</p>
+<p>Each run hands off one docs PR: a <code>Logbook: &lt;date&gt; &lt;mode&gt;</code> task in the docs
+repo's ad-hoc epic, a worktree, the entries and index lines, <code>vrg-validate</code>,
+a mechanical security screen of the final text, the human's approval of the
+full text, a <code>docs(logbook)</code> commit and <code>vrg-pr-workflow report-ready</code>,
+with fixed wording that names only the files written. A run that stops
+before its commit offers edit (back through validation, the screen and the
+approval) or abandon (the task closed, the worktree removed). The rules are
+in its <code>references/</code>: the calendar, the logbook and its wording, and the
+security rules with the screen's patterns.</p>
+<p><strong>A logbook handoff carries no eligibility line.</strong> The run skips
+<a href="#merge-review">merge-review</a> on purpose: it is too heavy for a
+documentation-generating run, and the gates that matter (keeping security
+content out of the public logbook) run inside the skill before anything is
+pushed. A submitted logbook PR's task closes through the default
+<code>vrg-finalize-pr</code>; a failing one is closed with its task and the run
+redone, never fixed: <a href="#pr-watch">pr-watch</a> stops on a <code>Logbook:</code> PR, and
+<a href="#epic-implement">epic-implement</a>'s adhoc mode skips <code>Logbook:</code> tasks.</p>
+<p><strong>When to use.</strong> At the start of each working day, <code>/vergil:hoshin start</code>
+("start the day", "hoshin start"); and, when the human chooses,
+<code>/vergil:hoshin end</code> ("end of day") or <code>/vergil:hoshin end &lt;level&gt;</code>
+("close the week", "close the month"). Run it from one dedicated, reused
+session.</p>
+<p><strong>Status.</strong> Current (Vergil 2.1), added in epic
+<a href="https://github.com/vergil-project/.github/issues/1318">vergil-project/.github#1318</a>.</p>
 <h2 id="how-skills-work-technical">How skills work — technical<a class="headerlink" href="#how-skills-work-technical" title="Permanent link">&para;</a></h2>
 <p>Each skill is a directory under <code>skills/</code> containing:</p>
 <ul>
