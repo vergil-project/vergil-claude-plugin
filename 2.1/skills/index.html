@@ -738,6 +738,8 @@
       
         
       
+        
+      
     
     
     
@@ -790,6 +792,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.78/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.78
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5193,7 +5223,11 @@ otherwise a foreground wait kept under the harness's command timeout and
 repeated on <code>timed_out</code> up to the full deadline. Exit 0 means the PR merged and the watch is done; exit 1 means
 it cannot merge, and the JSON's <code>reason</code> names why. A failing required
 check (<code>check_failed</code>) or a conflict with <code>develop</code> (<code>conflict</code>) is fixed
-and pushed, and the wait runs again. Auto-merge off, a closed PR, an
+and pushed, and the wait runs again. A required check cancelled with no
+newer run to replace it (<code>check_cancelled</code>, or finalize's
+<code>failed: cancelled</code>) is re-run with no code change, and the wait runs
+again; a check cancelled by a superseding run counts as pending, so it is
+never reported. Auto-merge off, a closed PR, an
 orphaned check or the deadline passing (<code>timed_out</code>) stops for the human.
 Any other exit is a tool error and stops it too. A new review never ends
 the wait, so pr-watch reads the PR's review, conversation and inline
