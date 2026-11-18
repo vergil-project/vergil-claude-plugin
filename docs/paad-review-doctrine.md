@@ -1435,9 +1435,14 @@ under which one issue can name several advisories:
   `vrg-security-record create --repo <affected repo> --issue <planning issue> …`.
   A planning issue may carry several;
 - **rejected** (the human decided it is not a problem): record it with plain
-  `vrg-security-record create` (no `--issue`), then close the neutral intake
-  issue it creates as "not planned". The sweep then closes the advisory. The
-  human's reason goes into the advisory's details, not into a public record;
+  `vrg-security-record create` (no `--issue`), close the neutral intake
+  issue it creates as "not planned", then close the advisory with
+  `vrg-security-record close <GHSA-id> --reason "<neutral reason>"`. Never
+  leave the advisory for `vrg-security-record sync` to close: the sync
+  leaves an already closed advisory alone, but holds one whose only tracked
+  issue is a queue item closed as not planned. The human's reason goes into
+  the advisory's details, not into a public record, and the `--reason` is
+  public, so it stays neutral;
 - **dropped to intake:** record it with plain `vrg-security-record create`,
   and leave its intake issue open.
 

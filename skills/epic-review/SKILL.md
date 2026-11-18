@@ -382,9 +382,13 @@ the item's latest `Epic:` marker names
   planned, whatever its markers say, and needs planning again. It is not
   closable. Offer **leave**, **defer** or **drop**, as the tool allows.
 
-`vrg-queue planning` never shows an item `ready-to-close` while a security
-advisory still tracks it, so a held item is `in-progress` and is never
-closed here.
+**A held item is never closed here.** A `security` planning item is held
+while any security advisory still tracks it (`epic-create`'s advisory hold,
+under its planning states). `vrg-queue planning` never shows a held item
+`ready-to-close`: once it would otherwise be, it stays `in-progress` and its
+note is the `held:` note, naming the advisories still tracking it. Treat it as
+the `in-progress` item it is (above), and never close it by hand:
+handing its advisories on to their fix tasks is `epic-create`'s step 8.
 
 | Outcome | Effect |
 | --- | --- |
