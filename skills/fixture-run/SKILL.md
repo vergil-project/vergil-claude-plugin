@@ -272,8 +272,10 @@ a rolled-back package. Leave `package-lock.json` alone.
 
 ## Submit and merge
 
-The human runs `vrg-submit-pr`, then `vrg-finalize-pr` once CI is green,
-which closes this task.
+The human runs `vrg-submit-pr`, which opens the PR with auto-merge on and
+finalizes by default. The PR squash-merges by itself once its CI is green.
+`vrg-finalize-pr` watches it, then settles `develop` and closes this task;
+it never merges.
 ````
 
 ### (r) Release task
@@ -424,8 +426,8 @@ failure.
 ## Boundaries
 
 - **Files tasks only.** The recipe never runs a task of the trio, never
-  opens a PR, and never releases. The human submits and finalizes the change
-  task's PR and runs `vrg-release`.
+  opens a PR, and never releases. The human submits the change task's PR
+  (submit turns auto-merge on and finalizes) and runs `vrg-release`.
 - **The approval is the plan's.** The recipe files what the epic's plan
   seeded; anything else it would file needs the human's approval first
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).

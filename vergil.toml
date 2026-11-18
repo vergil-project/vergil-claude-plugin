@@ -12,8 +12,8 @@ consumer-refresh = """\
 vrg-host plugins
 # Refresh the plugins in every running dev VM
 vrg-vm update --all
-# The next Claude Code session start loads the updated plugin, so no
-# in-session reload step is needed.
+# A running Claude Code session keeps the plugin version it loaded: run
+# /reload-plugins in each running session, or restart it.
 """
 
 [ci]

@@ -80,7 +80,8 @@ model and
 
 A machine picks up a release, or a rollback, when its plugins are next
 updated. Run `vrg-host plugins` for the host and `vrg-vm update --all` for
-every running agent VM, in a human shell, then restart Claude Code. Both
+every running agent VM, in a human shell, then run `/reload-plugins` in each
+running Claude Code session or restart it. Both
 commands refresh the marketplace and the installed plugins and verify the
 registered repo and ref, and both refuse an agent identity. The ref is `v2.1`
 before and after, so that check does not prove a machine moved.

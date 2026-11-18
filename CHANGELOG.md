@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.76] - 2026-11-18
+
+### Bug fixes
+
+- wait on vrg-pr-await in the background so a long CI run is not cut off (#1148)
+
+### Documentation
+
+- describe submit-time auto-merge in skills and the agent-merge hook (#1145)
+
+### Features
+
+- watch PRs that auto-merge (#1143)
+- warn when a vergil skill is served from a stale plugin version (#1144)
+- wait on vrg-pr-await's merge contract: exit 0 merged, exit 1 cannot merge (#1146)
+
 ## [2.1.75] - 2026-11-17
 
 ### Documentation
