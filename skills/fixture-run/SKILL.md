@@ -78,15 +78,19 @@ and recorded here, one bullet each, with the run that found it:
     the advisory as a trivy CVE with no fix is acknowledged, per the
     human's
     [ruling on vergil-project/.github#1218](https://github.com/vergil-project/.github/issues/1218#issuecomment-6980349718).
-    File a tracking issue for it in the fixture's ad-hoc epic
-    (`vrg-issue-create --epic adhoc --repo vergil-project/<repo>`); that
-    ruling is the approval to file it
-    ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
-    Then, before the change, add an `.npm-audit-exceptions` entry on the
-    change branch as its own commit: the GHSA ID, an expiry at most 90
-    days after the day it is written, the tracking issue and the reason,
-    with the justification and the removal condition in a `#` comment
-    above it. The format and the rules are vergil-tooling's
+    That ruling sets the policy; it is not approval to file. Stop and list
+    the advisory under `Awaiting a ruling` on the change task
+    ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)),
+    giving its GHSA ID, the dependency path, the proposed tracking-issue
+    title and the proposed `.npm-audit-exceptions` entry with its expiry.
+    Only once the human approves, file the tracking issue in the
+    fixture's ad-hoc epic
+    (`vrg-issue-create --epic adhoc --repo vergil-project/<repo>`), then,
+    before the change, add the entry on the change branch as its own
+    commit: the GHSA ID, an expiry at most 90 days after the day it is
+    written, the tracking issue and the reason, with the justification and
+    the removal condition in a `#` comment above it. The format and the
+    rules are vergil-tooling's
     [TypeScript audit exceptions](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/validation-matrix.md#typescript-audit-exceptions)
     and
     [Audit exceptions](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/standards/development/typescript/overview.md#audit-exceptions).
