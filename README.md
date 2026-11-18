@@ -275,6 +275,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `intake-capture` | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` |
 | `epic-review` | USER agent: review the intake, planning or deferred queue with the human in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions |
 | `steering-audit` | Review the steering and settings files against the Claude config ownership model, one finding at a time; `steering-audit user` reviews the user-level files read-only |
+| `hoshin` | USER agent: run the hōshin kanri review cadence (`start` each working day, optional `end` or `end <level>`) and hand off one docs PR of dated logbook entries after a security screen and the human's approval; skips merge review on purpose, so a logbook handoff carries no eligibility line |
 
 Full reference:
 <https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md>.
