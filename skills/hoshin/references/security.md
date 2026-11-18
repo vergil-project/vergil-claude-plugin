@@ -131,14 +131,47 @@ the worktree:
 ```text
 <docs main clone>/build/.vergil-state/hoshin/<date>-<mode>/
   screen-literals.txt   one per line, matched literally, case-insensitive
-  screen-numbers.txt    one per line, matched as a whole number
+  screen-names.txt      one per line, matched as a whole name
+  screen-numbers.txt    one per line, matched as a reference or alert number
 ```
 
-- `screen-literals.txt`: every alert URL the review read; every private repo
-  name from the visibility check (both `<org>/<repo>` and the bare
-  `<repo>`); every title of a private repo's PR or issue the review read.
+- `screen-literals.txt`: every alert URL the review read; every
+  `<org>/<repo>` of a private repo from the visibility check; every title
+  of a private repo's PR or issue the review read.
+- `screen-names.txt`: the bare `<repo>` name of every private repo from the
+  visibility check.
 - `screen-numbers.txt`: every alert number the review read; every number of
   a private repo's PR or issue the review read.
+
+Names and numbers are matched only in the forms that can name the thing,
+never as any substring, so the dates and times every header and index line
+carries (`2026-11-18T08:05-05:00`), the allowed per-org counts (`1 failed
+run in a private repo`) and a public repo whose name merely contains a
+private one never hit:
+
+- **a bare name** only as a whole name: not inside a longer name, so a
+  letter, digit, `_`, `-` or `.` on its left, or a letter, digit, `_` or
+  `-` on its right, rules a match out;
+- **a number** only as a reference or an alert number: as a bare `#<n>`
+  (with no repo name before the `#`), or straight after an alert or
+  reference word (`alert`, `advisory`, `issue`, `PR`, `pull request`,
+  `number`, `no.`, with only spaces, `#` or `:` between); and never as part
+  of a longer number. A full reference or URL to a private repo
+  (`<org>/<private-repo>#<n>`, `.../<private-repo>/issues/<n>`) already
+  hits on the repo's name and on pattern 6, so a public reference such as
+  `vergil-project/vergil-tooling#<n>` never hits merely because a private
+  issue shares its number.
+
+Build their pattern files from the terms, beside them, before the first
+screen:
+
+```bash
+awk '{ gsub(/\./, "\\."); print "(^|[^A-Za-z0-9_.-])" $0 "([^A-Za-z0-9_-]|$)" }' \
+  screen-names.txt > screen-names.re
+awk '{ print "(^|[^A-Za-z0-9_.-])#" $0 "([^0-9]|$)"
+       print "(^|[^A-Za-z])(alerts?|advisor(y|ies)|issues?|prs?|pull requests?|numbers?|no\\.)[[:space:]#:]*" $0 "([^0-9]|$)" }' \
+  screen-numbers.txt > screen-numbers.re
+```
 
 The run deletes the directory once the run ends: after `report-ready`, or on
 abandon.
@@ -156,16 +189,19 @@ to a scratch file outside the worktree.
    ```
 
 2. **Each alert number and alert URL the review read in this run**, matched
-   literally (the URLs in `screen-literals.txt`, the numbers in
-   `screen-numbers.txt`, below).
-3. **Each private repo name** from the visibility check, matched literally:
+   literally (the URLs in `screen-literals.txt`, the numbers through
+   `screen-numbers.re`, below).
+3. **Each private repo name** from the visibility check, matched literally
+   (`<org>/<repo>` in `screen-literals.txt`, the bare name through
+   `screen-names.re`):
 
    ```bash
    grep -nHiF -f screen-literals.txt <files>
-   grep -nHwF -f screen-numbers.txt <files>
+   grep -nHiE -f screen-names.re <files>
+   grep -nHiE -f screen-numbers.re <files>
    ```
 
-   These two commands also cover patterns 2 and 5. Skip a command whose
+   These three commands also cover patterns 2 and 5. Skip a command whose
    terms file is empty, since an empty pattern file matches nothing.
 4. **A line pairing a repo name with "alert", "advisory" or a severity word
    next to a number.** A line is a hit when it holds a repo name (any
