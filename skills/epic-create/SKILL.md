@@ -803,9 +803,9 @@ details, step 0's public-wording rule) goes into it.
       automatic close). The docs PR will not close the planning issue, or
       may not. Tell the human the reason and record it in the progress
       comment. If the cause is yours to fix (the advisory hold: the skip
-      reason names the advisories still tracking the planning issue, and
-      `vrg-queue planning` shows the item `held:`, as the next bullet says;
-      finish step 8's retargets for them), fix it and re-run report-ready,
+      reason names the advisories still tracking the planning issue; the
+      queue's `held:` note, in the next bullet, appears only once the docs
+      task has closed; finish step 8's retargets for them), fix it and re-run report-ready,
       which only rewrites the prose. A held item never shows
       `ready-to-close`, so never close it by hand while it is held. Otherwise close it by
       hand once it is ready. Run `vrg-queue planning` (with `--repo` for a
