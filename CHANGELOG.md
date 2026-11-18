@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.78] - 2026-11-18
+
+### Documentation
+
+- handle check_cancelled and failed: cancelled by re-running the cancelled checks (#1161)
+
+### Features
+
+- check the TypeScript audit on develop before a change; allow a dated exception (#1162)
+- ask the human before filing an audit-exception tracking issue (#1165)
+
 ## [2.1.77] - 2026-11-18
 
 ### Documentation
