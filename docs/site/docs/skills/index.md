@@ -68,6 +68,7 @@ unattended runner, `paad:paad-delegate`
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
 | [epic-review](#epic-review) | USER agent: review the intake, planning or deferred queue in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions. Refuses an ad-hoc or development epic | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
+| [hoshin](#hoshin) | USER agent: run the hōshin kanri review cadence — `start` each working day, optional `end` or `end <level>` — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen and the human's approval; skips merge review on purpose, so its handoff carries no eligibility line | Current (2.1) |
 
 Three of the `epic-*` skills form the **epic lifecycle**: `epic-create` (run
 once) → `epic-implement` (run N times) → `epic-retrospective` (run once — the
@@ -178,7 +179,9 @@ with `vrg-queue adhoc`, summarizes them by repo with the in-flight tasks
 apart (a handed-off one is left alone; one to resume goes through the
 development path's re-entry steps), proposes a strategy that judges overlap
 per repo and names what runs at the same time, takes one confirmation, then
-dispatches and gates as the development path does. Its records go on the
+dispatches and gates as the development path does. It skips any task
+titled `Logbook:`, naming it in the summary: a logbook task belongs to the
+[hoshin](#hoshin) run that filed it. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to `epic-review` (with
@@ -406,6 +409,9 @@ and every other fix is reviewed first through merge-review's
 entry and pushed only when eligible. After a fix it tells the human to
 rerun `vrg-finalize-pr <PR>`. It never merges and never turns auto-merge on
 or off: auto-merge off or a provenance violation stops it for the human.
+It never fixes a logbook PR (one titled `Logbook:`): it tells the human to
+close the PR with its task and redo the run through [hoshin](#hoshin), and
+stops.
 
 On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
@@ -601,6 +607,52 @@ CLAUDE.md", "review Claude settings", "steering audit".
 
 **Status.** Current (Vergil 2.1), added in epic
 [vergil-project/.github#558](https://github.com/vergil-project/.github/issues/558).
+
+## hoshin
+
+**What it does.** USER-identity skill that runs the fleet's 方針管理 hōshin
+kanri review cadence and writes its public logbook, the
+`docs/site/docs/logbook/` tree of `vergil-project/docs`.
+`/vergil:hoshin start` works out from the date (in the time zone the
+logbook records) and the logbook which reviews are due: it closes any
+period left open, by a late `end` review or a "not performed" entry, runs
+the daily 朝礼 chōrei, then opens any new year, quarter, month or week from
+the largest level down, and names any week or longer period with no
+entries. `/vergil:hoshin end` closes the day (終礼 shūrei), and
+`end <week|month|quarter|year>` closes that period with every smaller one
+still open. Each review runs its level's checklist with the human, ends
+with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
+the run: a private repo's in that repo, a security finding as a security
+record, and a public one only after the security screen and the human's
+approval of its text.
+
+Each run hands off one docs PR: a `Logbook: <date> <mode>` task in the docs
+repo's ad-hoc epic, a worktree, the entries and index lines, `vrg-validate`,
+a mechanical security screen of the final text, the human's approval of the
+full text, a `docs(logbook)` commit and `vrg-pr-workflow report-ready`,
+with fixed wording that names only the files written. A run that stops
+before its commit offers edit (back through validation, the screen and the
+approval) or abandon (the task closed, the worktree removed). The rules are
+in its `references/`: the calendar, the logbook and its wording, and the
+security rules with the screen's patterns.
+
+**A logbook handoff carries no eligibility line.** The run skips
+[merge-review](#merge-review) on purpose: it is too heavy for a
+documentation-generating run, and the gates that matter (keeping security
+content out of the public logbook) run inside the skill before anything is
+pushed. A submitted logbook PR's task closes through the default
+`vrg-finalize-pr`; a failing one is closed with its task and the run
+redone, never fixed: [pr-watch](#pr-watch) stops on a `Logbook:` PR, and
+[epic-implement](#epic-implement)'s adhoc mode skips `Logbook:` tasks.
+
+**When to use.** At the start of each working day, `/vergil:hoshin start`
+("start the day", "hoshin start"); and, when the human chooses,
+`/vergil:hoshin end` ("end of day") or `/vergil:hoshin end <level>`
+("close the week", "close the month"). Run it from one dedicated, reused
+session.
+
+**Status.** Current (Vergil 2.1), added in epic
+[vergil-project/.github#1318](https://github.com/vergil-project/.github/issues/1318).
 
 ## How skills work — technical
 
