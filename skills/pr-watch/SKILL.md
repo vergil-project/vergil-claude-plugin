@@ -130,9 +130,18 @@ satisfy a comment, **stop and ask the human** rather than thrashing.
 On exit 1 the JSON's `head_sha` is the head the reason is about. If it is
 not your worktree's `HEAD`, stop and ask the human.
 
+A check cancelled because a newer CI run superseded it is never reported.
+A push to the PR starts a new run, whose `concurrency: cancel-in-progress`
+cancels the one in flight on the same head, and while the newer run is on
+the head the wait treats the cancelled check as pending. So `check_failed`
+always names a real failure: look for it in the newest run of each named
+check, never in a cancelled one. A cancelled check that no newer run
+replaced, within a two-minute grace period, ends as `check_cancelled`.
+
 | `reason` | What to do |
 | --- | --- |
 | `check_failed` | Fix the checks `failed_checks` names, as a CI fix in [Kinds of fix](#kinds-of-fix). Push through [Before every push](#before-every-push) and loop. |
+| `check_cancelled` | The checks `failed_checks` names were cancelled, and no newer run replaced them, so there is no failure to fix. Re-run them, the repo's documented way if it has one, otherwise with `vrg-gh run list --commit <head_sha> --status cancelled` and `vrg-gh run rerun <run-id> --failed` for each run behind a named check. Change no code and push nothing, then loop. |
 | `conflict` | Rebase onto `origin/develop`, as [Kinds of fix](#kinds-of-fix) says: a clean rebase is routine, a resolved conflict is merge-reviewed. Push through [Before every push](#before-every-push) and loop. |
 | `auto_merge_off` | Stop at once: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
 | `closed` | Stop and tell the human. Never reopen it. |
@@ -310,6 +319,7 @@ itself.
 | Reason | What to do |
 | --- | --- |
 | `failed: CI` | Fix the named check, as a CI fix in [Kinds of fix](#kinds-of-fix), through [Before every push](#before-every-push). |
+| `failed: cancelled` | A required check was cancelled and no newer run replaced it. Re-run its cancelled checks, as the `check_cancelled` row of [Cannot merge](#cannot-merge--what-to-do-for-each-reason) says. Change no code and push nothing, then wait again through [Monitor & reconcile](#monitor--reconcile). |
 | `failed: conflict` | Rebase onto `origin/develop`: a clean rebase is routine; a resolved conflict is merge-reviewed. Then push through [Before every push](#before-every-push). |
 | `timed out` | The batch deadline passed with the PR still pending. Run [Monitor & reconcile](#monitor--reconcile): `vrg-pr-await` waits for it to merge or names why it cannot, and it may still land by itself. |
 | `failed: auto-merge off` | Stop: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
