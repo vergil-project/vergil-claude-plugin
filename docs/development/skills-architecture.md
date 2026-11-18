@@ -42,10 +42,14 @@ agent or human picks up an issue.
 
 > **Superseded (B2–B4).** The 2.1 workflow spec
 > (`docs/specs/2026-06-04-vergil-2.1-workflow-and-skill-rationalization-design.md`)
-> is the living truth for develop/submit/finalize: the agent stops at
-> `.vergil/pr-template.yml`, the human runs `vrg-submit-pr`, and
-> finalization is the human's `vrg-finalize-pr` (`vrg-finalize-repo`
-> no longer exists). This table is retained as the audit-time record.
+> set the 2.1 develop/submit/finalize flow: the agent hands off with
+> `vrg-pr-workflow report-ready` (it writes `.vergil/pr-workflow.json`),
+> the human runs `vrg-submit-pr`, and finalization is `vrg-finalize-pr`
+> (`vrg-finalize-repo` no longer exists). Since epic
+> [vergil-project/.github#1218](https://github.com/vergil-project/.github/issues/1218),
+> `vrg-submit-pr` turns auto-merge on for every PR it opens and runs
+> `vrg-finalize-pr` by default, which waits for the merge and settles
+> `develop`. This table is retained as the audit-time record.
 
 ### Lifecycle C: Release cycle
 
@@ -61,7 +65,7 @@ work on `develop` to justify a release.
 | C5. Dependency refresh | Optional: Branch off develop, sweep dependencies, validate, submit via B-cycle (bare or via `dependency-update`). | → C6 |
 | C6. Close & finalize | Close the tracking issue with summary (#83). `vrg-finalize-repo`. **Tell user to run `/plugin marketplace update` → `/plugin update` → `/reload-plugins`** (#105). | → exit release cycle |
 
-> **Superseded (C1–C6).** Releases are cut via `vrg-publish`
+> **Superseded (C1–C6).** Releases are cut via `vrg-release`
 > (vergil-tooling); `vrg-prepare-release` and `vrg-merge-when-green`
 > no longer exist. This table is retained as the audit-time record.
 
@@ -166,6 +170,16 @@ consulted.
 - Finalization step was patched in
   [PR #97](https://github.com/vergil-project/vergil-claude-plugin/pull/97)
   to drop the `vrg-docker-run --` prefix; the rest is stale.
+
+> **Superseded (auto-merge).** The auto-merge policy above has since
+> reversed. Since epic
+> [vergil-project/.github#1218](https://github.com/vergil-project/.github/issues/1218),
+> the human's `vrg-submit-pr` turns auto-merge on for every PR it opens
+> (squash for a single-issue PR, rebase for a batch PR), and GitHub
+> merges the PR once its required checks pass. Agents still never
+> submit or merge a PR. The `pr-workflow` skill no longer exists: the
+> agent's side of the flow is now `issue-implement` and `pr-watch`.
+> This entry is retained as the audit-time record.
 
 **Slash-command runnability.** No. The skill's current text would
 have an agent enable auto-merge — directly violating the current

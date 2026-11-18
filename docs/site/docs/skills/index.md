@@ -58,7 +58,7 @@ unattended runner, `paad:paad-delegate`
 | [epic-implement](#epic-implement) | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
 | [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues becomes one batch PR | Current (2.1) |
-| [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes | Current (2.1) |
+| [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes; also the whole-branch review `pr-watch` runs on a fix to an open PR before it pushes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [fixture-run](#fixture-run) | USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only, and refuses a run without `--after` | Current (2.1) |
@@ -294,7 +294,12 @@ scope. See its
 
 **When to use.** Run by `issue-implement` once validation is green and
 before `vrg-pr-workflow report-ready`, and again on the same task to resume
-a run stopped for a ruling. The files, schemas and the result check follow
+a run stopped for a ruling. Also run by `pr-watch` on a fix to an open,
+submitted PR (any fix but a rebase that resolves no conflict), before it
+pushes: a whole-branch review against `origin/develop`, with
+`--pr <PR_URL>` on every step. That run has no report-ready: its outcome
+is the closing comment on the task issue, and `pr-watch` pushes only on
+`eligible`. The files, schemas and the result check follow
 vergil-tooling's
 [agent-to-agent review protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md);
 the ruling channel is its
