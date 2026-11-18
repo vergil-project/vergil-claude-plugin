@@ -69,23 +69,43 @@ trailer; Claude Code attribution is turned off in
 ```bash
 vrg-submit-pr \
   --issue NUMBER --title TEXT --summary TEXT \
-  [--linkage KEYWORD] [--notes TEXT] [--dry-run]
+  [--linkage KEYWORD] [--notes TEXT] [--dry-run] \
+  [--no-finalize | --release [--no-install]]
 ```
+
+PR submission is a human action: an agent hands off with
+`vrg-pr-workflow report-ready`, and the human runs `vrg-submit-pr`,
+which reads the recorded state. The flags above are its direct
+(emergency) CLI mode.
 
 - `--issue` (required): GitHub issue number (just the number)
 - `--title` (required): PR title
 - `--summary` (required): one-line PR summary
-- `--linkage` (optional, default: `Ref`): **always use `Ref`**.
-  `Fixes`, `Closes`, and `Resolves` are forbidden — they auto-close
-  the issue at merge time, bypassing finalization. The Ref'd issue must
-  be a **task, not an epic** (`vrg-submit-pr` rejects epic links).
-  `vrg-finalize-pr` closes the task and rolls up its epic after the
-  post-merge checks pass — gated on an epic parent, so legacy issues are
-  left for manual close. See the epic/task convention in `CLAUDE.md`.
+- `--linkage` (optional, default: `Ref`): `Ref` or `Closes`; `Fixes`
+  and `Resolves` are forbidden. The linked issue must be a **task, not
+  an epic** (`vrg-submit-pr` rejects epic links). For a task under an
+  epic, `vrg-submit-pr` selects `Closes` itself, so the PR closes the
+  task on merge; a legacy issue (no epic parent) keeps the requested
+  keyword, and a `Ref` link leaves it open for manual close. See the
+  epic/task convention in `CLAUDE.md`.
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing
+- `--no-finalize` (optional): return once the PR is open instead of
+  watching it merge
+- `--release` (optional): after a fully successful finalize, cut a
+  release with `vrg-release` (`--no-install` skips its install)
 
-The script detects the target branch and merge strategy automatically.
+`vrg-submit-pr` opens PRs against `develop` only (releases go through
+`vrg-release`) and turns auto-merge on itself, pinned to the pushed
+head: squash for a single-issue PR, rebase for a batch PR. GitHub then
+merges the PR once its required checks pass. By default it then runs
+`vrg-finalize-pr`, which waits for the PR to merge and never merges it
+itself. Once a PR has merged, finalize's settle phase first closes any
+issue the PR closes that GitHub left open (only GitHub's closing
+references, so a `Ref` link is never touched), then syncs, cleans up,
+provisions and validates `develop` under the checkout lock, and reports
+its CD run. Epic rollup is event-driven (`vrg-epic-rollup`), not part
+of finalize.
 
 ## Local deviations
 
