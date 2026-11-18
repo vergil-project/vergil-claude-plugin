@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.79] - 2026-11-18
+
+### Features
+
+- add the hoshin skill's run procedure, calendar, logbook and security rules (#1172)
+- add the checklists and checks for each review level (#1173)
+
 ## [2.1.78] - 2026-11-18
 
 ### Documentation
