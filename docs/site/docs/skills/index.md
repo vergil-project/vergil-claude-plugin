@@ -103,8 +103,10 @@ issue), or with no argument (a `vrg-queue planning` summary, where the human
 chooses what to plan next: plan an epic only when it will be implemented soon,
 usually one pick at a time). It labels the item `in-progress`,
 records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
-markers, and closes the planning issue once the epic is fully expanded (docs PR
-merged, tasks filed). For a `security` planning issue, it hands each advisory
+markers, and files every task before it hands off the docs PR. That PR also
+closes the planning issue: `vrg-submit-pr` adds a `Planning issue: Closes`
+line for it, so the merge that publishes the spec and plan ends the planning.
+For a `security` planning issue, it hands each advisory
 to the task or tasks that fix it or, for a design-only finding, the
 documentation task, with one `vrg-security-record retarget` per advisory,
 before posting `Tasks filed: yes`, and the planning issue cannot close until
@@ -513,9 +515,11 @@ The modes differ only in order, check and outcomes:
   epic, and what blocks it?) **prunes the queue and never picks what to plan
   next**: **leave** (most items), **defer**, **drop**, or, unusually,
   **one-off** for an item small enough for one PR or whose scope can be cut
-  until it is. Items `epic-create` is expanding (`in-progress`) or has
-  finished (`ready-to-close`) are shown with their latest note and offered
-  only leave; the review never resumes them and never offers them one-off.
+  until it is. Items `epic-create` is expanding (`in-progress`) are shown
+  with their latest note and offered only leave; the review never resumes
+  them and never offers them one-off. A finished item that nothing closed
+  (`ready-to-close`) is offered **close**, unless its epic was abandoned
+  (closed as not planned), which means it needs planning again.
   It ends with the surviving queue sorted oldest first. Choosing what to
   plan is the human's act, through [epic-create](#epic-create)'s
   no-argument summary.

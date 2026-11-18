@@ -403,8 +403,8 @@ The planning issue is also the permanent record of the design review
 
 - **Every epic has one.** A free-text idea gets one at step 0.
 - **Links run both ways:** the epic body's `Planning:` line, the spec header's
-  `Planning issue` line, and the planning issue's closing comment
-  `Planned as <epic ref>` (step 10).
+  `Planning issue` line, and the `Planned as <epic ref>` line in the
+  planning issue's handoff comment (step 10).
 - **It is never moved to the epic it produced.** It closes in the planning epic
   and drains into its archive.
 
@@ -415,6 +415,10 @@ The planning issue is also the permanent record of the design review
 | `waiting` | Open under the planning epic, no `in-progress` label |
 | `in-progress` | Open, `in-progress` label; the detail is in the latest progress comment |
 | `ready-to-close` | `in-progress`, all three markers present (below), and the docs task closed (its docs PR merged) |
+
+A planning issue normally never shows `ready-to-close`: the merge of its
+docs PR closes it (step 10). An item that does show it is one that merge
+did not close. Close it by hand, as step 10 says.
 
 Do not invent further states (blocked, deferred, …) — put that detail in the
 progress comment. A planning issue that must wait on an outside condition is
@@ -516,7 +520,7 @@ A planning issue is public, so anyone can comment on it. When resuming:
 
 Comment on the planning issue at **every stage boundary** of the workflow below
 — brainstorm approved, epic created, spec committed, spec pushback done, plan
-written, plan pushback done, alignment done, docs PR handed off, tasks filed —
+written, plan pushback done, alignment done, tasks filed, docs PR handed off —
 and **whenever the session pauses** ("blocked on …" / "resume at …"). Write
 each comment to a temp file and post it with
 `vrg-gh issue comment <M> --repo <owner>/<repo> --body-file <tmp>`.
@@ -562,7 +566,7 @@ against the current spec and plan, and correct it in the same step:
    what was corrected. If nothing changed, write nothing.
 
 The body is public: nothing kept out of public text (such as security advisory
-details, step 9) goes into it.
+details, step 8) goes into it.
 
 ## Workflow
 
@@ -664,20 +668,7 @@ details, step 9) goes into it.
    change the spec and the plan). Each stage runs until the human stops it.
    While walking the human through each plan pushback round, hold the plan to
    "Task sizing" above, and raise any task it marks too big.
-8. **Docs PR.** Run the epic body sync (above) a last time, against the spec
-   and plan the PR publishes.
-   Validate (`vrg-container-run -- vrg-validate`) and hand off the
-   single spec + plan PR against `.github` — agents record it via
-   `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
-   handoff, link the documents from the epic:
-   `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
-   --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;
-   that window is accepted. If it fails, stop and report its error. Merging
-   it closes the documentation task. Then delete the planning issue's state
-   directory, `build/.vergil-state/design-review/<M>/` in the docs repo's
-   main clone, once no kept copy remains in it
-   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
-9. **File the implementation tasks** from the plan, each in the repo where its PR
+8. **File the implementation tasks** from the plan, each in the repo where its PR
    lands and linked under the epic: born linked via `vrg-issue-create --epic
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
    `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
@@ -710,28 +701,62 @@ details, step 9) goes into it.
      advisory. Never put them in a task title or body, a progress comment, a PR
      body or report-ready notes — refer to the problem by its issue ref and
      GHSA ID alone.
-10. **Close the planning issue — only when it is ready.** Run `vrg-queue
-    planning` (with `--repo` for a private home). Exit 2 is a complete
-    listing (some item's size is in error), not a failure: read this item's
-    state and note from it as usual. If it shows the item
-    `ready-to-close`, close it:
-    `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed --comment
-    "Planned as <owner>/<repo>#<N>"`. Otherwise the docs PR has not merged yet
-    (a human action): post a progress comment recording "waiting on docs PR
-    merge" and leave the item `in-progress`. It is closed on the next
-    `epic-create` touch, when the planning-queue summary shows it
-    `ready-to-close`.
-    - A `security` planning issue stays **held** (`in-progress`) while **any**
-      advisory it names still tracks it, even with every marker present and
-      the docs PR merged. `vrg-queue planning` says so in the item's note:
-      `held: <k> advisory still tracks` (one advisory) or `held: <k>
-      advisories still track` (several), followed by `this planning issue
-      (<GHSA-id>[, <GHSA-id>…]) — retarget each to the task or tasks that fix
-      it with vrg-security-record retarget`. The note names only the advisories still tracking it. Run the
-      step 9 retargets for those; once every advisory is retargeted, the item
-      shows `ready-to-close`. **Never close it by hand before every retarget**
-      — closing it would leave an advisory tracking a closed planning issue
-      instead of the work that fixes it.
+   - **Before the docs PR, never after.** The docs PR's merge closes the
+     planning issue (step 10), and the human may merge it at any time after
+     the handoff. So every task is filed, and no advisory still tracks the
+     planning issue, before step 9 hands it off.
+9. **Docs PR.** Run the epic body sync (above) a last time, against the spec
+   and plan the PR publishes.
+   Validate (`vrg-container-run -- vrg-validate`) and hand off the
+   single spec + plan PR against `.github` — agents record it via
+   `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
+   handoff, link the documents from the epic:
+   `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
+   --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;
+   that window is accepted. If it fails, stop and report its error. Merging
+   it closes the documentation task and, as step 10 says, the planning
+   issue. Then delete the planning issue's state directory,
+   `build/.vergil-state/design-review/<M>/` in the docs repo's main clone,
+   once no kept copy remains in it
+   ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
+10. **The docs PR closes the planning issue.** `vrg-submit-pr` adds a
+    `- Planning issue: Closes <M ref>` line to the docs PR's body: it finds
+    the planning issue from the epic body's `Planning:` line and the
+    planning issue's `Docs task:` marker. So the merge closes the planning
+    issue, and no later `epic-create` run has to. Read report-ready's JSON
+    response from step 9 for its `planning_close` key, then post the
+    progress comment that records the handoff. That comment carries a
+    `Planned as <owner>/<repo>#<N>` line, which is the planning issue's
+    record of the epic it became. Leave the item `in-progress` until the
+    merge closes it.
+    - **`{"closes": "<M ref>"}`.** Merging the docs PR closes the planning
+      issue. The progress comment says so.
+    - **`{"planning": …, "skipped": "<why>"}`, `{"unknown": "<why>"}`, or
+      no `planning_close` key** (a `vergil-tooling` release from before the
+      automatic close). The docs PR will not close the planning issue, or
+      may not. Tell the human the reason and record it in the progress
+      comment. If the cause is yours to fix (an advisory still tracking the
+      planning issue: finish step 8's retargets), fix it and re-run
+      report-ready, which only rewrites the prose. Otherwise close it by
+      hand once it is ready. Run `vrg-queue planning` (with `--repo` for a
+      private home); exit 2 is a complete listing (some item's size is in
+      error), not a failure. Once it shows the item `ready-to-close`, close
+      it with `vrg-gh issue close <M> --repo <owner>/<repo> --reason
+      completed --comment "Planned as <owner>/<repo>#<N>"`. If the docs PR
+      has not merged yet (a human action), the next `epic-create` touch or
+      `epic-review planning` closes it, once the planning-queue summary shows
+      it `ready-to-close`.
+    - A `security` planning issue is **held** (`in-progress`) while **any**
+      advisory still tracks it: the docs PR does not close it, and
+      `vrg-queue planning` never shows it `ready-to-close`. The queue note
+      reads `held: <k> advisory still tracks` (one advisory) or
+      `held: <k> advisories still track` (several), followed by
+      `this planning issue (<GHSA-id>[, <GHSA-id>…]) — retarget each to the
+      task or tasks that fix it with vrg-security-record retarget`. It names
+      only the advisories still tracking the issue. Run the step 8 retargets
+      for those. **Never close it by hand before every retarget**: closing it
+      would leave an advisory tracking a closed planning issue instead of the
+      work that fixes it.
 
 ## Notes
 
