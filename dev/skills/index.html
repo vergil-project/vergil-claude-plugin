@@ -4920,8 +4920,10 @@ issue), or with no argument (a <code>vrg-queue planning</code> summary, where th
 chooses what to plan next: plan an epic only when it will be implemented soon,
 usually one pick at a time). It labels the item <code>in-progress</code>,
 records progress comments with the <code>Epic:</code> / <code>Docs task:</code> / <code>Tasks filed: yes</code>
-markers, and closes the planning issue once the epic is fully expanded (docs PR
-merged, tasks filed). For a <code>security</code> planning issue, it hands each advisory
+markers, and files every task before it hands off the docs PR. That PR also
+closes the planning issue: <code>vrg-submit-pr</code> adds a <code>Planning issue: Closes</code>
+line for it, so the merge that publishes the spec and plan ends the planning.
+For a <code>security</code> planning issue, it hands each advisory
 to the task or tasks that fix it or, for a design-only finding, the
 documentation task, with one <code>vrg-security-record retarget</code> per advisory,
 before posting <code>Tasks filed: yes</code>, and the planning issue cannot close until
@@ -5271,9 +5273,11 @@ with its tallies.</p>
   epic, and what blocks it?) <strong>prunes the queue and never picks what to plan
   next</strong>: <strong>leave</strong> (most items), <strong>defer</strong>, <strong>drop</strong>, or, unusually,
   <strong>one-off</strong> for an item small enough for one PR or whose scope can be cut
-  until it is. Items <code>epic-create</code> is expanding (<code>in-progress</code>) or has
-  finished (<code>ready-to-close</code>) are shown with their latest note and offered
-  only leave; the review never resumes them and never offers them one-off.
+  until it is. Items <code>epic-create</code> is expanding (<code>in-progress</code>) are shown
+  with their latest note and offered only leave; the review never resumes
+  them and never offers them one-off. A finished item that nothing closed
+  (<code>ready-to-close</code>) is offered <strong>close</strong>, unless its epic was abandoned
+  (closed as not planned), which means it needs planning again.
   It ends with the surviving queue sorted oldest first. Choosing what to
   plan is the human's act, through <a href="#epic-create">epic-create</a>'s
   no-argument summary.</li>
