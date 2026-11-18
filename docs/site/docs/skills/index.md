@@ -388,7 +388,11 @@ otherwise a foreground wait kept under the harness's command timeout and
 repeated on `timed_out` up to the full deadline. Exit 0 means the PR merged and the watch is done; exit 1 means
 it cannot merge, and the JSON's `reason` names why. A failing required
 check (`check_failed`) or a conflict with `develop` (`conflict`) is fixed
-and pushed, and the wait runs again. Auto-merge off, a closed PR, an
+and pushed, and the wait runs again. A required check cancelled with no
+newer run to replace it (`check_cancelled`, or finalize's
+`failed: cancelled`) is re-run with no code change, and the wait runs
+again; a check cancelled by a superseding run counts as pending, so it is
+never reported. Auto-merge off, a closed PR, an
 orphaned check or the deadline passing (`timed_out`) stops for the human.
 Any other exit is a tool error and stops it too. A new review never ends
 the wait, so pr-watch reads the PR's review, conversation and inline
