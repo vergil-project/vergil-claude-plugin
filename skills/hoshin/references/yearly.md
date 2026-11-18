@@ -45,13 +45,11 @@ quarterly `start` that follows turns them into the vital few.
 - **Sources:** the fleet roster in `fleet.md`; each fleet org's repos and
   their metadata.
 - **Window:** none: the fleet as it stands now. For the yearly `end`, the
-  repos created in the year, by their `createdAt`, and the repos archived
-  since the previous yearly `end` entry, by comparing with the archived
-  counts it recorded (GitHub keeps no archive date).
+  repos created in the year, by their `createdAt`.
 - **Output:** per org: its status, and the count of public and private
   repos, archived and not, with the public repos' primary languages as
-  counts. Public repos created or archived in the window by name; private
-  ones as counts per org.
+  counts. Public repos created in the window by name; private ones as
+  counts per org.
 - **Tool:** none yet. Today, for each fleet org:
 
   ```bash

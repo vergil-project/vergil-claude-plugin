@@ -227,7 +227,7 @@ to a scratch file outside the worktree.
 
    ```bash
    vrg-gh repo view <owner>/<repo> --json visibility --jq .visibility   # PUBLIC
-   vrg-gh api repos/<owner>/<repo>/issues/<N> --jq .number              # exists
+   vrg-gh issue view <N> --repo <owner>/<repo> --json number --jq .number   # exists
    ```
 
    Any reference that fails either check, or that the run cannot check, is a
