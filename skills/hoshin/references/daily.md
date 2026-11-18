@@ -126,12 +126,13 @@ and settles what needs action today.
 - **Tool:** none yet. Today, for each fleet repo:
 
   ```bash
-  vrg-gh release list --repo <owner>/<repo> --limit 50 \
+  vrg-gh release list --repo <owner>/<repo> --limit 1000 \
     --json tagName,name,publishedAt,isDraft,isPrerelease \
     --jq '.[] | select(.isDraft | not)'
   ```
 
-  keeping each release whose `publishedAt` falls in the window. Belongs to
+  keeping each release whose `publishedAt` falls in the window. A result of
+  1000 is truncated, and the review says so. Belongs to
   `vergil-project/.github#1317` (history).
 
 #### Check: Security and audit signals
