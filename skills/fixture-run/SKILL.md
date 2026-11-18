@@ -70,13 +70,42 @@ and recorded here, one bullet each, with the run that found it:
   the human syncs the files with `vrg-github-repo-config update` (merged as
   its own `chore(repo-config)` PR) first. Found by
   vergil-project/vergil-fixture-rust-app#20.
+- **TypeScript only:** `develop` passes the audit before the change starts.
+  Run `vrg-container-run -- vrg-validate --check audit` on an up-to-date
+  `develop` (the change worktree before its first commit will do). If it
+  fails on a high or critical advisory:
+  - **No patched release** of the vulnerable package exists: acknowledge
+    the advisory as a trivy CVE with no fix is acknowledged, per the
+    human's
+    [ruling on vergil-project/.github#1218](https://github.com/vergil-project/.github/issues/1218#issuecomment-6980349718).
+    File a tracking issue for it in the fixture's ad-hoc epic
+    (`vrg-issue-create --epic adhoc --repo vergil-project/<repo>`); that
+    ruling is the approval to file it
+    ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+    Then, before the change, add an `.npm-audit-exceptions` entry on the
+    change branch as its own commit: the GHSA ID, an expiry at most 90
+    days after the day it is written, the tracking issue and the reason,
+    with the justification and the removal condition in a `#` comment
+    above it. The format and the rules are vergil-tooling's
+    [TypeScript audit exceptions](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/validation-matrix.md#typescript-audit-exceptions)
+    and
+    [Audit exceptions](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/standards/development/typescript/overview.md#audit-exceptions).
+    Re-run the audit stage; it must pass.
+  - **A patched release exists**: this is not an exception case. The fix
+    is a dependency update, not this run's change: stop and report it to
+    the human.
+
+  Found by vergil-project/vergil-fixture-ts-lib#10, whose `develop`
+  already failed the audit on GHSA-fc5q-39xc-vjpf (tracked in
+  vergil-project/vergil-fixture-ts-lib#20), as did the ts-app run of the
+  same epic.
 
 A run that finds a new condition lists it under `Awaiting a ruling` on its
 change task
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues));
 once the human approves, it is added here through an ordinary task in
 vergil-claude-plugin. The recipe copies this list into every change task it
-files.
+files, less any bullet marked for another language.
 
 ## Arguments
 
@@ -201,10 +230,11 @@ runs the task, from what it finds.
 
 ### (a) Change task
 
-Keep only the rollback paragraph for the fixture's language and drop its
-`<Python:>`, `<Rust:>` or `<TypeScript:>` marker: **Python** and **Rust**
+Keep only the marked paragraphs for the fixture's language and drop their
+`<Python:>`, `<Rust:>` or `<TypeScript:>` markers: **Python** and **Rust**
 each roll a dependency back; **TypeScript** skips the rollback while its
-dependency-update known gap stands.
+dependency-update known gap stands, and keeps its audit-exception
+paragraph.
 
 ````markdown
 A fixture run on `vergil-project/<repo>` (<language> <shape>), validating
@@ -240,6 +270,14 @@ One small, real change through the normal worktree flow: a new function
 restructuring the program, and keeping coverage at 100%. Validate with
 `vrg-container-run -- vrg-validate`, run merge review, and hand off with
 `vrg-pr-workflow report-ready`. No gate is lowered or suppressed.
+
+<TypeScript:>
+**Audit exception.** The one exception that rule allows: the
+`.npm-audit-exceptions` entry, with its tracking issue, that the
+TypeScript audit condition under "Ready to start" adds for an advisory
+with no patched release. It is part of this task's scope, as its own
+commit. Record it on this issue and in the report-ready notes as one line:
+`Audit exception: <GHSA ID> exp:<YYYY-MM-DD> (tracked in <ref>)`.
 
 <Python:>
 **Dependency rollback.** In the same change, move one third-party runtime
