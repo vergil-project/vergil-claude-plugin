@@ -4838,7 +4838,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#merge-review">merge-review</a></td>
-<td>USER agent: the pre-PR merge review <code>issue-implement</code> runs once validation is green — one review by the read-only <code>merge-reviewer</code>, at most one fix and check, every stop through <code>vrg-ruling</code>, every item closed before handoff, and an eligibility line for report-ready's notes</td>
+<td>USER agent: the pre-PR merge review <code>issue-implement</code> runs once validation is green — one review by the read-only <code>merge-reviewer</code>, at most one fix and check, every stop through <code>vrg-ruling</code>, every item closed before handoff, and an eligibility line for report-ready's notes; also the whole-branch review <code>pr-watch</code> runs on a fix to an open PR before it pushes</td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -5085,7 +5085,12 @@ scope. See its
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr">Fix to an open PR</a> section.</p>
 <p><strong>When to use.</strong> Run by <code>issue-implement</code> once validation is green and
 before <code>vrg-pr-workflow report-ready</code>, and again on the same task to resume
-a run stopped for a ruling. The files, schemas and the result check follow
+a run stopped for a ruling. Also run by <code>pr-watch</code> on a fix to an open,
+submitted PR (any fix but a rebase that resolves no conflict), before it
+pushes: a whole-branch review against <code>origin/develop</code>, with
+<code>--pr &lt;PR_URL&gt;</code> on every step. That run has no report-ready: its outcome
+is the closing comment on the task issue, and <code>pr-watch</code> pushes only on
+<code>eligible</code>. The files, schemas and the result check follow
 vergil-tooling's
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md">agent-to-agent review protocol</a>;
 the ruling channel is its
