@@ -417,7 +417,12 @@ Never work from a partial list.
 ### Step 2: Summarize
 
 Show the human the tasks grouped by repo: each one's ref, age, kind and a
-one-line paraphrase. The **runnable frontier** is every `ready` task.
+one-line paraphrase. **A task titled `Logbook:` is skipped**, whatever its
+state: it belongs to the `/vergil:hoshin` run that filed it, never to ad-hoc
+work. Leave it out of the frontier, the strategy and every dispatch, and
+name each one in the summary under its own line, "Skipped (logbook tasks,
+owned by `/vergil:hoshin`)". The **runnable frontier** is every other `ready`
+task.
 `blocked` tasks are listed with their open blockers and are not run.
 **In-flight** tasks are listed apart, with their marks, and follow their
 `disposition`:

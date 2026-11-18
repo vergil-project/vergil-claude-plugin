@@ -73,11 +73,16 @@ retired continuous-oversight framing; sub-agents remain fine elsewhere.)
 2. **Read the PR:**
 
    ```bash
-   vrg-gh pr view <PR_URL> --json state,body,baseRefName,headRefName,headRefOid,autoMergeRequest
+   vrg-gh pr view <PR_URL> --json state,title,body,baseRefName,headRefName,headRefOid,autoMergeRequest
    ```
 
    - `MERGED`: go to [The PR merged](#the-pr-merged).
    - `CLOSED`: stop and tell the human. Never reopen it.
+   - A title that starts `Logbook:`: a logbook PR, which pr-watch never
+     fixes. Tell the human to close it together with its task and redo the
+     run through `/vergil:hoshin`, and stop. Push nothing and change
+     nothing: a logbook run's text passes its security screen and the
+     human's approval inside the run, and no fix made here would.
    - A base other than `develop`, or a `release/*` head: stop and tell the
      human. Submit opens PRs against `develop` only, and a release goes
      through `vrg-release`, not this skill.
