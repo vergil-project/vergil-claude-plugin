@@ -198,6 +198,25 @@ determine is marked **unknown** — never invented. A retrospective that guesses
 its own PR list is exactly the failure this rule prevents (no-fabrication
 doctrine).
 
+### A security epic — the public-wording rule
+
+Before drafting, decide whether the epic is a **security epic**: its
+planning issue (the epic body's `Planning:` line) carries a
+`Security run: yes` marker line in a comment by a trusted author
+(`vrg-trusted-authors`, after stripping a leading `app/`), or any of its
+tasks carries the `security` label (read each child's labels with
+`vrg-gh issue view <T> --repo <owner>/<repo> --json labels`). If any of
+these reads fails, stop and report it; a failed read never means "not a
+security epic".
+
+A security epic's retrospective, its commit messages, its PR body and its
+report-ready notes follow `epic-create`'s public-wording rule
+([step 0](../epic-create/SKILL.md#workflow)): they describe mechanisms and
+refer to a finding by its issue ref and GHSA ID alone, never by what it is.
+§2–§4 say what was learned and changed in those terms. A specific worth
+keeping goes into the advisory with `vrg-security-record note`, never into
+the retrospective.
+
 ## Authoring model — draft, then review
 
 Mirror `writing-plans`, **not** the interactive `alignment` skill. The agent did

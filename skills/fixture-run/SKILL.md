@@ -46,11 +46,11 @@ other change to this skill (spec §6.6).
 A check that fails because of a gap listed below is a **known gap**: the
 validation task records it, with its evidence, as a comment on the issue in
 the row's **Recorded on** column (the issue whose work will close that gap),
-and it does not count against the run. Today's known gaps:
+and it does not count against the run.
 
-| Language | Check | Gap | Recorded on |
-|---|---|---|---|
-| typescript | Dependency update | `vrg-update-deps` has no npm updater, so the release's dependency update cannot restore a rolled-back package. The TypeScript change task also skips the rollback. | [vergil-project/.github#1209](https://github.com/vergil-project/.github/issues/1209) |
+There are no known gaps today. A gap is added here as a row of a table
+with the columns **Language**, **Check**, **Gap** and **Recorded on** (a
+change to this skill).
 
 When the work on a row's issue closes its gap, the row is removed here (a
 change to this skill), the same check becomes its proof, and a failure of it
@@ -72,8 +72,11 @@ and recorded here, one bullet each, with the run that found it:
   vergil-project/vergil-fixture-rust-app#20.
 - **TypeScript only:** `develop` passes the audit before the change starts.
   Run `vrg-container-run -- vrg-validate --check audit` on an up-to-date
-  `develop` (the change worktree before its first commit will do). If it
-  fails on a high or critical advisory:
+  `develop` (the change worktree before its first commit will do). The
+  audit stage runs both the npm audit and the license gate
+  (`vrg-npm-license-gate`). If the license gate fails, stop and report it
+  to the human: a fixture run never adds a `.npm-license-exceptions`
+  entry. If the npm audit fails on a high or critical advisory:
   - **No patched release** of the vulnerable package exists: acknowledge
     the advisory as a trivy CVE with no fix is acknowledged, per the
     human's
@@ -236,9 +239,8 @@ runs the task, from what it finds.
 
 Keep only the marked paragraphs for the fixture's language and drop their
 `<Python:>`, `<Rust:>` or `<TypeScript:>` markers: **Python** and **Rust**
-each roll a dependency back; **TypeScript** skips the rollback while its
-dependency-update known gap stands, and keeps its audit-exception
-paragraph.
+each roll a dependency back, and so does **TypeScript**, which also keeps
+its audit-exception paragraph.
 
 ````markdown
 A fixture run on `vergil-project/<repo>` (<language> <shape>), validating
@@ -276,10 +278,11 @@ restructuring the program, and keeping coverage at 100%. Validate with
 `vrg-pr-workflow report-ready`. No gate is lowered or suppressed.
 
 <TypeScript:>
-**Audit exception.** The one exception that rule allows: the
-`.npm-audit-exceptions` entry, with its tracking issue, that the
-TypeScript audit condition under "Ready to start" adds for an advisory
-with no patched release. It is part of this task's scope, as its own
+**Audit exception.** The one exception that rule allows, and it covers only
+an `.npm-audit-exceptions` entry: the one, with its tracking issue, that
+the TypeScript audit condition under "Ready to start" adds for an advisory
+with no patched release. A run never adds a `.npm-license-exceptions`
+entry. The audit exception is part of this task's scope, as its own
 commit. Record it on this issue and in the report-ready notes as one line:
 `Audit exception: <GHSA ID> exp:<YYYY-MM-DD> (tracked in <ref>)`.
 
@@ -308,9 +311,31 @@ report-ready notes as one line:
 `Rolled back: <crate> <locked version> -> <older> (declared <requirement>)`.
 
 <TypeScript:>
-**Dependency rollback: skipped.** `vrg-update-deps` has no npm updater (a
-known gap recorded on vergil-project/.github#1209), so nothing would restore
-a rolled-back package. Leave `package-lock.json` alone.
+**Dependency rollback.** In the same change, move one package back to an
+earlier version **in `package-lock.json` only**, leaving `package.json`
+unchanged, so `npm ci` still passes and the release's dependency update has
+a guaranteed upgrade to make: a transitive package, or a direct dependency
+whose range's floor is below its locked version. Both fixtures lock every
+direct dependency at its range floor, so pick a transitive package. npm has
+no single command that moves one locked package back without saving it to
+`package.json`, so use a sequence, for example:
+
+```sh
+npm install '<package>@<older>' --package-lock-only --save-dev --ignore-scripts
+vrg-git checkout -- package.json
+npm install --package-lock-only --ignore-scripts
+```
+
+The first command locks the older version and, as a side effect, adds it to
+`package.json`. Restoring `package.json` and re-locking keeps the older
+version, because it still satisfies the dependency graph. Before committing,
+check that `package.json` is unchanged
+(`vrg-git diff --quiet -- package.json` exits 0) and that
+`package-lock.json` locks `<package>` at `<older>`. The earlier version must pass the npm audit and the license
+gate, so the PR never goes red for the wrong reason. Record it on this
+issue and in the report-ready notes as one line:
+`Rolled back: <package> <locked version> -> <older> (transitive)`, or
+`(declared <range>)` for a direct dependency.
 
 ## Submit and merge
 
@@ -435,8 +460,11 @@ names, versions):
    that exists.
 5. **Dependency update.** The release's dependency-update stage brought the
    dependency the change task rolled back (its `Rolled back:` line) up to the
-   newest version its declared range allows, through its usual PR. Record
-   the versions before and after, and the PR.
+   newest version its declared range allows, through its usual PR. A
+   `(transitive)` package has no declared range: the update moves it to at
+   least the version locked before the rollback, in a dependency-update
+   commit that names it. Other packages may move in the same update; that
+   is expected. Record the versions before and after, and the PR.
 6. **Docs.** The fixture's docs site was published for the release
    (its Pages deployment run succeeded and the site serves it).
 7. **Nothing published to a package registry.** No crates.io, PyPI, apt/dnf

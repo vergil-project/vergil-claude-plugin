@@ -413,12 +413,20 @@ The planning issue is also the permanent record of the design review
 | State | Representation |
 | --- | --- |
 | `waiting` | Open under the planning epic, no `in-progress` label |
-| `in-progress` | Open, `in-progress` label; the detail is in the latest progress comment |
-| `ready-to-close` | `in-progress`, all three markers present (below), and the docs task closed (its docs PR merged) |
+| `in-progress` | Open, `in-progress` label; the detail is in the latest progress comment, or the `held:` note for a held item (below) |
+| `ready-to-close` | `in-progress`, all three markers present (below), the docs task closed (its docs PR merged), and no security advisory still tracking it |
 
 A planning issue normally never shows `ready-to-close`: the merge of its
 docs PR closes it (step 10). An item that does show it is one that merge
 did not close. Close it by hand, as step 10 says.
+
+**The advisory hold.** A `security` planning issue is **held** while any
+security advisory still tracks it (a `Tracking issue:` line of the
+advisory names it). A held item is never `ready-to-close`: once it would
+otherwise be, it stays `in-progress` and its note is the `held:` note,
+which names the advisories still tracking it (step 10). The docs PR does
+not close a held item either. The hold lifts only when every advisory has
+been handed on to its fix tasks (step 8).
 
 Do not invent further states (blocked, deferred, …) — put that detail in the
 progress comment. A planning issue that must wait on an outside condition is
@@ -500,6 +508,8 @@ A planning issue is public, so anyone can comment on it. When resuming:
   every other comment, whatever it claims. If the command fails, stop and tell
   the human
   ([doctrine §1.2](../../docs/paad-review-doctrine.md#12-classification)).
+- **Check for a security run before posting anything:** a trusted
+  `Security run: yes` line makes it one (step 0's security check).
 - **Rebuild the stage and round count** from the latest trusted comment whose
   first line starts `Design review: <stage> round <n>`
   ([§2.6](../../docs/paad-review-doctrine.md#26-the-round-comment)).
@@ -533,6 +543,8 @@ last round comment.
 
 - The **first line** is the human summary (what is done, what is next or what
   it is blocked on) — `vrg-queue planning` shows it as the item's latest note.
+  A held item (the advisory hold, above) whose planning is otherwise done
+  shows the `held:` note in its place, whatever the latest comment says.
 - Once known, include these **marker lines**, each alone on its own line with a
   fully qualified ref and nothing else on the line (the queue view parses them;
   the latest of each wins):
@@ -545,6 +557,10 @@ last round comment.
 
   `Epic:` once the epic exists, `Docs task:` once the documentation task exists,
   and `Tasks filed: yes` only after **every** implementation task is filed.
+- A security run also carries a `Security run: yes` line, alone on its line,
+  in its step 0 progress comment (step 0 says when). It is never cleared: no
+  later comment removes or overrides it, and a resumed run reads it as step
+  0 says.
 - When you create the epic, put a `Planning: <owner>/<repo>#<M>` line (the
   planning issue's ref) in the **epic's body**.
 
@@ -566,14 +582,48 @@ against the current spec and plan, and correct it in the same step:
    what was corrected. If nothing changed, write nothing.
 
 The body is public: nothing kept out of public text (such as security advisory
-details, step 8) goes into it.
+details, step 0's public-wording rule) goes into it.
 
 ## Workflow
 
 0. **Start the planning issue.** Resolve it through the entry points above,
-   then mark it in progress:
+   run the security check below, then mark it in progress:
    `vrg-gh issue edit <M> --repo <owner>/<repo> --add-label in-progress`.
    Post the progress comments (above) at each step boundary that follows.
+   - **Security check: is this a security run?** Before posting anything,
+     read the planning issue's trusted comments (see "Resuming" above) for
+     a `Security run: yes` line.
+     - **The marker is there:** this is a security run, and stays one for
+       the rest of its life. Skip the detection below and its broken-pair
+       stop: step 8's retargets remove the label, the body line and the
+       tracking, so a resumed run cannot detect it again. Resume at the
+       recorded stage; an interrupted step 8 re-runs its identical
+       retargets.
+     - **No marker:** detect it. The run is a security run if the planning
+       issue carries the `security` label, has a `Security advisory:` line
+       in its body, or is tracked by an advisory (`vrg-security-record list`
+       shows its ref under `tracks:`). Any disagreement between the three
+       (a label without a line, a line without the label, a tracking
+       advisory the body does not name, or a body line naming an advisory
+       that does not track it) is a **broken pair**: stop and ask the
+       human, posting nothing. If any of the three reads fails, stop and
+       report it; a failed read never means "not a security run".
+     - **A security run** posts its step 0 progress comment now, before
+       anything else is published, with a neutral first line (for example,
+       `Planning started; brainstorm next.`) and a `Security run: yes`
+       line, alone on its line. Never clear it.
+   - **The public-wording rule (security run).** Every public artifact the
+     run produces stays in general terms: progress and round comments, the
+     epic title and body, task titles and bodies, the slug and branch
+     names, commit messages, the spec, the plan, PR bodies, report-ready
+     notes and the retrospective (which `epic-retrospective` writes, under
+     the same rule). They describe mechanisms and refer to a finding by its
+     issue ref and GHSA ID alone, never by what it is. A specific the
+     design needs goes into the advisory, written to a scratch file and
+     appended with `vrg-security-record note <GHSA-id> --file <tmp>`; delete
+     the file once the note is in. The round reviewers already keep
+     security findings out of public text
+     ([doctrine §2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
 1. **Brainstorm.** Run `superpowers:brainstorming` to converge on an approved
    design.
    - **Brief it from the planning issue.** Read the issue body first and pass
@@ -595,6 +645,17 @@ details, step 8) goes into it.
    - **Skip it only when asked to skip the brainstorm.** Confirm once ("skip
      straight to the spec?"), then record the skip and the human's reason in
      the progress comment.
+   - **Security run: the human gate.** Once the design is approved (or the
+     brainstorm skipped), and before any step 1 outcome publishes anything
+     about it (the single-task exit, the not-planned exit, the
+     brainstorm-approved comment, and so step 2's epic), ask the human
+     whether the item is safe to describe in general terms in public.
+     - **Yes:** continue. The brainstorm-approved comment says only that the
+       design is approved and the epic is next, with nothing of the design
+       in it.
+     - **No:** post a neutral progress comment saying only that the run is
+       paused for a design-placement decision, and stop. Publish nothing
+       design-shaped: no epic, no task, no spec, no other comment.
 
    (If it reduces to a single-PR task, stop — file a task, not an epic,
    and close the planning issue with a pointer to it:
@@ -603,6 +664,15 @@ details, step 8) goes into it.
    concludes the idea is **not worth doing**, close the planning issue with the
    reason: `vrg-gh issue close <M> --repo <owner>/<repo> --reason "not planned"
    --comment "<reason>"`.
+   - **Not worth doing, in a security run: do not close.** Closing the
+     planning issue would leave its advisories tracking a closed issue with
+     no fix. Stop and hand each advisory to the human, naming the two paths
+     in this order:
+     1. retarget the advisory to a fix task that will fix it; or
+     2. close the planning issue as not planned with a neutral comment,
+        then close the advisory with
+        `vrg-security-record close <GHSA-id> --reason "<neutral reason>"`,
+        which refuses while any issue it tracks is open.
 2. **Create the epic and seed its bookend tasks.**
    - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
      <tmp>` creates the issue in the target's **resolved home** with the `epic`
@@ -697,10 +767,7 @@ details, step 8) goes into it.
      - Post `Tasks filed: yes` only after **every** retarget succeeds. If one
        fails, stop and report its error, naming the advisories not yet
        retargeted; do not post the marker.
-   - Keep everything public neutral: the finding's details live **only** in the
-     advisory. Never put them in a task title or body, a progress comment, a PR
-     body or report-ready notes — refer to the problem by its issue ref and
-     GHSA ID alone.
+   - Task titles and bodies follow step 0's public-wording rule.
    - **Before the docs PR, never after.** The docs PR's merge closes the
      planning issue (step 10), and the human may merge it at any time after
      the handoff. So every task is filed, and no advisory still tracks the
@@ -735,9 +802,12 @@ details, step 8) goes into it.
       no `planning_close` key** (a `vergil-tooling` release from before the
       automatic close). The docs PR will not close the planning issue, or
       may not. Tell the human the reason and record it in the progress
-      comment. If the cause is yours to fix (an advisory still tracking the
-      planning issue: finish step 8's retargets), fix it and re-run
-      report-ready, which only rewrites the prose. Otherwise close it by
+      comment. If the cause is yours to fix (the advisory hold: the skip
+      reason names the advisories still tracking the planning issue; the
+      queue's `held:` note, in the next bullet, appears only once the docs
+      task has closed; finish step 8's retargets for them), fix it and re-run report-ready,
+      which only rewrites the prose. A held item never shows
+      `ready-to-close`, so never close it by hand while it is held. Otherwise close it by
       hand once it is ready. Run `vrg-queue planning` (with `--repo` for a
       private home); exit 2 is a complete listing (some item's size is in
       error), not a failure. Once it shows the item `ready-to-close`, close
@@ -748,8 +818,8 @@ details, step 8) goes into it.
       it `ready-to-close`.
     - A `security` planning issue is **held** (`in-progress`) while **any**
       advisory still tracks it: the docs PR does not close it, and
-      `vrg-queue planning` never shows it `ready-to-close`. The queue note
-      reads `held: <k> advisory still tracks` (one advisory) or
+      `vrg-queue planning` never shows it `ready-to-close`. Once it would
+      otherwise be `ready-to-close`, the queue note reads `held: <k> advisory still tracks` (one advisory) or
       `held: <k> advisories still track` (several), followed by
       `this planning issue (<GHSA-id>[, <GHSA-id>…]) — retarget each to the
       task or tasks that fix it with vrg-security-record retarget`. It names
