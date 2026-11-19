@@ -107,11 +107,25 @@ records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
 markers, and files every task before it hands off the docs PR. That PR also
 closes the planning issue: `vrg-submit-pr` adds a `Planning issue: Closes`
 line for it, so the merge that publishes the spec and plan ends the planning.
-For a `security` planning issue, it hands each advisory
-to the task or tasks that fix it or, for a design-only finding, the
-documentation task, with one `vrg-security-record retarget` per advisory,
-before posting `Tasks filed: yes`, and the planning issue cannot close until
-every advisory is handed off (see
+At step 0 it checks whether the run is a security run (the planning issue
+carries the `security` label, has a `Security advisory:` line, or is tracked
+by an advisory), stops on any disagreement between the three as a broken
+pair, and records a `Security run: yes` marker that is never cleared. A
+security run keeps every public artifact in general terms, naming findings
+by issue ref and GHSA ID alone, and puts specifics into the advisory. Once
+the design is approved, it asks the human whether the item is safe to
+describe in public before anything about it is published, and pauses on no.
+A security run judged not worth doing is never closed by the agent: the
+human either retargets each advisory to a fix task, or closes the planning
+issue as not planned and then closes the advisory. Otherwise it hands each
+advisory to the task or tasks that fix it or, for a design-only finding,
+the documentation task, with one
+`vrg-security-record retarget <GHSA> --from <planning issue> --to <task> …`
+per advisory, after the last fix task is filed and before posting
+`Tasks filed: yes` (or, for a single task, before closing the planning
+issue). A retarget refusal stops for the human. The planning issue cannot
+close while any advisory still tracks it or one it names cannot be read
+(see
 [Security items in planning](https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning)).
 
 **When to use.** At the start of significant work — "let's build X", "start an
