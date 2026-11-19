@@ -744,6 +744,8 @@
       
         
       
+        
+      
     
     
     
@@ -796,6 +798,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.81/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.81
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5070,11 +5100,25 @@ records progress comments with the <code>Epic:</code> / <code>Docs task:</code> 
 markers, and files every task before it hands off the docs PR. That PR also
 closes the planning issue: <code>vrg-submit-pr</code> adds a <code>Planning issue: Closes</code>
 line for it, so the merge that publishes the spec and plan ends the planning.
-For a <code>security</code> planning issue, it hands each advisory
-to the task or tasks that fix it or, for a design-only finding, the
-documentation task, with one <code>vrg-security-record retarget</code> per advisory,
-before posting <code>Tasks filed: yes</code>, and the planning issue cannot close until
-every advisory is handed off (see
+At step 0 it checks whether the run is a security run (the planning issue
+carries the <code>security</code> label, has a <code>Security advisory:</code> line, or is tracked
+by an advisory), stops on any disagreement between the three as a broken
+pair, and records a <code>Security run: yes</code> marker that is never cleared. A
+security run keeps every public artifact in general terms, naming findings
+by issue ref and GHSA ID alone, and puts specifics into the advisory. Once
+the design is approved, it asks the human whether the item is safe to
+describe in public before anything about it is published, and pauses on no.
+A security run judged not worth doing is never closed by the agent: the
+human either retargets each advisory to a fix task, or closes the planning
+issue as not planned and then closes the advisory. Otherwise it hands each
+advisory to the task or tasks that fix it or, for a design-only finding,
+the documentation task, with one
+<code>vrg-security-record retarget &lt;GHSA&gt; --from &lt;planning issue&gt; --to &lt;task&gt; …</code>
+per advisory, after the last fix task is filed and before posting
+<code>Tasks filed: yes</code> (or, for a single task, before closing the planning
+issue). A retarget refusal stops for the human. The planning issue cannot
+close while any advisory still tracks it or one it names cannot be read
+(see
 <a href="https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning">Security items in planning</a>).</p>
 <p><strong>When to use.</strong> At the start of significant work — "let's build X", "start an
 epic for this" — to resume a paused planning session, or to choose what to
