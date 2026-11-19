@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.80] - 2026-11-19
+
+### Features
+
+- check for a security run at step 0 and gate its first publication on the human (#1181)
+- turn on the TypeScript dependency rollback (#1182)
+
 ## [2.1.79] - 2026-11-18
 
 ### Features
