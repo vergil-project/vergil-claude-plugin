@@ -25,3 +25,8 @@ jobs:
   release:
     if: github.ref == 'refs/heads/main'
     uses: vergil-project/vergil-actions/.github/workflows/cd-release.yml@v2.1
+    # The release pushes its tag with the automation App's token, so the
+    # shared workflow needs the App's credentials.
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
