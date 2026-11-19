@@ -414,19 +414,24 @@ The planning issue is also the permanent record of the design review
 | --- | --- |
 | `waiting` | Open under the planning epic, no `in-progress` label |
 | `in-progress` | Open, `in-progress` label; the detail is in the latest progress comment, or the `held:` note for a held item (below) |
-| `ready-to-close` | `in-progress`, all three markers present (below), the docs task closed (its docs PR merged), and no security advisory still tracking it |
+| `ready-to-close` | `in-progress`, all three markers present (below), the docs task closed (its docs PR merged), and no security advisory holding it (none still tracking it, none it names that cannot be read) |
 
 A planning issue normally never shows `ready-to-close`: the merge of its
 docs PR closes it (step 10). An item that does show it is one that merge
 did not close. Close it by hand, as step 10 says.
 
-**The advisory hold.** A `security` planning issue is **held** while any
-security advisory still tracks it (a `Tracking issue:` line of the
-advisory names it). A held item is never `ready-to-close`: once it would
-otherwise be, it stays `in-progress` and its note is the `held:` note,
-which names the advisories still tracking it (step 10). The docs PR does
-not close a held item either. The hold lifts only when every advisory has
-been handed on to its fix tasks (step 8).
+**The advisory hold.** A planning issue is **held** while any security
+advisory still tracks it (a `Tracking issue:` line of the advisory names
+it), or while it carries the `security` label and a `Security advisory:`
+line of its body names an advisory that cannot be read (the advisory
+listing does not return it). An advisory that cannot be read counts as
+tracking: its absence never lifts the hold. A held item is never
+`ready-to-close`: once it would otherwise be, it stays `in-progress` and
+its note is the `held:` note (step 10), which names the advisories holding
+it and the `vrg-security-record retarget … --from` command that hands each
+on. The docs PR does not close a held item either. The hold lifts only
+when every advisory has been handed on to its fix tasks (step 8) and every
+advisory it names can be read.
 
 Do not invent further states (blocked, deferred, …) — put that detail in the
 progress comment. A planning issue that must wait on an outside condition is
@@ -544,7 +549,10 @@ last round comment.
 - The **first line** is the human summary (what is done, what is next or what
   it is blocked on) — `vrg-queue planning` shows it as the item's latest note.
   A held item (the advisory hold, above) whose planning is otherwise done
-  shows the `held:` note in its place, whatever the latest comment says.
+  shows the `held:` note in its place, whatever the latest comment says:
+  the advisories still tracking it, any it names that cannot be read, and
+  the retarget command, with `--from` the planning issue (step 10 quotes
+  it).
 - Once known, include these **marker lines**, each alone on its own line with a
   fully qualified ref and nothing else on the line (the queue view parses them;
   the latest of each wins):
@@ -664,6 +672,16 @@ details, step 0's public-wording rule) goes into it.
    concludes the idea is **not worth doing**, close the planning issue with the
    reason: `vrg-gh issue close <M> --repo <owner>/<repo> --reason "not planned"
    --comment "<reason>"`.
+   - **A single task, in a security run: hand each advisory on before the
+     close.** After the human gate (above), file the task (its title and
+     body under step 0's public-wording rule), then retarget each advisory
+     that tracks the planning issue to it, one after another, as step 8
+     says (GHSA IDs from `vrg-security-record list`, a refusal stops for
+     the human):
+     `vrg-security-record retarget <GHSA-id> --from '<owner>/<repo>#<M>'
+     --to '<owner>/<repo>#<T>'`. Close the planning issue only once every
+     retarget has succeeded; closing it first would leave an advisory
+     tracking a closed issue with no fix.
    - **Not worth doing, in a security run: do not close.** Closing the
      planning issue would leave its advisories tracking a closed issue with
      no fix. Stop and hand each advisory to the human, naming the two paths
@@ -743,20 +761,39 @@ details, step 0's public-wording rule) goes into it.
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
    `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
    last one is filed, post the progress comment with `Tasks filed: yes`.
-   - **Security planning issue — hand every advisory to its fix tasks.** If
-     the planning issue carries the `security` label, its body has one or more
-     `Security advisory: <org>/.github <GHSA-id>` lines, each naming a private
-     advisory that tracks it. Once the task or tasks that fix each problem
-     are filed, retarget **each** advisory to the task or tasks that fix it,
-     so their PRs close it (the scheduled sweep closes an advisory once every
-     issue it tracks is closed). Run
-     one vrg-security-record retarget <GHSA-id> --to … per advisory:
-     `vrg-security-record retarget <GHSA-id> --to <owner>/<repo>#<TASK> [--to
-     <owner>/<repo>#<TASK> …]` (one `--to` per fix task, each a fully
-     qualified ref in the same org).
+   - **Security run — hand every advisory to its fix tasks.** Every advisory
+     that tracks the planning issue is handed on to the task or tasks that
+     fix it. Take the GHSA IDs from the advisories themselves: the ones
+     `vrg-security-record list` shows with the planning issue's ref under
+     `tracks:`, never the body's `Security advisory:` lines. Once the
+     **last** fix task is filed, retarget each advisory **once**, from the
+     planning issue to every task that fixes it:
+     `vrg-security-record retarget <GHSA-id> --from '<owner>/<repo>#<M>'
+     --to '<owner>/<repo>#<TASK>' [--to '<owner>/<repo>#<TASK>' …]` (one
+     `--to` per fix task, each a fully qualified ref in the same org).
+     Retarget drops the planning issue, the `--from` being handed on, and
+     marks each fix task.
+     - **The advisory closes by sync, not by a sweep.** No schedule closes
+       an advisory. It closes when someone runs `vrg-security-record sync`
+       after every issue it tracks has closed as completed; while any is a
+       queue item or was closed with another reason, the sync keeps it
+       `draft` and reports it on a `held:` line.
      - **One after another, never in parallel.** Each retarget rewrites the
        planning issue's body, so two at once can write back a line the other
        removed. Wait for each to finish before starting the next.
+     - **A fix task filed later** (after an advisory was handed on) is added
+       with a retarget `--from` one of the advisory's current tasks, with
+       the **complete** set, every task already tracked and the new one, as
+       `--to`.
+     - **A failure partway through** (retarget names the advisory and the
+       step that failed): fix the cause and re-run the **identical**
+       command, which finishes the move.
+     - **A refusal** (the `--from` is not an issue the advisory tracks, or
+       the move would stop tracking an open issue): retarget writes nothing
+       and prints the command that would succeed. Stop and ask the human;
+       never run that command, or add `--drop`, without their decision.
+       Leaving an open issue untracked with `--drop` is the human's call,
+       never the agent's.
      - **Design-only findings go to the documentation task — only then.** A
        finding the revised design resolves by itself (no task implements it,
        for example because the spec now removes a mechanism) is retargeted to
@@ -764,9 +801,9 @@ details, step 0's public-wording rule) goes into it.
        but **only** when the weakness exists only in the design and no
        shipped code has it. A finding about shipped behaviour always goes to a
        fix task that changes the code.
-     - Post `Tasks filed: yes` only after **every** retarget succeeds. If one
-       fails, stop and report its error, naming the advisories not yet
-       retargeted; do not post the marker.
+     - Post `Tasks filed: yes` only after **every** retarget succeeds. While
+       one has failed or been refused, do not post the marker: report its
+       error, naming the advisories not yet retargeted.
    - Task titles and bodies follow step 0's public-wording rule.
    - **Before the docs PR, never after.** The docs PR's merge closes the
      planning issue (step 10), and the human may merge it at any time after
@@ -803,9 +840,10 @@ details, step 0's public-wording rule) goes into it.
       automatic close). The docs PR will not close the planning issue, or
       may not. Tell the human the reason and record it in the progress
       comment. If the cause is yours to fix (the advisory hold: the skip
-      reason names the advisories still tracking the planning issue; the
-      queue's `held:` note, in the next bullet, appears only once the docs
-      task has closed; finish step 8's retargets for them), fix it and re-run report-ready,
+      reason names the advisories holding the planning issue; the queue's
+      `held:` note, in the next bullet, appears only once the docs task has
+      closed; finish step 8's retargets for those still tracking it, and
+      follow the next bullet for any that cannot be read), fix it and re-run report-ready,
       which only rewrites the prose. A held item never shows
       `ready-to-close`, so never close it by hand while it is held. Otherwise close it by
       hand once it is ready. Run `vrg-queue planning` (with `--repo` for a
@@ -816,17 +854,33 @@ details, step 0's public-wording rule) goes into it.
       has not merged yet (a human action), the next `epic-create` touch or
       `epic-review planning` closes it, once the planning-queue summary shows
       it `ready-to-close`.
-    - A `security` planning issue is **held** (`in-progress`) while **any**
-      advisory still tracks it: the docs PR does not close it, and
-      `vrg-queue planning` never shows it `ready-to-close`. Once it would
-      otherwise be `ready-to-close`, the queue note reads `held: <k> advisory still tracks` (one advisory) or
-      `held: <k> advisories still track` (several), followed by
-      `this planning issue (<GHSA-id>[, <GHSA-id>…]) — retarget each to the
-      task or tasks that fix it with vrg-security-record retarget`. It names
-      only the advisories still tracking the issue. Run the step 8 retargets
-      for those. **Never close it by hand before every retarget**: closing it
-      would leave an advisory tracking a closed planning issue instead of the
-      work that fixes it.
+    - A planning issue is **held** (`in-progress`) while **any** advisory
+      still tracks it, or while it is `security`-labelled and names an
+      advisory that cannot be read (the advisory hold, under the planning
+      states): the docs PR does not close it, and `vrg-queue planning`
+      never shows it `ready-to-close`. Once it would otherwise be
+      `ready-to-close`, the queue note is the `held:` note. It has one part
+      per cause, joined by `; `, then the command that hands each advisory
+      on:
+      - `<k> advisory still tracks` (one) or `<k> advisories still track`
+        (several) `this planning issue (<GHSA-id>[, <GHSA-id>…])`: run the
+        step 8 retargets for those.
+      - `<k> advisory this planning issue names cannot be read`
+        (`<k> advisories` for several) `(<GHSA-id>[, …]): re-run with a
+        token that can read the repository's advisories, or have the human
+        check it`: re-run with such a token (reading the advisories needs
+        Repository security advisories access on the org's `.github`); if
+        it still cannot be read, stop and ask the human to check the
+        advisory. Never treat it as handed on.
+      - Then `— retarget each to the task or tasks that fix it with
+        vrg-security-record retarget <GHSA> --from '<owner>/<repo>#<M>' --to
+        <task>`.
+
+      The docs PR's skip reason (`planning_close`) gives the same causes
+      and command, ending `, then close the planning issue by hand`.
+      **Never close it by hand while it is held**: closing it would leave
+      an advisory tracking a closed planning issue instead of the work that
+      fixes it.
 
 ## Notes
 

@@ -382,13 +382,19 @@ the item's latest `Epic:` marker names
   planned, whatever its markers say, and needs planning again. It is not
   closable. Offer **leave**, **defer** or **drop**, as the tool allows.
 
-**A held item is never closed here.** A `security` planning item is held
-while any security advisory still tracks it (`epic-create`'s advisory hold,
-under its planning states). `vrg-queue planning` never shows a held item
+**A held item is never closed here.** A planning item is held while any
+security advisory still tracks it, or while it is `security`-labelled and
+names an advisory that cannot be read (`epic-create`'s advisory hold, under
+its planning states). `vrg-queue planning` never shows a held item
 `ready-to-close`: once it would otherwise be, it stays `in-progress` and its
-note is the `held:` note, naming the advisories still tracking it. Treat it as
-the `in-progress` item it is (above), and never close it by hand:
-handing its advisories on to their fix tasks is `epic-create`'s step 8.
+note is the `held:` note, naming the advisories still tracking it, any that
+cannot be read, and the `vrg-security-record retarget <GHSA> --from
+'<planning issue>' --to <task>` command that hands each on. Treat it as the
+`in-progress` item it is (above), and never close it by hand, or run that
+retarget from here: handing its advisories on to their fix tasks is
+`epic-create`'s step 8. For an advisory that cannot be read, say so in the
+item's paragraph: the next step is a re-run with a token that can read the
+repository's advisories, or the human checking the advisory.
 
 | Outcome | Effect |
 | --- | --- |
