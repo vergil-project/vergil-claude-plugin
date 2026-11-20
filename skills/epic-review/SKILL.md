@@ -231,7 +231,22 @@ Which routes a mode offers is in its section. Rules for every mode:
   under that repo's ad-hoc epic (`--epic adhoc`, the default, created if
   absent) or an existing finite epic (`#<E>` reads against the target
   repo's epic home). **Prefer an existing finite epic** over the ad-hoc
-  bucket when the item clearly belongs to one. A move to another repo
+  bucket when the item clearly belongs to one. **An ad-hoc epic takes only
+  standalone, single-issue work**, so before recommending `adhoc`, check
+  whether the item is work of a development epic in **another org** than
+  the target repo's: its body or comments name an `epic`-labelled issue
+  there (check its labels with `vrg-gh issue view <ref> --json labels`), or
+  the human says it belongs to one. Such an item goes under that epic's
+  **proxy** in the target repo's org, never ad-hoc: ensure the proxy with
+  `vrg-epic-create --proxy-for <primary ref> --repo <owner>/<target-repo>`
+  (it creates `Epic (proxy): <name>` in `<owner>/.github` and its `Proxy:`
+  comment on the primary, or finds the one that exists), then route with
+  `--epic <owner>/.github#<P>`. Recommend it in the item's paragraph, and
+  run `--proxy-for` only once the batch is confirmed. If `--proxy-for`
+  refuses (a private primary or target, or a primary that is not an open
+  development epic), report it and ask the human for another outcome; never
+  fall back to `adhoc`. When the item's work lands in the primary's own
+  org, no proxy is needed: route it under the primary itself. A move to another repo
   **transfers** the issue to keep its history; if GitHub refuses the
   transfer, the tool **recreates** the item in the target repo with a
   `Moved from <url>` line, closes the original with a pointer, and says so
@@ -304,7 +319,7 @@ Each item gets one of six outcomes:
 | --- | --- |
 | **drop** | Comments the reason and closes the item as not planned. |
 | **defer** | Moves the item out of intake into the deferred queue with a dated `Deferred <date>: <reason>` / `Revisit when: <conditions>` comment. `epic-review deferred` brings it back when its conditions are met. |
-| **one-off** | Moves the item into its target repo and links it under that repo's ad-hoc epic (default) or an existing finite epic. |
+| **one-off** | Moves the item into its target repo and links it under that repo's ad-hoc epic (default), an existing finite epic, or, for work of another org's epic, that epic's proxy (see step 5). |
 | **split** | The replacement tasks already exist; comments links to them with the reason, then closes the item. |
 | **planning** | Reparents the item from the intake epic to the planning epic, where the human can later choose it for `epic-create`. |
 | **leave** | No route. The item stays in intake and comes up again next review. |
@@ -355,7 +370,7 @@ For a **waiting** item, one of four outcomes:
 | **leave** | No route. The item is still valid and stays in the queue. Most items end here. |
 | **defer** | `vrg-intake-route <ref> defer …` moves it to the deferred queue with a dated deferral record. For an item whose blockers will take a while. |
 | **drop** | `vrg-intake-route <ref> drop --reason …` closes it as not planned. For an item no longer needed or overtaken. |
-| **one-off** | `vrg-intake-route <ref> one-off --repo …` moves it to a repo's ad-hoc or finite epic. Unusual but legitimate: the item is small enough for one PR, or its scope can be cut until it is. A cut in scope goes to the human as a scope change through `vrg-ruling draft-scope` (step 5). |
+| **one-off** | `vrg-intake-route <ref> one-off --repo …` moves it to a repo's ad-hoc or finite epic, or to another org's epic's proxy (step 5). Unusual but legitimate: the item is small enough for one PR, or its scope can be cut until it is. A cut in scope goes to the human as a scope change through `vrg-ruling draft-scope` (step 5). |
 
 **`in-progress` items belong to `epic-create`.** An `in-progress` item is
 being expanded. Show each with its latest note and how long it has sat (read
@@ -462,7 +477,7 @@ Each item gets one of four outcomes:
 | --- | --- |
 | **keep** | No route. The conditions are not met and still describe the right trigger. |
 | **refresh** | `vrg-intake-route <ref> defer --reason … --revisit-when …` on the already-deferred item: a new dated deferral comment (with no `Deferred from:` line) and no move. For conditions gone stale: a date passed without the event, the trigger moved, or a better signal exists. Draft the new reason and conditions. |
-| **revive** | The conditions are met. Move the item out with `intake` (it needs a fresh look), `planning` (it needs a full epic) or `one-off` (it is ready work). The `Deferred from:` line guides the choice: an item deferred from an ad-hoc epic usually returns as a one-off to that repo, one from planning returns to planning, and one from intake returns to intake, or straight to one-off or planning when its destination is already clear. |
+| **revive** | The conditions are met. Move the item out with `intake` (it needs a fresh look), `planning` (it needs a full epic) or `one-off` (it is ready work). The `Deferred from:` line guides the choice: an item deferred from an ad-hoc epic usually returns as a one-off to that repo, but first check, as step 5's one-off rule says, whether it is work of another org's epic; if it is, it returns under that epic's proxy, never to the ad-hoc epic it came from. One from planning returns to planning, and one from intake returns to intake, or straight to one-off or planning when its destination is already clear. |
 | **drop** | The item is no longer needed: overtaken, obsolete, or not feasible for years. |
 
 **Sizes.** A deferred item keeps its size through a refresh and a revive to
