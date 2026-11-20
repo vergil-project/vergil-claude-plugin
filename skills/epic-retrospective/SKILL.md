@@ -72,12 +72,24 @@ against a dynamic epic):
 - **Failed or empty output is ambiguous → stop.** A non-zero exit, missing or
   unparsable JSON, or an empty `children` array (an epic always has at least
   its bookends, including R itself) means the gate **could not verify** — stop
-  and ask the human. Never read it as "no open children."
+  and ask the human. Never read it as "no open children." An exit 1 with
+  problems on stderr and no JSON is **proxy link drift** (a broken or
+  disagreeing `Primary:`/`Proxy:` link): show the problems and stop; the gate
+  cannot see every proxy task until the link is fixed.
+- The `children` include **proxy tasks**: the sub-issues of every proxy epic
+  the epic's trusted `Proxy:` comments name, in other orgs. They count like
+  the epic's own children, so the gate needs no rule of its own for them.
 - Let **R** be the retrospective task. If **any child other than R is still
   open**, **abort** — print the open refs and stop:
 
   > "Not the terminal task — the epic still has N open child(ren): #… . Finish
   > them (`epic-implement`) before running the retrospective."
+
+  Give each open ref in full (`owner/repo#N`), and for each open proxy task
+  name its proxy: the task's native parent, read with
+  `vrg-gh issue view <N> --repo <owner>/<repo> --json parent`, whenever that
+  parent is not this epic (`… #N (proxy task, under <proxy ref>)`). The
+  proxies themselves are still open then, by design; only their tasks block.
 
 - This subsumes ordering: the documentation-review sweep and any per-repo
   siblings it spawned are just other open children the gate catches, so

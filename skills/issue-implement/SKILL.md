@@ -269,7 +269,12 @@ records it. With the human present, post it on the bookend yourself in
 that form. A sweep item is not a non-review item: it needs no ruling and
 never goes under `Awaiting a ruling`. Screen it against
 [§1.6](../../docs/paad-review-doctrine.md#16-security-findings) first: a
-security-class item is a security item, never a sweep item. An ad-hoc
+security-class item is a security item, never a sweep item. A proxy
+task (one whose native parent carries `epic` + `proxy`) has no bookend
+of its own: its items are recorded on the **primary's**
+documentation-review bookend, the primary being the `primary` key of
+`vrg-epic-audit --epic <proxy ref>` (an exit 1 there is link drift: stop
+and tell the human, never post anywhere else). An ad-hoc
 task has no bookend: a documentation gap it finds outside its scope is a
 follow-up, under `Awaiting a ruling`.
 
