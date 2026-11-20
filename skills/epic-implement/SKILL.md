@@ -1,6 +1,6 @@
 ---
 name: epic-implement
-description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review) or a non-epic. It never opens PRs, never runs pr-watch, and never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
+description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin) or a non-epic. It never opens PRs and never starts pr-watch after a submit (vrg-finalize-pr watches), but runs pr-watch at once on a PR the human reports did not merge; it never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
 ---
 
 # Epic implement
@@ -44,7 +44,9 @@ dispatch, gate and batching rules.
      |---|---|---|
      | no `epic` label (a task, or an `archive`) | not an epic | Print `<ref> is not an epic.` and stop. |
      | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. For a self-homed private repo's queue (one whose `<owner>/<repo>` is not `<owner>/.github`), print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind> --repo <owner>/<repo>.` instead: its queues are reviewed only with its own `--repo`. |
+     | `epic` + `hoshin` | the hoshin epic | Print `<ref> is the hoshin epic; its tasks belong to /vergil:hoshin.` and stop. |
      | `epic` + `ad-hoc` | one repo's ad-hoc epic | Run the [`adhoc` mode](#the-adhoc-mode) for that one repo (below). |
+     | `epic` + `proxy` | a proxy epic | Read its primary from the `primary` key of `vrg-epic-audit --epic <ref>`, print `<ref> is a proxy for <primary ref>; drive the primary epic instead.` and stop. If the audit exits 1 (link drift), show its stderr and stop. |
      | `epic`, none of the above | development epic | Read the epic issue and go on to step 1. |
 
      **Mapping an ad-hoc epic to its repo.** A live ad-hoc epic is titled
@@ -78,12 +80,21 @@ Do **not** rely on any single tool as a state engine. Reconstruct position by:
 1. Reading the epic issue and its **referenced plan** (`epics/<N>-<slug>/plan.md`
    in the epic's home repo) — the plan is the **authoritative execution driver**:
    the intended task sequence and the terminal bookends live there.
-2. Reading each sub-issue's **open/closed** status.
+2. Reading each task's **open/closed** status from the `children` of
+   `vrg-epic-audit --epic <epic-ref>`: the epic's own sub-issues and the
+   sub-issues of every proxy epic its trusted `Proxy:` comments name, each
+   with its repo. A proxy task (a task of the effort filed in another
+   org, under that org's proxy) is driven here like any other task,
+   through the same skills and gates; only the primary's
+   `epic-implement` drives it. An exit 1 is proxy link drift (a broken or
+   disagreeing `Primary:`/`Proxy:` link, on stderr): show it and stop
+   (step 5), never building a frontier without the proxy's tasks.
 3. Reconciling the two: the **runnable frontier** is every task the plan says is
    ready whose dependencies (per the plan) are closed, and which is itself open.
 
-`vrg-epic-audit` may be consulted as a **consistency check** (linking, drift) but
-is never the source of position. Where the plan's ordering is informal (no
+`vrg-epic-audit` supplies the task list and states, and its drift-audit mode
+(no `--epic`) may be consulted as a **consistency check** (linking, drift), but
+neither is the source of position: the plan is. Where the plan's ordering is informal (no
 `Blocked-by` links), infer it from the plan text plus issue state.
 
 **Plans evolve append-only once execution starts.** The plan is frozen when its
@@ -94,7 +105,8 @@ execution` section at the bottom of `plan.md` (create the section on the first
 entry). The epic's sub-issues stay the authoritative live task list; the log
 is the *why* behind any gap between them and the plan, and `epic-retrospective`
 builds its "How the plan evolved" section from it. Before the first task ships,
-edit the plan freely.
+edit the plan freely. Evolution that concerns a proxy task is recorded in the
+**primary's** plan, the one this run drives: a proxy has no plan.
 
 ## 3. Work the runnable frontier
 
@@ -312,8 +324,11 @@ Batch each repo **once** and stop. Your responsibility **ends here.** The human
 submits each batch with `vrg-submit-pr`, which opens its PRs with auto-merge on
 (a batch PR rebase-merges, any other PR squash-merges) and finalizes by default:
 `vrg-finalize-pr` watches the PRs land and settles `develop`, and never merges.
-**Do not run `pr-watch`** — it is
-a rare, human-triggered exception the human invokes only if a gate goes red. When
+**Do not start `pr-watch` after a submit**: `vrg-finalize-pr` already watches
+the PRs. When the human reports a PR that did not merge (a finalize line
+naming it, a red check, a conflict) or asks for one to be fixed, run
+`pr-watch` on it at once (`/vergil:pr-watch <PR_URL>`, the `pr-watch` skill);
+never hand that command back to the human to run. When
 the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
 re-derive state and advance to the next frontier.
 
@@ -361,7 +376,13 @@ When only the closing bookends remain, drive them **in order**:
   its run reads those comments first and treats every item not recorded as
   fixed as part of its list, alongside its own search. Its own same-repo doc edits are mechanical; where **other** repos'
   docs need work it **spawns a per-repo doc task** (linked under the epic, closed
-  by a same-repo PR) rather than reaching across a repo boundary. See
+  by a same-repo PR) rather than reaching across a repo boundary. A doc task
+  for a repo in **another org** is filed under that org's proxy, never under
+  the primary and never in an ad-hoc epic: get the proxy's ref with
+  `vrg-epic-create --proxy-for <primary ref> --repo <owner>/<repo>`, which
+  prints the existing proxy, reopens one closed early, or creates it (and its
+  `Proxy:` comment on the primary), then file the task with
+  `vrg-issue-create --epic <proxy ref> --repo <owner>/<repo>`. See
   `epic-create`'s bookend convention. This runs **before** the retrospective.
   When the review's own repo needs no change, it has no PR to close it:
   `issue-implement` posts the search evidence on the task and closes it as

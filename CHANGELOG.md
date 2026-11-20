@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.82] - 2026-11-20
+
+### CI
+
+- pass the automation App secrets to the release (#1193)
+
+### Documentation
+
+- check release contents with git ancestry in deployment tasks (#1221)
+- let the agent run pr-watch on a PR the human reports did not merge (#1222)
+
+### Features
+
+- file and read logbook tasks under the hoshin epic (#1217)
+- drive proxy tasks from the primary epic (#1218)
+- take a proxy task's design sources from its primary (#1219)
+- place cross-org work under proxy epics (#1220)
+
 ## [2.1.81] - 2026-11-19
 
 ### Features

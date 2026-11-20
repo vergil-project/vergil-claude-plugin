@@ -105,7 +105,7 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 | `draft-<step>.json` | this skill | The reply items for `vrg-ruling draft`, human present only. |
 | `open-request.json` | this skill | `{"request": <id>, "step": "<step>", "last": "<request_id>"}`, gaining `"reply": <id>` once the reply is read and `"responded": true` once the response lands. `last` is the `request_id` of the latest checked result when the request was posted, or `null` before any. |
 | `respond-<step>.json` | this skill | The response items, kept until `respond` succeeds. |
-| `reask.json` | this skill | Request items still to be asked: a reply's unclear items, and an `M1`, `D1` or `B1` reached while carrying out a reply. |
+| `reask.json` | this skill | Request items still to be asked: a reply's unclear items, and an `M1`, `D1`, `D2` or `B1` reached while carrying out a reply. |
 | `stop-reason.txt` | this skill | The eligibility reason of the run's first stop; never overwritten. |
 | `comment-*.md`, `record-*.md` | this skill | Bodies for step comments and neutral security-record text. |
 | `open-pr.json` | this skill | `{"pr": "<PR_URL>"}`: the run is a [fix to an open PR](#fix-to-an-open-pr). |
@@ -113,7 +113,8 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 Steps are `review`, `check`, then `check-<k>` (`k` from 2 to 9) for each
 further check a ruling grants. Finding IDs are `R<n>`, `C<n>` and
 `C<k>.<n>`. Stop items that are not findings are `M1` (result malformed),
-`D1` (a design source not fetched) and `B1` (the fix base was rebased).
+`D1` (a design source not fetched), `D2` (a proxy task's design sources
+cannot be resolved from its primary) and `B1` (the fix base was rebased).
 
 ## The private directory
 
@@ -328,13 +329,37 @@ this skill writes neither. It reads the epic only for the design sources.
    (`vrg-gh issue view <N> --repo <owner/repo> --json parent`) and the
    parent's labels. A task under an `epic` that is not an `ad-hoc` epic is
    **under an epic**; an ad-hoc task has no design sources.
+
+   **A proxy task.** When the parent also carries `proxy` (a proxy epic,
+   holding this org's tasks of a development epic in another org), the
+   design sources are its primary's, never the proxy's. Resolve the
+   primary from the task worktree:
+
+   ```bash
+   vrg-epic-audit --epic '<proxy ref>'
+   ```
+
+   and take its JSON's `primary` key (`<owner>/<repo>#<N>`). Step 2 then
+   reads the primary's body
+   (`vrg-gh issue view <N> --repo <owner/repo> --json body`) in place of
+   the parent's. The audit exiting non-zero (a broken or disagreeing
+   `Primary:`/`Proxy:` link, its problems on stderr), its JSON having no
+   `primary` key, the primary's body not being readable, or the primary's
+   Documents section listing no design source is a stop with item `D2`
+   ([The stop](#the-stop)): `retry` (the link is fixed) resolves the
+   primary again from this step; `stop` hands off
+   `not-eligible (human-ruling)` with no review run. `D2` has no
+   `proceed-without`: a proxy task is never reviewed against nothing. The
+   open tasks need nothing here: the builder resolves a proxy task's open
+   tasks through its primary itself.
 2. **The design sources.** For a task under an epic, read the epic body's
-   Documents section (between `<!-- vrg-epic-docs -->` and
-   `<!-- /vrg-epic-docs -->`). Each entry that links
-   `https://github.com/<owner>/<repo>/blob/<branch>/<path>` is a design
-   source; an entry with no link (`Retrospective: pending`) is not. An epic
-   whose section lists none, and an ad-hoc task, have none. Fetch each from
-   `develop` of its repo, from the task worktree:
+   (for a proxy task, the primary's) Documents section (between
+   `<!-- vrg-epic-docs -->` and `<!-- /vrg-epic-docs -->`). Each entry
+   that links `https://github.com/<owner>/<repo>/blob/<branch>/<path>` is
+   a design source; an entry with no link (`Retrospective: pending`) is
+   not. An epic whose section lists none, and an ad-hoc task, have none;
+   a proxy task whose primary lists none is a `D2` stop (step 1). Fetch
+   each from `develop` of its repo, from the task worktree:
 
    ```bash
    vrg-git fetch --no-tags https://github.com/<owner>/<repo>.git develop
@@ -439,7 +464,7 @@ the [doctrine's §1.7](../../docs/paad-review-doctrine.md#17-creating-issues),
 and never while an exchange is open. **The non-review gate** runs
 immediately before merge review's first post on the issue, whatever that
 post is: the review's step comment for any decision, `pass` included, or
-an `M1` or `D1` request. Nothing is posted until the gate passes, and no
+an `M1`, `D1` or `D2` request. Nothing is posted until the gate passes, and no
 path through this skill skips it.
 
 1. **List the task's non-review items:** every `N0.<i>` and `N0.S<i>` in a
@@ -529,6 +554,7 @@ a stop whose items are each `not-fixed` ID and each new finding.
 | Any security item | `fix`, `file`, `defer`, `wont-fix` | `fix`: the change recommended in the terminal, `--fix-id`. `file`, `defer`: a security record. `wont-fix`: an accepted risk. An introduced security defect not ruled `fix` is `--ruled-id`. |
 | `M1` | `retry`, `stop` | |
 | `D1` | `retry`, `proceed-without` | |
+| `D2` | `retry`, `stop` | |
 | `B1` | `restart`, `stop` | |
 
 A security item's words are epic 889's fixed set, and its response outcome
@@ -588,18 +614,18 @@ check: a recommendation there never offers `fix`.
 
 ## The stop
 
-Every stop goes through one `vrg-ruling request`. An `M1` or `D1` stop
+Every stop goes through one `vrg-ruling request`. An `M1`, `D1` or `D2` stop
 reached before merge review has posted anything on the issue first runs
 the [non-review gate](#non-review-items-first), before writing anything
 below, and goes no further if the gate ends the run. On the run's first stop,
-write its reason to `stop-reason.txt`: `human-ruling` (a Decide stop, or
-`D1`), `too-many-blockers`, `check-failed`, `result-malformed` (`M1`) or
+write its reason to `stop-reason.txt`: `human-ruling` (a Decide stop,
+`D1` or `D2`), `too-many-blockers`, `check-failed`, `result-malformed` (`M1`) or
 `fix-base-rebased` (`B1`).
 
 1. **The step comment** comes first, when the stop follows a checked result
    ([Records](#records)); a review's stop has already passed the
    [non-review gate](#non-review-items-first) and posted it in
-   [Decide](#decide). `M1`, `D1` and `B1` have no checked result to
+   [Decide](#decide). `M1`, `D1`, `D2` and `B1` have no checked result to
    count and post none of their own.
 2. **The items file.** Write `ruling-<step>.json`, one item per open
    question, each with your recommendation:
@@ -613,9 +639,9 @@ write its reason to `stop-reason.txt`: `human-ruling` (a Decide stop, or
    ]
    ```
 
-   `<step>` is the step the stop belongs to (`review` for `D1`). Any items
-   in `reask.json` join this request, each ID once; delete `reask.json`
-   once it is posted.
+   `<step>` is the step the stop belongs to (`review` for `D1` and `D2`).
+   Any items in `reask.json` join this request, each ID once; delete
+   `reask.json` once it is posted.
 3. **The request:**
    `vrg-ruling request --issue '<ref>' --items <dir>/ruling-<step>.json`.
    It prints the request's comment ID. Write `open-request.json`
@@ -652,7 +678,7 @@ vrg-ruling read --issue '<ref>' --request <id> --json
     and `restart`. Work already on the branch, and a checked result at
     `HEAD`, are reused, not redone;
   - handle every unclear item as in [An unclear reply](#an-unclear-reply);
-  - a stop the work itself reaches (`M1`, `D1`, `B1`) is not posted now:
+  - a stop the work itself reaches (`M1`, `D1`, `D2`, `B1`) is not posted now:
     its item goes into `reask.json`, to be asked after the response. A
     failed check is decided after the response, by Decide again.
 
@@ -831,7 +857,7 @@ run's review step comment is its own ([Fix to an open PR](#fix-to-an-open-pr)).
 Before the closing comment, list the closing state of every item the run
 raised: fixed; ruled on and carried out (kept, reverted, split, filed as an
 issue, recorded as a security record, accepted as a risk, dismissed); a
-tracked note; or declined. A ruling of `stop` (`M1`, `B1`) closes the run
+tracked note; or declined. A ruling of `stop` (`M1`, `D2`, `B1`) closes the run
 with every remaining item stated as it stands. **Refuse to hand off while
 any item is still open**, and while any `security-<ID>.md` ruled `defer` or
 `file` has no record. Nothing waits on the human after handoff, so

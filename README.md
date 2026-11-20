@@ -339,9 +339,11 @@ the **human** opens the PR:
    validate to green, run the merge review, then record the PR metadata via
    `vrg-pr-workflow report-ready`, which also pushes the branch.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
-3. Run the emitted `/vergil:pr-watch <PR_URL>` in the USER agent
-   session. It waits on the PR until it auto-merges, fixing a failing
-   check or a conflict and handling review comments along the way.
+3. `vrg-submit-pr` finalizes by default: `vrg-finalize-pr` watches the
+   PR land. If a PR does not merge, tell the USER agent (paste the
+   finalize line, the red check or the conflict): it runs `pr-watch` on
+   the PR at once, fixing a failing check or a conflict and handling
+   review comments until the PR auto-merges.
 
 Repositories allow auto-merge so the automation App's sync PRs on
 `automation/*` branches merge on CI alone. Agents never turn it on,

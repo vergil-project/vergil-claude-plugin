@@ -111,7 +111,7 @@ drafts it at the gate.
    its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
    refuses it). Hand a `validation` issue to **`issue-validate`** and a
    `deployment` issue to **`issue-deploy`**.
-4. **Not an intake, planning or deferred item.** Check the issue's **native
+4. **Not an intake, planning, deferred or hoshin item.** Check the issue's **native
    parent**:
 
    ```bash
@@ -140,6 +140,13 @@ drafts it at the gate.
    for an item small enough for one PR; `epic-review deferred` → revive for
    deferred) is the only way to lift the refusal. If the parent cannot be read,
    say so and stop rather than assume it is not queued.
+
+   If the parent carries `epic` + `hoshin` (the `Epic (hoshin): …` epic),
+   stop too: tell the human `<ref> is under the hoshin epic; its tasks
+   belong to /vergil:hoshin.` A hoshin task is filed, written and handed off
+   by the `/vergil:hoshin` run that owns it, never implemented here. The PR
+   tooling does not refuse it (hoshin's own handoff uses `report-ready`), so
+   this refusal is the only guard.
 5. **Opened by a trusted author.** Before any work, check that the issue was
    opened by a trusted author
    ([doctrine §1.2](../../docs/paad-review-doctrine.md#12-classification)):
@@ -269,7 +276,12 @@ records it. With the human present, post it on the bookend yourself in
 that form. A sweep item is not a non-review item: it needs no ruling and
 never goes under `Awaiting a ruling`. Screen it against
 [§1.6](../../docs/paad-review-doctrine.md#16-security-findings) first: a
-security-class item is a security item, never a sweep item. An ad-hoc
+security-class item is a security item, never a sweep item. A proxy
+task (one whose native parent carries `epic` + `proxy`) has no bookend
+of its own: its items are recorded on the **primary's**
+documentation-review bookend, the primary being the `primary` key of
+`vrg-epic-audit --epic <proxy ref>` (an exit 1 there is link drift: stop
+and tell the human, never post anywhere else). An ad-hoc
 task has no bookend: a documentation gap it finds outside its scope is a
 follow-up, under `Awaiting a ruling`.
 

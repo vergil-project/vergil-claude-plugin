@@ -28,7 +28,9 @@ lets the process play out.
 - If the design collapses to a trivial, **single-PR** change → it is a **task**,
   not an epic. File it in the member repo under an existing finite epic or the
   repo's **ad-hoc epic** (`vrg-issue-create --epic adhoc`) and stop. Do **not**
-  mint an epic.
+  mint an epic. An ad-hoc epic takes only standalone, single-issue work: a
+  task of an epic in another org goes under that epic's proxy in the task's
+  own org instead (see "Cross-org work" in Notes).
 
 When unsure, it is a task. Epics are for initiatives, not individual changes.
 
@@ -52,7 +54,9 @@ carries these bookend tasks:
      correction/plan notes in `.github`. So it does **not** assume one docs PR
      closes it. Where a repo's docs need work, the review **spawns a per-repo doc
      task** (born linked under the epic), each closed by a **same-repo** PR — the
-     only linkage that respects the placement law (see Notes). File the review
+     only linkage that respects the placement law (see Notes). A doc task for a
+     repo in **another org** is born linked under that org's **proxy** of the
+     epic instead, never ad-hoc (see "Cross-org work" in Notes). File the review
      task itself in the repo where the bulk of its own sweep lands (usually the
      member repo holding the site docs, e.g. `vergil-tooling/docs/site`); it
      spawns siblings for the other repos rather than forcing one cross-repo PR to
@@ -88,7 +92,9 @@ below) and fill in the specifics per epic.
 lettered sub-tasks (`13a`, `13b`, `13c`, …), as many as it needs. Each
 sub-task is its own issue and lands on its own PR, and the plan's delivery
 table lists each one with what it is blocked by, so the dependencies between
-them are stated, not implied.
+them are stated, not implied. A task filed in another org (a **proxy task**,
+see "Cross-org work" in Notes) is listed there, and in every `Blocked-by:`
+that names it, by its **full ref** (`<owner>/<repo>#<N>`), never a bare `#N`.
 
 A task is too big when any of these holds:
 
@@ -174,6 +180,17 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 (bump/tag/publish), that release is a **human-gated precondition** — attested,
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
+
+**Checking that a release carries the changes.** Where a deployment (or
+release) task's procedure must confirm that a release contains given changes,
+write that step as a git ancestry check of each change's merge commit against
+the release tag, as `issue-deploy`'s
+[Checking that a release tag contains a merge](../issue-deploy/SKILL.md#preconditions-gate--release-is-a-precondition-not-your-job)
+paragraph prescribes: `vrg-git merge-base --is-ancestor <merge-sha> <tag-sha>`
+exits 0 for each. Name the merge commits, or the tasks whose PRs they merged,
+in the step. Never write it as a release-notes or changelog check: a GitHub
+release body may hold only a link, and a batch PR shows in a changelog only as
+its issues.
 
 **Fixture runs — seed one when the change reaches the fixtures.** When an epic
 changes language support, container images, shared CI workflows or release
@@ -718,8 +735,8 @@ details, step 0's public-wording rule) goes into it.
      that `epic-retrospective` finds it by.
      The documentation-review task is a **multi-repo sweep**: at review time it
      may **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
-     linked under N, closed by a same-repo PR) for documentation that lives in
-     other repos. Seed only the review task here; its siblings are filed as the
+     linked under N, or under that org's proxy for a repo in another org,
+     closed by a same-repo PR) for documentation that lives in other repos. Seed only the review task here; its siblings are filed as the
      sweep discovers where docs actually need to change. Seed a **follow-on
      brainstorm** task **only** when a known enabling chain exists at creation
      (see the bookend architecture above); otherwise leave it — it is accrued
@@ -761,6 +778,23 @@ details, step 0's public-wording rule) goes into it.
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
    `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
    last one is filed, post the progress comment with `Tasks filed: yes`.
+   - **A task in another org goes under that org's proxy.** GitHub cannot
+     link a sub-issue across orgs, so when the plan files a task in a repo
+     whose org is not the epic's, first ensure that org's proxy epic:
+     `vrg-epic-create --proxy-for <home>#N --repo <other-owner>/<repo>`.
+     It creates `Epic (proxy): <name>` in `<other-owner>/.github`, carrying
+     the `Primary:` line, and posts the `Proxy:` comment on this epic; a
+     re-run finds the proxy (reopening one closed early) and posts nothing
+     twice, so one proxy serves every task the plan files in that org. Then
+     file each such task under it:
+     `vrg-issue-create --epic <other-owner>/.github#<P> --repo
+     <other-owner>/<repo> …`. Never file it under that repo's ad-hoc epic,
+     and never try to link it under this epic directly. If `--proxy-for`
+     refuses (a private primary or target repo, or an epic that is not an
+     open development epic), stop and ask the human: the task must not be
+     filed in an ad-hoc epic instead. The plan's delivery table names each
+     proxy task by its full ref ("Task sizing" above); name the proxy in the
+     next progress comment.
    - **Security run — hand every advisory to its fix tasks.** Every advisory
      that tracks the planning issue is handed on to the task or tasks that
      fix it. Take the GHSA IDs from the advisories themselves: the ones
@@ -770,9 +804,24 @@ details, step 0's public-wording rule) goes into it.
      planning issue to every task that fixes it:
      `vrg-security-record retarget <GHSA-id> --from '<owner>/<repo>#<M>'
      --to '<owner>/<repo>#<TASK>' [--to '<owner>/<repo>#<TASK>' …]` (one
-     `--to` per fix task, each a fully qualified ref in the same org).
+     `--to` per fix task, each a fully qualified ref, all in one org).
      Retarget drops the planning issue, the `--from` being handed on, and
      marks each fix task.
+     - **A fix in another org moves the advisory.** When the fix tasks are
+       proxy tasks, in an org other than the advisory's, the same command
+       moves it: retarget creates a copy in the fix org's `.github`
+       carrying a `Moved from: <GHSA-id>` line, hands it to the fix tasks,
+       then writes a `Moved to:` line on the original and closes it. Note
+       the new GHSA ID it prints: later retargets of that advisory (a fix
+       task filed later, below) name the new ID. A re-run of the identical
+       command after a partial failure reuses the copy rather than making a
+       second one.
+     - **An advisory's fixes span orgs: stop and ask the human.** Every
+       `--to` of one retarget must be in one org, so retarget refuses fix
+       tasks in two orgs. The two ways out are the human's choice: duplicate
+       the advisory into each org, each copy tracking that org's own fix
+       tasks, or break the finding up into separate advisories. Never pick
+       one yourself.
      - **The advisory closes by sync, not by a sweep.** No schedule closes
        an advisory. It closes when someone runs `vrg-security-record sync`
        after every issue it tracks has closed as completed; while any is a
@@ -900,8 +949,22 @@ details, step 0's public-wording rule) goes into it.
   docs span several repos, you do not point one docs PR at the review issue
   across a repo boundary — you spawn a same-repo doc task in each affected repo,
   each closed by its own same-repo PR.
-- **Cross-org is out of scope:** each org has its own `.github`; never link epics
-  or tasks across orgs.
+- **Cross-org work — proxy epics.** Each org has its own `.github`, and
+  GitHub cannot link a sub-issue across orgs, so a cross-org effort has one
+  **primary** epic (the development epic, homed where the work mainly is,
+  holding the spec, plan, bookends and retrospective) and, in each other org
+  it files tasks in, one **proxy** epic: `Epic (proxy): <name>` in that org's
+  `.github`, labelled `epic` + `proxy`, whose body's `Primary:` line names
+  the primary, recorded on the primary by a trusted `Proxy:` comment. Create
+  it only with `vrg-epic-create --proxy-for <primary ref> --repo
+  <owner>/<repo>` (step 8), and file that org's tasks under it with
+  `--epic <proxy ref>`. A proxy holds tasks and nothing else (no spec, plan
+  or bookends), is driven only through the primary's `epic-implement`, and
+  stays open until the primary closes. Proxies exist only between public
+  repos: `--proxy-for` refuses a private primary or target. Linking epics or
+  tasks across orgs directly stays forbidden; the proxy is the sanctioned
+  form. **An ad-hoc epic holds only standalone, single-issue work:** a task
+  owned by any epic, a proxy task included, never goes there.
 - Capturing an uncurated idea is `intake-capture`; routing intake items
   (including into planning) is `epic-review intake`, and pruning the
   planning queue is `epic-review planning`.
