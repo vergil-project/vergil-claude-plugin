@@ -127,6 +127,13 @@ issue). A retarget refusal stops for the human. The planning issue cannot
 close while any advisory still tracks it or one it names cannot be read
 (see
 [Security items in planning](https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning)).
+A cross-org effort has one primary epic; a task its plan files in another
+org goes under that org's **proxy** epic, created with
+`vrg-epic-create --proxy-for <primary ref> --repo <owner>/<repo>`, never in
+an ad-hoc epic, which holds only standalone, single-issue work. A retarget
+to fix tasks in another org moves the advisory there; fix tasks spanning
+orgs are refused, and the human chooses between duplicating the advisory
+per org and splitting the finding.
 
 **When to use.** At the start of significant work — "let's build X", "start an
 epic for this" — to resume a paused planning session, or to choose what to
@@ -555,6 +562,11 @@ The modes differ only in order, check and outcomes:
   **refresh** (re-defer in place), **revive** (to intake, planning or a
   one-off, guided by the `Deferred from:` line), or **drop**. A condition it
   cannot verify is reported as such, with a keep recommendation.
+
+A one-off, and a revival of an item deferred from an ad-hoc epic, never
+sends work of another org's epic to an ad-hoc epic: it goes under that
+epic's proxy in the target repo's org (created with
+`vrg-epic-create --proxy-for` if it does not exist).
 
 Planning and deferred items carry an estimated **epic size** (`epic-size:S`
 to `XL`, derived from an estimated task count), which the review writes only
