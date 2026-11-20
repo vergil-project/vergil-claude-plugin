@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -746,6 +746,8 @@
       
         
       
+        
+      
     
     
     
@@ -798,6 +800,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.82/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.82
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5119,7 +5149,14 @@ per advisory, after the last fix task is filed and before posting
 issue). A retarget refusal stops for the human. The planning issue cannot
 close while any advisory still tracks it or one it names cannot be read
 (see
-<a href="https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning">Security items in planning</a>).</p>
+<a href="https://vergil-project.github.io/vergil-tooling/latest/guides/security-records/#security-items-in-planning">Security items in planning</a>).
+A cross-org effort has one primary epic; a task its plan files in another
+org goes under that org's <strong>proxy</strong> epic, created with
+<code>vrg-epic-create --proxy-for &lt;primary ref&gt; --repo &lt;owner&gt;/&lt;repo&gt;</code>, never in
+an ad-hoc epic, which holds only standalone, single-issue work. A retarget
+to fix tasks in another org moves the advisory there; fix tasks spanning
+orgs are refused, and the human chooses between duplicating the advisory
+per org and splitting the finding.</p>
 <p><strong>When to use.</strong> At the start of significant work — "let's build X", "start an
 epic for this" — to resume a paused planning session, or to choose what to
 plan next ("what should we plan next", "prioritize the planning queue"). If
@@ -5183,15 +5220,18 @@ titled <code>Logbook:</code>, naming it in the summary: a logbook task belongs t
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to <code>epic-review</code> (with
-<code>--repo</code> for a self-homed private repo's queue); given an
+<code>--repo</code> for a self-homed private repo's queue); given the hoshin epic it
+refuses and points to <a href="#hoshin">hoshin</a>, whose tasks it is; given an
 issue that is not an epic it refuses. Added in epic
 <a href="https://github.com/vergil-project/.github/issues/1077">vergil-project/.github#1077</a>.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
 epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off" — or on the ad-hoc tasks: "work the
 ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue".</p>
-<p><strong>Boundaries.</strong> It never opens PRs, never merges, and never runs <code>pr-watch</code>
-(a human-triggered exception). It <strong>drafts</strong> the terminal retrospective via
+<p><strong>Boundaries.</strong> It never opens PRs and never merges. It never starts
+<code>pr-watch</code> after a submit, since <code>vrg-finalize-pr</code> watches the PRs; when
+the human reports a PR that did not merge, or asks for one to be fixed, it
+runs <code>pr-watch</code> on it at once and never hands the command back. It <strong>drafts</strong> the terminal retrospective via
 <code>epic-retrospective</code> but never submits or merges its PR — the retrospective's
 docs PR is the final gate, and PR submit/merge stays a human gate.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). First exemplar of the Front-Loaded
@@ -5224,7 +5264,8 @@ push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
 planning or deferred epic (route it with <code>epic-review intake</code>, expand it with
 <code>epic-create</code>, or revive it with <code>epic-review deferred</code> first), mirroring the
-PR tooling's refusal. A ruling that changes the task's scope is drafted
+PR tooling's refusal. It also refuses a task under the hoshin epic,
+pointing to <a href="#hoshin">hoshin</a>, the only skill that works one. A ruling that changes the task's scope is drafted
 with <code>vrg-ruling draft-scope</code> for the human to post with
 <code>vrg-scope-change</code>, before the merge review starts. An epic's
 documentation review whose own repo needs no change has no PR: the skill
@@ -5388,9 +5429,14 @@ to be pushed, and refuses to push on a non-zero exit. A fix owned by no
 single issue, or a fold that conflicts, stops for the human. See its
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/pr-watch/SKILL.md#batch-prs--fold-every-fix-into-its-issues-commit">Batch PRs</a>
 section.</p>
-<p><strong>When to use.</strong> Run the emitted <code>/vergil:pr-watch &lt;PR_URL&gt;</code> line in
-the USER agent session after the human opens the PR, or on a PR that
-<code>vrg-finalize-pr</code> reports as not merged.</p>
+<p><strong>When to use.</strong> It is the skill the USER agent uses to repair a
+submitted PR that did not merge. The agent runs it itself, at once, when
+<code>vrg-finalize-pr</code> reports a PR as not merged, when the human reports a red
+check or a conflict, or when the human asks for a PR to be fixed or
+watched; it never hands the <code>/vergil:pr-watch &lt;PR_URL&gt;</code> command back to the
+human. The human may also run the line <code>vrg-submit-pr</code> prints. The agent
+does not start it after a submit by itself, since <code>vrg-finalize-pr</code>
+watches the PRs.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires <code>vrg-pr-await</code>'s merge
 contract: exit 0 merged, 1 cannot merge, 2 any other error
 (vergil-tooling#4648, in vergil-tooling 2.1.323 or later).</p>
@@ -5488,6 +5534,10 @@ with its tallies.</p>
   one-off, guided by the <code>Deferred from:</code> line), or <strong>drop</strong>. A condition it
   cannot verify is reported as such, with a keep recommendation.</li>
 </ul>
+<p>A one-off, and a revival of an item deferred from an ad-hoc epic, never
+sends work of another org's epic to an ad-hoc epic: it goes under that
+epic's proxy in the target repo's org (created with
+<code>vrg-epic-create --proxy-for</code> if it does not exist).</p>
 <p>Planning and deferred items carry an estimated <strong>epic size</strong> (<code>epic-size:S</code>
 to <code>XL</code>, derived from an estimated task count), which the review writes only
 through <code>vrg-intake-route … size</code> or <code>planning --tasks … --reason …</code>: intake
@@ -5563,8 +5613,8 @@ with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
 the run: a private repo's in that repo, a security finding as a security
 record, and a public one only after the security screen and the human's
 approval of its text.</p>
-<p>Each run hands off one docs PR: a <code>Logbook: &lt;date&gt; &lt;mode&gt;</code> task in the docs
-repo's ad-hoc epic, a worktree, the entries and index lines, <code>vrg-validate</code>,
+<p>Each run hands off one docs PR: a <code>Logbook: &lt;date&gt; &lt;mode&gt;</code> task for the docs
+repo under the org's hoshin epic, a worktree, the entries and index lines, <code>vrg-validate</code>,
 a mechanical security screen of the final text, the human's approval of the
 full text, a <code>docs(logbook)</code> commit and <code>vrg-pr-workflow report-ready</code>,
 with fixed wording that names only the files written. A run that stops
