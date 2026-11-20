@@ -199,7 +199,8 @@ titled `Logbook:`, naming it in the summary: a logbook task belongs to the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to `epic-review` (with
-`--repo` for a self-homed private repo's queue); given an
+`--repo` for a self-homed private repo's queue); given the hoshin epic it
+refuses and points to [hoshin](#hoshin), whose tasks it is; given an
 issue that is not an epic it refuses. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
@@ -249,7 +250,8 @@ push step. A run-and-done hand-off: it publishes the branch, records the
 metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
 planning or deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
-PR tooling's refusal. A ruling that changes the task's scope is drafted
+PR tooling's refusal. It also refuses a task under the hoshin epic,
+pointing to [hoshin](#hoshin), the only skill that works one. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
 `vrg-scope-change`, before the merge review starts. An epic's
 documentation review whose own repo needs no change has no PR: the skill
@@ -640,8 +642,8 @@ the run: a private repo's in that repo, a security finding as a security
 record, and a public one only after the security screen and the human's
 approval of its text.
 
-Each run hands off one docs PR: a `Logbook: <date> <mode>` task in the docs
-repo's ad-hoc epic, a worktree, the entries and index lines, `vrg-validate`,
+Each run hands off one docs PR: a `Logbook: <date> <mode>` task for the docs
+repo under the org's hoshin epic, a worktree, the entries and index lines, `vrg-validate`,
 a mechanical security screen of the final text, the human's approval of the
 full text, a `docs(logbook)` commit and `vrg-pr-workflow report-ready`,
 with fixed wording that names only the files written. A run that stops
