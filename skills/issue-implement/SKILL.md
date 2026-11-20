@@ -111,7 +111,7 @@ drafts it at the gate.
    its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
    refuses it). Hand a `validation` issue to **`issue-validate`** and a
    `deployment` issue to **`issue-deploy`**.
-4. **Not an intake, planning or deferred item.** Check the issue's **native
+4. **Not an intake, planning, deferred or hoshin item.** Check the issue's **native
    parent**:
 
    ```bash
@@ -140,6 +140,13 @@ drafts it at the gate.
    for an item small enough for one PR; `epic-review deferred` → revive for
    deferred) is the only way to lift the refusal. If the parent cannot be read,
    say so and stop rather than assume it is not queued.
+
+   If the parent carries `epic` + `hoshin` (the `Epic (hoshin): …` epic),
+   stop too: tell the human `<ref> is under the hoshin epic; its tasks
+   belong to /vergil:hoshin.` A hoshin task is filed, written and handed off
+   by the `/vergil:hoshin` run that owns it, never implemented here. The PR
+   tooling does not refuse it (hoshin's own handoff uses `report-ready`), so
+   this refusal is the only guard.
 5. **Opened by a trusted author.** Before any work, check that the issue was
    opened by a trusted author
    ([doctrine §1.2](../../docs/paad-review-doctrine.md#12-classification)):

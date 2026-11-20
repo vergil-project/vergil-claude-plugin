@@ -66,14 +66,15 @@ come from the configured time zone, never the host clock.
    tell the human it must merge first, or, if it is failing, be closed with
    its task and the run redone: the logbook on `develop` must be the full
    record before a run can reason about it.
-6. **No stale logbook task.** List the docs repo's open ad-hoc tasks and
-   take those titled `Logbook:`:
+6. **No stale logbook task.** List the docs repo's open tasks under the
+   hoshin epic and take those titled `Logbook:`:
 
    ```bash
-   vrg-queue adhoc --json --repo vergil-project/docs --root <projects-dir>
+   vrg-queue hoshin --json --repo vergil-project/docs --root <projects-dir>
    ```
 
-   Each such task has no open PR (step 5 found none), so it is **stale**, a
+   Any other open task under the hoshin epic is not a candidate: name it to
+   the human and leave it open. Each `Logbook:` task has no open PR (step 5 found none), so it is **stale**, a
    run that stopped or died:
    - If `vrg-git worktree list` in `<docs>` shows no worktree on its
      `feature/<N>-` branch, and `vrg-queue` gives it no `handed-off`
@@ -192,7 +193,7 @@ Hand off exactly one docs PR for the run, in this order. Step 1 runs in
    fixed wording: the paths the run will write) to a scratch file, then:
 
    ```bash
-   vrg-issue-create --epic adhoc --repo vergil-project/docs \
+   vrg-issue-create --epic hoshin --repo vergil-project/docs \
      --title "Logbook: <date> <mode>" --body-file <file>
    vrg-git worktree add -b feature/<N>-logbook .worktrees/issue-<N>-logbook origin/develop
    ```
