@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.83] - 2026-11-20
+
+### Refactoring
+
+- retire the Logbook: title skip now that logbook tasks have their own epic (#1226)
+
 ## [2.1.82] - 2026-11-20
 
 ### CI

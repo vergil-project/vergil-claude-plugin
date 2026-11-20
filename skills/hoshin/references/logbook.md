@@ -184,8 +184,8 @@ whatever levels it reviews.
 
   The summary names the entries by path; the notes name every file the
   commit changes, by path (the entries, the index files and any
-  `hoshin.md`). The PR title starts `Logbook:`, which is how `pr-watch` and
-  `epic-implement` recognise a logbook PR and task. The notes carry no
+  `hoshin.md`). The PR title starts `Logbook:`, which is how `pr-watch`
+  recognises a logbook PR. The notes carry no
   merge-review eligibility line, since a logbook run has no merge review.
 - **Abandoned run** (closing its own task):
 
