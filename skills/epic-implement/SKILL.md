@@ -1,6 +1,6 @@
 ---
 name: epic-implement
-description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin) or a non-epic. It never opens PRs and never starts pr-watch after a submit (vrg-finalize-pr watches), but runs pr-watch at once on a PR the human reports did not merge; it never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
+description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin), a proxy epic (drive its primary epic instead) or a non-epic. It never opens PRs and never starts pr-watch after a submit (vrg-finalize-pr watches), but runs pr-watch at once on a PR the human reports did not merge; it never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
 ---
 
 # Epic implement
@@ -102,7 +102,8 @@ first task ships. From then on, do not rewrite its task list: record each change
 — a new or dropped task, a discovered dependency, a scope shift — as a dated
 entry saying what changed and why, appended to an `## Evolution during
 execution` section at the bottom of `plan.md` (create the section on the first
-entry). The epic's sub-issues stay the authoritative live task list; the log
+entry). The `children` of `vrg-epic-audit --epic` (the epic's sub-issues and
+its proxy tasks) stay the authoritative live task list; the log
 is the *why* behind any gap between them and the plan, and `epic-retrospective`
 builds its "How the plan evolved" section from it. Before the first task ships,
 edit the plan freely. Evolution that concerns a proxy task is recorded in the
