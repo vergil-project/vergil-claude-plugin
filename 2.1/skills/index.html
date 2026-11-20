@@ -748,6 +748,8 @@
       
         
       
+        
+      
     
     
     
@@ -800,6 +802,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.83/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.83
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5214,9 +5244,7 @@ with <code>vrg-queue adhoc</code>, summarizes them by repo with the in-flight ta
 apart (a handed-off one is left alone; one to resume goes through the
 development path's re-entry steps), proposes a strategy that judges overlap
 per repo and names what runs at the same time, takes one confirmation, then
-dispatches and gates as the development path does. It skips any task
-titled <code>Logbook:</code>, naming it in the summary: a logbook task belongs to the
-<a href="#hoshin">hoshin</a> run that filed it. Its records go on the
+dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to <code>epic-review</code> (with
@@ -5628,8 +5656,10 @@ documentation-generating run, and the gates that matter (keeping security
 content out of the public logbook) run inside the skill before anything is
 pushed. A submitted logbook PR's task closes through the default
 <code>vrg-finalize-pr</code>; a failing one is closed with its task and the run
-redone, never fixed: <a href="#pr-watch">pr-watch</a> stops on a <code>Logbook:</code> PR, and
-<a href="#epic-implement">epic-implement</a>'s adhoc mode skips <code>Logbook:</code> tasks.</p>
+redone, never fixed: <a href="#pr-watch">pr-watch</a> stops on a <code>Logbook:</code> PR, and a
+logbook task lives under the hoshin epic, which
+<a href="#epic-implement">epic-implement</a> and <a href="#issue-implement">issue-implement</a>
+refuse.</p>
 <p><strong>When to use.</strong> At the start of each working day, <code>/vergil:hoshin start</code>
 ("start the day", "hoshin start"); and, when the human chooses,
 <code>/vergil:hoshin end</code> ("end of day") or <code>/vergil:hoshin end &lt;level&gt;</code>
