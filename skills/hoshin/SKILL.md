@@ -251,9 +251,9 @@ eligibility line.
   `vrg-finalize-pr`, which `vrg-submit-pr` runs by default after the merge.
 - **A failing logbook PR is never fixed in place.** It is closed together
   with its task, and the run is redone through `/vergil:hoshin`. `pr-watch`
-  recognises a logbook PR by its `Logbook:` title and stops, and
-  `epic-implement`'s adhoc mode skips `Logbook:` tasks, since a logbook task
-  is controlled by its run and is never ad-hoc work.
+  recognises a logbook PR by its `Logbook:` title and stops. A logbook task
+  is controlled by its run and is never ad-hoc work: it lives under the
+  hoshin epic, which `epic-implement` and `issue-implement` refuse.
 
 ## Notes
 
