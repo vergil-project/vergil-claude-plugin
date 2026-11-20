@@ -1,6 +1,6 @@
 ---
 name: pr-watch
-description: Monitor and reconcile an open PR that `vrg-submit-pr` opened with auto-merge on. Use whenever a submitted PR needs watching or fixing — `vrg-submit-pr` emits the `/vergil:pr-watch <PR_URL>` line, `vrg-finalize-pr` reports a PR not merged, or the human asks to watch, monitor, babysit or fix the PR through CI and review. Runs in the USER agent session: block on vrg-pr-await until the PR merges (exit 0) or cannot merge (exit 1, with a reason), reconcile failing CI, conflicts and human review comments (found by pr-watch itself, since the wait never returns on a review), merge-review every fix but a clean rebase before pushing it, run the batch check before any push to a batch PR, and tell the human to rerun `vrg-finalize-pr` once a fix is pushed.
+description: Monitor and reconcile an open PR that `vrg-submit-pr` opened with auto-merge on: the skill the agent uses to repair a submitted PR that did not merge. Use whenever a submitted PR needs watching or fixing — `vrg-finalize-pr` reports a PR not merged, the human reports a red check or a conflict, the human asks to watch, monitor, babysit or fix the PR through CI and review, or the human runs the `/vergil:pr-watch <PR_URL>` line `vrg-submit-pr` emits. On a reported failure the agent runs it at once and never hands the command back; it does not start it after a submit by itself, since vrg-finalize-pr watches. Runs in the USER agent session: block on vrg-pr-await until the PR merges (exit 0) or cannot merge (exit 1, with a reason), reconcile failing CI, conflicts and human review comments (found by pr-watch itself, since the wait never returns on a review), merge-review every fix but a clean rebase before pushing it, run the batch check before any push to a batch PR, and tell the human to rerun `vrg-finalize-pr` once a fix is pushed.
 ---
 
 # PR watch
@@ -13,10 +13,15 @@ green: it fixes failing CI, resolves conflicts and addresses review
 comments, and it guards every push, because a pushed fix that turns CI
 green merges with no further human step.
 
-You run it when `vrg-submit-pr` prints `/vergil:pr-watch <PR_URL>`, when
-`vrg-finalize-pr`'s report names a PR as not merged (see
-[Finalize's reasons](#finalizes-reasons--what-to-do-for-each)), or when the
-human asks.
+It is how the agent repairs a submitted PR that did not merge. Run it
+yourself, at once, when `vrg-finalize-pr`'s report names a PR as not
+merged (see
+[Finalize's reasons](#finalizes-reasons--what-to-do-for-each)), when the
+human reports a red check or a conflict on one, or when the human asks for
+a PR to be watched or fixed. Never hand the `/vergil:pr-watch <PR_URL>`
+command back to the human to run. The human may also run the line
+`vrg-submit-pr` prints. Do not start it after a submit by yourself:
+`vrg-finalize-pr` already watches the PRs.
 
 ## `vrg-pr-await` waits for the merge — one wait per pass, don't poll
 
