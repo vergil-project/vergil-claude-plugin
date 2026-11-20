@@ -153,6 +153,15 @@ parallel sub-agents where efficient** — then batches everything needing
 the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.
 
+Its frontier is built from the `children` of `vrg-epic-audit --epic`: the
+epic's own sub-issues and its **proxy tasks**, the tasks of the effort
+filed in another org under that org's proxy epic. A proxy task is driven
+from the primary epic like any other task, through the same skills and
+gates, and plan evolution that concerns it is recorded in the primary's
+plan, since a proxy has no plan. An audit exit 1 is proxy link drift (a
+broken or disagreeing `Primary:`/`Proxy:` link): it shows the problems and
+stops rather than build a frontier without the proxy's tasks.
+
 A code task whose [merge review](#merge-review) stopped for a ruling waits
 at the gate with its request ID. `epic-implement` talks the request's items
 through with the human in the terminal (a security item's details from the
@@ -205,7 +214,8 @@ ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to `epic-review` (with
 `--repo` for a self-homed private repo's queue); given the hoshin epic it
-refuses and points to [hoshin](#hoshin), whose tasks it is; given an
+refuses and points to [hoshin](#hoshin), whose tasks it is; given a
+proxy epic it refuses and names the primary epic to drive instead; given an
 issue that is not an epic it refuses. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
@@ -236,6 +246,14 @@ backward-looking record that partners the spec and plan (spec → plan →
 retrospective) — from the execution history, runs a draft → review loop with the
 human, and hands off the closing docs PR whose merge **closes the epic**.
 
+The gate reads the `children` of `vrg-epic-audit --epic`, so it covers the
+epic's **proxy tasks** (its tasks filed in other orgs under their proxy
+epics) like its own children. Its refusal names each open ref in full and,
+for each open proxy task, the proxy it sits under. An audit exit 1 is proxy
+link drift (a broken or disagreeing `Primary:`/`Proxy:` link): it shows the
+problems and stops, since the gate cannot see every proxy task until the
+link is fixed.
+
 **When to use.** To finish an epic — "run the retrospective", "close out this
 epic", "we're done with this epic".
 
@@ -264,6 +282,14 @@ with `vrg-ruling draft-scope` for the human to post with
 documentation review whose own repo needs no change has no PR: the skill
 posts the search evidence on the task and closes it as completed, with no
 ruling needed.
+
+A documentation fix a run leaves for the epic's documentation-review sweep
+is recorded on that epic's documentation-review bookend. A proxy task has
+no bookend of its own: its sweep items go on the **primary's** bookend, the
+primary read from `vrg-epic-audit --epic <proxy ref>`, and a link-drift
+exit 1 there stops the run. An ad-hoc task has no bookend at all: a
+documentation gap it finds outside its scope is a follow-up for the
+human's ruling.
 
 Given a list of small same-epic issues, it implements them as one
 **batch**: `vrg-pr-workflow batch-start` checks the batch's hard rules
