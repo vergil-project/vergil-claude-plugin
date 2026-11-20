@@ -181,6 +181,17 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
+**Checking that a release carries the changes.** Where a deployment (or
+release) task's procedure must confirm that a release contains given changes,
+write that step as a git ancestry check of each change's merge commit against
+the release tag, as `issue-deploy`'s
+[Checking that a release tag contains a merge](../issue-deploy/SKILL.md#preconditions-gate--release-is-a-precondition-not-your-job)
+paragraph prescribes: `vrg-git merge-base --is-ancestor <merge-sha> <tag-sha>`
+exits 0 for each. Name the merge commits, or the tasks whose PRs they merged,
+in the step. Never write it as a release-notes or changelog check: a GitHub
+release body may hold only a link, and a batch PR shows in a changelog only as
+its issues.
+
 **Fixture runs — seed one when the change reaches the fixtures.** When an epic
 changes language support, container images, shared CI workflows or release
 tooling, its plan seeds a **fixture run** for each fixture whose language or
