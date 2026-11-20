@@ -1,6 +1,6 @@
 ---
 name: epic-implement
-description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin) or a non-epic. It never opens PRs, never runs pr-watch, and never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
+description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin) or a non-epic. It never opens PRs and never starts pr-watch after a submit (vrg-finalize-pr watches), but runs pr-watch at once on a PR the human reports did not merge; it never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
 ---
 
 # Epic implement
@@ -324,8 +324,11 @@ Batch each repo **once** and stop. Your responsibility **ends here.** The human
 submits each batch with `vrg-submit-pr`, which opens its PRs with auto-merge on
 (a batch PR rebase-merges, any other PR squash-merges) and finalizes by default:
 `vrg-finalize-pr` watches the PRs land and settles `develop`, and never merges.
-**Do not run `pr-watch`** — it is
-a rare, human-triggered exception the human invokes only if a gate goes red. When
+**Do not start `pr-watch` after a submit**: `vrg-finalize-pr` already watches
+the PRs. When the human reports a PR that did not merge (a finalize line
+naming it, a red check, a conflict) or asks for one to be fixed, run
+`pr-watch` on it at once (`/vergil:pr-watch <PR_URL>`, the `pr-watch` skill);
+never hand that command back to the human to run. When
 the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
 re-derive state and advance to the next frontier.
 

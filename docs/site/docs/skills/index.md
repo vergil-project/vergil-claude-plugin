@@ -216,8 +216,10 @@ epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off" — or on the ad-hoc tasks: "work the
 ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue".
 
-**Boundaries.** It never opens PRs, never merges, and never runs `pr-watch`
-(a human-triggered exception). It **drafts** the terminal retrospective via
+**Boundaries.** It never opens PRs and never merges. It never starts
+`pr-watch` after a submit, since `vrg-finalize-pr` watches the PRs; when
+the human reports a PR that did not merge, or asks for one to be fixed, it
+runs `pr-watch` on it at once and never hands the command back. It **drafts** the terminal retrospective via
 `epic-retrospective` but never submits or merges its PR — the retrospective's
 docs PR is the final gate, and PR submit/merge stays a human gate.
 
@@ -448,9 +450,14 @@ single issue, or a fold that conflicts, stops for the human. See its
 [Batch PRs](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/pr-watch/SKILL.md#batch-prs--fold-every-fix-into-its-issues-commit)
 section.
 
-**When to use.** Run the emitted `/vergil:pr-watch <PR_URL>` line in
-the USER agent session after the human opens the PR, or on a PR that
-`vrg-finalize-pr` reports as not merged.
+**When to use.** It is the skill the USER agent uses to repair a
+submitted PR that did not merge. The agent runs it itself, at once, when
+`vrg-finalize-pr` reports a PR as not merged, when the human reports a red
+check or a conflict, or when the human asks for a PR to be fixed or
+watched; it never hands the `/vergil:pr-watch <PR_URL>` command back to the
+human. The human may also run the line `vrg-submit-pr` prints. The agent
+does not start it after a submit by itself, since `vrg-finalize-pr`
+watches the PRs.
 
 **Status.** Current (Vergil 2.1). Requires `vrg-pr-await`'s merge
 contract: exit 0 merged, 1 cannot merge, 2 any other error
