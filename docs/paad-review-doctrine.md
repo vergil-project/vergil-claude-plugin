@@ -460,7 +460,7 @@ each has its own channel:
 
 - **Merge-review items**: everything the `merge-review` skill raises
   (findings, untracked pre-existing proposals and security items, and its
-  own stop items `M1`, `D1` and `B1`). They go only through epic 889's
+  own stop items `M1`, `D1`, `D2` and `B1`). They go only through epic 889's
   authenticated channel: `vrg-ruling request`, the human's
   `vrg-ruling-reply`, then `vrg-ruling read` and `vrg-ruling respond`, with
   889's words (for a security item `fix`, `file`, `defer` and `wont-fix`).
