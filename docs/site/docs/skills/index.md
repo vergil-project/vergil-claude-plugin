@@ -200,9 +200,7 @@ with `vrg-queue adhoc`, summarizes them by repo with the in-flight tasks
 apart (a handed-off one is left alone; one to resume goes through the
 development path's re-entry steps), proposes a strategy that judges overlap
 per repo and names what runs at the same time, takes one confirmation, then
-dispatches and gates as the development path does. It skips any task
-titled `Logbook:`, naming it in the summary: a logbook task belongs to the
-[hoshin](#hoshin) run that filed it. Its records go on the
+dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to `epic-review` (with
@@ -677,8 +675,10 @@ documentation-generating run, and the gates that matter (keeping security
 content out of the public logbook) run inside the skill before anything is
 pushed. A submitted logbook PR's task closes through the default
 `vrg-finalize-pr`; a failing one is closed with its task and the run
-redone, never fixed: [pr-watch](#pr-watch) stops on a `Logbook:` PR, and
-[epic-implement](#epic-implement)'s adhoc mode skips `Logbook:` tasks.
+redone, never fixed: [pr-watch](#pr-watch) stops on a `Logbook:` PR, and a
+logbook task lives under the hoshin epic, which
+[epic-implement](#epic-implement) and [issue-implement](#issue-implement)
+refuse.
 
 **When to use.** At the start of each working day, `/vergil:hoshin start`
 ("start the day", "hoshin start"); and, when the human chooses,
