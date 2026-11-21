@@ -711,9 +711,16 @@ details, step 0's public-wording rule) goes into it.
 2. **Create the epic and seed its bookend tasks.**
    - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
      <tmp>` creates the issue in the target's **resolved home** with the `epic`
-     label (`--repo` defaults to the current repo; the command echoes the home —
+     label and the `epic-development` category label (`--repo` defaults to the
+     current repo; the command echoes the home —
      `<org>/.github` for a public target, the repo itself when private); note the
-     number **N**. The body carries the `Planning: <owner>/<repo>#<M>` line, and
+     number **N**. The tool derives the category label itself, so never pass it
+     with `--label`: it refuses `--label epic-development` and
+     `--label epic-management`. The category labels (`epic-development`,
+     `epic-management`, `ad-hoc`, `proxy`) are for display only: no skill or
+     tool reads `epic-development` or `epic-management` to decide behaviour or
+     to find an epic, so the label tests the skills make (`epic` + `intake`,
+     `epic` + `proxy` and the rest) are unchanged. The body carries the `Planning: <owner>/<repo>#<M>` line, and
      the progress comment that follows carries `Epic: <owner>/<repo>#<N>`.
    - Seed the epic's **Documents** section:
      `vrg-epic-docs set --epic <home>#<N>`, with `<home>` the home
