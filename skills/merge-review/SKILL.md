@@ -46,7 +46,9 @@ The **eligibility line** is the closing comment's first line,
 ([Records](#records)). It is the only thing from merge review that goes
 into report-ready's notes. A run on an open PR has no report-ready and
 its caller is `pr-watch`
-([Fix to an open PR](#fix-to-an-open-pr)).
+([Fix to an open PR](#fix-to-an-open-pr)); it also hands `pr-watch` the
+[branch-as-reviewed line](#branch-as-reviewed-open-pr-only), which says
+whether the human's rulings left the reviewed branch as it was.
 
 ## Ground rules
 
@@ -307,16 +309,18 @@ posted after this run's review step comment (the one whose `Request:`
 line is the `request_id` of this run's `request-review.json`).
 
 **No report-ready.** The run ends `eligible` or `not-eligible (<reason>)`
-and hands the eligibility line to `pr-watch`, which pushes only on
-`eligible`. Once the closing comment is posted, the run deletes `<dir>`,
+and hands `pr-watch` the eligibility line and the
+[branch-as-reviewed line](#branch-as-reviewed-open-pr-only). `pr-watch`
+pushes on `eligible`, and on `not-eligible (human-ruling)` only with
+`Branch as reviewed: yes`. Once the closing comment is posted, the run deletes `<dir>`,
 and its parent `issue-implement/<N>/` if then empty, as `issue-implement`
 does after report-ready
 ([Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off));
 the handoff refusal of
 [No unfinished business](#no-unfinished-business-and-handoff) has kept
 every `security-<ID>.md` whose record is due. A rerun that finds the
-closing comment posted but `<dir>` still there ends with the same outcome
-and deletes it. A later fix to the same PR starts a fresh state again.
+closing comment posted but `<dir>` still there ends with the same outcome,
+taking both lines from that comment, and deletes it. A later fix to the same PR starts a fresh state again.
 
 ## Before the review
 
@@ -834,6 +838,11 @@ Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>
 - R4: tracked as owner/repo#N
 ```
 
+On a [fix to an open PR](#fix-to-an-open-pr) only, the line right below
+the eligibility line is `Branch as reviewed: <yes | no>`
+([Branch as reviewed](#branch-as-reviewed-open-pr-only)); a run before
+report-ready writes no such line.
+
 `<w>` counts the security items ruled `wont-fix`. The list gives every item
 the run raised and its closing state, security items by ID and outcome
 only; build it from the run's files and the step comments and responses on
@@ -851,6 +860,36 @@ run's review step comment is its own ([Fix to an open PR](#fix-to-an-open-pr)).
   `check-failed`, `result-malformed`, `fix-base-rebased`. The reason is
   always one of these fixed values, never free text, because report-ready's
   notes are public; security appears only as the `accepted-risk` count.
+
+A run that stopped for the human is never `eligible`, even when every
+ruling left the branch as it was: the eligibility line records that the
+run needed the human, and that stays true.
+
+### Branch as reviewed (open PR only)
+
+A run on an open PR adds one more fact for `pr-watch`, which must not hold
+a passing fix for a second human decision that carries no information.
+`Branch as reviewed: yes` when **all** of these hold, and `no` otherwise:
+
+- `stop-reason.txt` is `human-ruling` from a [Decide](#decide) stop (not
+  `D1` or `D2`), and the run reached no other stop;
+- the run ran no fix step: there is no `request-check*.json`, and `HEAD`
+  is the `head_sha` of `request-review.json`, so the branch is exactly
+  the one the review judged (a review with an undisputed defect always
+  has a fix step, so it never qualifies);
+- every item the run raised is a tracked note or is closed by a ruling
+  that changes nothing on the branch, carried out: a design question
+  `keep` or `file`, an out-of-scope addition `keep`, a proposal `file` or
+  `decline`, a disputed defect `dismiss`;
+- the run raised no security item (the review's check summary has
+  `security` 0), so `<w>` is 0.
+
+Any other ruling (`change`, `split`, `revert`, `fix`, `stop`, `retry`,
+`proceed-without`, `restart`), any security item, any item not carried
+out, and every other reason (`too-many-blockers`, `check-failed`,
+`result-malformed`, `fix-base-rebased`) gives `no`. Work it out from the
+run's files and the responses on the issue before the closing comment is
+posted, and write it there; never change it after.
 
 ## No unfinished business and handoff
 
