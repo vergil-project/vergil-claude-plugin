@@ -340,7 +340,7 @@ issue and in the report-ready notes as one line:
 ## Submit and merge
 
 The human runs `vrg-submit-pr`, which opens the PR with auto-merge on and
-finalizes by default. The PR squash-merges by itself once its CI is green.
+always finalizes. The PR squash-merges by itself once its CI is green.
 `vrg-finalize-pr` watches it, then settles `develop` and closes this task;
 it never merges.
 ````
@@ -375,8 +375,11 @@ change task vergil-project/<repo>#<a>'s merge.
    exists while its release workflow is queued or still running means
    **blocked, not FAILURE**: comment `blocked: preconditions not met —
    release vX.Y.Z still running` and stop; re-run once it has finished.
-4. Confirm the release contains (a)'s merge: in a clone of the fixture,
-   `vrg-git fetch origin --tags` then
+4. Confirm the release contains (a)'s merge:
+   `vrg-release-record check vergil-project/<repo>#<a>` exits 0 (`pass`),
+   as `issue-deploy` prescribes; its exit 3 (`fail`) is a blocked
+   precondition. Only when (a) carries no record (exit 4), check git
+   directly: in a clone of the fixture, `vrg-git fetch origin --tags` then
    `vrg-git merge-base --is-ancestor <a's merge commit> vX.Y.Z` exits 0.
 
 ## Human-run steps
