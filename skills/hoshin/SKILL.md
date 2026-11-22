@@ -130,10 +130,10 @@ there is no default.
 
 ## 4. Close, then open
 
-First check each repo's visibility, as
-[security.md](references/security.md#checking-visibility) says, and start the
-screen terms file; every review that follows adds to it. Then run the
-reviews in this fixed order:
+First start the
+[screen terms](references/security.md#what-the-run-records-for-the-screen);
+every review that follows adds to them. Then run the reviews in this fixed
+order:
 
 1. **Closing, smallest level first** (the day into the week, the week into
    the month): each late `end` review, and each human-run `end`. A period
@@ -167,11 +167,7 @@ paths, and list each in its entry:
 - **A security finding:** a security record, `vrg-security-record create`
   (or the existing record `vrg-security-record list` finds). The entry cites
   its neutral issue's public ref only.
-- **Work about a private repo:** filed in that repo itself, never in a
-  public one (`vrg-intake-create --repo <private-repo>` or
-  `vrg-issue-create --repo <private-repo>`). The entry gives only the count
-  per org.
-- **Work in a public repo:** `vrg-intake-create` (or `vrg-issue-create`
+- **Other work:** `vrg-intake-create` (or `vrg-issue-create`
   where the work is already placed). Before it is filed, write its title and
   body to a scratch file outside any worktree and run the
   [screen](references/security.md#the-pre-commit-screen) over them; a hit

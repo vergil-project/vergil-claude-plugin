@@ -16,20 +16,19 @@ purpose: they are a starting point, grown by kaizen.
   with seconds and offset (`2026-11-17T18:42:00-05:00`). The GitHub search
   and run filters take them as a range, `"<from>..<to>"`.
 - **The fleet** is every org in `fleet.md`, inactive ones included, since
-  anything that ran there is a finding. **The fleet's repos** are the repos
-  the visibility check listed
-  ([security.md](security.md#checking-visibility)), archived ones excluded.
+  anything that ran there is a finding. **The fleet's repos** are each fleet
+  org's repos, archived ones excluded:
+  `vrg-gh repo list <org> --limit 1000 --no-archived --json nameWithOwner`.
 - `<projects-dir>` is the directory holding the human's main clones, as
   `SKILL.md` preflight finds it; each org's clones sit under it.
 - Every finding is presented under the
-  [security rules](security.md#the-rules): a private repo only as counts per
-  org; a security-related failure only as one, with its security record's
-  neutral ref; no alert or advisory IDs and no raw security-tool output in
-  the entry. The review conversation may name what the entry may not.
+  [security rules](security.md#the-rules): a security-related failure only
+  as one, with its security record's neutral ref; no alert or advisory IDs
+  and no raw security-tool output in the entry. The review conversation may
+  name what the entry may not.
 - Record in the screen terms
   ([security.md](security.md#what-the-run-records-for-the-screen)) every
-  private repo PR or issue title and number and every alert number or URL a
-  check reads.
+  alert number or URL a check reads.
 - Every review ends with the
   [kaizen prompt](logbook.md#the-kaizen-prompt).
 
@@ -62,13 +61,12 @@ and settles what needs action today.
   `ops.yml` audit, the epic rollup and sweep, and every other scheduled or
   event-driven workflow.
 - **Window:** runs created from `<from>` to `<to>`.
-- **Output:** for a public repo, one line per failed or cancelled run:
-  repo, workflow, event, conclusion, and the failed job with a one-line
-  cause (a rerun that later passed says so). For a private repo, only the
-  count per org. A run whose cause is a security finding (a security scan,
+- **Output:** one line per failed or cancelled run: repo, workflow, event,
+  conclusion, and the failed job with a one-line cause (a rerun that later
+  passed says so). A run whose cause is a security finding (a security scan,
   a dependency audit, the GitHub-config audit) is only "a security-related
   failure" with its security record's neutral ref, creating the record first
-  if it has none ([security.md](security.md#example-b-a-failed-security-job-in-a-public-repo)).
+  if it has none ([security.md](security.md#example-a-a-failed-security-job)).
   With none, the entry says `No failed or cancelled runs in the window.`
 - **Tool:** none yet. Today, for each fleet repo:
 
@@ -97,9 +95,8 @@ and settles what needs action today.
 - **Window:** merged from `<from>` to `<to>`; open PRs as they stand now.
   An open PR is **stuck** when its checks are failing, it has merge
   conflicts, or it has had no update for more than a day.
-- **Output:** for public repos, the count merged per repo, and one line per
-  open PR: repo, number, title, age, and for a stuck one why. For private
-  repos, the counts merged, open and stuck per org.
+- **Output:** the count merged per repo, and one line per open PR: repo,
+  number, title, age, and for a stuck one why.
 - **Tool:** none yet. Today, for each fleet org:
 
   ```bash
@@ -121,8 +118,8 @@ and settles what needs action today.
 - **Answers:** which releases were published in the fleet in the window.
 - **Sources:** the GitHub releases of every fleet repo.
 - **Window:** published from `<from>` to `<to>`.
-- **Output:** for a public repo, one line per release: repo and tag. For a
-  private repo, the count per org. With none, `No releases in the window.`
+- **Output:** one line per release: repo and tag. With none,
+  `No releases in the window.`
 - **Tool:** none yet. Today, for each fleet repo:
 
   ```bash
@@ -147,10 +144,10 @@ and settles what needs action today.
 - **Window:** `ops.yml` runs created from `<from>` to `<to>`; a repo whose
   latest run in the window failed where its previous run passed is new.
 - **Output:** a single fleet-wide count of repos with an audit or alert
-  signal, and each public one as "a security-related failure" with the
-  neutral ref of its security record, which the review finds with
+  signal, and each one as "a security-related failure" with the neutral ref
+  of its security record, which the review finds with
   `vrg-security-record list` or creates with `vrg-security-record create`.
-  A private repo counts per org only. Never an alert count, a severity, an
+  Never an alert count, a severity, an
   alert number or the audit's output.
 - **Tool:** none yet. Today, for each fleet repo:
 
@@ -208,9 +205,8 @@ waiting on the human, what failed, and a note for tomorrow's chōrei.
   (human-submitted or automation-authored).
 - **Sources:** pull requests in every fleet org.
 - **Window:** merged from `<from>` to `<to>`.
-- **Output:** for public repos, the count per repo and one line per
-  human-submitted PR (repo, number, title), with automation PRs as a count
-  per repo. For private repos, the count per org.
+- **Output:** the count per repo and one line per human-submitted PR (repo,
+  number, title), with automation PRs as a count per repo.
 - **Tool:** none yet. Today, for each fleet org:
 
   ```bash
@@ -227,9 +223,8 @@ waiting on the human, what failed, and a note for tomorrow's chōrei.
 - **Sources:** closed issues in every fleet org.
 - **Window:** the days the window touches, from `<from>`'s day to `<to>`'s
   day; the tool groups by day.
-- **Output:** for public repos, each closed epic by ref and title, and the
-  count of other issues closed per repo. For private repos, the count per
-  org.
+- **Output:** each closed epic by ref and title, and the count of other
+  issues closed per repo.
 - **Tool:** `vrg-activity-log --org <org>`, for each active fleet org,
   reading only the days in the window. Its window is the last 30 days; a
   warning that it hit its result cap marks the oldest days incomplete, which
@@ -244,8 +239,8 @@ waiting on the human, what failed, and a note for tomorrow's chōrei.
   relay refs (`refs/vergil/pr-workflow/<branch>`) that `report-ready`
   pushes to each repo's origin, and the open PRs on each origin.
 - **Window:** none: the state now.
-- **Output:** for public repos, one line per item: repo, branch or PR, its
-  issue, and how long it has waited. For private repos, the count per org.
+- **Output:** one line per item: repo, branch or PR, its issue, and how
+  long it has waited.
 - **Tool:** `vrg-repo-status`, run in each main clone under
   `<projects-dir>`: its Development table shows each worktree's PR and
   workflow state, and its open-PR table the PRs no local worktree backs.
@@ -263,8 +258,8 @@ waiting on the human, what failed, and a note for tomorrow's chōrei.
   a non-review item is a list under `Awaiting a ruling` with no later
   `Human ruling:` line from a trusted author.
 - **Window:** none: the requests open now.
-- **Output:** for public repos, one line per issue: ref, title and what
-  kind of ruling it waits for. For private repos, the count per org.
+- **Output:** one line per issue: ref, title and what kind of ruling it
+  waits for.
 - **Tool:** none yet. Today, for each fleet org:
 
   ```bash
