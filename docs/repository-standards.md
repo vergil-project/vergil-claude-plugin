@@ -96,7 +96,7 @@ which reads the recorded state. The flags above are its direct
 `vrg-submit-pr` opens PRs against `develop` only (releases go through
 `vrg-release`) and turns auto-merge on itself, pinned to the pushed
 head: squash for a single-issue PR, rebase for a batch PR. GitHub then
-merges the PR once its required checks pass. By default it then runs
+merges the PR once its required checks pass. It then always runs
 `vrg-finalize-pr`, which waits for the PR to merge and never merges it
 itself. Once a PR has merged, finalize's settle phase first closes any
 issue the PR closes that GitHub left open (only GitHub's closing

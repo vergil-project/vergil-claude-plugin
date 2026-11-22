@@ -485,9 +485,8 @@ submitted PR that did not merge. The agent runs it itself, at once, when
 `vrg-finalize-pr` reports a PR as not merged, when the human reports a red
 check or a conflict, or when the human asks for a PR to be fixed or
 watched; it never hands the `/vergil:pr-watch <PR_URL>` command back to the
-human. The human may also run the line `vrg-submit-pr` prints. The agent
-does not start it after a submit by itself, since `vrg-finalize-pr`
-watches the PRs.
+human. The agent does not start it after a submit by itself, since
+`vrg-finalize-pr` watches the PRs.
 
 **Status.** Current (Vergil 2.1). Requires `vrg-pr-await`'s merge
 contract: exit 0 merged, 1 cannot merge, 2 any other error
