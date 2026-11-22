@@ -352,8 +352,12 @@ a run stopped for a ruling. Also run by `pr-watch` on a fix to an open,
 submitted PR (any fix but a rebase that resolves no conflict), before it
 pushes: a whole-branch review against `origin/develop`, with
 `--pr <PR_URL>` on every step. That run has no report-ready: its outcome
-is the closing comment on the task issue, and `pr-watch` pushes only on
-`eligible`. The files, schemas and the result check follow
+is the closing comment on the task issue, which adds a
+`Branch as reviewed: <yes | no>` line. `pr-watch` pushes on `eligible`,
+and on `not-eligible (human-ruling)` only when that line is `yes`: every
+item was closed by a ruling that left the reviewed branch unchanged
+(`keep`, `file`, `decline`, `dismiss`), with no fix step and no security
+item. The eligibility line still says the run needed the human. The files, schemas and the result check follow
 vergil-tooling's
 [agent-to-agent review protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md);
 the ruling channel is its
@@ -455,7 +459,9 @@ follow-up issue. Because every push
 can merge, a clean rebase onto `origin/develop` is pushed with no review,
 and every other fix is reviewed first through merge-review's
 [Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr)
-entry and pushed only when eligible. After a fix it tells the human to
+entry and pushed only when eligible, or when its only stop was a
+ruling that left the reviewed branch unchanged
+(`Branch as reviewed: yes`). After a fix it tells the human to
 rerun `vrg-finalize-pr <PR>`. It never merges and never turns auto-merge on
 or off: auto-merge off or a provenance violation stops it for the human.
 It never fixes a logbook PR (one titled `Logbook:`): it tells the human to
