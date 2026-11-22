@@ -48,7 +48,7 @@ agent or human picks up an issue.
 > (`vrg-finalize-repo` no longer exists). Since epic
 > [vergil-project/.github#1218](https://github.com/vergil-project/.github/issues/1218),
 > `vrg-submit-pr` turns auto-merge on for every PR it opens and runs
-> `vrg-finalize-pr` by default, which waits for the merge and settles
+> `vrg-finalize-pr` every time, which waits for the merge and settles
 > `develop`. This table is retained as the audit-time record.
 
 ### Lifecycle C: Release cycle
