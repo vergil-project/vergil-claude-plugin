@@ -291,4 +291,4 @@ A submitted logbook PR whose checks fail is never fixed in place: not by
 The human closes the PR together with its task, and redoes the run through
 `/vergil:hoshin`, which works out from the logbook on `develop` what is still
 due. A submitted logbook PR that merges closes its task through
-`vrg-finalize-pr`, which `vrg-submit-pr` runs by default after the merge.
+`vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.

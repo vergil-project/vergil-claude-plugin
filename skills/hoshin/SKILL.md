@@ -243,8 +243,8 @@ anything is pushed: validation, the mechanical screen and the human's
 approval of the full text. The handoff notes therefore carry no merge-review
 eligibility line.
 
-- **A submitted logbook PR's task closes through the default finalize:**
-  `vrg-finalize-pr`, which `vrg-submit-pr` runs by default after the merge.
+- **A submitted logbook PR's task closes through finalize:**
+  `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
 - **A failing logbook PR is never fixed in place.** It is closed together
   with its task, and the run is redone through `/vergil:hoshin`. `pr-watch`
   recognises a logbook PR by its `Logbook:` title and stops. A logbook task

@@ -339,7 +339,7 @@ the **human** opens the PR:
    validate to green, run the merge review, then record the PR metadata via
    `vrg-pr-workflow report-ready`, which also pushes the branch.
 2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
-3. `vrg-submit-pr` finalizes by default: `vrg-finalize-pr` watches the
+3. `vrg-submit-pr` always finalizes: `vrg-finalize-pr` watches the
    PR land. If a PR does not merge, tell the USER agent (paste the
    finalize line, the red check or the conflict): it runs `pr-watch` on
    the PR at once, fixing a failing check or a conflict and handling
