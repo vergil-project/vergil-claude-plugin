@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.84] - 2026-11-22
+
+### Documentation
+
+- describe proxy epics in the epic-implement, epic-retrospective and issue-implement docs (#1231)
+- name the derived category label in the epic-create skill (#1235)
+- read release evidence with vrg-release-record check (#1245)
+
+### Features
+
+- push a fix whose only merge-review stop was a ruling that left the branch as reviewed (#1237)
+
 ## [2.1.83] - 2026-11-20
 
 ### Refactoring

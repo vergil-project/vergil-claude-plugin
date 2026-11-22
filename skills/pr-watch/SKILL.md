@@ -227,12 +227,15 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    a single-issue PR `<ref>` is the PR's one `Closes` ref; on a batch PR it
    is the issue whose commit the fix changes. It reviews the whole branch
    against `origin/develop`, and every step passes `--pr <PR_URL>` to
-   `vrg-merge-review-request`. Its outcome decides what follows:
+   `vrg-merge-review-request`. Its outcome, with its
+   [branch-as-reviewed line](../merge-review/SKILL.md#branch-as-reviewed-open-pr-only)
+   on a `not-eligible` outcome, decides what follows:
 
    | Outcome | Then |
    | --- | --- |
    | `eligible` | Go on to the next step. |
-   | `not-eligible (<reason>)` | **Do not push.** Tell the human the eligibility line and the branch's head, and stop; the human decides what happens to the fix. |
+   | `not-eligible (human-ruling)` with `Branch as reviewed: yes` | Go on to the next step. The human has ruled on every item and no ruling changed the branch the review judged, so a second decision would add nothing. Tell the human the eligibility line when you report the push. |
+   | Any other `not-eligible (<reason>)` | **Do not push.** Tell the human the eligibility line, the branch-as-reviewed line and the branch's head, and stop; the human decides what happens to the fix. |
    | `stopped: request <id>` | Do not push. Stop, giving the request ID. The human replies with `vrg-ruling-reply`, and running this skill again resumes the review. |
    | `waiting: non-review items` | Do not push. Stop and list the items. |
    | `fatal` or `error` | Do not push. Stop with the outcome or the error shown. |
@@ -303,7 +306,7 @@ like this:
 5. **Then [Before every push](#before-every-push)**, with the owning
    issue as the merge review's `<ref>`. The review's own commits are
    fixups of that issue's commit, and the review never folds: once it has
-   ended `eligible`, fold again as in step 3 and check the shape as in
+   ended in an outcome that lets the push go on (step 2's table), fold again as in step 3 and check the shape as in
    step 4, before the batch check. The review fetched `origin`, but the
    fold is onto the branch's own base, so it changes no tree, and nothing
    is re-validated or re-reviewed. If the fold's tree differs from the

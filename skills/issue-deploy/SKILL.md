@@ -61,6 +61,61 @@ especially:
   is published; do not perform it.
 - Confirm the target is reachable.
 
+**Confirming that a blocked-by task is released.** Where the deployment
+depends on a blocked-by development task having been released, confirm that
+release with its `Released:` record, which `vrg-release` posts on every issue
+a release contains:
+
+```bash
+vrg-release-record check <owner>/<repo>#<N>; echo $?
+```
+
+It reads the task's newest record by a human login, checks it against git
+(the merge commit of each of the task's trusted closing PRs must be an
+ancestor of the recorded tag) and prints a JSON verdict. Run it once for
+each such task, and act on its exit status:
+
+- **Exit 0 (`pass`):** the release is confirmed. Cite the record's tag and
+  URL as the evidence.
+
+  ```json
+  {"task": "vergil-project/vergil-tooling#4850", "verdict": "pass",
+   "record": {"version": "2.1.340", "tag": "v2.1.340",
+              "url": "https://github.com/vergil-project/vergil-tooling/releases/tag/v2.1.340"},
+   "ancestry": "pass", "warnings": []}
+  ```
+
+- **Exit 3 (`fail`):** a blocked precondition. A record exists but git does
+  not confirm it (or no counted closing PR does), so the release is not
+  established: report it as `blocked` below, naming the task and the
+  `warnings`. Never fall back to the ancestry recipe to override it.
+
+  ```json
+  {"task": "vergil-project/vergil-tooling#4850", "verdict": "fail",
+   "record": {"version": "2.1.340", "tag": "v2.1.340",
+              "url": "https://github.com/vergil-project/vergil-tooling/releases/tag/v2.1.340"},
+   "ancestry": "fail",
+   "warnings": ["#4861 (merge commit 3f2a9c1) is not an ancestor of v2.1.340"]}
+  ```
+
+- **Exit 4 (`none`):** the task carries no counting record: it was released
+  before the records began, its repo does not release with `vrg-release`, or
+  it is not yet released. Confirm the release as before, with
+  [Checking that a release tag contains a merge](#preconditions-gate--release-is-a-precondition-not-your-job)
+  below, against the release the issue names.
+
+  ```json
+  {"task": "vergil-project/vergil-actions#212", "verdict": "none",
+   "record": null, "ancestry": null, "warnings": []}
+  ```
+
+Exit 1 (a failed GitHub or git read, on stderr with no JSON) and exit 2 (a
+malformed task reference) are not verdicts: show the error, fix what you
+can (the reference) and re-run, and otherwise stop and report it. Never read
+either as "no record". A record by any other identity never counts; the tool
+names it under `warnings`. Every other precondition, a human's attestation
+included, is checked as before.
+
 **Checking that a release tag contains a merge.** The GitHub compare API is
 out of reach (`vrg-gh api` is denied to the user identity), so check it with
 git, from the repo's main clone:

@@ -183,12 +183,20 @@ in human hands. `issue-deploy` never cuts a release.
 
 **Checking that a release carries the changes.** Where a deployment (or
 release) task's procedure must confirm that a release contains given changes,
-write that step as a git ancestry check of each change's merge commit against
-the release tag, as `issue-deploy`'s
+write that step first as a release-record check of each task whose release it
+depends on: `vrg-release-record check <owner>/<repo>#<N>` exits 0 (`pass`)
+for each, as `issue-deploy`'s
+[Confirming that a blocked-by task is released](../issue-deploy/SKILL.md#preconditions-gate--release-is-a-precondition-not-your-job)
+paragraph prescribes. The command reads the task's `Released:` record and
+cross-checks it against git ancestry itself, and its exit 3 (`fail`) is an
+unmet precondition. The git ancestry check of each change's merge commit
+against the release tag is the cross-check, and the step's whole check for a
+task with no record (exit 4: released before the records began, or from a
+repo that does not release with `vrg-release`), as the same skill's
 [Checking that a release tag contains a merge](../issue-deploy/SKILL.md#preconditions-gate--release-is-a-precondition-not-your-job)
 paragraph prescribes: `vrg-git merge-base --is-ancestor <merge-sha> <tag-sha>`
-exits 0 for each. Name the merge commits, or the tasks whose PRs they merged,
-in the step. Never write it as a release-notes or changelog check: a GitHub
+exits 0 for each. Name the tasks, or the merge commits of the PRs that
+closed them, in the step. Never write it as a release-notes or changelog check: a GitHub
 release body may hold only a link, and a batch PR shows in a changelog only as
 its issues.
 
@@ -711,9 +719,16 @@ details, step 0's public-wording rule) goes into it.
 2. **Create the epic and seed its bookend tasks.**
    - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
      <tmp>` creates the issue in the target's **resolved home** with the `epic`
-     label (`--repo` defaults to the current repo; the command echoes the home —
+     label and the `epic-development` category label (`--repo` defaults to the
+     current repo; the command echoes the home —
      `<org>/.github` for a public target, the repo itself when private); note the
-     number **N**. The body carries the `Planning: <owner>/<repo>#<M>` line, and
+     number **N**. The tool derives the category label itself, so never pass it
+     with `--label`: it refuses `--label epic-development` and
+     `--label epic-management`. The category labels (`epic-development`,
+     `epic-management`, `ad-hoc`, `proxy`) are for display only: no skill or
+     tool reads `epic-development` or `epic-management` to decide behaviour or
+     to find an epic, so the label tests the skills make (`epic` + `intake`,
+     `epic` + `proxy` and the rest) are unchanged. The body carries the `Planning: <owner>/<repo>#<M>` line, and
      the progress comment that follows carries `Epic: <owner>/<repo>#<N>`.
    - Seed the epic's **Documents** section:
      `vrg-epic-docs set --epic <home>#<N>`, with `<home>` the home
