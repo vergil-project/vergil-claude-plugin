@@ -750,6 +750,8 @@
       
         
       
+        
+      
     
     
     
@@ -802,6 +804,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.84/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.84
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5201,6 +5231,14 @@ currently-runnable task to its gate — routing by kind to
 parallel sub-agents where efficient</strong> — then batches everything needing
 the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.</p>
+<p>Its frontier is built from the <code>children</code> of <code>vrg-epic-audit --epic</code>: the
+epic's own sub-issues and its <strong>proxy tasks</strong>, the tasks of the effort
+filed in another org under that org's proxy epic. A proxy task is driven
+from the primary epic like any other task, through the same skills and
+gates, and plan evolution that concerns it is recorded in the primary's
+plan, since a proxy has no plan. An audit exit 1 is proxy link drift (a
+broken or disagreeing <code>Primary:</code>/<code>Proxy:</code> link): it shows the problems and
+stops rather than build a frontier without the proxy's tasks.</p>
 <p>A code task whose <a href="#merge-review">merge review</a> stopped for a ruling waits
 at the gate with its request ID. <code>epic-implement</code> talks the request's items
 through with the human in the terminal (a security item's details from the
@@ -5249,7 +5287,8 @@ ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
 planning or deferred queue it refuses and points to <code>epic-review</code> (with
 <code>--repo</code> for a self-homed private repo's queue); given the hoshin epic it
-refuses and points to <a href="#hoshin">hoshin</a>, whose tasks it is; given an
+refuses and points to <a href="#hoshin">hoshin</a>, whose tasks it is; given a
+proxy epic it refuses and names the primary epic to drive instead; given an
 issue that is not an epic it refuses. Added in epic
 <a href="https://github.com/vergil-project/.github/issues/1077">vergil-project/.github#1077</a>.</p>
 <p><strong>When to use.</strong> In the user-agent session, to start or resume work on an
@@ -5274,6 +5313,13 @@ the result goes in §4), then it drafts <code>retrospective.md</code> — the
 backward-looking record that partners the spec and plan (spec → plan →
 retrospective) — from the execution history, runs a draft → review loop with the
 human, and hands off the closing docs PR whose merge <strong>closes the epic</strong>.</p>
+<p>The gate reads the <code>children</code> of <code>vrg-epic-audit --epic</code>, so it covers the
+epic's <strong>proxy tasks</strong> (its tasks filed in other orgs under their proxy
+epics) like its own children. Its refusal names each open ref in full and,
+for each open proxy task, the proxy it sits under. An audit exit 1 is proxy
+link drift (a broken or disagreeing <code>Primary:</code>/<code>Proxy:</code> link): it shows the
+problems and stops, since the gate cannot see every proxy task until the
+link is fixed.</p>
 <p><strong>When to use.</strong> To finish an epic — "run the retrospective", "close out this
 epic", "we're done with this epic".</p>
 <p><strong>Status.</strong> Current (Vergil 2.1).</p>
@@ -5299,6 +5345,13 @@ with <code>vrg-ruling draft-scope</code> for the human to post with
 documentation review whose own repo needs no change has no PR: the skill
 posts the search evidence on the task and closes it as completed, with no
 ruling needed.</p>
+<p>A documentation fix a run leaves for the epic's documentation-review sweep
+is recorded on that epic's documentation-review bookend. A proxy task has
+no bookend of its own: its sweep items go on the <strong>primary's</strong> bookend, the
+primary read from <code>vrg-epic-audit --epic &lt;proxy ref&gt;</code>, and a link-drift
+exit 1 there stops the run. An ad-hoc task has no bookend at all: a
+documentation gap it finds outside its scope is a follow-up for the
+human's ruling.</p>
 <p>Given a list of small same-epic issues, it implements them as one
 <strong>batch</strong>: <code>vrg-pr-workflow batch-start</code> checks the batch's hard rules
 and records the list and a fixed base, then each issue is implemented,
@@ -5353,8 +5406,12 @@ a run stopped for a ruling. Also run by <code>pr-watch</code> on a fix to an ope
 submitted PR (any fix but a rebase that resolves no conflict), before it
 pushes: a whole-branch review against <code>origin/develop</code>, with
 <code>--pr &lt;PR_URL&gt;</code> on every step. That run has no report-ready: its outcome
-is the closing comment on the task issue, and <code>pr-watch</code> pushes only on
-<code>eligible</code>. The files, schemas and the result check follow
+is the closing comment on the task issue, which adds a
+<code>Branch as reviewed: &lt;yes | no&gt;</code> line. <code>pr-watch</code> pushes on <code>eligible</code>,
+and on <code>not-eligible (human-ruling)</code> only when that line is <code>yes</code>: every
+item was closed by a ruling that left the reviewed branch unchanged
+(<code>keep</code>, <code>file</code>, <code>decline</code>, <code>dismiss</code>), with no fix step and no security
+item. The eligibility line still says the run needed the human. The files, schemas and the result check follow
 vergil-tooling's
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md">agent-to-agent review protocol</a>;
 the ruling channel is its
@@ -5440,7 +5497,9 @@ follow-up issue. Because every push
 can merge, a clean rebase onto <code>origin/develop</code> is pushed with no review,
 and every other fix is reviewed first through merge-review's
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr">Fix to an open PR</a>
-entry and pushed only when eligible. After a fix it tells the human to
+entry and pushed only when eligible, or when its only stop was a
+ruling that left the reviewed branch unchanged
+(<code>Branch as reviewed: yes</code>). After a fix it tells the human to
 rerun <code>vrg-finalize-pr &lt;PR&gt;</code>. It never merges and never turns auto-merge on
 or off: auto-merge off or a provenance violation stops it for the human.
 It never fixes a logbook PR (one titled <code>Logbook:</code>): it tells the human to
