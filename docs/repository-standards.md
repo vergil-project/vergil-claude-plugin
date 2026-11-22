@@ -70,7 +70,7 @@ trailer; Claude Code attribution is turned off in
 vrg-submit-pr \
   --issue NUMBER --title TEXT --summary TEXT \
   [--linkage KEYWORD] [--notes TEXT] [--dry-run] \
-  [--no-finalize | --release [--no-install]]
+  [--release]
 ```
 
 PR submission is a human action: an agent hands off with
@@ -90,10 +90,8 @@ which reads the recorded state. The flags above are its direct
   epic/task convention in `CLAUDE.md`.
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing
-- `--no-finalize` (optional): return once the PR is open instead of
-  watching it merge
 - `--release` (optional): after a fully successful finalize, cut a
-  release with `vrg-release` (`--no-install` skips its install)
+  release with `vrg-release`, whose install is part of every release
 
 `vrg-submit-pr` opens PRs against `develop` only (releases go through
 `vrg-release`) and turns auto-merge on itself, pinned to the pushed
