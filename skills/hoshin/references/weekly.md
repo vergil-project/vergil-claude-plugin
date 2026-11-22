@@ -39,15 +39,11 @@ chooses the week's focus.
 
 - **Answers:** which epics are open in the fleet, how far each has got
   (tasks done of tasks in all), and how old each is.
-- **Sources:** the open epics in each fleet org's `.github`, and in each
-  private repo that homes its own epics, with their native sub-issues.
+- **Sources:** the open epics in each fleet org's `.github`, with their
+  native sub-issues.
 - **Window:** none: the epics open now.
-- **Output:** for public epics, one line per epic: ref, title, tasks done
-  of total, age. For epics homed in a private repo, the count of open epics
-  per org, and the total tasks done of total, with no titles.
-- **Tool:** `vrg-roadmap --org <org>`, for each active fleet org; for each
-  private repo the visibility check listed, `vrg-roadmap --repo
-  <owner>/<private-repo>`, reported as counts only.
+- **Output:** one line per epic: ref, title, tasks done of total, age.
+- **Tool:** `vrg-roadmap --org <org>`, for each active fleet org.
 
 #### Check: Epic drift
 
@@ -56,8 +52,8 @@ chooses the week's focus.
   issues in the wrong place.
 - **Sources:** each fleet org's epics, tasks and merged PRs.
 - **Window:** the tool's own, the last 30 days of merged PRs.
-- **Output:** the count of drift items per org, and for a public repo each
-  item by ref. Drift is reported only; the run never closes it (the tool's
+- **Output:** the count of drift items per org, and each item by ref.
+  Drift is reported only; the run never closes it (the tool's
   `--close` is a human action).
 - **Tool:** `vrg-epic-audit`, read-only (never `--close`), run from inside
   a clone of a repo in each active fleet org (it finds the org from that
