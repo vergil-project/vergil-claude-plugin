@@ -272,9 +272,9 @@ and settles what needs action today.
   Never an alert count, a severity, an
   alert number or the audit's output; for the agent audit, never a PR, a
   path, an actor or the condition it reported. Then each repo whose
-  agent audit was not read and, before the go-live, each repo whose failed
-  agent audit is a rollout state, as `agent-audit: rollout state, not
-  read`.
+  agent audit was not read after the go-live, as `agent-audit: not read`,
+  and, before the go-live, each repo whose failed agent audit is a rollout
+  state, as `agent-audit: rollout state, not read`.
 - **Tool:** none yet. Today, for each fleet repo:
 
   ```bash
