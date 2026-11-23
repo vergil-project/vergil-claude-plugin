@@ -181,6 +181,14 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
+**Steps that refuse the agent identity are human-run.** When writing a
+deployment task's steps, check each one against the agent identity. A
+step that refuses it goes under the scaffold's **Human-run steps (need a
+human identity)** section, never under the agent-safe deploy steps, so
+`issue-deploy` hands it to the human instead of stopping on it. The
+common ones are `vrg-host plugins`, `vrg-host upgrade` and
+`vrg-vm update --all`.
+
 **Checking that a release carries the changes.** Where a deployment (or
 release) task's procedure must confirm that a release contains given changes,
 write that step first as a release-record check of each task whose release it
