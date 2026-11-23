@@ -225,6 +225,14 @@ the sub-tasks yourself; splitting creates issues, so the human rules on it.
 An approved split narrows this task's scope: draft the scope change for
 the human as above.
 
+For an **ad-hoc task** (its native parent carries `epic` + `ad-hoc`),
+offer a second choice in the same item: route the task to planning, so
+it becomes an epic, with `vrg-intake-route <owner>/<repo>#<N> planning`
+(optionally sized: `--tasks <n>` and `--reason "<one line>"` together,
+as `epic-review`'s planning route says). Routing moves the issue, so the human
+rules on it too. Once they approve it, run the route and end the run:
+the work goes on through `epic-create`.
+
 ## Discovering an operational need (deployment or validation)
 
 Merging the code is sometimes not the finish line. While implementing, you may
