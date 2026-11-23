@@ -44,7 +44,7 @@ Each rule is followed by one example of the allowed wording.
    security tool (a scanner, an audit, a secret or workflow checker) into an
    entry, summarised or not.
 
-   > The dependency audit failed in one repo: a security-related failure,
+   > `vergil-project/<repo>`: a security-related failure,
    > `vergil-project/.github#<N>`.
 
 5. **The rules cover every public record a run creates.** Follow-up issues
