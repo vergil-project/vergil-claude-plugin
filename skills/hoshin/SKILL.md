@@ -27,7 +27,7 @@ The rules live in the references; read each one when its step comes:
 | --- | --- |
 | [`references/calendar.md`](references/calendar.md) | the time zone, periods, boundaries, closing, gaps, windows and worked examples 1 to 6 |
 | [`references/logbook.md`](references/logbook.md) | file names, the entry header and body, index lines, fixed wording, the kaizen prompt, the check format, the stopped-run choices and example 7 |
-| [`references/security.md`](references/security.md) | the security rules, the pre-commit screen's patterns and its limit, examples A to D |
+| [`references/security.md`](references/security.md) | the security rules, the pre-commit screen's patterns and its limit, an example of each rule and examples A to C |
 | `references/<level>.md` (`daily`, `weekly`, `monthly`, `quarterly`, `yearly`) | each level's `start` and `end` checklist, its data steps written as checks |
 
 Throughout, `<docs>` is the docs repo's main clone and `<logbook>` is
