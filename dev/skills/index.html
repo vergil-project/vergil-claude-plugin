@@ -5195,7 +5195,7 @@ implements one or starts <code>epic-create</code>.</p>
 work. It opens into brainstorming, runs the front-loaded pipeline
 (brainstorm → spec pushback rounds → human spec review → writing-plans →
 plan pushback rounds → alignment rounds), creates the finite epic in its
-resolved home, seeds the <strong>bookend tasks</strong> — documentation,
+home, the org <code>.github</code>, seeds the <strong>bookend tasks</strong> — documentation,
 documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
 spec + plan as a docs PR. It also seeds the operational (deployment and
 validation) tasks the plan needs, and when an epic changes language support,
@@ -5306,8 +5306,8 @@ item. See its
 section.</p>
 <p>Its <strong><code>adhoc</code> mode</strong> works the ad-hoc tasks with the same dispatch, gate
 and batching rules: org-wide with <code>/vergil:epic-implement adhoc</code>, or for
-one repo with <code>adhoc --repo &lt;owner&gt;/&lt;repo&gt;</code> or that repo's ad-hoc epic ref
-(a self-homed private repo's tasks only that way). It collects the tasks
+one repo with <code>adhoc --repo &lt;owner&gt;/&lt;repo&gt;</code> or that repo's ad-hoc epic ref.
+It collects the tasks
 with <code>vrg-queue adhoc</code>, summarizes them by repo with the in-flight tasks
 apart (a handed-off one is left alone; one to resume goes through the
 development path's re-entry steps), proposes a strategy that judges overlap
@@ -5315,8 +5315,8 @@ per repo and names what runs at the same time, takes one confirmation, then
 dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
-planning or deferred queue it refuses and points to <code>epic-review</code> (with
-<code>--repo</code> for a self-homed private repo's queue); given the hoshin epic it
+planning or deferred queue it refuses and points to <code>epic-review</code>; given
+the hoshin epic it
 refuses and points to <a href="#hoshin">hoshin</a>, whose tasks it is; given a
 proxy epic it refuses and names the primary epic to drive instead; given an
 issue that is not an epic it refuses. Added in epic
@@ -5599,9 +5599,8 @@ tracked for cleanup in
 <h2 id="intake-capture">intake-capture<a class="headerlink" href="#intake-capture" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Captures an uncurated idea, bug, or to-do into the intake
 queue so it is never lost. It runs <code>vrg-intake-create</code>, which files one issue
-in the current repo's queue home (the org <code>.github</code> for a public repo, the repo
-itself for a private one) and links it under that home's intake epic as it is
-created. There is no kind or category step: membership in the intake queue is
+in the current repo's queue home, the org <code>.github</code>, and links it under that
+home's intake epic as it is created. There is no kind or category step: membership in the intake queue is
 the item's state. Voice-to-text input is paraphrased into clean written prose.
 Renamed from the triage capture skill in epic
 <a href="https://github.com/vergil-project/.github/issues/176">vergil-project/.github#176</a>.</p>
@@ -5669,8 +5668,8 @@ a complete listing, not a failure.</p>
 <p>Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
 it never implements one or starts <code>epic-create</code>. Given an ad-hoc epic or a
-development epic, it prints a one-line refusal pointing to the right command,
-naming <code>--repo</code> for a self-homed private repo's ad-hoc epic, and stops; with no argument, it shows the three queue counts and asks which
+development epic, it prints a one-line refusal pointing to the right command
+and stops; with no argument, it shows the three queue counts and asks which
 to review. Added in epic
 <a href="https://github.com/vergil-project/.github/issues/1077">vergil-project/.github#1077</a>.</p>
 <p><strong>When to use.</strong> For the periodic pass of any queue: "review intake", "groom
@@ -5726,9 +5725,8 @@ entries. <code>/vergil:hoshin end</code> closes the day (終礼 shūrei), and
 <code>end &lt;week|month|quarter|year&gt;</code> closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
 with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
-the run: a private repo's in that repo, a security finding as a security
-record, and a public one only after the security screen and the human's
-approval of its text.</p>
+the run: a security finding as a security record, and any other only
+after the security screen and the human's approval of its text.</p>
 <p>Each run hands off one docs PR: a <code>Logbook: &lt;date&gt; &lt;mode&gt;</code> task for the docs
 repo under the org's hoshin epic, a worktree, the entries and index lines, <code>vrg-validate</code>,
 a mechanical security screen of the final text, the human's approval of the
