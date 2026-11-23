@@ -283,8 +283,8 @@ the work, so the agent drafts; the human reviews:
 On approval:
 
 1. Write `retrospective.md` at `epics/<N>-<slug>/retrospective.md` on a worktree
-   of the retrospective task's branch in the epic's **home repo** (`.github` for
-   a public target, the repo itself when private).
+   of the retrospective task's branch in the epic's **home repo**, the org
+   `.github`.
 2. Validate green: `vrg-container-run -- vrg-validate`.
 3. Record the PR metadata and hand off — agents run
    `vrg-pr-workflow report-ready --issue <retrospective-task> --title … --summary
