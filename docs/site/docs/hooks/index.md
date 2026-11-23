@@ -387,8 +387,10 @@ the project-scope entry whose `projectPath` is the session's project
 (`CLAUDE_PROJECT_DIR`, else the payload's `cwd`), else the user-scope
 entry. Paths are compared with symlinks resolved. On a mismatch it adds a
 warning to the agent's context naming the loaded and the installed
-version, and telling the agent to stop and ask the human to run
-`/reload-plugins` (or restart the session) before relying on the skill.
+version. It tells the agent to note the warning and carry on, not to
+stop, and to tell the human, who can run `/reload-plugins` (or restart
+the session) when the work depends on the new version. A check that
+could not run ends the same way.
 `CLAUDE_CONFIG_DIR`, when set, replaces `~/.claude`.
 
 **Why.** A running session keeps serving the plugin version it loaded at
@@ -397,7 +399,11 @@ loaded skill after an upgrade can silently do what the release removed
 ([#1129](https://github.com/vergil-project/vergil-claude-plugin/issues/1129)).
 Claude Code tells the human "Plugins changed. Run /reload-plugins to
 activate.", but that notice never reaches the agent, and an agent cannot
-run a slash command itself.
+run a slash command itself. The warning does not stop the agent: most
+plugin updates land mid-task and do not touch the work in progress, so
+stopping on every one interrupts for nothing. When the work does depend on
+the new version, the human pauses the session and reloads
+([#1260](https://github.com/vergil-project/vergil-claude-plugin/issues/1260)).
 
 **Warns, never blocks.** The hook only adds context: it never denies the
 call, so a session that cannot reload (a remote one, say) is not trapped.
@@ -412,8 +418,9 @@ the problem to stderr and exits 1, a non-blocking error. A plugin root
 outside the plugin cache, such as a `claude --plugin-dir` source mount,
 has no install record to compare with, so the hook is silent there.
 
-**Alternative.** Ask the human to run `/reload-plugins` in the session, or
-to restart it, then invoke the skill again. Tests:
+**Alternative.** When the work depends on the new version, the human
+runs `/reload-plugins` in the session, or restarts it, and the agent then
+invokes the skill again. Tests:
 `hooks/tests/warn-stale-plugin-version.test.sh`.
 
 ## PostToolUse Hooks — Bash
