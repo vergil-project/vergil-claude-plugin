@@ -436,7 +436,7 @@ reason_case() {
 
 reason_case "agent-merge: merges go through vrg-submit-pr's auto-merge" \
   block-agent-merge.sh 'gh pr merge 5' has \
-  'A PR merges only through `vrg-submit-pr`, which opens it with auto-merge on'
+  "A PR merges only through \`vrg-submit-pr\`, which opens it with auto-merge on"
 reason_case "agent-merge: agents never approve" \
   block-agent-merge.sh 'gh pr review 5 --approve' has \
   'an agent never approves any PR'
