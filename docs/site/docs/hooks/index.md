@@ -260,21 +260,20 @@ post-finalization action — not the agent's.
 `gh pr review --approve`, or the equivalent `gh api` calls —
 unconditionally.
 
-**Why.** Under the 2.1 workflow agents have no merge path at all:
-the per-VM GitHub App credentials cannot merge, and merging is a
-human action: the human's `vrg-submit-pr` turns auto-merge on, and
-`vrg-finalize-pr` only watches and settles. Skill prose saying "do
+**Why.** No agent merges a PR directly or approves one: a PR
+merges only through `vrg-submit-pr`, which opens it with auto-merge
+on, and `vrg-finalize-pr` only watches and settles. Skill prose saying "do
 not merge" is advisory; agents rationalize past it. This hook makes
 the rule mechanical — an ergonomic fast-fail on top of the hard
-credential gate. The deny applies to **all identities** and all
+credential and server-side gates. The deny applies to **all identities** and all
 branches, release PRs included; the pre-2.1 release-branch
 allow-list (delegated to a `vrg-check-pr-merge` tool that was never
 shipped) was removed in [#441](https://github.com/vergil-project/vergil-claude-plugin/issues/441).
 See [#162](https://github.com/vergil-project/vergil-claude-plugin/issues/162)
 for the original motivating incident.
 
-**Alternative.** Hand the PR URL to the human. The human's `vrg-submit-pr`
-opened it with auto-merge on, so it merges by itself once CI is green.
+**Alternative.** Open the PR with `vrg-submit-pr`. It turns
+auto-merge on, so the PR merges by itself once its checks pass.
 
 ### block-github-contents-api
 
@@ -283,8 +282,9 @@ GitHub Contents API. Reads (GET) are allowed.
 
 **Why.** Writing files via the API bypasses the local workflow
 entirely — no validation, no commit standards, no PR template. File
-changes go through the worktree: edit, `vrg-commit`, write
-`.vergil/pr-template.yml`; the human submits with `vrg-submit-pr`.
+changes go through the worktree: edit, `vrg-commit`, hand off with
+`vrg-pr-workflow report-ready`, and open the PR with the agent's own
+`vrg-submit-pr`.
 (`vrg-gh` denies `gh api` outright; this hook catches raw `gh`.)
 
 **Alternative.** Make the change in your worktree and follow the
