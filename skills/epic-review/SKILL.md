@@ -42,9 +42,8 @@ there is nothing to resume.
 ```
 
 - **A keyword** selects its mode for the current org's queue home,
-  `<owner>/.github`. `--repo <owner>/<repo>` selects another queue home
-  exactly as `vrg-queue --repo` does: a **self-homed private repo** keeps
-  its own queues, and they are reviewed only with its own `--repo`.
+  `<owner>/.github`. `--repo <owner>/<repo>` selects another org's queue
+  home, that repo's `<owner>/.github`, exactly as `vrg-queue --repo` does.
 - **A trigger phrase** selects its mode directly, like the keyword: the
   intake and triage phrases select `intake`, the planning phrases
   `planning`, and the deferred phrases `deferred`. Do not ask which queue
@@ -70,7 +69,7 @@ there is nothing to resume.
 
   ```bash
   vrg-queue                         # all three queues of the org's .github
-  vrg-queue --repo <owner>/<repo>   # a self-homed private repo's queues
+  vrg-queue --repo <owner>/<repo>   # the queues of that repo's org .github
   ```
 
   Report each queue's count (a queue whose epic does not exist yet is
@@ -88,10 +87,6 @@ Given anything that is not a queue, print the one line and stop. Do nothing
 else: no queue read, no comment, no route.
 
 - An ad-hoc epic: `<ref> is an ad-hoc epic; it holds placed work, not a queue. Work it with /vergil:epic-implement <ref>, or every repo's with /vergil:epic-implement adhoc.`
-  A self-homed private repo's ad-hoc epic (one whose `<owner>/<repo>` is
-  not `<owner>/.github`) is never in the org-wide run, so it gets
-  `<ref> is an ad-hoc epic; it holds placed work, not a queue. Work it with /vergil:epic-implement adhoc --repo <owner>/<repo>.`
-  instead.
 - A development epic: `<ref> is a development epic; it is worked with /vergil:epic-implement <ref>.`
 - Not an epic: `<ref> is not an epic; review a queue with /vergil:epic-review intake, planning or deferred.`
 
@@ -111,7 +106,7 @@ prints anything else, stop.
 
 ```bash
 vrg-queue <intake|planning|deferred>                         # the org's .github queue
-vrg-queue <intake|planning|deferred> --repo <owner>/<repo>   # a self-homed private repo's own queue
+vrg-queue <intake|planning|deferred> --repo <owner>/<repo>   # that repo's org .github queue
 ```
 
 The text output is a header line (`<kind> queue for <name> in <home>: N open
@@ -243,9 +238,8 @@ Which routes a mode offers is in its section. Rules for every mode:
   comment on the primary, or finds the one that exists), then route with
   `--epic <owner>/.github#<P>`. Recommend it in the item's paragraph, and
   run `--proxy-for` only once the batch is confirmed. If `--proxy-for`
-  refuses (a private primary or target, or a primary that is not an open
-  development epic), report it and ask the human for another outcome; never
-  fall back to `adhoc`. When the item's work lands in the primary's own
+  refuses (a primary that is not an open development epic), report it and
+  ask the human for another outcome; never fall back to `adhoc`. When the item's work lands in the primary's own
   org, no proxy is needed: route it under the primary itself. A move to another repo
   **transfers** the issue to keep its history; if GitHub refuses the
   transfer, the tool **recreates** the item in the target repo with a
@@ -282,8 +276,7 @@ Which routes a mode offers is in its section. Rules for every mode:
 - **A refusal is information, not an obstacle.** `vrg-intake-route` exits 1
   with the reason when a route must not run: for example the item is not in
   the queue the route expects, the target is cross-org, a one-off names a
-  queue epic, a private repo's item is headed to a public repo or epic, or a
-  planning item still has an open development epic (see
+  queue epic, or a planning item still has an open development epic (see
   [Drop in every mode](#drop-in-every-mode)). Report it with the batch
   results and ask the human for a different outcome. Never work around it by
   hand.
@@ -506,10 +499,6 @@ revived as one-off · dropped · remaining unreviewed.
   or out of the deferred epic with `vrg-epic-move` or `vrg-issue-create`;
   they refuse it, so that no item is deferred without its deferral comment
   or revived silently.
-- **Private work stays private.** A self-homed private repo's queues are
-  reviewed only with its own `--repo`. Never route a private repo's item to
-  a public repo or epic; the tool refuses it, and GitHub refuses private →
-  public transfers anyway.
 - **Queue items are not PR-workable.** `issue-implement`,
   `vrg-pr-workflow report-ready` and `vrg-submit-pr` refuse an intake,
   planning or deferred item. Routing an intake or deferred item out as a

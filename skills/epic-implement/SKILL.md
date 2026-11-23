@@ -26,10 +26,8 @@ dispatch, gate and batching rules.
 
    - **`adhoc`** runs the [`adhoc` mode](#the-adhoc-mode) over every
      ad-hoc epic in the current org's queue home (`<owner>/.github`).
-     `adhoc --repo <owner>/<repo>` limits it to that one repo. A
-     **self-homed private repo**'s ad-hoc tasks are never in the org-wide
-     run: they are worked only with that repo's own `--repo`, given here
-     or mapped from its ad-hoc epic ref below.
+     `adhoc --repo <owner>/<repo>` limits it to that one repo, as does
+     its ad-hoc epic ref (mapped below).
    - **`intake`, `planning` or `deferred`** is a queue: print
      `<keyword> is the <keyword> queue; review it with /vergil:epic-review <keyword>.`
      and stop.
@@ -43,7 +41,7 @@ dispatch, gate and batching rules.
      | Labels | Kind | What to do |
      |---|---|---|
      | no `epic` label (a task, or an `archive`) | not an epic | Print `<ref> is not an epic.` and stop. |
-     | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. For a self-homed private repo's queue (one whose `<owner>/<repo>` is not `<owner>/.github`), print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind> --repo <owner>/<repo>.` instead: its queues are reviewed only with its own `--repo`. |
+     | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. |
      | `epic` + `hoshin` | the hoshin epic | Print `<ref> is the hoshin epic; its tasks belong to /vergil:hoshin.` and stop. |
      | `epic` + `ad-hoc` | one repo's ad-hoc epic | Run the [`adhoc` mode](#the-adhoc-mode) for that one repo (below). |
      | `epic` + `proxy` | a proxy epic | Read its primary from the `primary` key of `vrg-epic-audit --epic <ref>`, print `<ref> is a proxy for <primary ref>; drive the primary epic instead.` and stop. If the audit exits 1 (link drift), show its stderr and stop. |
@@ -55,9 +53,7 @@ dispatch, gate and batching rules.
      legacy `Epic (ad hoc): <repo> — <quarter>`) is an archive: print
      `<ref> is an archive, not a live ad-hoc epic.` and stop. In the org's
      `.github`, the epic's repo is `<owner>/<repo>`, under the ref's owner.
-     A self-homed private repo's ad-hoc epic lives in that repo itself and
-     maps to it (the ref's `<owner>/<repo>`); if its title names another
-     repo, say so and stop. The mapped repo is the mode's `--repo`.
+     The mapped repo is the mode's `--repo`.
 
    If the labels cannot be read, say so and stop rather than guess a kind.
 
@@ -506,8 +502,7 @@ continue, re-run the mode from step 1.
 The development path writes each session follow-up, and its ruling, in a
 comment on the epic issue. An ad-hoc run writes each one on the ad-hoc epic
 of the repo it concerns. One that concerns several repos goes on the queue
-home's own ad-hoc epic (`Epic (ad hoc): .github` in `<owner>/.github`; for
-a self-homed private repo, its own ad-hoc epic).
+home's own ad-hoc epic (`Epic (ad hoc): .github` in `<owner>/.github`).
 
 ### What the mode does not do
 

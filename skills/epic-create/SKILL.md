@@ -9,9 +9,8 @@ description: Use as the DEFAULT entry point for non-trivial work — a feature, 
 
 `epic-create` is the **outer, orchestrating workflow** for non-trivial work. It
 runs the brainstorm → design → plan pipeline, creates the **finite epic** in its
-resolved home (the org `.github` by default; a **private** repo self-homes its
-epics — see Preflight), seeds the epic's **bookend tasks**, and publishes the
-spec and plan as the epic's docs. This is where significant work *starts* — not a
+home, the org `.github` (see Preflight), seeds the epic's **bookend tasks**,
+and publishes the spec and plan as the epic's docs. This is where significant work *starts* — not a
 step reached at the end.
 
 Canonical convention: `vergil-project/.github#40`; worked example (this skill's
@@ -413,22 +412,18 @@ decision.
 
 - Confirm you are the **USER** agent: `[ "$(vrg-whoami --mode)" = user ] && echo ok || echo "not user"`
   must print `ok`.
-- Confirm the **resolved** epic home for the target repo. The home is derived
-  from visibility (`epics.resolve_epic_home`, epic #130): a **public** repo homes
-  its epics centrally in `<owner>/.github`; a **private** repo (with a public
-  `.github`) self-homes them in its own issue list, so nothing about private work
-  reaches the public `.github`. The create and report commands take an explicit
-  `--repo <owner>/<repo>` target (default: current repo) and echo the resolved
-  home before acting. See convention `#40` §3.2.
+- Confirm the epic home for the target repo: every repo homes its epics in
+  its org's `<owner>/.github` (`epics.resolve_epic_home`). The create commands
+  take an explicit `--repo <owner>/<repo>` target (default: current repo) and
+  echo the home before acting. See convention `#40` §3.2.
 
 ## The planning issue — every epic-create runs through one
 
 Expanding an idea into a full epic can take hours or days, so **every
 `epic-create` session is tracked in a planning issue**: an open child of the
 **planning epic** (`Epic (planning): <name>`, labelled `epic` + `planning`) in
-the target's queue home — `<owner>/.github` for a public repo, the repo itself
-for a self-homed private one. The planning issue stays open, unchanged in
-substance, until the epic is fully expanded, and its comments are the written
+the target's queue home, `<owner>/.github`. The planning issue stays open,
+unchanged in substance, until the epic is fully expanded, and its comments are the written
 record a paused session resumes from. Below, `<M>` is the planning issue and
 `<N>` the epic it produces.
 
@@ -491,8 +486,8 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 | `epic-create <issue>`, issue is in **intake** | Pull it into planning first — a one-item intake review: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. |
 | `epic-create <issue>`, issue is under an **ad-hoc** epic | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. The item needs an epic, so it leaves the ad-hoc epic, which takes only single-issue work. |
 | `epic-create <issue>`, issue is in **deferred** | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. Read its latest `Deferred <date>:` / `Revisit when:` comment first; if the conditions are plainly unmet, say so and confirm with the human before reviving it. |
-| `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning` (add `--repo <owner>/<private-repo>` for a self-homed private repo): waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on, as [Choosing what to plan next](#choosing-what-to-plan-next) says. |
-| `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <queue-home> --title "<idea>" --body-file <tmp>` (`<queue-home>` is `<owner>/.github` for a public target, the private repo itself otherwise). |
+| `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning`: waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on, as [Choosing what to plan next](#choosing-what-to-plan-next) says. |
+| `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <owner>/.github --title "<idea>" --body-file <tmp>` (`<owner>/.github` is the target's queue home). |
 
 - An issue under **any other parent** (a finite epic) is already ready
   work, not a planning candidate. Stop and ask the human.
@@ -728,10 +723,9 @@ details, step 0's public-wording rule) goes into it.
         which refuses while any issue it tracks is open.
 2. **Create the epic and seed its bookend tasks.**
    - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
-     <tmp>` creates the issue in the target's **resolved home** with the `epic`
-     label and the `epic-development` category label (`--repo` defaults to the
-     current repo; the command echoes the home —
-     `<org>/.github` for a public target, the repo itself when private); note the
+     <tmp>` creates the issue in the target's **home**, `<org>/.github`, with
+     the `epic` label and the `epic-development` category label (`--repo`
+     defaults to the current repo; the command echoes the home); note the
      number **N**. The tool derives the category label itself, so never pass it
      with `--label`: it refuses `--label epic-development` and
      `--label epic-management`. The category labels (`epic-development`,
@@ -773,9 +767,8 @@ details, step 0's public-wording rule) goes into it.
      (`--kind deployment`) wherever a later step needs the change *deployed*, not
      just merged. Add more here or at plan time as the judgment calls for.
 3. **Write the spec** on a worktree of the documentation task's branch in the
-   epic's **home repo** (`.github` for a public target, the repo itself when
-   private), at `epics/<N>-<slug>/spec.md` (`<slug>` = 2–4 kebab tokens), and
-   commit it as an ordinary commit, not a round commit. Then run the epic
+   epic's **home repo**, `<org>/.github`, at `epics/<N>-<slug>/spec.md`
+   (`<slug>` = 2–4 kebab tokens), and commit it as an ordinary commit, not a round commit. Then run the epic
    body sync (above).
    - **Header rule** ([doctrine §2.8](../../docs/paad-review-doctrine.md#28-no-review-history)):
      a spec or plan header carries `Planning issue` (with "review history is in
@@ -815,8 +808,8 @@ details, step 0's public-wording rule) goes into it.
      `vrg-issue-create --epic <other-owner>/.github#<P> --repo
      <other-owner>/<repo> …`. Never file it under that repo's ad-hoc epic,
      and never try to link it under this epic directly. If `--proxy-for`
-     refuses (a private primary or target repo, or an epic that is not an
-     open development epic), stop and ask the human: the task must not be
+     refuses (an epic that is not an open development epic, or two repos in
+     the same org), stop and ask the human: the task must not be
      filed in an ad-hoc epic instead. The plan's delivery table names each
      proxy task by its full ref ("Task sizing" above); name the proxy in the
      next progress comment.
@@ -920,9 +913,8 @@ details, step 0's public-wording rule) goes into it.
       follow the next bullet for any that cannot be read), fix it and re-run report-ready,
       which only rewrites the prose. A held item never shows
       `ready-to-close`, so never close it by hand while it is held. Otherwise close it by
-      hand once it is ready. Run `vrg-queue planning` (with `--repo` for a
-      private home); exit 2 is a complete listing (some item's size is in
-      error), not a failure. Once it shows the item `ready-to-close`, close
+      hand once it is ready. Run `vrg-queue planning`; exit 2 is a complete
+      listing (some item's size is in error), not a failure. Once it shows the item `ready-to-close`, close
       it with `vrg-gh issue close <M> --repo <owner>/<repo> --reason
       completed --comment "Planned as <owner>/<repo>#<N>"`. If the docs PR
       has not merged yet (a human action), the next `epic-create` touch or
@@ -985,8 +977,7 @@ details, step 0's public-wording rule) goes into it.
   <owner>/<repo>` (step 8), and file that org's tasks under it with
   `--epic <proxy ref>`. A proxy holds tasks and nothing else (no spec, plan
   or bookends), is driven only through the primary's `epic-implement`, and
-  stays open until the primary closes. Proxies exist only between public
-  repos: `--proxy-for` refuses a private primary or target. Linking epics or
+  stays open until the primary closes. Linking epics or
   tasks across orgs directly stays forbidden; the proxy is the sanctioned
   form. **An ad-hoc epic holds only standalone, single-issue work:** a task
   owned by any epic, a proxy task included, never goes there.
