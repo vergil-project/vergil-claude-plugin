@@ -270,10 +270,14 @@ issue, finds it. Find the main clone from inside a worktree with
   a new subdirectory of its own. The seal ends with the session: it is
   never reported, passed on or trusted by another session.
 - **The first round of a session** has no seal. Before you write anything
-  there, the task's state directory must be absent, or hold only what the
-  trusted records on the issue say was kept (a `scratch copy kept` round
-  comment), and the human must confirm what it holds, shown as a listing.
-  Anything else means stop.
+  there, check the task's state directory:
+  - **Absent:** there is nothing to confirm, so do not ask the human. Go
+    on, creating it level by level (above) when the round first writes
+    there.
+  - **Present:** it must hold only what the trusted records on the issue
+    say was kept (a `scratch copy kept` round comment). Show the human its
+    listing and wait for their confirmation. Anything else means stop.
+
   The hash you take then seals the directory for the rest of the session.
 - **After a stop on a state-directory check,** the human looks at the
   directory and rules. Once they confirm its contents, a fresh hash becomes
@@ -291,8 +295,8 @@ issue, finds it. Find the main clone from inside a worktree with
   `<N>/` after each write or deletion, and check the hash before the next
   write or deletion, before reading a draft back and before the report is
   sent; a difference means stop and ask the human. A session that finds the
-  directory shows the human its listing first, as for the first round of a
-  session.
+  directory present shows the human its listing first, as for the first
+  round of a session; one that finds it absent asks the human nothing.
 - **The `operational` directory** follows the `upstream-report` rules, with
   a details file, named `security-<i>.md` after a `test ! -e` check as in
   [§1.6](#16-security-findings), in place of a draft and a record in place
@@ -915,8 +919,9 @@ These checks guard every round. Mode 1's own checks
   absent or hold nothing but a `.gitignore`, the same state the check after
   the review expects;
 - last, just before dispatch: the task's state directory: its seal (or, in
-  the first round of a session, the listing the human confirmed), its mode,
-  and its hash ([§1.5](#15-state-directories)).
+  the first round of a session, the listing the human confirmed, or
+  nothing to confirm if it was absent), its mode, and its hash
+  ([§1.5](#15-state-directories)).
 
 A check that fails, or a command that fails, stops the round before
 dispatch: stop and ask the human. It is never re-run automatically.
@@ -1121,8 +1126,9 @@ Rules the template carries, and why:
 - last, just before dispatch, the planning issue's state directory,
   `build/.vergil-state/design-review/<M>/` in the docs repo's main clone
   ([§1.5](#15-state-directories)): check its seal (or, in the first round
-  of a session, its listing), create it level by level if it is absent,
-  check its mode, and take its hash.
+  of a session, the listing the human confirmed if it was present; an
+  absent one needs no confirmation), create it level by level if it is
+  absent, check its mode, and take its hash.
 
 A dirty worktree at this point (for example, a session resumed partway
 through a walk-through) is shown to the human as a diff. The human either

@@ -38,10 +38,8 @@ Fire whenever the human wants to record something without stopping to plan it:
    vrg-intake-create --title "<concise, specific title>" --body-file <tmpfile>
    ```
 
-   With no `--repo`, the issue is filed in the **current repo's queue home**:
-   the org `<owner>/.github` for a public repo, or the repo itself for a
-   self-homed **private** repo — so a private repo's capture lands in its own
-   intake queue automatically and never reaches the public `.github`. Pass
+   With no `--repo`, the issue is filed in the **current repo's queue home**,
+   the org `<owner>/.github`. Pass
    `--repo <owner>/<repo>` only to file somewhere else. The tool links the new
    issue under that repo's intake epic as it creates it (creating the epic on
    first use). Extra labels are optional via `--label`.

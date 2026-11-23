@@ -82,7 +82,7 @@ implements one or starts `epic-create`.
 work. It opens into brainstorming, runs the front-loaded pipeline
 (brainstorm → spec pushback rounds → human spec review → writing-plans →
 plan pushback rounds → alignment rounds), creates the finite epic in its
-resolved home, seeds the **bookend tasks** — documentation,
+home, the org `.github`, seeds the **bookend tasks** — documentation,
 documentation-review, and the terminal **retrospective** — and publishes the
 spec + plan as a docs PR. It also seeds the operational (deployment and
 validation) tasks the plan needs, and when an epic changes language support,
@@ -203,8 +203,8 @@ section.
 
 Its **`adhoc` mode** works the ad-hoc tasks with the same dispatch, gate
 and batching rules: org-wide with `/vergil:epic-implement adhoc`, or for
-one repo with `adhoc --repo <owner>/<repo>` or that repo's ad-hoc epic ref
-(a self-homed private repo's tasks only that way). It collects the tasks
+one repo with `adhoc --repo <owner>/<repo>` or that repo's ad-hoc epic ref.
+It collects the tasks
 with `vrg-queue adhoc`, summarizes them by repo with the in-flight tasks
 apart (a handed-off one is left alone; one to resume goes through the
 development path's re-entry steps), proposes a strategy that judges overlap
@@ -212,8 +212,8 @@ per repo and names what runs at the same time, takes one confirmation, then
 dispatches and gates as the development path does. Its records go on the
 ad-hoc epic of the repo concerned. It reads no plan and drafts no
 retrospective: ad-hoc epics have no plan and never close. Given an intake,
-planning or deferred queue it refuses and points to `epic-review` (with
-`--repo` for a self-homed private repo's queue); given the hoshin epic it
+planning or deferred queue it refuses and points to `epic-review`; given
+the hoshin epic it
 refuses and points to [hoshin](#hoshin), whose tasks it is; given a
 proxy epic it refuses and names the primary epic to drive instead; given an
 issue that is not an epic it refuses. Added in epic
@@ -464,9 +464,8 @@ ruling that left the reviewed branch unchanged
 (`Branch as reviewed: yes`). After a fix it tells the human to
 rerun `vrg-finalize-pr <PR>`. It never merges and never turns auto-merge on
 or off: auto-merge off or a provenance violation stops it for the human.
-It never fixes a logbook PR (one titled `Logbook:`): it tells the human to
-close the PR with its task and redo the run through [hoshin](#hoshin), and
-stops.
+It fixes a logbook PR (one titled `Logbook:`) like any other, but skips the
+merge review of its fixes, as the [hoshin](#hoshin) run itself does.
 
 On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
@@ -543,9 +542,8 @@ tracked for cleanup in
 
 **What it does.** Captures an uncurated idea, bug, or to-do into the intake
 queue so it is never lost. It runs `vrg-intake-create`, which files one issue
-in the current repo's queue home (the org `.github` for a public repo, the repo
-itself for a private one) and links it under that home's intake epic as it is
-created. There is no kind or category step: membership in the intake queue is
+in the current repo's queue home, the org `.github`, and links it under that
+home's intake epic as it is created. There is no kind or category step: membership in the intake queue is
 the item's state. Voice-to-text input is paraphrased into clean written prose.
 Renamed from the triage capture skill in epic
 [vergil-project/.github#176](https://github.com/vergil-project/.github/issues/176).
@@ -620,8 +618,8 @@ a complete listing, not a failure.
 Drop is an outcome in every mode. A planning item's drop or defer is refused
 only while one of its development epics is open. A review only places items:
 it never implements one or starts `epic-create`. Given an ad-hoc epic or a
-development epic, it prints a one-line refusal pointing to the right command,
-naming `--repo` for a self-homed private repo's ad-hoc epic, and stops; with no argument, it shows the three queue counts and asks which
+development epic, it prints a one-line refusal pointing to the right command
+and stops; with no argument, it shows the three queue counts and asks which
 to review. Added in epic
 [vergil-project/.github#1077](https://github.com/vergil-project/.github/issues/1077).
 
@@ -686,9 +684,8 @@ entries. `/vergil:hoshin end` closes the day (終礼 shūrei), and
 `end <week|month|quarter|year>` closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
 with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
-the run: a private repo's in that repo, a security finding as a security
-record, and a public one only after the security screen and the human's
-approval of its text.
+the run: a security finding as a security record, and any other only
+after the security screen and the human's approval of its text.
 
 Each run hands off one docs PR: a `Logbook: <date> <mode>` task for the docs
 repo under the org's hoshin epic, a worktree, the entries and index lines, `vrg-validate`,
@@ -705,9 +702,8 @@ security rules with the screen's patterns.
 documentation-generating run, and the gates that matter (keeping security
 content out of the public logbook) run inside the skill before anything is
 pushed. A submitted logbook PR's task closes through the default
-`vrg-finalize-pr`; a failing one is closed with its task and the run
-redone, never fixed: [pr-watch](#pr-watch) stops on a `Logbook:` PR, and a
-logbook task lives under the hoshin epic, which
+`vrg-finalize-pr`; a failing one is fixed by [pr-watch](#pr-watch), which
+skips merge review for a `Logbook:` PR's fixes. A logbook task lives under the hoshin epic, which
 [epic-implement](#epic-implement) and [issue-implement](#issue-implement)
 refuse.
 

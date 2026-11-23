@@ -14,7 +14,12 @@ Management section has the background page.
 
 - **`/vergil:hoshin start`** is the main event, run at the start of each
   working day. It closes whatever was left open, then runs the daily 朝礼
-  chōrei and opens any new week, month, quarter or year.
+  chōrei and opens any new week, month, quarter or year. The chōrei
+  includes the outsider report (what accounts outside the trusted roles
+  did since the last daily review, possible tampering first) and the
+  latest trusted-authors configuration audit of each Vergil org, compared
+  with the host configuration
+  ([daily.md](references/daily.md#check-outsider-activity)).
 - **`/vergil:hoshin end`** is optional and closes the day with the 終礼
   shūrei. **`end week`**, **`end month`**, **`end quarter`** and
   **`end year`** close that period now, with every smaller period still
@@ -58,14 +63,22 @@ come from the configured time zone, never the host clock.
 5. **No open logbook PR.**
 
    ```bash
-   vrg-gh pr list --repo vergil-project/docs --state open \
-     --json number,title,url --jq '.[] | select(.title | startswith("Logbook:"))'
+   vrg-issue-read --repo vergil-project/docs --pr --state open --json \
+     > <scratch>/open-prs.json
+   jq '.[] | select(.title | startswith("Logbook:")) | {number, title, url}' \
+     <scratch>/open-prs.json
    ```
 
-   If one is open, stop before any review, name it (its URL and title), and
-   tell the human it must merge first, or, if it is failing, be closed with
-   its task and the run redone: the logbook on `develop` must be the full
-   record before a run can reason about it.
+   `<scratch>` is a scratch directory outside any worktree.
+   `vrg-issue-read` returns only the open PRs whose body and title the
+   trust layer trusts. Exit 1 is a read failure: stop and report it, never
+   "no open PR". If a `Logbook:` PR is open, stop before any review, name
+   it (its URL and title), and tell the human it must merge first, fixed
+   through `pr-watch` if it is failing: the logbook on `develop` must be
+   the full record before a run can reason about it.
+   If the command reports a skipped PR on stderr, stop too and show the
+   human the skip (metadata only): an open PR this check cannot trust may
+   be a logbook PR, so the run cannot know the logbook is the full record.
 6. **No stale logbook task.** List the docs repo's open tasks under the
    hoshin epic and take those titled `Logbook:`:
 
@@ -245,9 +258,9 @@ eligibility line.
 
 - **A submitted logbook PR's task closes through finalize:**
   `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
-- **A failing logbook PR is never fixed in place.** It is closed together
-  with its task, and the run is redone through `/vergil:hoshin`. `pr-watch`
-  recognises a logbook PR by its `Logbook:` title and stops. A logbook task
+- **A failing logbook PR is fixed by `pr-watch`,** like any other PR.
+  `pr-watch` recognises a logbook PR by its `Logbook:` title and skips the
+  merge review of its fixes, which are mechanical. A logbook task
   is controlled by its run and is never ad-hoc work: it lives under the
   hoshin epic, which `epic-implement` and `issue-implement` refuse.
 
@@ -257,6 +270,10 @@ eligibility line.
   It never opens the PR itself.
 - Reviews report on durable state only (git and GitHub today), never on what
   an agent session is doing.
+- The outsider report and the configuration audit stay in the terminal:
+  the logbook records only that each was reviewed, with no count, login,
+  value or detail. The report carries metadata and links only, never an
+  outsider's text.
 - Every path the run writes is ASCII; Japanese terms appear only in content.
 - The logbook is public. [security.md](references/security.md) governs every
   public record the run creates: the entries, the follow-ups, and, through
