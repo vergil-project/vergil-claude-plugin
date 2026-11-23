@@ -27,7 +27,7 @@ The rules live in the references; read each one when its step comes:
 | --- | --- |
 | [`references/calendar.md`](references/calendar.md) | the time zone, periods, boundaries, closing, gaps, windows and worked examples 1 to 6 |
 | [`references/logbook.md`](references/logbook.md) | file names, the entry header and body, index lines, fixed wording, the kaizen prompt, the check format, the stopped-run choices and example 7 |
-| [`references/security.md`](references/security.md) | the security rules, the pre-commit screen's patterns and its limit, examples A to D |
+| [`references/security.md`](references/security.md) | the security rules, the pre-commit screen's patterns and its limit, an example of each rule and examples A to C |
 | `references/<level>.md` (`daily`, `weekly`, `monthly`, `quarterly`, `yearly`) | each level's `start` and `end` checklist, its data steps written as checks |
 
 Throughout, `<docs>` is the docs repo's main clone and `<logbook>` is
@@ -130,10 +130,10 @@ there is no default.
 
 ## 4. Close, then open
 
-First check each repo's visibility, as
-[security.md](references/security.md#checking-visibility) says, and start the
-screen terms file; every review that follows adds to it. Then run the
-reviews in this fixed order:
+First start the
+[screen terms](references/security.md#what-the-run-records-for-the-screen);
+every review that follows adds to them. Then run the reviews in this fixed
+order:
 
 1. **Closing, smallest level first** (the day into the week, the week into
    the month): each late `end` review, and each human-run `end`. A period
@@ -167,11 +167,7 @@ paths, and list each in its entry:
 - **A security finding:** a security record, `vrg-security-record create`
   (or the existing record `vrg-security-record list` finds). The entry cites
   its neutral issue's public ref only.
-- **Work about a private repo:** filed in that repo itself, never in a
-  public one (`vrg-intake-create --repo <private-repo>` or
-  `vrg-issue-create --repo <private-repo>`). The entry gives only the count
-  per org.
-- **Work in a public repo:** `vrg-intake-create` (or `vrg-issue-create`
+- **Other work:** `vrg-intake-create` (or `vrg-issue-create`
   where the work is already placed). Before it is filed, write its title and
   body to a scratch file outside any worktree and run the
   [screen](references/security.md#the-pre-commit-screen) over them; a hit
@@ -247,8 +243,8 @@ anything is pushed: validation, the mechanical screen and the human's
 approval of the full text. The handoff notes therefore carry no merge-review
 eligibility line.
 
-- **A submitted logbook PR's task closes through the default finalize:**
-  `vrg-finalize-pr`, which `vrg-submit-pr` runs by default after the merge.
+- **A submitted logbook PR's task closes through finalize:**
+  `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
 - **A failing logbook PR is never fixed in place.** It is closed together
   with its task, and the run is redone through `/vergil:hoshin`. `pr-watch`
   recognises a logbook PR by its `Logbook:` title and stops. A logbook task

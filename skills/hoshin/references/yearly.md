@@ -41,20 +41,19 @@ quarterly `start` that follows turns them into the vital few.
 #### Check: Fleet shape
 
 - **Answers:** what the fleet is made of now: its orgs, active or inactive,
-  and each org's repos by visibility, archived or not, and by language.
+  and each org's repos, archived or not, and by language.
 - **Sources:** the fleet roster in `fleet.md`; each fleet org's repos and
   their metadata.
 - **Window:** none: the fleet as it stands now. For the yearly `end`, the
   repos created in the year, by their `createdAt`.
-- **Output:** per org: its status, and the count of public and private
-  repos, archived and not, with the public repos' primary languages as
-  counts. Public repos created in the window by name; private ones as
-  counts per org.
+- **Output:** per org: its status, and the count of repos, archived and
+  not, with their primary languages as counts. Repos created in the window
+  by name.
 - **Tool:** none yet. Today, for each fleet org:
 
   ```bash
   vrg-gh repo list <org> --limit 1000 \
-    --json nameWithOwner,visibility,isArchived,createdAt,primaryLanguage
+    --json nameWithOwner,isArchived,createdAt,primaryLanguage
   ```
 
   Belongs to `vergil-project/.github#1316` (fleet state).

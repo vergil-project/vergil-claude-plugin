@@ -83,8 +83,7 @@ What the human and the agent decided.
 
 ## Follow-ups
 
-Each follow-up issue filed, by its public ref; for a private repo, only the
-count per org.
+Each follow-up issue filed, by its public ref.
 
 ## Kaizen
 
@@ -272,12 +271,12 @@ run's preflight treats it as stale.
 A `start` on 2026-11-18 has filed `vergil-project/docs#<N>`, titled
 `Logbook: 2026-11-18 start`, created `.worktrees/issue-<N>-logbook`, written
 `daily/2026-11-18-start.md` and its index line, and validated green. The
-screen hits on one line of the entry, which names a private repo.
+screen hits on one line of the entry, which carries an advisory ID.
 
-- The run stops, names the match (the file, the line and pattern 3), and
+- The run stops, names the match (the file, the line and pattern 1), and
   commits nothing.
-- **The human picks edit.** The line becomes `<org>: 1 failed run in a
-  private repo.` The run validates again (green), screens again (clean) and
+- **The human picks edit.** The line becomes `vergil-project/<repo>: a
+  security-related failure, vergil-project/.github#<N>.` The run validates again (green), screens again (clean) and
   shows the human the full text of every entry. The human approves; the run
   commits and hands off.
 - **Had the human picked abandon,** the run would discard the entry, remove
@@ -292,4 +291,4 @@ A submitted logbook PR whose checks fail is never fixed in place: not by
 The human closes the PR together with its task, and redoes the run through
 `/vergil:hoshin`, which works out from the logbook on `develop` what is still
 due. A submitted logbook PR that merges closes its task through
-`vrg-finalize-pr`, which `vrg-submit-pr` runs by default after the merge.
+`vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.

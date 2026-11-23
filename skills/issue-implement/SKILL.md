@@ -452,7 +452,7 @@ How the push can end:
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
 the human opens the PR. Submitting is the human's consent to merge:
 `vrg-submit-pr` opens the PR with auto-merge on, so it merges by itself once
-its CI is green, and finalizes by default (`vrg-finalize-pr` watches and
+its CI is green, and always finalizes (`vrg-finalize-pr` watches and
 settles, and never merges).
 
 ## Cloud / remote sessions — the relay handoff

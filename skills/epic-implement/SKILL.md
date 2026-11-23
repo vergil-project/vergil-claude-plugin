@@ -323,7 +323,7 @@ merged, so a repo's ready set never holds both.
 
 Batch each repo **once** and stop. Your responsibility **ends here.** The human
 submits each batch with `vrg-submit-pr`, which opens its PRs with auto-merge on
-(a batch PR rebase-merges, any other PR squash-merges) and finalizes by default:
+(a batch PR rebase-merges, any other PR squash-merges) and always finalizes:
 `vrg-finalize-pr` watches the PRs land and settles `develop`, and never merges.
 **Do not start `pr-watch` after a submit**: `vrg-finalize-pr` already watches
 the PRs. When the human reports a PR that did not merge (a finalize line

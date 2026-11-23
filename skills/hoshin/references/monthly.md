@@ -40,16 +40,14 @@ revived.
 - **Answers:** how large and how old the intake, planning and deferred
   queues are, fleet-wide, and which items are oldest.
 - **Sources:** the intake, planning and deferred queue epics in each fleet
-  org's `.github`, and in each private repo that homes its own queues.
+  org's `.github`.
 - **Window:** none: the queues as they stand now. The previous monthly
   `start` entry's figures, if any, give the change over the month.
 - **Output:** per org and queue: the item count, the age of the oldest
   item and the median age, and for planning the count per size (S, M, L,
-  XL, unsized). The five oldest public items by ref and title. A private
-  repo's queues as counts only.
+  XL, unsized). The five oldest items by ref and title.
 - **Tool:** `vrg-queue --json --repo <org>/.github`, for each active fleet
-  org; `vrg-queue --json --repo <owner>/<private-repo>` for each private
-  repo that homes its own queues, reported as counts only.
+  org.
 
 ## `end`: 反省 hansei
 
@@ -88,14 +86,12 @@ rough look at capacity.
 
 - **Answers:** what the fleet delivered in a period: the epics closed, the
   releases cut, and the PRs merged.
-- **Sources:** closed epic issues in each fleet org's `.github` and in each
-  private repo that homes its own epics; the releases of every fleet repo;
-  the merged PRs in every fleet org.
+- **Sources:** closed epic issues in each fleet org's `.github`; the
+  releases of every fleet repo; the merged PRs in every fleet org.
 - **Window:** from `<from>` to `<to>`, a month, a quarter or a year.
-- **Output:** for public repos, each closed epic by ref and title, the
-  releases per repo by tag, and the merged PRs as a count per repo
-  (human-submitted and automation-authored apart). For private repos, the
-  counts of each per org.
+- **Output:** each closed epic by ref and title, the releases per repo by
+  tag, and the merged PRs as a count per repo (human-submitted and
+  automation-authored apart).
 - **Tool:** none yet. Today, for each fleet org:
 
   ```bash
@@ -121,8 +117,7 @@ rough look at capacity.
   `end`, the last 13 such weeks for the quarterly `start` and `end`, and
   the year's months for the yearly `end`.
 - **Output:** a table with one row per bucket: tasks closed as completed,
-  epics closed, PRs merged by the human, PRs merged by automation. Private
-  repos fold into the fleet totals with no row of their own.
+  epics closed, PRs merged by the human, PRs merged by automation.
 - **Tool:** none yet. Today, for each fleet org and each bucket, from its
   first day `<first>` to its last day `<last>`:
 
