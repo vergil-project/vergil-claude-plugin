@@ -410,11 +410,18 @@ change task vergil-project/<repo>#<a>'s merge.
 2. Find the new release: `vrg-gh release list --repo vergil-project/<repo> --limit 3`
    names `vX.Y.Z`, and `vrg-gh release view vX.Y.Z --repo vergil-project/<repo>`
    shows it published.
-3. Confirm the release workflow runs the tag started have **finished**
-   (`vrg-gh run list --repo vergil-project/<repo> --limit 10`). A tag that
-   exists while its release workflow is queued or still running means
-   **blocked, not FAILURE**: comment `blocked: preconditions not met —
-   release vX.Y.Z still running` and stop; re-run once it has finished.
+3. Confirm the release's runs have **finished**
+   (`vrg-gh run list --repo vergil-project/<repo> --limit 20`). No workflow
+   runs on the tag push itself: the release work runs in these, so check
+   each:
+   - the release PR's CI;
+   - the CD run on the push to `main` at the release commit;
+   - the runs of the back-merge PR to `develop` and of the
+     dependency-update PR that follow the release.
+
+   A release whose runs are queued or still in progress means **blocked,
+   not FAILURE**: comment `blocked: preconditions not met — release vX.Y.Z
+   still running` and stop; re-run once they have finished.
 4. Confirm the release contains (a)'s merge:
    `vrg-release-record check vergil-project/<repo>#<a>` exits 0 (`pass`),
    as `issue-deploy` prescribes; its exit 3 (`fail`) is a blocked
@@ -436,7 +443,7 @@ change task vergil-project/<repo>#<a>'s merge.
 
 ## Acceptance
 
-- The GitHub Release `vX.Y.Z` is published and its release workflow has
+- The GitHub Release `vX.Y.Z` is published and the runs step 3 names have
   finished.
 - `vX.Y.Z` contains vergil-project/<repo>#<a>'s merge commit.
 - The result records the version as `Released: vX.Y.Z`, with the release
