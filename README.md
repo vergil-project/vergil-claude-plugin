@@ -248,7 +248,7 @@ for the rationale.
 | `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored scratch under the main clone's `build/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `guard-merge-review-results` | PreToolUse/Write\|Edit\|NotebookEdit | Denies writes to a stored merge-review result, its publishable copy or its capture record: only the capture hook writes them |
-| `warn-stale-plugin-version` | PreToolUse/Skill | Warns the agent, never blocks, when a `vergil:` skill is served from an older plugin version than the one installed; asks it to have the human run `/reload-plugins` or restart |
+| `warn-stale-plugin-version` | PreToolUse/Skill | Warns the agent, never blocks, when a `vergil:` skill is served from an older plugin version than the one installed; the agent carries on and tells the human, who runs `/reload-plugins` or restarts when the work depends on the new version |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 | `capture-merge-review-result` | SubagentStop/vergil:merge-reviewer | Stores the merge reviewer's reply byte for byte as `result-<step>.md`, with a publishable copy for the step comment and a capture record holding its SHA-256 |
 
