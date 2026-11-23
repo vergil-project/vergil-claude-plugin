@@ -44,7 +44,12 @@ Collect or request:
 
 ## Workflow
 
-1. Search for an existing issue that matches the warning text and location.
+1. Search for an existing issue that matches the warning text and location:
+   `vrg-issue-read --repo <owner>/<repo> --search "Deprecation: <component> in:title" --state all`.
+   It returns only the issues whose body and title the trust layer trusts,
+   and reports the rest on stderr, metadata only: only a returned issue
+   counts as existing, and a skipped one is never matched against. Exit 1
+   is a read failure: stop and report it, never "no issue exists".
 2. If an issue exists and the warning is mid-cycle, defer to the next
    dependency update.
 3. If no issue exists, create one using the template below.

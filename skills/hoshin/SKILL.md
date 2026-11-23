@@ -58,14 +58,22 @@ come from the configured time zone, never the host clock.
 5. **No open logbook PR.**
 
    ```bash
-   vrg-gh pr list --repo vergil-project/docs --state open \
-     --json number,title,url --jq '.[] | select(.title | startswith("Logbook:"))'
+   vrg-issue-read --repo vergil-project/docs --pr --state open --json \
+     > <scratch>/open-prs.json
+   jq '.[] | select(.title | startswith("Logbook:")) | {number, title, url}' \
+     <scratch>/open-prs.json
    ```
 
-   If one is open, stop before any review, name it (its URL and title), and
-   tell the human it must merge first, fixed through `pr-watch` if it is
-   failing: the logbook on `develop` must be the full
-   record before a run can reason about it.
+   `<scratch>` is a scratch directory outside any worktree.
+   `vrg-issue-read` returns only the open PRs whose body and title the
+   trust layer trusts. Exit 1 is a read failure: stop and report it, never
+   "no open PR". If a `Logbook:` PR is open, stop before any review, name
+   it (its URL and title), and tell the human it must merge first, fixed
+   through `pr-watch` if it is failing: the logbook on `develop` must be
+   the full record before a run can reason about it.
+   If the command reports a skipped PR on stderr, stop too and show the
+   human the skip (metadata only): an open PR this check cannot trust may
+   be a logbook PR, so the run cannot know the logbook is the full record.
 6. **No stale logbook task.** List the docs repo's open tasks under the
    hoshin epic and take those titled `Logbook:`:
 
