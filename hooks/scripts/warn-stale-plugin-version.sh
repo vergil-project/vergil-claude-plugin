@@ -8,7 +8,9 @@
 # version's cache directory) with the install path that
 # installed_plugins.json records for the plugin. On a mismatch it adds a
 # warning to the agent's context naming both versions and telling it to
-# ask the human for `/reload-plugins` or a session restart.
+# note the warning, carry on, and tell the human, who reloads the
+# plugins (`/reload-plugins` or a session restart) when the work depends
+# on the new version (#1260).
 #
 # Advisory only: it never denies or blocks the call, so a session that
 # cannot reload (a remote one, say) is not trapped. Every problem that
@@ -40,7 +42,7 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 CHECK_FAILED="WARNING: the vergil plugin version check could not run"
-CHECK_FAILED_TAIL="so this session may be serving an older vergil skill than the one installed. Tell the human, and ask them to run /reload-plugins (or restart the session) if a vergil plugin release was installed while this session was running."
+CHECK_FAILED_TAIL="so this session may be serving an older vergil skill than the one installed. Note it and carry on with the skill; do not stop. Tell the human, so they can run /reload-plugins (or restart the session) if a vergil plugin release was installed while this session was running and the work depends on it."
 
 input=$(cat) || context "$CHECK_FAILED: the hook input could not be read from stdin, $CHECK_FAILED_TAIL"
 if [ -z "${input//[[:space:]]/}" ]; then
@@ -133,4 +135,4 @@ if [ -z "$installed_version" ]; then
 	installed_version="${installed##*/}"
 fi
 
-context "WARNING: stale vergil plugin. This session loaded $key $loaded_version (from $loaded), but $installed_version is installed (at $installed). The skill \`$skill\` you are about to use is the $loaded_version text and may not match the installed release. Stop before relying on it: ask the human to run /reload-plugins in this session (or to restart it), then invoke the skill again. If the human says the session cannot reload, follow their direction."
+context "WARNING: stale vergil plugin. This session loaded $key $loaded_version (from $loaded), but $installed_version is installed (at $installed). The skill \`$skill\` you are about to use is the $loaded_version text and may not match the installed release. This is a warning, not a stop: note it and carry on with the skill. Tell the human about it, so they can run /reload-plugins in this session (or restart it) when the work depends on the new version."

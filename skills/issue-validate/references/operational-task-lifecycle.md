@@ -80,7 +80,8 @@ kind-specific concerns.
    final report too. For a security-class failure, the result gives
    `Outcome: FAILURE`, neutral evidence that does not describe the
    weakness, and the security count only; its details and evidence go to
-   `operational/<N>/` as below.
+   `operational/<N>/`, written as
+   [Writing to the state directory](#writing-to-the-state-directory) says.
 5. **Close on SUCCESS / hold open on FAILURE.**
    - **SUCCESS →** close the issue citing the result; closing lets the epic roll
      up. Close only after the result comment has posted (its command exited
@@ -115,6 +116,8 @@ details as `security-<i>.md` (check `test ! -e` first) in
 `build/.vergil-state/operational/<N>/` in the main clone of the repo the
 task is filed in, under the state-directory rules
 ([doctrine §1.5](../../../docs/paad-review-doctrine.md#15-state-directories)),
+creating and checking the directory first as
+[Writing to the state directory](#writing-to-the-state-directory) says,
 and post a `Kept: <file> sha256:<hash>` line for it in the comment that
 lists the item. Present it in the terminal only (under `epic-implement`, in
 your final message to the main session, never posted). On a `record`
@@ -126,6 +129,47 @@ and post `Recorded: <ID>`, the ID only; on `reject`, record nothing. Delete
 its details once the ruling is carried out, and record the ruling only as
 §1.7's counts line (`Human ruling: security: <k> findings: …`), never per
 item.
+
+## Writing to the state directory
+
+Before **every** write into `build/.vergil-state/operational/<N>/`, the
+first one included, create and check its levels as doctrine §1.5 requires.
+Never create them with `mkdir -p`, and never write there before this step
+has passed. Run it from the main clone (find it from a worktree with
+`dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)"`),
+with `<N>` the task's number:
+
+```bash
+if [ ! -e build ] && [ ! -L build ]; then mkdir build || exit 1; fi
+test ! -L build && test -d build || { echo "stop: build is not a real directory"; exit 1; }
+for level in build/.vergil-state build/.vergil-state/operational build/.vergil-state/operational/<N>; do
+  if [ -e "$level" ] || [ -L "$level" ]; then
+    test ! -L "$level" && test -d "$level" || { echo "stop: $level is not a real directory"; exit 1; }
+  fi
+  install -d -m 700 "$level" || { echo "stop: install -d failed on $level"; exit 1; }
+  test ! -L "$level" && test -d "$level" || { echo "stop: $level is not a real directory"; exit 1; }
+  if [ "$(uname)" = Darwin ]; then mode=$(stat -f %Lp "$level"); else mode=$(stat -c %a "$level"); fi
+  [ -n "$mode" ] && [ "${mode: -3}" = 700 ] || { echo "stop: $level is mode '$mode', not 700"; exit 1; }
+done
+echo "ok: build/.vergil-state/operational/<N>"
+```
+
+Anything but the final `ok` line means **stop**: write nothing, leave the
+directory as it is, unread, and ask the human (§1.5, "Stopping").
+
+Each file written there is created at mode `600`. After the `test ! -e`
+check, create it empty under a private umask, then write its content:
+
+```bash
+f=build/.vergil-state/operational/<N>/security-<i>.md
+test ! -e "$f" && test ! -L "$f" || { echo "stop: $f already exists"; exit 1; }
+(umask 077 && : > "$f") || { echo "stop: cannot create $f"; exit 1; }
+```
+
+Once its content is written, read the file's mode as above (`stat -f %Lp`
+on macOS, `stat -c %a` elsewhere): it must be exactly `600`, or stop. Then
+take its hash, and the directory's, as §1.5 says for the `operational`
+directory.
 
 The issue's comments, read through `vrg-issue-read` ([Lifecycle](#lifecycle)
 step 1), are the recovery record if a session is lost mid-run;

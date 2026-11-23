@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.87] - 2026-11-23
+
+### Bug fixes
+
+- create the operational state directory at mode 700 before every write (#1265)
+- make the stale-plugin hook warn and carry on instead of stopping the agent (#1260)
+
+### Documentation
+
+- drop the opened-to-closed span from §0 now that the header has a Span table (#1287)
+- read failures from the operations queue in the daily review (#1289)
+
 ## [2.1.86] - 2026-11-23
 
 ### Bug fixes
