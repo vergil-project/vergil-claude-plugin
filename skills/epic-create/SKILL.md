@@ -302,8 +302,9 @@ round. The human decides every round. Each round has seven steps:
    recorded, and its `paad/` passes its checks
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round));
    fetch each member repo the prompt names; and last the state directory's
-   seal and hash (in the first round of a session, the human's
-   confirmation of its listing instead of the seal)
+   seal and hash (in the first round of a session, instead of the seal,
+   the human's confirmation of its listing if it is present; an absent
+   directory needs no confirmation, so do not ask)
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
    start a fresh `paad:paad-delegate` subagent **in the background** with
    the [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
