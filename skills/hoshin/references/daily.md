@@ -85,10 +85,10 @@ and settles what needs action today.
      fleet repo, for runs that never reported: a job with no reporting
      step (CI, CD builds and the rest), and a reporting job that crashed
      or never ran.
-  3. **Run history, for the security-signal jobs:** the `github-config`
-     and `dependabot-audit` jobs of the `ops.yml` audit file no ops issue,
-     since their failure means a security finding exists, so their runs
-     are their only source.
+  3. **Run history, for the security-signal jobs:** the `github-config`,
+     `dependabot-audit` and `agent-audit` jobs of the `ops.yml` audit file
+     no ops issue, since their failure means a security finding exists, so
+     their runs are their only source.
 - **Window:** ops issues opened, and reports posted on them, from `<from>`
   to `<to>`; the ops issues open now; runs created from `<from>` to
   `<to>`.
@@ -108,9 +108,9 @@ and settles what needs action today.
      that no report names: repo, workflow, event, conclusion, and the
      failed job with a one-line cause (a rerun that later passed says so).
 
-  A run whose cause is a security finding (the `github-config` or
-  `dependabot-audit` job, or any other security scan) is only "a
-  security-related failure" with its security record's neutral ref,
+  A run whose cause is a security finding (the `github-config`,
+  `dependabot-audit` or `agent-audit` job, or any other security scan) is
+  only "a security-related failure" with its security record's neutral ref,
   creating the record first if it has none
   ([security.md](security.md#example-a-a-failed-security-job)). Flag
   plainly, never as clean: an org with no operations epic, or with more
@@ -229,21 +229,36 @@ and settles what needs action today.
 
 #### Check: Security and audit signals
 
-- **Answers:** whether the nightly GitHub-config audit or the Dependabot
-  alert audit raised anything new in the window, in which repos.
-- **Sources:** the `ops.yml` runs of every fleet repo, whose reusable
+- **Answers:** whether the nightly GitHub-config audit, the Dependabot
+  alert audit or the daily agent audit raised anything new in the window,
+  in which repos.
+- **Sources:** the `ops.yml` runs of every fleet repo: the
+  `github-config` and `dependabot-audit` jobs, whose reusable
   `ops-github-config.yml` workflow runs `vrg-github-repo-config update` and
-  `vrg-dependabot-audit`; a red step in either is the signal. The user
-  agent's token cannot read alerts directly, so the run's conclusion is the
-  source.
+  `vrg-dependabot-audit`, and the `agent-audit` job, whose reusable
+  `ops-agent-audit.yml` workflow runs `vrg-agent-audit` over the merges
+  since its marker. A red step in any of them is the signal. The user
+  agent's token cannot read alerts directly, and the agent audit files no
+  issue and posts nothing, so the run's conclusion is the source.
 - **Window:** `ops.yml` runs created from `<from>` to `<to>`; a repo whose
   latest run in the window failed where its previous run passed is new.
+- **The agent audit's go-live.** The `agent-audit` job goes live
+  fleet-wide at its go-live deployment, `vergil-project/.github#1412`.
+  Until that task is closed with a recorded `Outcome: SUCCESS`, a repo
+  whose runs have no `agent-audit` job is not a finding. From then on, in
+  every repo of the in-scope orgs (`vergil-project`,
+  `logical-minds-foundry` and `mnemosys-project`; archived repos excepted),
+  a latest completed scheduled `ops.yml` run that has no `agent-audit` job
+  or is more than 26 hours old (a missed daily run), or no scheduled run
+  at all, is flagged as **not read**, never as clean.
 - **Output:** a single fleet-wide count of repos with an audit or alert
   signal, and each one as "a security-related failure" with the neutral ref
   of its security record, which the review finds with
   `vrg-security-record list` or creates with `vrg-security-record create`.
   Never an alert count, a severity, an
-  alert number or the audit's output.
+  alert number or the audit's output; for the agent audit, never a PR, a
+  path, an actor or the condition it reported. Then each repo whose
+  agent audit was not read.
 - **Tool:** none yet. Today, for each fleet repo:
 
   ```bash
@@ -254,6 +269,22 @@ and settles what needs action today.
     --json databaseId,conclusion,createdAt
   vrg-gh run view <databaseId> --repo <owner>/<repo> --json jobs \
     --jq '.jobs[] | {name, conclusion, steps: [.steps[] | select(.conclusion == "failure") | .name]}'
+  ```
+
+  For the go-live, read the deployment task's state (a metadata read) and,
+  once it is closed, its `Outcome:` comment through the trust layer:
+
+  ```bash
+  vrg-gh issue view 1412 --repo vergil-project/.github --json state
+  vrg-issue-read 'vergil-project/.github#1412'
+  ```
+
+  From the go-live on, for each in-scope repo, read its latest completed
+  scheduled run and its jobs (the `run view` above):
+
+  ```bash
+  vrg-gh run list --repo <owner>/<repo> --workflow ops.yml --event schedule \
+    --status completed --limit 1 --json databaseId,conclusion,createdAt
   ```
 
   Belongs to `vergil-project/.github#1316` (fleet state).
