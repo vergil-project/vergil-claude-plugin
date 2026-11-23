@@ -119,6 +119,11 @@ FAILURE`, neutral evidence that does not describe the weakness, and the
 security count only; the details go to `operational/<N>/`, with a `Kept:`
 line
 ([lifecycle step 4](references/operational-task-lifecycle.md#lifecycle)).
+Before writing them, run the lifecycle's
+[Writing to the state directory](references/operational-task-lifecycle.md#writing-to-the-state-directory)
+step: it creates each level at mode `700` and checks it, and a level
+that is not a real directory at `700` stops the run. Each file there is
+created at mode `600`.
 
 - **SUCCESS →** close the issue, citing the result; closing it lets the epic roll
   up. The close is a step of its own, run only after the result comment
@@ -160,7 +165,13 @@ line
   list it under `Awaiting a ruling` in the result comment (or a comment of
   its own if you find it before then), and in your final report; file it
   only as the human approves. A security item appears there only as a
-  count, its details in `build/.vergil-state/operational/<N>/`. See the
+  count, its details in `build/.vergil-state/operational/<N>/`. Before
+  the first write there, and again before every later one, run the
+  lifecycle's
+  [Writing to the state directory](references/operational-task-lifecycle.md#writing-to-the-state-directory)
+  step: it creates each level at mode `700` and checks it, and a level
+  that is not a real directory at `700` stops the run. Each file there is
+  created at mode `600`. See the
   [lifecycle's "Out of band"](references/operational-task-lifecycle.md#out-of-band)
   and [doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues).
 - **A run given rulings only** (dispatched by `epic-implement`) stops after
