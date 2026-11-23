@@ -475,18 +475,19 @@ its native parent:
 `vrg-gh issue view <M> --repo <owner>/<repo> --json parent`, then the parent's
 labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 (`epic` + `planning` is the planning epic; `epic` + `intake` is the intake epic;
-`epic` + `deferred` is the deferred epic).
+`epic` + `deferred` is the deferred epic; `epic` + `ad-hoc` is an ad-hoc epic).
 
 | Invocation | What to do |
 | --- | --- |
 | `epic-create <issue>`, issue is in **planning** | Start it, or **resume** it: read its comments (`vrg-gh issue view <M> --repo <owner>/<repo> --comments`), counting only those by trusted authors, and pick up at the recorded resume point (see "Resuming" below). |
 | `epic-create <issue>`, issue is in **intake** | Pull it into planning first — a one-item intake review: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. |
+| `epic-create <issue>`, issue is under an **ad-hoc** epic | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. The item needs an epic, so it leaves the ad-hoc epic, which takes only single-issue work. |
 | `epic-create <issue>`, issue is in **deferred** | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. Read its latest `Deferred <date>:` / `Revisit when:` comment first; if the conditions are plainly unmet, say so and confirm with the human before reviving it. |
 | `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning` (add `--repo <owner>/<private-repo>` for a self-homed private repo): waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on, as [Choosing what to plan next](#choosing-what-to-plan-next) says. |
 | `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <queue-home> --title "<idea>" --body-file <tmp>` (`<queue-home>` is `<owner>/.github` for a public target, the private repo itself otherwise). |
 
-- An issue under **any other parent** (an ad-hoc or finite epic) is already
-  ready work, not a planning candidate. Stop and ask the human.
+- An issue under **any other parent** (a finite epic) is already ready
+  work, not a planning candidate. Stop and ask the human.
   (`vrg-intake-route … planning` does accept an **unparented** issue.)
 - `vrg-queue planning` exits 1 with `no open 'Epic (planning): <name>' planning
   epic in <home>` when no planning queue exists yet. That is **an empty queue,
