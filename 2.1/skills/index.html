@@ -752,6 +752,8 @@
       
         
       
+        
+      
     
     
     
@@ -804,6 +806,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.85/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.85
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5521,9 +5551,8 @@ submitted PR that did not merge. The agent runs it itself, at once, when
 <code>vrg-finalize-pr</code> reports a PR as not merged, when the human reports a red
 check or a conflict, or when the human asks for a PR to be fixed or
 watched; it never hands the <code>/vergil:pr-watch &lt;PR_URL&gt;</code> command back to the
-human. The human may also run the line <code>vrg-submit-pr</code> prints. The agent
-does not start it after a submit by itself, since <code>vrg-finalize-pr</code>
-watches the PRs.</p>
+human. The agent does not start it after a submit by itself, since
+<code>vrg-finalize-pr</code> watches the PRs.</p>
 <p><strong>Status.</strong> Current (Vergil 2.1). Requires <code>vrg-pr-await</code>'s merge
 contract: exit 0 merged, 1 cannot merge, 2 any other error
 (vergil-tooling#4648, in vergil-tooling 2.1.323 or later).</p>
