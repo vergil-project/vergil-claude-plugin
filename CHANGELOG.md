@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.85] - 2026-11-23
+
+### CI
+
+- stop granting actions: read to the security job (#1254)
+
+### Documentation
+
+- describe always-finalizing submit and the release-record check (#1252)
+- say vrg-submit-pr always finalizes in four remaining places (#1253)
+- keep a security failure's effect and onset, and the kind of finding, out of public entries (#1268)
+- name no cause in rule 4's example and list the real examples in the reference table (#1269)
+
+### Features
+
+- report every repo by name (#1249)
+
 ## [2.1.84] - 2026-11-22
 
 ### Documentation
