@@ -194,8 +194,9 @@ A backward-looking record, **short and scannable up top, detail below**:
   table of how long the epic took ([The header](#the-header--and-its-span-table)).
 - **§0 At a glance** *(preamble, ≤ ½ page)* — one paragraph "what we set out to
   do → what shipped", then a **work-delivered visual**: a PR table (each with a
-  one-line "what it did"), repos touched, task/PR counts, releases cut,
-  opened→closed span. The landing view: *here is the bulk of what was done.*
+  one-line "what it did"), repos touched, task/PR counts and releases cut
+  (how long it took is the header's Span table, not repeated here). The
+  landing view: *here is the bulk of what was done.*
 - **§1 How the plan evolved** — a **synthesized narrative** from `plan.md`'s
   "Evolution during execution" log (the *why* behind deviations, not a copy).
 - **§2 Lessons learned** — transferable insight; same/different next time.
