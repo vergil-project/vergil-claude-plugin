@@ -287,6 +287,13 @@ changes go through the worktree: edit, `vrg-commit`, write
 `.vergil/pr-template.yml`; the human submits with `vrg-submit-pr`.
 (`vrg-gh` denies `gh api` outright; this hook catches raw `gh`.)
 
+Reading issue and PR content is guarded elsewhere: since `vergil-tooling`
+v2.1.338, its hook guard refuses an agent's raw issue and PR content reads
+(a body or comment read, or a list or search that matches text or asks
+for a content field) and names `vrg-issue-read`, which prints only what a
+trusted identity wrote and reports the rest as metadata. This plugin has
+no hook of its own for it.
+
 **Alternative.** Make the change in your worktree and follow the
 local workflow.
 

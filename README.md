@@ -30,6 +30,14 @@ blocking raw `git commit` in favor of `vrg-commit`, blocking raw
 `gh pr create` in favor of `vrg-submit-pr`, routing per-file
 validation through the dev container, and so on.
 
+Agents read issue and PR content only through `vergil-tooling`'s
+`vrg-issue-read`, which prints only what a trusted identity wrote and
+reports the rest as metadata. Since `vergil-tooling` v2.1.338 its hook
+guard enforces this: it refuses an agent's raw issue and PR content reads
+(a body or comment read, or a list or search that matches text or asks
+for a content field) and names `vrg-issue-read`. The skills follow the
+same rule.
+
 ## Distribution model
 
 The plugin ships through a **single channel**: every consumer — the host and
