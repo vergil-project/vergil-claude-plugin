@@ -64,20 +64,103 @@ and settles what needs action today.
 
 #### Check: Failed and cancelled runs
 
-- **Answers:** which workflow runs in the fleet failed or were cancelled in
-  the window, and why each failed.
-- **Sources:** the GitHub Actions runs of every fleet repo: CD builds, the
-  `ops.yml` audit, the epic rollup and sweep, and every other scheduled or
-  event-driven workflow.
-- **Window:** runs created from `<from>` to `<to>`.
-- **Output:** one line per failed or cancelled run: repo, workflow, event,
-  conclusion, and the failed job with a one-line cause (a rerun that later
-  passed says so). A run whose cause is a security finding (a security scan,
-  a dependency audit, the GitHub-config audit) is only "a security-related
-  failure" with its security record's neutral ref, creating the record first
-  if it has none ([security.md](security.md#example-a-a-failed-security-job)).
-  With none, the entry says `No failed or cancelled runs in the window.`
-- **Tool:** none yet. Today, for each fleet repo:
+- **Answers:** which unattended jobs in the fleet failed, were cancelled or
+  recovered in the window, as their ops issues record it; which ops issues
+  are still open; and which other runs failed or were cancelled without a
+  report, and why each failed.
+- **Sources:**
+  1. **The operations queue:** each fleet org's operations epic,
+     `Epic (operations): <org>` in `<org>/.github`, and its ops issues.
+     The reporter (`vrg-ops-report`) files a job's ops issue in the repo
+     the job ran in, titled `ops: <repo> / <job> failing` and labelled
+     `ops-report`, and links it under the epic. The issue's body is its
+     first report, and every later failure, cancel or recovery is a
+     comment. Each report's first line is its marker
+     (`ops-report: failure`, `ops-report: cancelled` or
+     `ops-report: recovered`), and it names its run's URL. A report
+     counts only when the org's automation App wrote it.
+     Nothing closes an ops issue automatically: a recovered issue stays
+     open until the human, or an agent working the queue, closes it.
+  2. **Run history, as a backstop:** the GitHub Actions runs of every
+     fleet repo, for runs that never reported: a job with no reporting
+     step (CI, CD builds and the rest), and a reporting job that crashed
+     or never ran.
+  3. **Run history, for the security-signal jobs:** the `github-config`
+     and `dependabot-audit` jobs of the `ops.yml` audit file no ops issue,
+     since their failure means a security finding exists, so their runs
+     are their only source.
+- **Window:** ops issues opened, and reports posted on them, from `<from>`
+  to `<to>`; the ops issues open now; runs created from `<from>` to
+  `<to>`.
+- **Output:** per org, in this order:
+  1. **Opened:** one line per ops issue opened in the window: its ref, the
+     job (from its title), its first report's conclusion and the failed
+     step it names, with a one-line cause.
+  2. **Reported:** one line per other ops issue with a report in the
+     window: its ref, the job, the count of failures and cancels reported
+     in the window with a one-line cause for the latest, and `recovered`
+     if a recovery was reported in the window.
+  3. **Open queue:** the count of open ops issues, then each one: its ref,
+     the job and its state from its latest report (`failing`, or
+     `recovered` and awaiting a close). An open issue under the epic that
+     the App did not file is listed by ref and title as `filed by hand`.
+  4. **Not reported:** one line per failed or cancelled run in the window
+     that no report names: repo, workflow, event, conclusion, and the
+     failed job with a one-line cause (a rerun that later passed says so).
+
+  A run whose cause is a security finding (the `github-config` or
+  `dependabot-audit` job, or any other security scan) is only "a
+  security-related failure" with its security record's neutral ref,
+  creating the record first if it has none
+  ([security.md](security.md#example-a-a-failed-security-job)). Flag
+  plainly, never as clean: an org with no operations epic, or with more
+  than one (its reports are then not read from the queue, and run history
+  is its only source); an `ops-report` issue the App filed that is not
+  linked under its org's epic; and a read that failed, naming the org as
+  **not read** with the stderr message. With nothing in any of the four
+  and nothing flagged, the entry says
+  `No failed or cancelled runs in the window.`
+- **Tool:** none yet. Every read of an ops issue's body or comments is
+  `vrg-issue-read --roles automation`, which keeps only what the App
+  wrote; the check never reads one through `vrg-gh`. Today, for each fleet
+  org, find its operations epic and list its children (a display read,
+  metadata only):
+
+  ```bash
+  vrg-issue-read --repo <org>/.github --state open --json \
+    --search 'label:epic label:operations "Epic (operations):" in:title'
+  vrg-epic-audit --epic <org>/.github#<epic>
+  ```
+
+  Then find the App's ops issues opened in the window, those updated in
+  the window, and those open now:
+
+  ```bash
+  vrg-issue-read --owner <org> --state all --roles automation --json \
+    --search 'label:ops-report created:<from>..<to>'
+  vrg-issue-read --owner <org> --state all --roles automation --json \
+    --search 'label:ops-report updated:<from>..<to>'
+  vrg-issue-read --owner <org> --state open --roles automation --json \
+    --search 'label:ops-report'
+  ```
+
+  and read each one found:
+
+  ```bash
+  vrg-issue-read '<owner>/<repo>#<n>' --roles automation --json
+  ```
+
+  Its `issue.body` is the first report and its `issue.comments` the later
+  ones, each with its time (`at`, in UTC: compare it with the window as a
+  time, never as a string). The latest marker gives the state. An
+  outsider's issue or comment carrying an ops title, label or marker is
+  left out and reported on stderr, metadata only; it is never read another
+  way and never acted on. A search that exits 1 (a read failure, or more
+  results than GitHub's search returns) and a read that exits 1 or 3 are
+  read failures, never an empty queue. An open child of the epic that the
+  third search did not return is one filed by hand.
+
+  Then the backstop, for each fleet repo:
 
   ```bash
   vrg-gh run list --repo <owner>/<repo> --created "<from>..<to>" --limit 200 \
@@ -89,9 +172,12 @@ and settles what needs action today.
   vrg-gh run view <databaseId> --repo <owner>/<repo> --log-failed
   ```
 
-  A list that returns 200 runs is truncated: narrow the range and repeat.
-  The failed log is read in the review conversation only, never quoted into
-  the entry. Belongs to `vergil-project/.github#1317` (history).
+  A run whose ID is in the run URL of a report read above is covered by
+  that ops issue and is not listed again under **Not reported**, though
+  its failed log may still give the cause. A list that returns 200 runs is
+  truncated: narrow the range and repeat. The failed log is read in the
+  review conversation only, never quoted into the entry. Belongs to
+  `vergil-project/.github#1317` (history).
 
 #### Check: Automation PRs
 
