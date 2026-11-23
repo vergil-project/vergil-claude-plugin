@@ -52,11 +52,13 @@ and settles what needs action today.
 3. Run [Releases cut](#check-releases-cut).
 4. Run [Security and audit signals](#check-security-and-audit-signals) and
    [Open security records](#check-open-security-records).
-5. Present the findings, then agree with the human **what needs action
-   today**: each failure to fix, PR to unstick or record to work, and who
-   or what takes it. File the follow-ups decided on through `SKILL.md`
-   step 5.
-6. Ask the kaizen prompt.
+5. Run [Outsider activity](#check-outsider-activity) and
+   [Trusted-authors configuration audit](#check-trusted-authors-configuration-audit).
+6. Present the findings, then agree with the human **what needs action
+   today**: each failure to fix, PR to unstick, record to work, outsider
+   item to act on or drift to correct, and who or what takes it. File the
+   follow-ups decided on through `SKILL.md` step 5.
+7. Ask the kaizen prompt.
 
 ### Checks
 
@@ -184,6 +186,105 @@ and settles what needs action today.
   clone of a repo in each fleet org (it finds the org from that clone's
   `origin`). It prints advisory IDs: they stay in the review conversation
   and go into the screen terms.
+
+#### Check: Outsider activity
+
+- **Answers:** what accounts outside the trusted roles did in the Vergil
+  orgs since the last daily review, with possible tampering first.
+- **Sources:** the issues and PRs of every org listed in the Vergil
+  configuration (`vrg-trusted-authors --json`, its `orgs` keys), which
+  `vrg-epic-audit --untrusted` reads through the trust layer: issues and
+  PRs opened by untrusted accounts, their comments, reviews and inline
+  review comments, their edits and renames of trusted items, and their
+  closes and reopens. A fleet org the configuration does not list is not
+  Vergil-managed and is not read.
+- **Window:** from `<from>` to now: the report takes only a start
+  (`--since`).
+- **Output:** in the review conversation only, per org, metadata and
+  links only (the report never carries an outsider's text):
+  1. **Possible tampering** (the report's own first section: edits,
+     renames and closes), every line in full, whoever the account. Each one is a candidate security
+     finding, decided with the human through `SKILL.md` step 5.
+  2. **`wrong-type` lines** (a login that looks like a trusted one but is
+     another account), every line in full, whoever the account.
+  3. **Every other line, grouped by login:** a heading per login with its
+     count of lines, and every one of its lines in full beneath it. The
+     logins with the fewest lines come first, so a one-off outsider is
+     not buried under an account that shows up daily. The report prints
+     logins bare (no `app/` prefix, no `[bot]` suffix) and no account
+     type, so a known GitHub App, such as `dependabot` or
+     `github-actions`, can be told only by its name: put such a login's
+     group last and say it is that App, but list its lines like any
+     other. Nothing is dropped or collapsed.
+
+  An org with nothing is `No outsider activity since <from>.` Add each
+  item URL the report prints to the screen terms' `screen-literals.txt`
+  ([security.md](security.md#what-the-run-records-for-the-screen)). The
+  entry records only one fixed line, with no count, org, login or detail:
+  `Outsider report reviewed.` when every listed org was read, and
+  `Outsider report not fully read.` otherwise.
+- **Tool:** `vrg-epic-audit --untrusted --since <from> --org <org>`, once
+  for each listed org. It writes nothing on GitHub. Exit 1 with nothing on
+  stdout is a read failure, or a window past GitHub's 1,000-result search
+  cap: name that org to the human as **not read** (with the stderr
+  message), never as clean. Since the window cannot be narrowed from its
+  end, a cap means the window is too long: the human decides how to
+  review it.
+
+#### Check: Trusted-authors configuration audit
+
+- **Answers:** whether each listed org's latest nightly trusted-authors
+  check passed, and whether the values it read on GitHub match what the
+  host configuration implies.
+- **Sources:** the `trusted-authors-check` job of the `Ops` workflow
+  (`ops.yml`, calling vergil-actions' `ops-github-config.yml`) in each
+  listed org's `<org>/.github` repository, its `trusted-authors-values`
+  artifact (the values `vrg-trusted-authors check` read, logins and slugs
+  only), and the host configuration on the human's host.
+- **Window:** none: the latest run now.
+- **Output:** one line per listed org: the latest `Ops` run's time and
+  conclusion, the `trusted-authors-check` job's conclusion, and `no drift`
+  or each differing org variable by name (`VRG_TRUSTED_AUTHORS`,
+  `VRG_AUTOMATION_APP`). Flag plainly:
+  - **a failed job:** the check reported findings or could not run;
+    it is also a security-related failure under
+    [Failed and cancelled runs](#check-failed-and-cancelled-runs);
+  - **a missing or stale result:** no `Ops` workflow, no completed run,
+    a latest completed run more than 26 hours old (a missed nightly run),
+    no `trusted-authors-check` job, a skipped job, or no artifact. Such a
+    result is never clean. mq-rest-admin-project has no `Ops` workflow
+    (mq-rest-admin-project/.github#55), so it has no audit result: say so
+    every day until that lands;
+  - **drift:** the artifact differs from `render`. The human fixes it by
+    running `vrg-trusted-authors publish --org <org>` on the host; the
+    agent never runs it.
+
+  The entry records only the fixed line
+  `Trusted-authors configuration audit reviewed.`, with no value or
+  detail.
+- **Tool:** none yet. Today, for each listed org:
+
+  ```bash
+  vrg-gh run list --repo <org>/.github --workflow ops.yml --status completed \
+    --limit 1 --json databaseId,event,conclusion,createdAt,url
+  vrg-gh run view <databaseId> --repo <org>/.github --json jobs \
+    --jq '.jobs[] | select(.name | endswith("trusted-authors-check")) | {name, conclusion}'
+  vrg-gh run download <databaseId> --repo <org>/.github \
+    --name trusted-authors-values --dir <scratch>/<org>
+  vrg-trusted-authors render --org <org> > <scratch>/<org>/render.json
+  jq -S . <scratch>/<org>/trusted-authors-values.json > <scratch>/<org>/a.json
+  jq -S . <scratch>/<org>/render.json > <scratch>/<org>/b.json
+  diff <scratch>/<org>/a.json <scratch>/<org>/b.json
+  ```
+
+  `<scratch>` is a fresh scratch directory outside any worktree, deleted
+  after the review. The run reads and the download are display reads: run
+  metadata and the check's own values file, never an issue or PR body.
+  `render` reads the host configuration (`vrg-trusted-authors render` with
+  no GitHub call), so it needs the human's host, not an agent VM: in a VM,
+  the human runs it and pastes its output. A failed command is a missing
+  result, never `no drift`. Belongs to `vergil-project/.github#1316`
+  (fleet state).
 
 ## `end`: 終礼 shūrei
 
