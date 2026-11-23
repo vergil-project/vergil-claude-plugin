@@ -180,13 +180,23 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
-**Steps that refuse the agent identity are human-run.** When writing a
-deployment task's steps, check each one against the agent identity. A
-step that refuses it goes under the scaffold's **Human-run steps (need a
-human identity)** section, never under the agent-safe deploy steps, so
-`issue-deploy` hands it to the human instead of stopping on it. The
-common ones are `vrg-host plugins`, `vrg-host upgrade` and
-`vrg-vm update --all`.
+**Steps that refuse the agent identity are human-run.** When filing a
+deployment or validation task, check each step of its procedure, its
+precondition checks included, against what the user agent identity can
+do. In a deployment task, a step that refuses it, or needs a permission
+or secret the agent does not hold, goes under the scaffold's **Human-run
+steps (need a human identity)** section with its paste-ready command,
+never under the agent-safe steps, so `issue-deploy` hands it to the
+human instead of stopping on it. The validation scaffold has no such
+section: write a check of that kind as a human-attested precondition
+that names the paste-ready command the human runs, never as a step the
+agent runs. The known cases:
+
+- `vrg-host plugins`, `vrg-host upgrade` and `vrg-vm update --all`;
+- reading or checking org variables, such as `vrg-trusted-authors check`:
+  the user mode holds no Variables permission;
+- reading Actions secrets, which the agent has no way to do;
+- any other command that refuses the user mode.
 
 **Checking that a release carries the changes.** Where a deployment (or
 release) task's procedure must confirm that a release contains given changes,
