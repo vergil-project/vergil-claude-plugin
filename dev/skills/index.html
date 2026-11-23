@@ -5580,8 +5580,13 @@ never reported. Auto-merge off, a closed PR, an
 orphaned check or the deadline passing (<code>timed_out</code>) stops for the human.
 Any other exit is a tool error and stops it too. A new review never ends
 the wait, so pr-watch reads the PR's review, conversation and inline
-comments itself, before each wait and after it returns, and acts only on
-the trusted human's. A review comment is addressed but never holds the
+comments itself, before each wait and after it returns, through
+<code>vrg-issue-read --pr</code> (never a raw read), which prints only the items a
+trusted identity wrote, each under its role, and reports the rest as
+metadata only. It acts only on the items whose role is <code>human</code>, and
+<code>vrg-pr-review-comments</code> only locates the trusted inline comments. An
+untrusted PR body (<code>vrg-issue-read</code> exit 3) stops it for the human,
+pushing nothing. A review comment is addressed but never holds the
 merge: one still unaddressed when the PR merges becomes a proposed
 follow-up issue. Because every push
 can merge, a clean rebase onto <code>origin/develop</code> is pushed with no review,
@@ -5783,7 +5788,15 @@ the largest level down, and names any week or longer period with no
 entries. <code>/vergil:hoshin end</code> closes the day (終礼 shūrei), and
 <code>end &lt;week|month|quarter|year&gt;</code> closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
-with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
+with a kaizen prompt, and leaves one dated entry. The daily review also
+shows two trust checks, in the terminal only: the outsider report
+(<code>vrg-epic-audit --untrusted</code>), which lists what accounts outside the
+trusted roles did in each Vergil org since the last daily review, by
+metadata and links only and with possible tampering first; and the
+trusted-authors configuration audit, which reports each org's latest
+nightly <code>trusted-authors-check</code> job and compares its
+<code>trusted-authors-values</code> artifact with <code>vrg-trusted-authors render</code> of the
+host configuration, naming any drifted org variable. Follow-ups are filed in
 the run: a security finding as a security record, and any other only
 after the security screen and the human's approval of its text.</p>
 <p>Each run hands off one docs PR: a <code>Logbook: &lt;date&gt; &lt;mode&gt;</code> task for the docs

@@ -5456,6 +5456,12 @@ and the per-repo hook guard in
 </blockquote>
 <p>Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.</p>
+<p>Reading issue and PR content is guarded by <code>vergil-tooling</code>, not by a
+hook of this plugin: since <code>vergil-tooling</code> v2.1.338, its hook guard
+refuses an agent's raw issue and PR content reads (a body or comment
+read, or a list or search that matches text or asks for a content field)
+and names <code>vrg-issue-read</code>, which prints only what a trusted identity
+wrote and reports the rest as metadata.</p>
 <h2 id="managed-repo-gating">Managed-repo gating<a class="headerlink" href="#managed-repo-gating" title="Permanent link">&para;</a></h2>
 <p>Every hook below <strong>except <code>block-heredoc</code></strong> and
 <a href="#warn-stale-plugin-version"><code>warn-stale-plugin-version</code></a> is gated on a
