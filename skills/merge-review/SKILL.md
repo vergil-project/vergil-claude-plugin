@@ -430,21 +430,23 @@ this skill writes neither. It reads the epic only for the design sources.
    HTML entities, while the hook stores the reviewer's own text. Read the
    reply from `result-<step>.md`, never from the notice, wherever this
    skill uses it, and never decode or otherwise fix either one by hand.
-   Then confirm the capture:
-   `capture-<step>.json` and `reply-<step>.md` exist, the capture's
-   `request_id` is the request's, and its `result_sha256` is the SHA-256
-   of `result-<step>.md` (`shasum -a 256 <dir>/result-<step>.md`). If any
-   file is missing or does not match, the run ends with `error`: show the
-   human the hook's message from the dispatch, and dispatch no more. A
-   rerun resumes from the step's build.
+   Then confirm the capture: `result-<step>.md`, `reply-<step>.md` and
+   `capture-<step>.json` exist. The check in step 4 confirms the rest:
+   that the capture record answers this request and holds the SHA-256 of
+   `result-<step>.md` as stored (its rule 10). If a file is missing, or
+   the check fails on rule 10 (its `ERROR:` line names
+   `rule 10 (capture)`), the run ends with `error`: show the human the
+   hook's message from the dispatch and the check's `ERROR:` line, and
+   dispatch no more. A rerun resumes from the step's build.
 4. **Check** it:
    `vrg-merge-review-check --request <dir>/request-<step>.json --result <dir>/result-<step>.md`.
+   It first checks the capture record (rule 10), then the result.
    Exit 0 prints the summary (`counts` by kind, `security`, `fix_status`)
    that the step comment and the decisions use. A result whose
    `reply-<step>.md` is over 60,000 bytes (`wc -c`) also fails, though
    the check passed: it is too long to post whole in the step comment,
    whose limit on GitHub is 65,536 characters.
-5. **On a failure**, the result is not acted on in any part. Build the same
+5. **On any other failure**, the result is not acted on in any part. Build the same
    step again (the builder gives it a new `request_id`, as the protocol
    requires), clear, dispatch once more, confirm the capture and check. A second failure is a
    stop with item `M1` ([The stop](#the-stop)): `retry` runs the step
