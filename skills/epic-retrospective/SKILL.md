@@ -181,6 +181,8 @@ doctrine's rules for them; this step adds only the sweep.
 
 A backward-looking record, **short and scannable up top, detail below**:
 
+- **Header** — the epic, spec, plan and planning issue, then the **Span**
+  table of how long the epic took ([The header](#the-header--and-its-span-table)).
 - **§0 At a glance** *(preamble, ≤ ½ page)* — one paragraph "what we set out to
   do → what shipped", then a **work-delivered visual**: a PR table (each with a
   one-line "what it did"), repos touched, task/PR counts, releases cut,
@@ -201,6 +203,40 @@ A backward-looking record, **short and scannable up top, detail below**:
 - **Appendix B — Extended metrics** *(optional)* — deeper stats worth keeping.
 
 The retrospective is **honest, not a victory lap** — §3/§4 are load-bearing.
+
+### The header — and its Span table
+
+The artifact opens with its title (`# <slug> — retrospective`) and a short
+list naming the **Epic** (`<org>/.github#N`), linking the **Spec** and
+**Plan** (`plan.md` with its `## Evolution during execution` log), and
+naming the **Planning issue**. Below the list comes the **Span**: a small
+table, one row per window, never prose of raw timestamps:
+
+```markdown
+**Span**
+
+| Window | Start | End | Elapsed |
+| --- | --- | --- | --- |
+| Whole epic | Mon 16 Nov 2026, 21:33 UTC | Wed 18 Nov 2026, 18:57 UTC | 1 d 21 h 24 min |
+| Planning | Mon 16 Nov 2026, 20:12 UTC | Tue 17 Nov 2026, 15:42 UTC | 19 h 30 min |
+| Implementation | Tue 17 Nov 2026, 15:14 UTC | Wed 18 Nov 2026, 18:47 UTC | 1 d 3 h 33 min |
+```
+
+- **The windows.** *Whole epic*: the epic issue opened to the last child
+  closed (the preflight's children, R excluded). *Planning*: the planning
+  issue opened to it closed. *Implementation*: the first task PR merged to
+  the last one merged. The windows can overlap, and planning can start
+  before the epic opened; the table shows them as they are.
+- **Readable times.** Write each start and end as weekday, day, month,
+  year and time in UTC (`Mon 16 Nov 2026, 21:33 UTC`), never an ISO-8601
+  string.
+- **Elapsed is the headline.** Compute it from the queried start and end,
+  never estimate it: minutes under an hour, hours and minutes under a day,
+  days, hours and minutes beyond.
+- **Queried, as §0 is.** Take each time from `vrg-gh`: the issues'
+  `createdAt` and `closedAt` (`vrg-gh issue view <n> --repo <owner>/<repo>
+  --json createdAt,closedAt`) and the PRs' `mergedAt`. A time you cannot
+  query is **unknown**, and so is its row's elapsed time.
 
 ### Sourcing §0 — queried facts, never invented
 
