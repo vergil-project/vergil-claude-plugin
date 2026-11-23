@@ -1,6 +1,6 @@
 ---
 name: pr-watch
-description: Monitor and reconcile an open PR that `vrg-submit-pr` opened with auto-merge on: the skill the agent uses to repair a submitted PR that did not merge. Use whenever a submitted PR needs watching or fixing — `vrg-finalize-pr` reports a PR not merged, the human reports a red check or a conflict, or the human asks to watch, monitor, babysit or fix the PR through CI and review. On a reported failure the agent runs it at once and never hands the command back; it does not start it after a submit by itself, since vrg-finalize-pr watches. Runs in the USER agent session: block on vrg-pr-await until the PR merges (exit 0) or cannot merge (exit 1, with a reason), reconcile failing CI, conflicts and human review comments (found by pr-watch itself, since the wait never returns on a review), merge-review every fix but a clean rebase before pushing it, run the batch check before any push to a batch PR, and tell the human to rerun `vrg-finalize-pr` once a fix is pushed.
+description: Monitor and reconcile an open PR that `vrg-submit-pr` opened with auto-merge on: the skill the agent uses to repair a submitted PR that did not merge. Use whenever a submitted PR needs watching or fixing — `vrg-finalize-pr` reports a PR not merged, the human reports a red check or a conflict, or the human asks to watch, monitor, babysit or fix the PR through CI and review. On a reported failure the agent runs it at once and never hands the command back; it does not start it after a submit by itself, since vrg-finalize-pr watches. Runs in the USER agent session: block on vrg-pr-await until the PR merges (exit 0) or cannot merge (exit 1, with a reason), reconcile failing CI, conflicts and human review comments (found by pr-watch itself, since the wait never returns on a review), merge-review every fix but a clean rebase (or any fix to a `Logbook:` PR) before pushing it, run the batch check before any push to a batch PR, and tell the human to rerun `vrg-finalize-pr` once a fix is pushed.
 ---
 
 # PR watch
@@ -82,11 +82,9 @@ retired continuous-oversight framing; sub-agents remain fine elsewhere.)
 
    - `MERGED`: go to [The PR merged](#the-pr-merged).
    - `CLOSED`: stop and tell the human. Never reopen it.
-   - A title that starts `Logbook:`: a logbook PR, which pr-watch never
-     fixes. Tell the human to close it together with its task and redo the
-     run through `/vergil:hoshin`, and stop. Push nothing and change
-     nothing: a logbook run's text passes its security screen and the
-     human's approval inside the run, and no fix made here would.
+   - A title that starts `Logbook:`: a logbook PR. Reconcile it like any
+     other, but skip the merge review of its fixes, as
+     [Before every push](#before-every-push) step 2 says.
    - A base other than `develop`, or a `release/*` head: stop and tell the
      human. Submit opens PRs against `develop` only, and a release goes
      through `vrg-release`, not this skill.
@@ -241,6 +239,12 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
 
    Only a routine rebase skips this step. Any resolved conflict is a fix
    and is reviewed, even one resolved by taking `develop`'s side whole.
+   The one exception is a logbook PR (its title starts `Logbook:`): every
+   fix to it skips this step, as the logbook run itself skips merge
+   review. Its text passed the run's security screen and the human's
+   approval before the PR existed, and a fix here is mechanical (a lint
+   error, a docs build failure, a conflict in an index), never new
+   content.
 3. **On a batch PR, run the batch check** on the exact head about to be
    pushed:
 

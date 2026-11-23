@@ -286,9 +286,10 @@ screen hits on one line of the entry, which carries an advisory ID.
 
 ## A failing logbook PR
 
-A submitted logbook PR whose checks fail is never fixed in place: not by
-`pr-watch` (which stops on any PR titled `Logbook:`), not by a new commit.
-The human closes the PR together with its task, and redoes the run through
-`/vergil:hoshin`, which works out from the logbook on `develop` what is still
-due. A submitted logbook PR that merges closes its task through
+A submitted logbook PR whose checks fail, or that conflicts with
+`develop`, is fixed by `pr-watch` like any other PR. `pr-watch` recognises
+it by its `Logbook:` title and skips the merge review of its fixes, as the
+run itself does: the run's screen and the human's approval came before the
+PR existed, and a fix there is mechanical (a lint error, a docs build
+failure, a conflict in an index), never new content. A submitted logbook PR that merges closes its task through
 `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.

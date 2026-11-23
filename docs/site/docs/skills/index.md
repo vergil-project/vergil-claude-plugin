@@ -464,9 +464,8 @@ ruling that left the reviewed branch unchanged
 (`Branch as reviewed: yes`). After a fix it tells the human to
 rerun `vrg-finalize-pr <PR>`. It never merges and never turns auto-merge on
 or off: auto-merge off or a provenance violation stops it for the human.
-It never fixes a logbook PR (one titled `Logbook:`): it tells the human to
-close the PR with its task and redo the run through [hoshin](#hoshin), and
-stops.
+It fixes a logbook PR (one titled `Logbook:`) like any other, but skips the
+merge review of its fixes, as the [hoshin](#hoshin) run itself does.
 
 On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
@@ -703,9 +702,8 @@ security rules with the screen's patterns.
 documentation-generating run, and the gates that matter (keeping security
 content out of the public logbook) run inside the skill before anything is
 pushed. A submitted logbook PR's task closes through the default
-`vrg-finalize-pr`; a failing one is closed with its task and the run
-redone, never fixed: [pr-watch](#pr-watch) stops on a `Logbook:` PR, and a
-logbook task lives under the hoshin epic, which
+`vrg-finalize-pr`; a failing one is fixed by [pr-watch](#pr-watch), which
+skips merge review for a `Logbook:` PR's fixes. A logbook task lives under the hoshin epic, which
 [epic-implement](#epic-implement) and [issue-implement](#issue-implement)
 refuse.
 
