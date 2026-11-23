@@ -114,6 +114,33 @@ once the human approves, it is added here through an ordinary task in
 vergil-claude-plugin. The recipe copies this list into every change task it
 files, less any bullet marked for another language.
 
+## Learned validation conditions
+
+A condition learned from the runs about what a validation check must see
+before it passes. Each is written into the
+[validation task template](#b-validation-task), so every validation task
+carries it, and is recorded here, one bullet each, with the runs that found
+it:
+
+- **An ops run after the release, when the change touches ops
+  workflows.** When the vergil-actions change under validation touches a
+  workflow the fixture's `ops.yml` calls, check 2 ("Ops and config sync")
+  needs an `ops.yml` run, scheduled or manually dispatched, that started
+  after the vergil-actions release under validation and whose log shows
+  the workflows resolved that release or a later one that contains it (the
+  fixtures call vergil-actions at the rolling series tag, as the
+  deployed-version probe says). Until such a run exists, check 2 is blocked, not passed. Found
+  by the six validations of epic
+  [vergil-project/.github#1494](https://github.com/vergil-project/.github/issues/1494),
+  for example vergil-project/vergil-fixture-python-lib#65: each judged a
+  scheduled `ops.yml` run that started before the release, so it ran the
+  older `v2.1` and the release's new `report-*` jobs never ran on any
+  fixture, yet every check 2 passed.
+
+A run that finds a new condition proposes it under `Awaiting a ruling` on
+its validation task, and it is added here, and to the template, as a
+learned ready-to-start condition is.
+
 ## Arguments
 
 ```text
@@ -466,7 +493,17 @@ names, versions):
 2. **Ops and config sync.** The fixture's latest scheduled `ops.yml` run is
    green, and every automated config-sync PR opened since the previous
    fixture run's validation on this repo (or, for the first run, since the
-   repo was created) merged on its own.
+   repo was created) merged on its own. When <what> is a vergil-actions
+   change that touches a workflow `ops.yml` calls, the run judged must be
+   an `ops.yml` run, scheduled or manually dispatched, that started after
+   <what> was released and whose log shows the workflows resolved <what>
+   or a later release that contains it. An `ops.yml` run that started
+   before <what> was released ran an older release and proves nothing
+   about the change. Until such a run exists, this check
+   is blocked, not passed: comment `blocked: preconditions not met — no
+   ops.yml run since <what>` and stop; the human can dispatch one
+   (learned from the validations of vergil-project/.github#1494, for
+   example vergil-project/vergil-fixture-python-lib#65).
 3. **Release.** The release produced the `vX.Y.Z` tag, the GitHub Release
    with its CI evidence bundle attached, the back-merge to `develop` with its
    version bump, and the moved `vX.Y` tag (it resolves to `vX.Y.Z`'s commit).
