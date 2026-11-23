@@ -321,10 +321,15 @@ no single command that moves one locked package back without saving it to
 `package.json`, so use a sequence, for example:
 
 ```sh
-npm install '<package>@<older>' --package-lock-only --save-dev --ignore-scripts
+vrg-container-run -- npm install '<package>@<older>' --package-lock-only --save-dev --ignore-scripts
 vrg-git checkout -- package.json
-npm install --package-lock-only --ignore-scripts
+vrg-container-run -- npm install --package-lock-only --ignore-scripts
 ```
+
+Run both npm commands through `vrg-container-run`, never the host's npm:
+the host's npm may be older than the image's, which CI and the release's
+dependency update use, and an older npm rewrites lockfile fields it does
+not know, burying the rollback in unrelated `package-lock.json` changes.
 
 The first command locks the older version and, as a side effect, adds it to
 `package.json`. Restoring `package.json` and re-locking keeps the older
