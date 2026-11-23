@@ -63,8 +63,8 @@ come from the configured time zone, never the host clock.
    ```
 
    If one is open, stop before any review, name it (its URL and title), and
-   tell the human it must merge first, or, if it is failing, be closed with
-   its task and the run redone: the logbook on `develop` must be the full
+   tell the human it must merge first, fixed through `pr-watch` if it is
+   failing: the logbook on `develop` must be the full
    record before a run can reason about it.
 6. **No stale logbook task.** List the docs repo's open tasks under the
    hoshin epic and take those titled `Logbook:`:
@@ -245,9 +245,9 @@ eligibility line.
 
 - **A submitted logbook PR's task closes through finalize:**
   `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
-- **A failing logbook PR is never fixed in place.** It is closed together
-  with its task, and the run is redone through `/vergil:hoshin`. `pr-watch`
-  recognises a logbook PR by its `Logbook:` title and stops. A logbook task
+- **A failing logbook PR is fixed by `pr-watch`,** like any other PR.
+  `pr-watch` recognises a logbook PR by its `Logbook:` title and skips the
+  merge review of its fixes, which are mechanical. A logbook task
   is controlled by its run and is never ad-hoc work: it lives under the
   hoshin epic, which `epic-implement` and `issue-implement` refuse.
 
