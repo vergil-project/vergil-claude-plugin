@@ -28,7 +28,7 @@ run it with `! <command>` in the prompt.
 ## Validation
 
 - Every linter, formatter and test runs through `vrg-container-run`, never directly on the host.
-- Running one tool ad hoc while working is fine: `vrg-container-run -- markdownlint --fix <file>`, one test file.
+- Running one tool ad hoc while working is fine: one test file, or `vrg-container-run -- vrg-validate --markdown --fix <file>`, which lints markdown as the gate does (a bare `markdownlint` does not).
 - Work is finished only when a full `vrg-container-run -- vrg-validate` passes; it is the gate before handoff.
 
 ## PR handoff
