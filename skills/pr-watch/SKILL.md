@@ -260,7 +260,9 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    | `eligible` | Go on to the next step. |
    | `not-eligible (human-ruling)` with `Branch as reviewed: yes` | Go on to the next step. The human has ruled on every item and no ruling changed the branch the review judged, so a second decision would add nothing. Tell the human the eligibility line when you report the push. |
    | Any other `not-eligible (<reason>)` | **Do not push.** Tell the human the eligibility line, the branch-as-reviewed line and the branch's head, and stop; the human decides what happens to the fix. |
-   | `stopped: request <id>` | Do not push. Stop, giving the request ID. The human replies with `vrg-ruling-reply`, and running this skill again resumes the review. |
+   | `exempt: request <id>` | Go on to the next step. The human approved an exemption for this fix, which they asked for. Tell the human the exemption line when you report the push. |
+   | `refused: request <id>` | **Do not push.** The human refused the fix's protected-change approval. Stop, giving the request ID; the human decides what happens to the fix. |
+   | `stopped: request <id>` | Do not push. Stop, giving the request ID and its kind. The human replies with `vrg-ruling-reply` (for a protected-change or exemption request, one of the two commands the skill printed), and running this skill again resumes the review. |
    | `waiting: non-review items` | Do not push. Stop and list the items. |
    | `fatal` or `error` | Do not push. Stop with the outcome or the error shown. |
 

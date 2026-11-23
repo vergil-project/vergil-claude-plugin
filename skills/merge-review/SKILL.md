@@ -1,6 +1,6 @@
 ---
 name: merge-review
-description: Pre-PR merge review of a task branch, run by issue-implement once `vrg-container-run -- vrg-validate` is green on the committed branch and before `vrg-pr-workflow report-ready`. Asks one question, "is this change good enough to merge?" — one review by the read-only `vergil:merge-reviewer`, at most one fix and check, every stop for the human through `vrg-ruling`, every raised item closed before handoff, and a closing comment carrying the eligibility line for report-ready's notes. Also reviews a fix to an open, submitted PR as a whole branch before pr-watch pushes it, and resumes a run stopped at merge review once the human has replied. Not a general code review and not for a branch with no task issue.
+description: Pre-PR merge review of a task branch, run by issue-implement once `vrg-container-run -- vrg-validate` is green on the committed branch and before `vrg-pr-workflow report-ready`. Asks one question, "is this change good enough to merge?" — one review by the read-only `vergil:merge-reviewer`, at most one fix and check, every stop for the human through `vrg-ruling`, every raised item closed before handoff, a protected-change approval asked whenever a protected path changes, a merge-review exemption only on the human's instruction, and a closing comment posted with `vrg-merge-review-close` as the machine-readable record, carrying the eligibility line for report-ready's notes. Also reviews a fix to an open, submitted PR as a whole branch before pr-watch pushes it, and resumes a run stopped at merge review once the human has replied. Not a general code review and not for a branch with no task issue.
 ---
 
 # Merge review
@@ -19,14 +19,31 @@ iteration, granted by a ruling. Every stop goes through epic 889's
 authenticated ruling channel (`vrg-ruling` and the human's
 `vrg-ruling-reply`), never a relayed prompt.
 
+Merge review runs on every PR. Its closing comment, posted with
+`vrg-merge-review-close`, is the PR's **merge-review record**, which
+`vrg-submit-pr`, finalize's watch and the daily audit read back. The same
+channel carries two typed requests whose reply is one `Decision:` line:
+the [protected-change approval](#the-protected-change-approval), asked
+whenever the change touches a protected path, and the
+[merge-review exemption](#the-exemption), asked only on the human's
+instruction (epic vergil-project/.github#1384, spec §4.5 and §4.6). The
+tools enforce both at submit, whatever this skill did; the skill is where
+the human hears about them.
+
 Sources, read them for anything this skill does not spell out:
 
 - the protocol, authoritative for the files, schemas and the result check:
   [vergil-tooling `docs/specs/merge-review-protocol.md`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md);
 - the ruling channel:
   [Human Replies](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/guides/human-replies.md)
-  and the [`vrg-ruling` reference](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/ruling.md);
-- the design: `epics/881-merge-review/spec.md` in vergil-project/.github.
+  and the [`vrg-ruling` reference](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/ruling.md),
+  its [protected-change and exemption requests](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/ruling.md#protected-change-and-exemption-requests)
+  included;
+- the record:
+  [`vrg-merge-review-close`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/cli-tools-overview.md#vrg-merge-review-close);
+- the design: `epics/881-merge-review/spec.md` in vergil-project/.github,
+  and for the record, the approval and the exemption,
+  `epics/1384-agent-submitted-prs/spec.md` there.
 
 ## Outcomes
 
@@ -36,7 +53,9 @@ The run ends with exactly one of these, and tells its caller which:
 |---|---|---|
 | `eligible` | The review or the check passed and no human ruling was needed. | Runs `report-ready` with the eligibility line in `--notes`. |
 | `not-eligible (<reason>)` | Every item is closed, but the run needed the human. | The same. |
-| `stopped: request <id>` | A ruling request is open on the issue. | Ends the run, reporting the request ID. |
+| `exempt: request <id>` | The human approved a [merge-review exemption](#the-exemption) for this change, and any [protected-change approval](#the-protected-change-approval) it needs is approved. No review ran and no closing comment was posted. | Runs `report-ready` with the exemption line in `--notes`. |
+| `refused: request <id>` | The human refused the protected-change approval asked at `HEAD`. Nothing is handed off. | Ends the run; see [A refused approval](#a-refused-approval). |
+| `stopped: request <id>` | A ruling request is open on the issue: an ordinary one, or a protected-change or exemption request. | Ends the run, reporting the request ID and its kind. |
 | `waiting: non-review items` | `issue-implement`'s own items were not all settled at the [non-review gate](#non-review-items-first), so the run stopped on them before merge review posted anything. | Ends the run; see [Non-review items first](#non-review-items-first). |
 | `fatal` | `vrg-ruling` exited 4. | Ends the run. The task never reaches report-ready; see [The resume](#the-resume). |
 | `error` | A command failed; nothing was changed on the issue. | Ends the run with the error shown. A rerun resumes. |
@@ -44,7 +63,11 @@ The run ends with exactly one of these, and tells its caller which:
 The **eligibility line** is the closing comment's first line,
 `Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`
 ([Records](#records)). It is the only thing from merge review that goes
-into report-ready's notes. A run on an open PR has no report-ready and
+into report-ready's notes, but for two lines: on an `exempt` outcome the
+**exemption line**, `Merge review: exempt: request <id>`, stands in its
+place, and a run that asked a protected-change approval adds its
+**approval line**, `Protected change: approved: request <id>`. A run on
+an open PR has no report-ready and
 its caller is `pr-watch`
 ([Fix to an open PR](#fix-to-an-open-pr)); it also hands `pr-watch` the
 [branch-as-reviewed line](#branch-as-reviewed-open-pr-only), which says
@@ -117,11 +140,12 @@ the `--ensure-dir` command prints (below). Every file of the run lives in
 | `security-<ID>.md` | this skill | One security finding's details. |
 | `ruling-<step>.json` | this skill | The items of a ruling request (`vrg-ruling`'s request items file). |
 | `draft-<step>.json` | this skill | The reply items for `vrg-ruling draft`, human present only. |
-| `open-request.json` | this skill | `{"request": <id>, "step": "<step>", "last": "<request_id>"}`, gaining `"reply": <id>` once the reply is read and `"responded": true` once the response lands. `last` is the `request_id` of the latest checked result when the request was posted, or `null` before any. |
+| `open-request.json` | this skill | `{"request": <id>, "step": "<step>", "last": "<request_id>"}`, gaining `"reply": <id>` once the reply is read and `"responded": true` once the response lands. `last` is the `request_id` of the latest checked result when the request was posted, or `null` before any. A typed request also has `"kind"` (`protected-change` or `merge-review-exemption`) and `"head"`, the full SHA of `HEAD` when it was posted; its `<step>` is `protected-change` or `exemption`. |
+| `approvals.json` | this skill | One entry per answered typed request, oldest first: `{"kind": "<kind>", "request": <id>, "reply": <id>, "head": "<sha>", "decision": "approve" \| "refuse"}`. |
 | `respond-<step>.json` | this skill | The response items, kept until `respond` succeeds. |
 | `reask.json` | this skill | Request items still to be asked: a reply's unclear items, and an `M1`, `D1`, `D2` or `B1` reached while carrying out a reply. |
 | `stop-reason.txt` | this skill | The eligibility reason of the run's first stop; never overwritten. |
-| `comment-*.md`, `record-*.md` | this skill | Bodies for step comments and neutral security-record text. |
+| `comment-*.md`, `record-*.md` | this skill | Bodies for step comments, the closing comment (`comment-close.md`) and neutral security-record text. |
 | `open-pr.json` | this skill | `{"pr": "<PR_URL>"}`: the run is a [fix to an open PR](#fix-to-an-open-pr). |
 
 Steps are `review`, `check`, then `check-<k>` (`k` from 2 to 9) for each
@@ -172,8 +196,26 @@ Anything else in `<dir>`, or a state these rules do not cover, is an
 
 ### Where the run stands
 
-Take the latest checked result: the last `result-<step>.md` in step order
-that passes `vrg-merge-review-check` against its request.
+First, the typed requests, from `approvals.json` (absent counts as
+empty), whose last `protected-change` entry and last
+`merge-review-exemption` entry decide:
+
+- **The last `protected-change` entry is `refuse`:** if its `head` is
+  `HEAD`, end with `refused: request <its request>` again, posting
+  nothing. Otherwise the branch has changed since the refusal: delete
+  every step file, `open-request.json`, `reask.json` and
+  `approvals.json` (keeping `stop-reason.txt` and every
+  `security-<ID>.md` whose record is still due), validate to green
+  at `HEAD`, and go to [Before the review](#before-the-review) for a
+  fresh review, every finding ruled afresh with nothing carried over.
+- **The last `merge-review-exemption` entry is `approve` and its `head`
+  is `HEAD`:** go to
+  [The protected-change approval](#the-protected-change-approval), then
+  end with `exempt: request <its request>`. An exemption whose `head` is
+  not `HEAD` no longer covers the change: go on below, which reviews it.
+
+Then take the latest checked result: the last `result-<step>.md` in step
+order that passes `vrg-merge-review-check` against its request.
 
 - **There is none:** go to [Before the review](#before-the-review).
 - **Its `request_id` is the `last` of an answered `open-request.json`**
@@ -336,12 +378,24 @@ every `security-<ID>.md` whose record is due. A rerun that finds the
 closing comment posted but `<dir>` still there ends with the same outcome,
 taking both lines from that comment, and deletes it. A later fix to the same PR starts a fresh state again.
 
+The [exemption](#the-exemption) and the
+[protected-change approval](#the-protected-change-approval) are asked
+here as before handoff, but the branch is never pushed to show the diff:
+the human sees it in the terminal. An `exempt` run posts no closing
+comment and deletes `<dir>` once its last response has landed;
+`pr-watch` pushes on `exempt`, and never on `refused`.
+
 ## Before the review
 
 The builder reads the issue body and derives the epic's open tasks itself,
 from its `--issue`
 ([the protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md)):
 this skill writes neither. It reads the epic only for the design sources.
+
+When the human has instructed a merge-review exemption for this change,
+and `approvals.json` holds no answered exemption request whose `head` is
+`HEAD`, go to [The exemption](#the-exemption) instead. A refused one
+means the human wants the review: run it.
 
 1. **The epic.** Read the task's native parent
    (`vrg-gh issue view <N> --repo <owner/repo> --json parent`) and the
@@ -694,7 +748,9 @@ vrg-ruling read --issue '<ref>' --request <id> --json
 ```
 
 - **Exit 0:** stdout is one JSON object, `{"request", "reply", "body"}`.
-  Add `"reply": <reply>` to `open-request.json`, read `body`, and do the
+  Add `"reply": <reply>` to `open-request.json`. For a typed request
+  (`open-request.json` has `"kind"`), go to
+  [A typed reply](#a-typed-reply). Otherwise read `body`, and do the
   work it calls for, posting nothing on the issue:
   - carry out every clear ruling: [Filing](#filing), then
     [Fix and check](#fix-and-check) if any ruling or remaining defect
@@ -733,6 +789,32 @@ vrg-ruling read --issue '<ref>' --request <id> --json
 
 A run that dies before writing `respond-<step>.json` posted nothing, so its
 resume reads the same reply again.
+
+### A typed reply
+
+The reply to a protected-change or exemption request carries one
+decision, and nothing else in it is read:
+
+1. **The decision.** It is `approve` only when `body` has exactly one
+   line starting `Decision:` (in any letter case, after leading
+   whitespace) and that line is exactly `Decision: approve`. Exactly one
+   `Decision: refuse` is `refuse`. Anything else is not an approval and
+   counts as `refuse`. `vrg-ruling-reply` refuses to post any other
+   reply, so that case means something is wrong: say so to the human.
+2. **The entry.** Run the `--ensure-dir` command and add
+   `{"kind", "request", "reply", "head", "decision"}` to `approvals.json`,
+   from `open-request.json` and the decision, unless an entry for this
+   request is already there.
+3. **The response.** Write `respond-<step>.json` with one item,
+   `{"id": "A1", "security": false, "text": "<one line>"}`, the text
+   saying how you read the reply and what follows, for example
+   `Read as approve; the run goes on to its closing comment.` or
+   `Read as refuse; nothing is handed off until the human rules how the change goes on.`
+   Post it with `vrg-ruling respond` exactly as above (its exit codes
+   too). It closes the turn, so the issue is free for the next comment.
+
+Then go to [Where the run stands](#where-the-run-stands), which acts on
+the entry.
 
 ## An unclear reply
 
@@ -788,6 +870,145 @@ command posts on the task issue.
 
 Never delete a `security-<ID>.md` whose item was ruled `defer` or `file`
 and has no record yet.
+
+## The protected-change approval
+
+A **protected path** is a file whose change needs the human's approval
+before it merges: `.github/workflows/**`, `vergil.toml` and
+`protected-paths.toml` in every repo, plus the globs in the repo's
+`protected-paths.toml` (`paths = [...]`) as it stands on `develop`,
+never the branch's own copy. An approval covers each protected file by
+its git blob at the head approved, so any later change to one voids it,
+while a rebase or a change elsewhere keeps it. `vrg-submit-pr` checks it
+whatever this skill did.
+
+The approval is asked once every item of the run is closed and
+`reask.json` is empty, right before the closing comment
+([No unfinished business](#no-unfinished-business-and-handoff)), so it
+covers the blobs the run hands off; on the exemption path, once the
+exemption is approved. It is not a merge-review stop: it writes no
+`stop-reason.txt` and leaves the eligibility line as it is.
+
+1. **Does the change touch one?** From the task worktree,
+   `vrg-git fetch origin`, then list the changed files with
+   `vrg-git diff --name-status -M <base>...HEAD`, `<base>` the review's
+   ([In a batch](#in-a-batch), [Fix to an open PR](#fix-to-an-open-pr);
+   `origin/develop` on the exemption path),
+   counting both paths of a rename. Read the repo's registry with
+   `vrg-git show origin/develop:protected-paths.toml`; a missing file is
+   an empty registry, and any other failure, or a file that is not one
+   `paths` list of globs, is an `error`: never take it as empty. Match
+   each path whole from the repo root: `*` stays within one directory,
+   and `**` is a whole segment crossing any number of them. No protected
+   path touched: there is nothing to ask; go back to the closing comment.
+   On a [fix to an open PR](#fix-to-an-open-pr), the PR's pushed head
+   already carries its approval, asked before handoff, so ask
+   only when the fix changed a protected file: a protected path whose
+   blob at `HEAD` differs from the one at `origin/<branch>`
+   (`vrg-git rev-parse HEAD:<path>` against
+   `vrg-git rev-parse origin/<branch>:<path>`, a path absent from one
+   side counting as changed).
+2. **Already answered?** An entry in `approvals.json` of kind
+   `protected-change` whose `head` is `HEAD`: `approve` is done (go back
+   to the closing comment); `refuse` ends the run
+   ([A refused approval](#a-refused-approval)).
+3. **Let the human see the diff.** The request's diff link opens only
+   once `HEAD` is on GitHub. Before handoff, and never on a
+   [fix to an open PR](#fix-to-an-open-pr) (whose push could merge it),
+   push the branch first: `vrg-git push -u origin <branch>`, a plain push,
+   never forced. When the push is refused (GitHub refuses an agent's push
+   of `.github/workflows/**` files until the App holds `workflows: write`;
+   a branch that has diverged from an earlier push), or the run is on an
+   open PR, the human sees the diff in the terminal instead:
+   `vrg-git diff <base>...HEAD -- <each protected path>`. With the human
+   present, show its output; dispatched, give the caller that command,
+   run from the task worktree, to show the human. In a batch, an earlier
+   push means the fold diverges the branch: `report-ready` then stops and
+   `issue-implement`'s force-with-lease step applies.
+4. **The request.** From the task worktree:
+
+   ```bash
+   vrg-ruling request --issue '<ref>' --kind protected-change
+   ```
+
+   It computes the protected files, their blobs at `HEAD` and the diff
+   link itself, from `HEAD`'s merge base with `origin/develop` (in a batch
+   that lists every protected file the branch changes so far, earlier
+   issues' included), prints the request's comment ID on stdout, and
+   prints the human's two `vrg-ruling-reply` commands on stderr, one per
+   decision. Any refusal, one that finds no protected file included, is
+   an `error`: show the human its message. Write `open-request.json`
+   (`{"request": <id>, "step": "protected-change", "kind":
+   "protected-change", "head": "<HEAD>", "last": <the latest checked
+   result's request_id, or null>}`). Then nothing else on the issue until
+   the reply.
+5. **The reply.** Never draft it: the human posts it from their own
+   shell with one of the printed commands. Human present: show them both
+   commands and the diff (step 3), and once they say it is posted, go to
+   [The resume](#the-resume). Dispatched: end with
+   `stopped: request <id>`, giving the caller the kind
+   (`protected-change`), both commands and, if the branch was not pushed,
+   the diff command.
+
+Once the reply is read and the turn closed
+([A typed reply](#a-typed-reply)), an `approve` goes on to the closing
+comment, whose item list gains `- Protected change: approved: request
+<id>`, and the caller gets the approval line for `--notes`.
+
+### A refused approval
+
+A `refuse` stops the change for the human: nothing is handed off, and
+the run ends `refused: request <id>` with no closing comment. The human
+rules how it goes on, in the session or through the caller. A change to
+the branch, committed and validated to green, makes the next run review
+afresh, and its approval is asked again at the new `HEAD`
+([Where the run stands](#where-the-run-stands)). A run started again at
+the same `HEAD` ends `refused` again; asking again at that `HEAD` needs
+the human's explicit instruction, which the run carries out by deleting
+that `refuse` entry from `approvals.json` and going to step 1 of
+[The protected-change approval](#the-protected-change-approval).
+
+## The exemption
+
+A **merge-review exemption** is the one skip of merge review, and it is
+the human's alone. Request it **only on the human's instruction**: the
+human says so in this session or the caller's prompt carries their
+instruction and reason. Never request one on your own judgement, to save
+time, or because a review stopped. An approved exemption stands in for
+the closing comment as the record for the change with this fingerprint:
+a clean rebase keeps it, and any other change to the branch needs a new
+exemption or a review. It never waives the protected-change approval.
+
+It is asked only before merge review has posted its review step comment;
+once the review is on the issue, the human's rulings decide. It is not
+asked for an issue of a batch before handoff: the request covers the
+whole branch's change, while each batch issue's record covers its own
+commit, so the exemption would cover nothing. End with `error`, telling
+the human to extract or unbatch the issue first.
+
+1. **The non-review gate** runs first
+   ([Non-review items first](#non-review-items-first)): the request is a
+   post on the issue.
+2. **The request.** From the task worktree, `vrg-git fetch origin`, then:
+
+   ```bash
+   vrg-ruling request --issue '<ref>' --kind merge-review-exemption --reason '<reason>'
+   ```
+
+   The reason is the human's, as one line of printable ASCII, and public:
+   no security detail. The command computes the change fingerprint
+   itself, prints the request's comment ID on stdout and the human's two
+   `vrg-ruling-reply` commands on stderr. Any refusal is an `error`.
+   Write `open-request.json` (`{"request": <id>, "step": "exemption",
+   "kind": "merge-review-exemption", "head": "<HEAD>", "last": null}`).
+3. **The reply**, as for the approval (its step 5).
+
+Once the reply is read and the turn closed
+([A typed reply](#a-typed-reply)),
+[Where the run stands](#where-the-run-stands) decides: an `approve` goes
+to [The protected-change approval](#the-protected-change-approval) and
+then ends `exempt: request <id>`, handing the caller the exemption line
+(and any approval line) for `--notes`; a `refuse` runs the review.
 
 ## Records
 
@@ -847,7 +1068,9 @@ Reviewer usage: <tokens, duration, when the completion notice gave it>
   made by editing a comment did not reach it.
 
 **The closing comment**, one per run, posted after any `vrg-ruling respond`
-and before report-ready (on an open PR, before `pr-watch` pushes):
+and before report-ready (on an open PR, before `pr-watch` pushes). It is
+the run's merge-review record, from both entry points. Write its body to
+`comment-close.md`:
 
 ```text
 Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>
@@ -856,12 +1079,35 @@ Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>
 - R2: kept by ruling
 - R3: security finding, deferred
 - R4: tracked as owner/repo#N
+- Protected change: approved: request <id>
 ```
 
 On a [fix to an open PR](#fix-to-an-open-pr) only, the line right below
 the eligibility line is `Branch as reviewed: <yes | no>`
 ([Branch as reviewed](#branch-as-reviewed-open-pr-only)); a run before
-report-ready writes no such line.
+report-ready writes no such line. The `Protected change:` line appears
+only when the run asked the approval. The body has no record line: never
+write one.
+
+Post it from the task worktree, clean, with nothing uncommitted:
+
+```bash
+vrg-merge-review-close --issue '<ref>' --outcome '<eligible | not-eligible (<reason>)>' \
+  --body-file <dir>/comment-close.md
+```
+
+`--outcome` is exactly the eligibility line's. The command computes the
+head and the change fingerprint itself (for an issue of a batch, that
+issue's own change from the previous issue's commit), adds the record
+line right below the eligibility line (below the branch line, when there
+is one),
+`Merge review record: head=<sha> fingerprint=<hex> outcome=<outcome>`,
+posts the comment as the agent and prints its ID. Never pass it a head
+or fingerprint, and never post the closing comment any other way: a
+comment without the record line is no record, and submit refuses the PR.
+Exit 1 is an `error`, with its message shown: nothing was posted, or it
+says the post landed or that it cannot tell. A rerun resumes, and the
+command never posts the same comment twice.
 
 `<w>` counts the security items ruled `wont-fix`. The list gives every item
 the run raised and its closing state, security items by ID and outcome
@@ -883,7 +1129,11 @@ run's review step comment is its own ([Fix to an open PR](#fix-to-an-open-pr)).
 
 A run that stopped for the human is never `eligible`, even when every
 ruling left the branch as it was: the eligibility line records that the
-run needed the human, and that stays true.
+run needed the human, and that stays true. The protected-change approval
+is not such a stop: it answers whether a protected file may change, not
+whether the review needed the human, and is recorded in its own exchange
+and the approval line. An `approve` leaves the eligibility line as it
+was; a `refuse` ends the run `refused` with none.
 
 ### Branch as reviewed (open PR only)
 
@@ -924,10 +1174,14 @@ report-ready's notes carry no merge-review `Awaiting a ruling` list.
 
 Then:
 
-1. post the closing comment;
-2. end with `eligible` or `not-eligible (<reason>)`, giving the caller the
-   eligibility line for `--notes` (on an open PR, for `pr-watch`, after
-   deleting `<dir>`: [Fix to an open PR](#fix-to-an-open-pr)).
+1. run [The protected-change approval](#the-protected-change-approval),
+   which may stop the run for the human's reply;
+2. post the closing comment with `vrg-merge-review-close`
+   ([Records](#records));
+3. end with `eligible` or `not-eligible (<reason>)`, giving the caller the
+   eligibility line for `--notes`, and the approval line when the run
+   asked one (on an open PR, for `pr-watch`, after deleting `<dir>`:
+   [Fix to an open PR](#fix-to-an-open-pr)).
 
 **Documentation left for the sweep.** A stale or loose doc that the run
 leaves for the epic's documentation-review sweep (a note in the reviewer's

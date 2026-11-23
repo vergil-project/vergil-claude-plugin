@@ -190,7 +190,9 @@ confirmation and pass the answer in the prompt
 
 **Code tasks at merge review.** `issue-implement` runs the `merge-review`
 skill before `report-ready`, and a run can end there instead: `stopped:
-request <id>` (a ruling request open on the task issue), `waiting:
+request <id>` (a ruling request open on the task issue), `refused:
+request <id>` (the human refused its protected-change approval: present
+it at the gate for the human to rule how the change goes on), `waiting:
 non-review items`, `fatal` or `error`. Keep each such outcome for the gate.
 On re-entry, find them from the task's merge-review directory,
 `build/.vergil-state/issue-implement/<N>/merge-review/` in the task repo's
@@ -259,7 +261,11 @@ present everything needing the human:
   requires), run
   `vrg-ruling draft --issue '<ref>' --request <id> --items <dir>/draft-<step>.json`
   and give the human the `vrg-ruling-reply --issue '<ref>' --request <id>`
-  command it prints. Once the human has posted the reply, dispatch one new
+  command it prints. A **protected-change or exemption request** (the
+  run's report names its kind; `open-request.json` has `"kind"`) has no
+  items file and no draft: show the human the diff command the run gave,
+  if any, and the two `vrg-ruling-reply` commands it printed, one per
+  decision, which the human runs from their own shell. Once the human has posted the reply, dispatch one new
   run of the task's `issue-implement` whose prompt says only that a human
   response is available: **no ruling text and no security detail ever goes
   in a prompt** for a merge-review item
