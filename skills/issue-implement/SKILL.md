@@ -458,7 +458,11 @@ request's ID on the issue.
 This **publishes the branch** — it pushes the reported commit to
 `origin/<branch>` (setting upstream) — then writes `.vergil/pr-workflow.json`,
 the file `vrg-submit-pr` reads. **Do not push the branch yourself first**; there
-is no separate push step. It is a plain run-and-done command: it pushes, records
+is no separate push step. The one exception is merge review's plain push
+before a protected-change approval
+([its step 3](../merge-review/SKILL.md#the-protected-change-approval)),
+so the request's diff link opens; report-ready's push is then a no-op or a
+fast-forward, and a diverged branch is the case below. It is a plain run-and-done command: it pushes, records
 the metadata, and exits. There is no loop to drive, nothing to poll, and no
 second agent to wait for. If you need to correct the title/summary/notes before
 the human submits, just run `report-ready` again — it overwrites (and the push
