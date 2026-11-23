@@ -896,9 +896,25 @@ details, step 0's public-wording rule) goes into it.
      planning issue, before step 9 hands it off.
 9. **Docs PR.** Run the epic body sync (above) a last time, against the spec
    and plan the PR publishes.
-   Validate (`vrg-container-run -- vrg-validate`) and hand off the
+   Validate (`vrg-container-run -- vrg-validate`) to green on the
+   committed branch, then run the **`merge-review`** skill
+   (`vergil:merge-review`) on the documentation task (`--issue
+   '<home>#<D>'`), from its worktree, as `issue-implement`'s
+   [Merge review](../issue-implement/SKILL.md#merge-review) section says.
+   The change is `docs-only`, so the review asks only the merge-quality
+   question. Run it before `vrg-epic-docs set` below: until then the
+   epic's Documents section lists no design source, so the review judges
+   the spec and plan as the diff it reads, rather than stopping on links
+   that resolve only once the PR merges. Anything the run writes into a
+   ruling request or a reply follows step 0's public-wording rule. Only
+   an `eligible` or `not-eligible (<reason>)` outcome, or an `exempt` one
+   the human asked for, goes on; any other ends the step for the human,
+   and a resumed run at this step runs merge review again, which picks up
+   from its directory. Then hand off the
    single spec + plan PR against `.github` — agents record it via
-   `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
+   `vrg-pr-workflow report-ready`, with the merge review's eligibility
+   line (and any approval line) in `--notes`, then delete its directory
+   as `issue-implement` says; the human runs `vrg-submit-pr`. At the
    handoff, link the documents from the epic:
    `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
    --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;

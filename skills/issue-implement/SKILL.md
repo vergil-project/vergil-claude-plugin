@@ -374,6 +374,13 @@ clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
 `build/.vergil-state/issue-implement/<N>/merge-review/` in the main clone,
 by hand while a run is open.
 
+Merge review runs on every PR. The skills that hand off a docs PR of their
+own (`epic-create`'s spec-and-plan PR, `epic-retrospective`'s PR and
+`hoshin`'s logbook PR) follow this section too, on that PR's task: the
+non-review gate and the outcome table here, and the notes' merge-review
+lines and the directory's deletion once `report-ready` has succeeded from
+[Record the PR metadata](#record-the-pr-metadata-and-hand-off).
+
 **Non-review items first.** Merge review posts nothing on the issue until
 every non-review item of the task is settled: the skill's
 [non-review gate](../merge-review/SKILL.md#non-review-items-first) runs

@@ -152,7 +152,11 @@ same PR as the entry.
 ## Fixed wording
 
 Every public record a run creates besides the entries themselves uses fixed
-wording that carries no review content. `<date>` is the run's date and
+wording that carries no review content. The one exception is merge review's
+records on the logbook task (its step and closing comments and any ruling
+exchange), which follow merge review's own format and its rule that a
+security item is named by ID or count only
+([SKILL.md](../SKILL.md#merge-review)). `<date>` is the run's date and
 `<mode>` its mode, `start` or `end`, so a run's records are named once
 whatever levels it reviews.
 
@@ -178,14 +182,15 @@ whatever levels it reviews.
   vrg-pr-workflow report-ready --issue <N> \
     --title "Logbook: <date> <mode>" \
     --summary "Logbook entries written: <path>, <path>." \
-    --notes "Files: <path>, <path>, <path>."
+    --notes "Merge review: done: eligible; accepted-risk 0. Files: <path>, <path>, <path>."
   ```
 
-  The summary names the entries by path; the notes name every file the
-  commit changes, by path (the entries, the index files and any
-  `hoshin.md`). The PR title starts `Logbook:`, which is how `pr-watch`
-  recognises a logbook PR. The notes carry no
-  merge-review eligibility line, since a logbook run has no merge review.
+  The summary names the entries by path. The notes start with the merge
+  review's eligibility line exactly as it gave it (or its exemption line),
+  then any approval line it gave, then name every file the commit changes,
+  by path (the entries, the index files and any `hoshin.md`). The PR title
+  starts `Logbook:`, which is how a later run's preflight recognises an
+  open logbook PR.
 - **Abandoned run** (closing its own task):
 
   ```bash
@@ -287,9 +292,7 @@ screen hits on one line of the entry, which carries an advisory ID.
 ## A failing logbook PR
 
 A submitted logbook PR whose checks fail, or that conflicts with
-`develop`, is fixed by `pr-watch` like any other PR. `pr-watch` recognises
-it by its `Logbook:` title and skips the merge review of its fixes, as the
-run itself does: the run's screen and the human's approval came before the
-PR existed, and a fix there is mechanical (a lint error, a docs build
-failure, a conflict in an index), never new content. A submitted logbook PR that merges closes its task through
+`develop`, is fixed by `pr-watch` like any other PR, and each fix but a
+clean rebase is merge-reviewed before it is pushed, like any other fix.
+A submitted logbook PR that merges closes its task through
 `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
