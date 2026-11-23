@@ -405,6 +405,58 @@ else
   fail=$((fail + 1))
 fi
 
+# Denial text (#1200): each blocking hook names the path an agent takes
+# instead. reason_case <name> <script> <command> <has|lacks> <text>
+# checks the deny's permissionDecisionReason for a fixed substring.
+reason_case() {
+  local name="$1" script="$2" cmd="$3" mode="$4" text="$5"
+  local payload out reason ok=false
+  payload=$(jq -n --arg cmd "$cmd" --arg cwd "$ROOT" \
+    '{tool_input: {command: $cmd, cwd: $cwd}, cwd: $cwd}')
+  out=$(printf '%s' "$payload" \
+    | PATH="$CLEAN_PATH" bash "$SCRIPTS/$script" 2>&1) || true
+  reason=$(printf '%s' "$out" \
+    | jq -r '.hookSpecificOutput.permissionDecisionReason // empty' 2>/dev/null) || reason=""
+  total=$((total + 1))
+  if [ -n "$reason" ]; then
+    case "$mode" in
+    has) case "$reason" in *"$text"*) ok=true ;; esac ;;
+    lacks) case "$reason" in *"$text"*) ;; *) ok=true ;; esac ;;
+    esac
+  fi
+  if [ "$ok" = true ]; then
+    echo "PASS [text] $name"
+    pass=$((pass + 1))
+  else
+    echo "FAIL [text] $name — reason must $mode: $text"
+    printf '%s\n' "${reason:-$out}" | head -5 | sed 's/^/       /'
+    fail=$((fail + 1))
+  fi
+}
+
+reason_case "agent-merge: merges go through vrg-submit-pr's auto-merge" \
+  block-agent-merge.sh 'gh pr merge 5' has \
+  'A PR merges only through `vrg-submit-pr`, which opens it with auto-merge on'
+reason_case "agent-merge: agents never approve" \
+  block-agent-merge.sh 'gh pr review 5 --approve' has \
+  'an agent never approves any PR'
+reason_case "agent-merge: no longer a human-only merge" \
+  block-agent-merge.sh 'gh pr merge 5' lacks 'Merging is a human action'
+reason_case "agent-merge: no longer hands the URL to the human" \
+  block-agent-merge.sh 'gh pr merge 5' lacks 'Hand the PR URL to the human'
+reason_case "contents-api: points at report-ready and the agent's own submit" \
+  block-github-contents-api.sh 'gh api --method PUT repos/o/r/contents/f.md' has \
+  'hand off with vrg-pr-workflow report-ready, and open the PR with your own vrg-submit-pr'
+reason_case "contents-api: no longer the human submitting" \
+  block-github-contents-api.sh 'gh api --method PUT repos/o/r/contents/f.md' lacks \
+  'the human submits the PR'
+reason_case "contents-api: no retired pr-template step" \
+  block-github-contents-api.sh 'gh api --method PUT repos/o/r/contents/f.md' lacks \
+  'pr-template.yml'
+reason_case "raw-pr-create: points at vrg-submit-pr" \
+  block-raw-gh-pr-create.sh 'gh pr create --title x' has \
+  'Use vrg-submit-pr instead'
+
 echo "----------------------------------------"
 echo "command-matchers: $pass passed, $fail failed, $total total"
 [ "$fail" -eq 0 ]
