@@ -452,8 +452,13 @@ never reported. Auto-merge off, a closed PR, an
 orphaned check or the deadline passing (`timed_out`) stops for the human.
 Any other exit is a tool error and stops it too. A new review never ends
 the wait, so pr-watch reads the PR's review, conversation and inline
-comments itself, before each wait and after it returns, and acts only on
-the trusted human's. A review comment is addressed but never holds the
+comments itself, before each wait and after it returns, through
+`vrg-issue-read --pr` (never a raw read), which prints only the items a
+trusted identity wrote, each under its role, and reports the rest as
+metadata only. It acts only on the items whose role is `human`, and
+`vrg-pr-review-comments` only locates the trusted inline comments. An
+untrusted PR body (`vrg-issue-read` exit 3) stops it for the human,
+pushing nothing. A review comment is addressed but never holds the
 merge: one still unaddressed when the PR merges becomes a proposed
 follow-up issue. Because every push
 can merge, a clean rebase onto `origin/develop` is pushed with no review,
@@ -683,7 +688,15 @@ the largest level down, and names any week or longer period with no
 entries. `/vergil:hoshin end` closes the day (終礼 shūrei), and
 `end <week|month|quarter|year>` closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
-with a kaizen prompt, and leaves one dated entry. Follow-ups are filed in
+with a kaizen prompt, and leaves one dated entry. The daily review also
+shows two trust checks, in the terminal only: the outsider report
+(`vrg-epic-audit --untrusted`), which lists what accounts outside the
+trusted roles did in each Vergil org since the last daily review, by
+metadata and links only and with possible tampering first; and the
+trusted-authors configuration audit, which reports each org's latest
+nightly `trusted-authors-check` job and compares its
+`trusted-authors-values` artifact with `vrg-trusted-authors render` of the
+host configuration, naming any drifted org variable. Follow-ups are filed in
 the run: a security finding as a security record, and any other only
 after the security screen and the human's approval of its text.
 

@@ -18,6 +18,13 @@ alike routinely drift from when enforcement is prose-only.
 Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.
 
+Reading issue and PR content is guarded by `vergil-tooling`, not by a
+hook of this plugin: since `vergil-tooling` v2.1.338, its hook guard
+refuses an agent's raw issue and PR content reads (a body or comment
+read, or a list or search that matches text or asks for a content field)
+and names `vrg-issue-read`, which prints only what a trusted identity
+wrote and reports the rest as metadata.
+
 ## Managed-repo gating
 
 Every hook below **except `block-heredoc`** and
