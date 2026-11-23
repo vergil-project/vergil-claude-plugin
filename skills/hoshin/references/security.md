@@ -6,7 +6,7 @@ This file holds the rules, the mechanical screen that enforces them before
 anything is committed, and the worked examples.
 
 Every example here uses placeholder names: `<org>`, `<repo>`,
-`<alert-number>`, `<advisory-id>`, `<N>`. Never write a real alert number or
+`<alert-number>`, `<advisory-id>`, `<N>`, `<date>`. Never write a real alert number or
 advisory ID into this skill or into an example.
 
 ## The rules
@@ -33,8 +33,9 @@ Each rule is followed by one example of the allowed wording.
    cause is a security finding (a security scan, a dependency audit, the
    GitHub-config audit) is reported only as "a security-related failure",
    with the neutral ref of its security record. If it has no record yet, the
-   review creates one first. The cause stays in the review conversation and
-   the private record.
+   review creates one first. Nothing else about it appears in a public
+   record: no cause, effect, impact, affected artefact or start date. Those
+   stay in the review conversation and the private record.
 
    > `vergil-project/<repo>`: a security-related failure,
    > `vergil-project/.github#<N>`.
@@ -54,6 +55,14 @@ Each rule is followed by one example of the allowed wording.
 
    > A public follow-up titled "Retry the docs refresh on a transient
    > fetch failure", screened and approved, then filed.
+
+6. **Kaizen notes keep the kind of finding private.** A kaizen note about
+   security tooling or security records says nothing about the kind of
+   finding any record holds (dependency, code, secret or configuration),
+   nor which tool found it.
+
+   > Kaizen: a security record, `vergil-project/.github#<N>`, waited a week
+   > for triage.
 
 ## Example A: a failed security job
 
@@ -185,6 +194,20 @@ the numbers) are not reliably caught by a pattern. They are left to the
 human's approval of the final text, which is why the run shows the human the
 full text of every entry before the commit. The screen narrows what reaches
 the human; it does not replace their reading.
+
+Rules 3 and 6 are not patterns either. The run checks them itself when it
+reviews the full text, before showing it to the human:
+
+- **Rule 3.** A draft line
+  "`vergil-project/<repo>`: a security-related failure since `<date>`; its
+  releases are blocked, `vergil-project/.github#<N>`" gives the failure's
+  start date and effect. The run cuts it to
+  "`vergil-project/<repo>`: a security-related failure,
+  `vergil-project/.github#<N>`".
+- **Rule 6.** A draft kaizen note "The dependency finding in
+  `vergil-project/.github#<N>` waited a week for triage" names the kind of
+  finding. The run rewrites it as "A security record,
+  `vergil-project/.github#<N>`, waited a week for triage".
 
 ## Example B: an entry that breaks a security rule
 
