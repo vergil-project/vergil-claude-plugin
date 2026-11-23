@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.86] - 2026-11-23
+
+### Bug fixes
+
+- confirm the capture with vrg-merge-review-check instead of shasum (#1134)
+- fix logbook PRs like any other, skipping merge review for them (#1277) (#1279)
+- read task bodies and comments through vrg-issue-read (#1281)
+- read queue and planning content through vrg-issue-read (#1242)
+
+### Documentation
+
+- ask no confirmation for an absent state directory in a session's first round (#1119)
+- mention the ad-hoc to planning route now that vrg-intake-route allows it (#1133)
+- put agent-refused deploy steps under Human-run steps (#1177)
+- run the TypeScript rollback's npm commands in the container (#1186)
+- render the header's Span as a table of windows with readable dates and elapsed time (#1257)
+- remove the private-home branches from the epic skills (#1276)
+- treat an epic drift exit of 1 as an audit problem (#1280)
+
+### Features
+
+- review the outsider report and the configuration audit each morning (#1243)
+
 ## [2.1.85] - 2026-11-23
 
 ### CI
