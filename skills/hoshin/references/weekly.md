@@ -57,8 +57,9 @@ chooses the week's focus.
   `--close` is a human action).
 - **Tool:** `vrg-epic-audit`, read-only (never `--close`), run from inside
   a clone of a repo in each active fleet org (it finds the org from that
-  clone's `origin`). An exit of 1 marks a partial report, which the entry
-  says.
+  clone's `origin`). An exit of 1 means the audit had a problem: the entry
+  says so and names the cause from the tool's error output, restating no
+  security detail ([security rules](security.md#the-rules)).
 
 ## `end`: 反省 hansei
 
