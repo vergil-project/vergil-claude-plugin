@@ -756,6 +756,8 @@
       
         
       
+        
+      
     
     
     
@@ -808,6 +810,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.87/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.87
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5718,8 +5748,10 @@ the project-scope entry whose <code>projectPath</code> is the session's project
 (<code>CLAUDE_PROJECT_DIR</code>, else the payload's <code>cwd</code>), else the user-scope
 entry. Paths are compared with symlinks resolved. On a mismatch it adds a
 warning to the agent's context naming the loaded and the installed
-version, and telling the agent to stop and ask the human to run
-<code>/reload-plugins</code> (or restart the session) before relying on the skill.
+version. It tells the agent to note the warning and carry on, not to
+stop, and to tell the human, who can run <code>/reload-plugins</code> (or restart
+the session) when the work depends on the new version. A check that
+could not run ends the same way.
 <code>CLAUDE_CONFIG_DIR</code>, when set, replaces <code>~/.claude</code>.</p>
 <p><strong>Why.</strong> A running session keeps serving the plugin version it loaded at
 start, even after a newer one is installed. An agent that trusts the
@@ -5727,7 +5759,11 @@ loaded skill after an upgrade can silently do what the release removed
 (<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1129">#1129</a>).
 Claude Code tells the human "Plugins changed. Run /reload-plugins to
 activate.", but that notice never reaches the agent, and an agent cannot
-run a slash command itself.</p>
+run a slash command itself. The warning does not stop the agent: most
+plugin updates land mid-task and do not touch the work in progress, so
+stopping on every one interrupts for nothing. When the work does depend on
+the new version, the human pauses the session and reloads
+(<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1260">#1260</a>).</p>
 <p><strong>Warns, never blocks.</strong> The hook only adds context: it never denies the
 call, so a session that cannot reload (a remote one, say) is not trapped.
 It is not gated on a managed repo, and it is the one PreToolUse hook that
@@ -5740,8 +5776,9 @@ treated as a match. Without <code>jq</code> it can build no response, so it prin
 the problem to stderr and exits 1, a non-blocking error. A plugin root
 outside the plugin cache, such as a <code>claude --plugin-dir</code> source mount,
 has no install record to compare with, so the hook is silent there.</p>
-<p><strong>Alternative.</strong> Ask the human to run <code>/reload-plugins</code> in the session, or
-to restart it, then invoke the skill again. Tests:
+<p><strong>Alternative.</strong> When the work depends on the new version, the human
+runs <code>/reload-plugins</code> in the session, or restarts it, and the agent then
+invokes the skill again. Tests:
 <code>hooks/tests/warn-stale-plugin-version.test.sh</code>.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="detect-deprecation-warnings">detect-deprecation-warnings<a class="headerlink" href="#detect-deprecation-warnings" title="Permanent link">&para;</a></h3>
