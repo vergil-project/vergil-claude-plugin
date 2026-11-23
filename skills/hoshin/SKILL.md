@@ -14,7 +14,12 @@ Management section has the background page.
 
 - **`/vergil:hoshin start`** is the main event, run at the start of each
   working day. It closes whatever was left open, then runs the daily 朝礼
-  chōrei and opens any new week, month, quarter or year.
+  chōrei and opens any new week, month, quarter or year. The chōrei
+  includes the outsider report (what accounts outside the trusted roles
+  did since the last daily review, possible tampering first) and the
+  latest trusted-authors configuration audit of each Vergil org, compared
+  with the host configuration
+  ([daily.md](references/daily.md#check-outsider-activity)).
 - **`/vergil:hoshin end`** is optional and closes the day with the 終礼
   shūrei. **`end week`**, **`end month`**, **`end quarter`** and
   **`end year`** close that period now, with every smaller period still
@@ -265,6 +270,10 @@ eligibility line.
   It never opens the PR itself.
 - Reviews report on durable state only (git and GitHub today), never on what
   an agent session is doing.
+- The outsider report and the configuration audit stay in the terminal:
+  the logbook records only that each was reviewed, with no count, login,
+  value or detail. The report carries metadata and links only, never an
+  outsider's text.
 - Every path the run writes is ASCII; Japanese terms appear only in content.
 - The logbook is public. [security.md](references/security.md) governs every
   public record the run creates: the entries, the follow-ups, and, through
