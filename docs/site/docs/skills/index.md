@@ -591,7 +591,10 @@ The modes differ only in order, check and outcomes:
   **one-off** for an item small enough for one PR or whose scope can be cut
   until it is. Items `epic-create` is expanding (`in-progress`) are shown
   with their latest note and offered only leave; the review never resumes
-  them and never offers them one-off. A finished item that nothing closed
+  them and never offers them one-off. The exception is a skeleton, an item
+  whose `bootstrap` is done and whose spec is not yet written: it may also
+  be deferred or dropped, and the review first abandons the skeleton
+  through `epic-create`'s shared step, then routes it. A finished item that nothing closed
   (`ready-to-close`) is offered **close**, unless its epic was abandoned
   (closed as not planned), which means it needs planning again.
   It ends with the surviving queue sorted oldest first. Choosing what to
