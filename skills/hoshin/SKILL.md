@@ -283,8 +283,7 @@ merge review judges the text the human approved.
   [security.md](references/security.md).
 - **The outcome.** `eligible` or `not-eligible (<reason>)`, or `exempt`
   when the human asked for an exemption, goes on to step 8, the
-  eligibility line (or the exemption line) and any approval line leading
-  the `--notes`. Any other outcome ends the run for the human. Merge
+  eligibility line (or the exemption line) leading the `--notes`. Any other outcome ends the run for the human. Merge
   review's directory is
   `<docs>/build/.vergil-state/issue-implement/<N>/merge-review/`; a later
   run finds it through the stale-task rule (Preflight step 6).
