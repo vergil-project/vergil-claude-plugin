@@ -717,7 +717,16 @@ the largest level down, and names any week or longer period with no
 entries. `/vergil:hoshin end` closes the day (終礼 shūrei), and
 `end <week|month|quarter|year>` closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
-with a kaizen prompt, and leaves one dated entry. The daily review also
+with a kaizen prompt, and leaves one dated entry. The daily review's
+failed and cancelled runs check reads each org's operations queue, the
+ops issues under `Epic (operations): <org>` in `<org>/.github` that the
+reporter (`vrg-ops-report`) files and comments on for each unattended
+job's failures, cancels and recoveries. GitHub Actions run history is a
+backstop, for runs that never reported, shown under a separate
+"Not reported" heading; the security-signal jobs of the `ops.yml` audit
+file no ops issue, so their runs are their only source. An org with no
+operations epic, or with more than one, is flagged rather than shown as
+clean. The daily review also
 shows two trust checks, in the terminal only: the outsider report
 (`vrg-epic-audit --untrusted`), which lists what accounts outside the
 trusted roles did in each Vergil org since the last daily review, by
