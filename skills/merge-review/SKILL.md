@@ -194,7 +194,11 @@ an open PR first takes the start check of
 | Results, no `open-request.json` | [Where the run stands](#where-the-run-stands). |
 
 Anything else in `<dir>`, or a state these rules do not cover, is an
-`error`: show the human the listing and stop.
+`error`: show the human the listing and stop. That includes an
+`approvals.json` or an `open-request.json` whose `"kind"` is
+`protected-change`, left by an earlier release's protected-change
+approval, which this skill no longer asks: never read either as an
+exemption.
 
 ### Where the run stands
 
@@ -735,9 +739,12 @@ vrg-ruling read --issue '<ref>' --request <id> --json
 ```
 
 - **Exit 0:** stdout is one JSON object, `{"request", "reply", "body"}`.
-  Add `"reply": <reply>` to `open-request.json`. For a typed request
-  (`open-request.json` has `"kind"`), go to
-  [A typed reply](#a-typed-reply). Otherwise read `body`, and do the
+  Add `"reply": <reply>` to `open-request.json`. For an exemption
+  request (`open-request.json` has `"kind": "merge-review-exemption"`),
+  go to [A typed reply](#a-typed-reply). Any other `"kind"` (a
+  `protected-change` request left open by an earlier release) is an
+  `error`: show the human `open-request.json` and stop, recording
+  nothing. Otherwise read `body`, and do the
   work it calls for, posting nothing on the issue:
   - carry out every clear ruling: [Filing](#filing), then
     [Fix and check](#fix-and-check) if any ruling or remaining defect
