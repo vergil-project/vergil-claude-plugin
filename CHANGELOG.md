@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.88] - 2026-11-24
+
+### Bug fixes
+
+- point agents at vrg-submit-pr (#1298)
+
+### CI
+
+- pass the App secrets to the shared docs workflows (#1294)
+- read the automation App secrets from the automation environment (#1311)
+
+### Chores
+
+- sync the managed files with the released templates (#1310)
+
+### Documentation
+
+- point the doctrine and docs to vrg-issue-read (#1300)
+- fix the markdownlint errors in the scorecard snapshots (#1301)
+- file human-identity steps as human-run in operational tasks (#1288)
+
+### Features
+
+- read the agent audit as a security signal (#1299)
+- records, protected-change approvals and exemptions (#1306)
+- docs and logbook PRs run merge review (#1312)
+
 ## [2.1.87] - 2026-11-23
 
 ### Bug fixes
