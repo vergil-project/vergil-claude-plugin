@@ -735,9 +735,12 @@ checkpoint leaves (what a later stage or a resume reads back), and what
   worktree) and the `Planned as` comment. Re-entry: if the docs PR has
   merged (the documentation task is closed as completed), finish as step 0
   says for a closed planning issue; if report-ready has recorded the
-  handoff, re-run it, which only rewrites the prose, and go on at step 10;
-  otherwise go on with step 9 where it stands (its merge review picks up from
-  its directory).
+  handoff, re-run it, which only rewrites the prose, then finish the rest of
+  step 9 after it (deleting the merge-review directory if it is still there,
+  `vrg-epic-docs set --spec … --plan …`, which makes no edit when the links
+  are already set, and deleting the planning issue's state directory if it
+  is still there), and go on at step 10; otherwise go on with step 9 where
+  it stands (its merge review picks up from its directory).
 
 The epic body sync, the Documents section, the security-run retargets and the
 planning-issue close keep their rules; each runs in the stage whose work
