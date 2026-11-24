@@ -971,9 +971,12 @@ Plan task: <id>
 
 `<id>` is the task's plan task ID as the plan's delivery table gives it
 (`2a`, `13b`), or one of the closing bookends' fixed IDs, `doc-review` and
-`retrospective`. Every task of a fixture run carries the ID of the plan
-entry that seeds it. The documentation task, filed at `bootstrap`, has no
-key.
+`retrospective`. A fixture run is one trio (change, release, validation)
+on one fixture, and one plan entry can seed runs on several fixtures, so
+each task of a run carries the entry's ID and the run's fixture,
+`Plan task: <id> <fixture>` (for example `Plan task: 7 python-lib`): the
+three tasks of one run share a key, and each fixture's run has its own. The
+documentation task, filed at `bootstrap`, has no key.
 
 **Writing the key.** A plain task's body file carries the line. An
 operational task (`--kind validation` or `deployment`) carries it in the
@@ -986,8 +989,8 @@ vrg-issue-create --epic <home>#<N> --repo <org>/.github --kind retrospective \
 ```
 
 A fixture run is filed by the `fixture-run` skill, which takes no key: once
-it prints the trio's refs, add the line to each, as the key pass below
-does.
+it prints each trio's refs, add that run's key line to each of its three
+tasks, as the key pass below does.
 
 **On every entry to `file-tasks`**, first entry or re-entry, before filing
 anything:
@@ -1015,21 +1018,27 @@ anything:
    An exit of 3 (an untrusted body) or 1 from either command stops the
    stage for the human, filing nothing. An empty key means the task has no
    key. Every state counts: a closed task is filed. Two tasks with the same
-   key, other than the tasks of one fixture run, stop for the human.
+   key stop for the human, except a fixture run's key, which exactly three
+   tasks share; a fixture run's key on fewer or more than three tasks (a
+   trio filed only in part) stops for the human too.
 2. **Match and key the unkeyed tasks.** If any task other than the
    documentation task has an empty key (the bookends and operational tasks
    an earlier skill filed when it created the epic, or tasks filed before
    an interruption), match each to a plan task ID, `doc-review` or
    `retrospective`, from its title (read its body with `vrg-issue-read`
    only when the title does not settle it), and show the human the
-   matches. For each match the human confirms, add the key: write the body
+   matches (a fixture run's task to its entry's ID and its fixture). For
+   each match the human confirms, add the key: write the body
    from `vrg-issue-read <ref> --json` (its `issue.body`; exit 3 or 1 stops)
    to a temp file, append a blank line and the key line, and write it back
    with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. A task the
    human matches to no ID is left as it is, and is shown again on the next
    entry.
 3. **File only what is missing**: the plan's task IDs, `doc-review` and
-   `retrospective` that no task carries, in the plan's order. A
+   `retrospective` that no task carries, in the plan's order. A plan entry
+   that seeds fixture runs is filed only when every fixture it names has
+   its run's key: run `fixture-run` for the fixtures that have none, and
+   only those. A
    `Blocked-by:` ref to a task filed earlier comes from this listing's
    key-to-ref map, never from memory. If every ID is filed, and a trusted
    `Tasks filed: yes` is already posted, go straight to the stage's tick.
