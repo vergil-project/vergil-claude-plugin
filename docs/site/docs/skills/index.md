@@ -384,7 +384,9 @@ and the deployment tooling refuses one. A step the task lists under
 **Human-run steps** (one that needs a human identity, such as
 `vrg-github-repo-config update`) is never run under the agent identity: the
 skill checks its preconditions, hands the human the paste-ready command,
-waits, then verifies the human's run and records it with the rest. With no
+waits, then verifies the human's run and records it with the rest: from the
+run's pasted output, or from the human's report when the agent's own checks
+confirm the step's result independently. With no
 human present, the run ends `waiting: human-run steps` rather than
 `blocked`.
 
