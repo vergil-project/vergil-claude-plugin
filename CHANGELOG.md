@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.89] - 2026-11-24
+
+### Documentation
+
+- require an ops run after the release when the change touches ops workflows (#1302)
+- name the release runs to check instead of the runs the tag started (#1303)
+- say when a human-run step may be recorded without pasted output (#1304)
+
+### Features
+
+- restructure epic-create into checkpointed stages (#1319)
+- key filed tasks, reconcile skew and adopt in-flight runs (#1320)
+- abandon a bootstrapped skeleton before deferring or dropping a planning item (#1321)
+
 ## [2.1.88] - 2026-11-24
 
 ### Bug fixes
