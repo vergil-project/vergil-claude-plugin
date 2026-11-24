@@ -1462,8 +1462,9 @@ details, step 0's public-wording rule) goes into it.
      retrospective`. The **documentation-review** task usually lands its PR
      in the **member repo** holding the site docs (e.g.
      `vergil-tooling/docs/site`), which the design decides, so file it there
-     (`--repo <owner>/<repo>`), never blanket `.github`, and key it `Plan
-     task: doc-review`. It is a **multi-repo sweep**: at review time it may
+     (`--repo <owner>/<repo>`), never blanket `.github`, with the title
+     `Documentation review: <epic-slug>`, and key it `Plan task:
+     doc-review`. It is a **multi-repo sweep**: at review time it may
      **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
      linked under N, or under that org's proxy for a repo in another org,
      closed by a same-repo PR) for documentation that lives in other repos.
