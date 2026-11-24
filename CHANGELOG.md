@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.90] - 2026-11-24
+
+### Documentation
+
+- describe the checkpointed, restartable epic-create in the skill and site docs (#1325)
+
+### Features
+
+- remove the protected-change approval (#1327)
+
 ## [2.1.89] - 2026-11-24
 
 ### Documentation
