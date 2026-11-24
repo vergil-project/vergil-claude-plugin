@@ -9,9 +9,10 @@ description: Use as the DEFAULT entry point for non-trivial work — a feature, 
 
 `epic-create` is the **outer, orchestrating workflow** for non-trivial work. It
 runs the brainstorm → design → plan pipeline, creates the **finite epic** in its
-home, the org `.github` (see Preflight), seeds the epic's **bookend tasks**,
+home, the org `.github` (see Preflight), files the epic's **bookend tasks**,
 and publishes the spec and plan as the epic's docs. This is where significant work *starts* — not a
-step reached at the end.
+step reached at the end. It runs in nine checkpointed [stages](#stages), so a
+fresh session, after `/clear`, resumes a run at the stage it stopped.
 
 Canonical convention: `vergil-project/.github#40`; worked example (this skill's
 own redesign): `vergil-project/.github#85`.
@@ -65,16 +66,18 @@ carries these bookend tasks:
      tier; a later reader follows **spec → plan → retrospective**. Authored with
      **`epic-retrospective`**, the run-once finishing skill whose preflight gate
      refuses to run until every other child of the epic is closed. Its docs PR is
-     the epic's closing bookend, and its merge closes the epic. Seed it at
-     creation with `vrg-issue-create --kind retrospective` (title
-     `Retrospective: <epic-slug>`), homed in the epic's home repo.
+     the epic's closing bookend, and its merge closes the epic. File it in
+     the `file-tasks` stage (step 8) with `vrg-issue-create --kind
+     retrospective` (title `Retrospective: <epic-slug>`), homed in the epic's
+     home repo.
 - **Follow-on brainstorm — semi-optional (forward axis).** Reviewing what shipped
   and brainstorming the follow-on epic(s) is a **forward-looking** concern that
-  **no longer defines the end of an epic**. Seed it as a bookend **only when a
-  known enabling chain exists at creation** ("we're building this specifically to
-  unlock X/Y/Z"); otherwise accrue it as specific follow-on tasks *during*
-  implementation, or skip it when there is nothing to chain. Its outcomes are
-  *recorded* in the retrospective's §5.
+  **no longer defines the end of an epic**. Plan it as a task **only when a
+  known enabling chain exists when the epic is planned** ("we're building this
+  specifically to unlock X/Y/Z"): it is then a plan task, with its plan task
+  ID, filed in `file-tasks`. Otherwise accrue it as specific follow-on tasks
+  *during* implementation, or skip it when there is nothing to chain. Its
+  outcomes are *recorded* in the retrospective's §5.
 
 This rides the **existing auto-close rollup**: an epic rolls up only when all its
 tasks close, so the closing bookends *gate* closure. The **retrospective is the
@@ -82,8 +85,12 @@ final gate** — its terminality is enforced by the `epic-retrospective` skill's
 preflight (which aborts unless the retrospective task is the only open child), so
 an epic is not done until its retrospective lands. This is the closing half of
 the **three-skill lifecycle** (`epic-create` → `epic-implement` →
-`epic-retrospective`). Seed these bookend tasks at epic-creation time (step 2
-below) and fill in the specifics per epic.
+`epic-retrospective`). The documentation task is created at `bootstrap`
+(step 1 below). The closing bookends are filed in `file-tasks` (step 8),
+since the design decides where the documentation review's sweep lands. Each
+carries a fixed key in place of a plan task ID, `Plan task: doc-review` and
+`Plan task: retrospective`, so a re-entry finds them like any other task.
+Fill in the specifics per epic.
 
 ## Task sizing — split a task too big for one PR
 
@@ -158,8 +165,11 @@ precondition mechanism.
 
 **Granularity is your call:** 1:1, N:1 (one operational task over a group/epoch,
 blocked-by all of them), or an epic-level closing bookend. At planning time you
-can often *see* where a deploy or a batch validation belongs and seed it up
-front — the common shape is **impl → deploy → validate**.
+can often *see* where a deploy or a batch validation belongs. **The plan lists
+every operational task** as a plan task, with its plan task ID and its
+`Blocked-by:` refs, and the `file-tasks` stage (step 8) files it; nothing is
+seeded when the epic is created. The common shape is **impl → deploy →
+validate**.
 
 **Create it** with the sanctioned path (never hand-roll the body):
 
@@ -238,7 +248,7 @@ fixture-run <epic-ref> <fixture>[,<fixture>…] --validates "<what ships it and 
   that affects every language seeds all four.
 - **Approval.** The plan's seeding is the approval `fixture-run` files under.
   Name each run in the plan, with its fixtures, `--validates` and `--after`, and
-  file it once its `--after` tasks exist.
+  file it in `file-tasks` (step 8) once its `--after` tasks exist.
 
 The rule says *which fixtures* and *when*. It does not replace the epic's other
 validation. Design: epic
@@ -248,8 +258,8 @@ spec §6.5.
 **Fresh `dev-` images — seed a validation of the CD build.** When a later step
 of an epic depends on freshly published `dev-` images (it runs against the
 images the develop CD build publishes from a merged change), the plan says so,
-naming the step and the change it needs published, and seeds a **validation**
-task for that CD build:
+naming the step and the change it needs published, and lists a **validation**
+task for that CD build, which `file-tasks` (step 8) files:
 
 ```bash
 vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
@@ -409,10 +419,38 @@ round. The human decides every round. Each round has seven steps:
    ([§2.7](../../docs/paad-review-doctrine.md#27-security-findings)). Then,
    once the scratch copy is deleted or kept, take the end-of-round hash that
    seals the state directory until the next round
-   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
+   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). The
+   round comment is the round's checkpoint: take
+   [the checkpoint pause](#the-checkpoint-pause) now.
 7. **Ask the human:** another round of this stage, or stop it
    ([§2.2](../../docs/paad-review-doctrine.md#22-one-round), step 7). The
-   human's answer is final; the recommendation is advice.
+   human's answer is final; the recommendation is advice. The question comes
+   after the pause, whether the human continues in the same session or
+   resumes after a clear; either way the run re-enters through `vrg-checkpoint
+   status` and reaches this step by the review-stage re-entry below. On
+   another round, go to step 1. On a stop, post the progress comment naming
+   the next stage (see "Progress comments and markers"), then tick the stage
+   and take the checkpoint pause, as [the order at a
+   checkpoint](#the-order-at-a-checkpoint) says.
+
+**Re-entry into a review stage** (`spec-pushback`, `plan-pushback` or
+`alignment`, as `status` names it) rebuilds the round count from the latest
+trusted comment whose first line starts `Design review: <stage> round <n>`
+for this stage (`spec pushback`, `plan pushback` or `alignment`)
+([§2.6](../../docs/paad-review-doctrine.md#26-the-round-comment)):
+
+- **A dirty docs worktree** is a round interrupted before its comment. It
+  is handled first, as [a dirty worktree on
+  resume](#a-dirty-worktree-on-resume) says
+  ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
+  Committed, it is that round's commit: post its round comment (step 6) and
+  go on as for a round that has one. Discarded, the round is re-run from
+  step 1.
+- **The latest round has its round comment:** start at that round's step 7.
+  Dispatch nothing until the human answers: another round is dispatched, and
+  the stage ticked, only on the human's word.
+- **The stage has no round comment yet:** it has just been entered; start
+  round 1.
 
 Repeated broken rounds are recorded in the round comments; changing the
 prompts or the checks to prevent them is a doctrine change, not a session
@@ -492,7 +530,7 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 
 | Invocation | What to do |
 | --- | --- |
-| `epic-create <issue>`, issue is in **planning** | Start it, or **resume** it: read it with `vrg-issue-read <owner>/<repo>#<M>`, which prints only its trusted content (see "Resuming" below), and pick up at the recorded resume point (see "Resuming" below). |
+| `epic-create <issue>`, issue is in **planning** | Start it, or **resume** it: read it with `vrg-issue-read <owner>/<repo>#<M>`, which prints only its trusted content (see "Resuming" below), and enter the stage `vrg-checkpoint status` names (step 0). |
 | `epic-create <issue>`, issue is in **intake** | Pull it into planning first — a one-item intake review: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. |
 | `epic-create <issue>`, issue is under an **ad-hoc** epic | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. The item needs an epic, so it leaves the ad-hoc epic, which takes only single-issue work. |
 | `epic-create <issue>`, issue is in **deferred** | Pull it into planning first: `vrg-intake-route <owner>/<repo>#<M> planning` — then start. Read its latest trusted `Deferred <date>:` / `Revisit when:` comment first, with `vrg-issue-read <owner>/<repo>#<M>` (exit 3 or 1 is a stop for the human, as "Resuming" below says); if the conditions are plainly unmet, say so and confirm with the human before reviving it. |
@@ -559,9 +597,11 @@ A planning issue is public, so anyone can comment on it. When resuming:
   either way stop and tell the human, and never work around it.
 - **Check for a security run before posting anything:** a trusted
   `Security run: yes` line makes it one (step 0's security check).
-- **Rebuild the stage and round count** from the latest trusted comment whose
-  first line starts `Design review: <stage> round <n>`
-  ([§2.6](../../docs/paad-review-doctrine.md#26-the-round-comment)).
+- **The stage comes from `vrg-checkpoint status`** (step 0) and the stage
+  list in [Stages](#stages), never from the latest round or progress
+  comment. Inside a review stage, the round count comes from that stage's
+  latest trusted `Design review: <stage> round <n>` comment, as the
+  review-stage re-entry in "Design review rounds" says.
 - **Find any kept scratch copy** (a round comment saying `scratch copy kept`)
   at the [§2.7](../../docs/paad-review-doctrine.md#27-security-findings) path,
   derived from the planning issue and the round ID. Use a round ID in that
@@ -570,19 +610,23 @@ A planning issue is public, so anyone can comment on it. When resuming:
   confirm, and check each kept file against the hash its round comment
   records before you read it or pass it on
   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
-- **If the docs worktree is dirty,** show the human the diff before any
-  reviewer is dispatched. The human either commits it as the interrupted
-  round's commit, with its round comment, or discards it
-  ([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)).
+- **If the docs worktree is dirty,** it belongs to the stage `status` names:
+  handle it as [a dirty worktree on resume](#a-dirty-worktree-on-resume)
+  says, before the stage continues and before any reviewer is dispatched.
 
 ### Progress comments and markers
 
-Comment on the planning issue at **every stage boundary** of the workflow below
-— brainstorm approved, epic created, spec committed, spec pushback done, plan
-written, plan pushback done, alignment done, tasks filed, docs PR handed off —
-and **whenever the session pauses** ("blocked on …" / "resume at …"). Write
-each comment to a temp file and post it with
-`vrg-gh issue comment <M> --repo <owner>/<repo> --body-file <tmp>`.
+Comment on the planning issue at **every stage boundary** of the workflow
+below, in the order of the [stages](#stages): skeleton created (`bootstrap`:
+the epic and the documentation task, before any design work), spec committed
+(`brainstorm`: the design approved, the spec committed and the epic body
+written), spec pushback done, spec review done, plan written, plan pushback
+done, alignment done, tasks filed, docs PR handed off. Each is its stage's
+progress comment, posted before the stage's tick ([the order at a
+checkpoint](#the-order-at-a-checkpoint)). Comment also **whenever the session
+pauses** ("blocked on …" / "resume at …"), and when a run resumes (the
+`Resuming at` line, step 0). Write each comment to a temp file and post it
+with `vrg-gh issue comment <M> --repo <owner>/<repo> --body-file <tmp>`.
 
 Round comments
 ([doctrine §2.6](../../docs/paad-review-doctrine.md#26-the-round-comment)) are
@@ -613,13 +657,201 @@ last round comment.
   in its step 0 progress comment (step 0 says when). It is never cleared: no
   later comment removes or overrides it, and a resumed run reads it as step
   0 says.
-- When you create the epic, put a `Planning: <owner>/<repo>#<M>` line (the
-  planning issue's ref) in the **epic's body**.
+- When you create the epic (`bootstrap`), put a `Planning: <owner>/<repo>#<M>`
+  line (the planning issue's ref) in the **epic's body**.
+
+## Stages
+
+`epic-create` runs as nine **stages**, in this order: `bootstrap`,
+`brainstorm`, `spec-pushback`, `spec-review`, `plan`, `plan-pushback`,
+`alignment`, `file-tasks` and `docs-pr`. Each ends at a **checkpoint**, from
+which a fresh session, after `/clear`, resumes with no decision or work lost
+and nothing redone that created something (epic
+[vergil-project/.github#1546](https://github.com/vergil-project/.github/issues/1546),
+spec §4.3). Step 0 is not a stage: it runs on every invocation and always
+ends by asking `vrg-checkpoint` which stage to enter.
+
+**The stage checklist** is a block in the planning issue's body, owned by
+`vrg-checkpoint`:
+
+```markdown
+<!-- vrg-checkpoint:epic-create -->
+- [x] bootstrap
+- [ ] brainstorm
+- [ ] spec-pushback
+- [ ] spec-review
+- [ ] plan
+- [ ] plan-pushback
+- [ ] alignment
+- [ ] file-tasks
+- [ ] docs-pr
+<!-- /vrg-checkpoint:epic-create -->
+```
+
+Only `vrg-checkpoint` writes it, and every call names `--workflow
+epic-create`; never edit the block with `vrg-gh issue edit`. Each call reads
+the body through the trust layer and rewrites only the block. A trusted human
+may tick a box in the web UI to record a stage done by hand; the next
+`status` counts it. The stage names are neutral, so a security run carries
+the block as it is.
+
+Each stage lists the step that runs it, when it ends, the **evidence** its
+checkpoint leaves (what a later stage or a resume reads back), and what
+**re-entry** does when the stage was interrupted before its tick:
+
+- **`bootstrap`** (step 1). Ends when the epic (its placeholder body and
+  `Planning:` line), the documentation task under it, the epic's Documents
+  section and the docs worktree all exist, and the progress comment carrying
+  the `Epic:` and `Docs task:` markers is posted. Evidence: those markers, the
+  documentation task under the epic, the Documents section in the epic body,
+  and the docs branch. A marker naming an issue closed as not planned is an
+  abandoned skeleton's, and is not evidence. Re-entry: each creation checks
+  its evidence first and creates only what is missing.
+- **`brainstorm`** (steps 2 and 3). Ends when the design is approved, the
+  spec is committed at `epics/<N>-<slug>/spec.md` on the documentation task's
+  branch, and the epic body is written from it. Evidence: the spec commit and
+  the written body. Re-entry: if the spec is already committed, only the
+  epic body is written; otherwise the brainstorm restarts. It creates no
+  issue, so a restart is safe. Its early exits (step 2) run [abandon the
+  skeleton](#abandon-the-skeleton).
+- **`spec-pushback`** (step 4). Ends when the human stops the stage.
+  Evidence: the round comments and the round commits. Re-entry: the
+  review-stage re-entry in "Design review rounds", which dispatches no round
+  the human has not asked for.
+- **`spec-review`** (step 5). Ends when the human's spec edits are committed
+  and the human says the review is done. Evidence: the commit, or the stage's
+  progress comment recording that there were no edits. Re-entry: show the
+  spec and continue the review.
+- **`plan`** (step 6). Ends when `plan.md` is committed. Evidence: the plan
+  commit. Re-entry: rerun `superpowers:writing-plans`, which is automated.
+- **`plan-pushback`** and **`alignment`** (step 7). As `spec-pushback`.
+- **`file-tasks`** (step 8). Ends when every task in the plan is filed, the
+  documentation-review and retrospective tasks exist, every advisory is
+  retargeted, and `Tasks filed: yes` is posted. Evidence: the filed tasks.
+  Re-entry: file only the tasks that are missing.
+- **`docs-pr`** (steps 9 and 10). Ends when report-ready has recorded the
+  handoff and the handoff comment, with its `Planned as` line, is posted.
+  Evidence: the report-ready record (`vrg-pr-workflow status` in the docs
+  worktree) and the `Planned as` comment. Re-entry: if the docs PR has
+  merged (the documentation task is closed as completed), finish as step 0
+  says for a closed planning issue; if report-ready has recorded the
+  handoff, re-run it, which only rewrites the prose, and go on at step 10;
+  otherwise go on with step 9 where it stands (its merge review picks up from
+  its directory).
+
+The epic body sync, the Documents section, the security-run retargets and the
+planning-issue close keep their rules; each runs in the stage whose work
+triggers it.
+
+### The order at a checkpoint
+
+1. Make the stage's work durable: commit, file, comment.
+2. Post the stage's progress comment (see "Progress comments and markers").
+3. Tick the stage, as the last write:
+   `vrg-checkpoint tick <owner>/<repo>#<M> --workflow epic-create <stage>`.
+4. Take [the checkpoint pause](#the-checkpoint-pause).
+
+A session lost between the work and the tick leaves the stage unticked, and
+re-entry redoes or completes it: redoing beats skipping, and every re-entry
+above is safe to repeat. A tick already made succeeds and writes nothing. Any
+other non-zero exit from `tick` (3 untrusted, 5 skew, 6 malformed, 1 a
+refusal or failure) stops the run for the human: show its output and write
+nothing more.
+
+### The checkpoint pause
+
+At every checkpoint (each stage's end, and each review round's comment) stop
+and give the human:
+
+- a short summary of what the stage or round did, and the decisions made in
+  it;
+- the next stage, or the next round;
+- a recommendation to reset, with the two commands ready to paste:
+
+  ```text
+  /clear
+  /vergil:epic-create <owner>/<repo>#<M>
+  ```
+
+The human either runs them or tells you to continue in this session.
+Continuing re-enters as a resume would: run `vrg-checkpoint status` again
+and enter the stage it names (step 0's last steps, with the label already
+on), so both paths run the same code. The `Resuming at` line is posted only
+when a new invocation of the skill resumes, not on continuing in the same
+session. After `docs-pr`, the last stage, there is no next stage: give the
+summary and the handoff (step 9), with no reset recommendation.
+
+### A dirty worktree on resume
+
+A dirty docs worktree on resume belongs to the stage `status` names. Before
+the stage continues, show the human the diff; the human either commits it as
+that stage's commit or discards it. In a review stage this is the doctrine's
+rule for an interrupted round
+([§2.4](../../docs/paad-review-doctrine.md#24-output-checks-and-broken-rounds)):
+the diff is that round's commit, with its round comment. In `spec-review` it
+is the human's spec edits; in `plan`, a partial `plan.md`. Never commit or
+discard it without the human's word.
+
+### Abandon the skeleton
+
+The early exits of `brainstorm` (step 2) and `epic-review planning`'s defer
+and drop of a planning item with a skeleton end a run that `bootstrap` has
+already published. Each first abandons the skeleton with this shared step.
+Every part skips what is already done, so the step is safe to re-enter. The
+epic `<N>` and documentation task `<D>` are the ones the latest trusted
+`Epic:` and `Docs task:` markers name, and the branch is
+`feature/<D>-<slug>`, `<slug>` the one `bootstrap` recorded (step 1). A
+`bootstrap` interrupted early may have left fewer
+parts: with no `Epic:` marker, only step 5 applies; with an `Epic:` marker
+and no `Docs task:` marker, list the epic's children with `vrg-epic-audit
+--epic <home>#<N>`. With none, skip steps 1, 3 and 4. With any, stop for
+the human, closing nothing.
+
+1. **Check the branch before closing anything.** In the `.github` main clone
+   (`dirname "$(vrg-git rev-parse --path-format=absolute
+   --git-common-dir)"`, run from the docs worktree or any clone of the
+   home), run `vrg-git fetch origin`, then find where the branch is:
+   - **It exists locally** (`vrg-git rev-parse --verify --quiet
+     refs/heads/feature/<D>-<slug>` exits 0): count its commits beyond its
+     base with `vrg-git rev-list --count origin/develop..feature/<D>-<slug>`.
+     A count of 0 goes on. Any other count, or a failed count, closes
+     nothing: stop for the human.
+   - **It is absent locally and on `origin`** (`vrg-git ls-remote
+     --exit-code --heads origin feature/<D>-<slug>` exits 2): nothing can be
+     lost; go on, and skip removing the worktree and branch below.
+   - **Anything else** (the branch only on `origin`, or any other failure):
+     stop for the human, closing nothing.
+2. **Close the epic as not planned**, unless it already is:
+   `vrg-gh issue close <N> --repo <home> --reason "not planned" --comment
+   "<pointer to the outcome>"`. The epic goes first because the epic rollup
+   closes an epic as completed once all its children are closed.
+3. **Close the documentation task as not planned**, unless it already is,
+   with a comment pointing to the same outcome.
+4. **Remove the docs worktree and its branch**, from the `.github` main
+   clone, unless its step 1 found the branch absent or they are already gone:
+   `vrg-git worktree remove .worktrees/issue-<D>-<slug>`, then `vrg-git
+   branch -D feature/<D>-<slug>`. Never pass `--force`; a refusal stops for
+   the human.
+5. **Last, remove the stage checklist**, so a revived item starts afresh:
+   `vrg-checkpoint reset <owner>/<repo>#<M> --workflow epic-create`. A
+   non-zero exit stops for the human.
+
+A run that stops partway leaves the rest for a re-entry, which skips what is
+done. Only once the step has finished does the exit go on.
+
+**A revived item starts afresh.** A planning item revived after its skeleton
+was abandoned has no block, so step 0 runs `init` and the run starts at
+`bootstrap`, creating a new epic and a new documentation task and posting
+both markers, which are then the latest. The old markers name issues closed
+as not planned, so they are not evidence.
 
 ## Epic body sync
 
-The epic body is written in step 2, before the spec exists, and a later spec
-or plan change can leave it stale. Task briefs are drawn from the body, so a
+The epic body is written twice before this rule applies: a placeholder at
+`bootstrap` (step 1), before any design exists, and the one-time **write of
+the epic body** at the end of `brainstorm` (step 3), which replaces it with
+one drawn from the spec. A later spec or plan change can leave it stale. Task
+briefs are drawn from the body, so a
 stale clause there reaches the implementation. Whenever the spec or plan is
 written or changed (each step that names this rule), check the epic body
 against the current spec and plan, and correct it in the same step:
@@ -641,10 +873,68 @@ details, step 0's public-wording rule) goes into it.
 
 ## Workflow
 
-0. **Start the planning issue.** Resolve it through the entry points above,
-   run the security check below, then mark it in progress:
-   `vrg-gh issue edit <M> --repo <owner>/<repo> --add-label in-progress`.
-   Post the progress comments (above) at each step boundary that follows.
+0. **Start the planning issue.** This step runs on every invocation and is
+   not a stage. Resolve the planning issue through the entry points above
+   and run the security check below. Then find the stage, in this order,
+   before anything else is written:
+   1. **Read the stage checklist:** `vrg-checkpoint status
+      <owner>/<repo>#<M> --workflow epic-create --json`. Its exit code:
+      - **0:** the block is there; its `next` is the stage to enter, or
+        `null` when every stage is ticked.
+      - **4:** the block is missing (handled at 3 below).
+      - **3:** the body is untrusted. Stop and tell the human, as
+        "Resuming" says for an untrusted body, and never work around it.
+      - **5 (skew) or 6 (malformed):** stop and ask the human, showing the
+        JSON's `skew` object or the command's stderr. Write nothing.
+      - **1 or 2:** the read failed, or its arguments were wrong: show its
+        stderr and stop.
+   2. **A closed planning issue** gets no label. Read its state with
+      `vrg-gh issue view <M> --repo <owner>/<repo> --json state,stateReason`.
+      If it is closed, `status` exited 0 naming `docs-pr`, and the
+      documentation task the latest trusted `Docs task:` marker names is
+      closed as completed (`vrg-gh issue view <D> --repo <home> --json
+      state,stateReason`), the docs PR's merge closed both: post the
+      step 10 handoff comment, with its `Planned as <owner>/<repo>#<N>`
+      line, if no trusted comment carries one, then tick `docs-pr` and end
+      the run. Any other closed planning issue (one with every stage
+      ticked included) stops the run: tell the human its state and change
+      nothing.
+   3. **A missing block** (exit 4). If the planning issue shows no evidence
+      of any stage (the evidence each stage lists in [Stages](#stages),
+      read from its trusted comments and the docs branch; a marker naming
+      an issue closed as not planned is not evidence), this is a first run:
+      run `vrg-checkpoint init <owner>/<repo>#<M> --workflow epic-create`
+      without asking the human (a non-zero exit stops for the human), and
+      go on at 6 below, with `bootstrap` the stage to enter. With evidence
+      of any
+      stage, a run that started before the checklist existed, stop and ask
+      the human, showing the evidence found and writing nothing.
+   4. **Every stage ticked** (`next` is `null`): the run has been handed
+      off. Run `vrg-queue planning` (exit 2 is a complete listing, not a
+      failure). If it shows the item `ready-to-close`, close it as step 10
+      says. Otherwise report the item's note ("handed off, awaiting merge",
+      or the `held:` note) and exit, changing nothing.
+   5. **An abandoned epic.** After a `status` of 0, if a trusted `Epic:`
+      marker exists, read the state of the epic the latest one names:
+      `vrg-gh issue view <N> --repo <home> --json state,stateReason`. If it
+      is closed as not planned while the block still exists (an abandon
+      interrupted before its `reset`, or an item deferred by another
+      route), show the human the epic and the stage the block names. Once
+      the human confirms, finish [abandon the skeleton](#abandon-the-skeleton),
+      which ends with `reset`; then run `init` and go on at 6 below, with
+      `bootstrap` the stage to enter. Without that confirmation, stop. An epic closed in any other way while
+      a stage is still unticked also stops for the human.
+   6. **Mark it in progress:**
+      `vrg-gh issue edit <M> --repo <owner>/<repo> --add-label in-progress`.
+   7. **On a resume** (`status` exited 0 at 1 above, so the block existed
+      before this invocation), post a progress comment whose first line is
+      ``Resuming at `<stage>`.``, naming the stage `next` gives. A first run,
+      and a restart at `bootstrap` after 5 above, posts no such line.
+   8. **Enter the stage** at its step, after handling any dirty docs
+      worktree as [a dirty worktree on resume](#a-dirty-worktree-on-resume)
+      says.
+
+   Post the progress comments (above) at each stage boundary that follows.
    - **Security check: is this a security run?** Before posting anything,
      read the planning issue's trusted comments (see "Resuming" above) for
      a `Security run: yes` line.
@@ -652,8 +942,8 @@ details, step 0's public-wording rule) goes into it.
        the rest of its life. Skip the detection below and its broken-pair
        stop: step 8's retargets remove the label, the body line and the
        tracking, so a resumed run cannot detect it again. Resume at the
-       recorded stage; an interrupted step 8 re-runs its identical
-       retargets.
+       stage `vrg-checkpoint status` names; an interrupted step 8 re-runs
+       its identical retargets.
      - **No marker:** detect it. The run is a security run if the planning
        issue carries the `security` label, has a `Security advisory:` line
        in its body, or is tracked by an advisory (`vrg-security-record list`
@@ -664,9 +954,9 @@ details, step 0's public-wording rule) goes into it.
        human, posting nothing. If any of the three reads fails, stop and
        report it; a failed read never means "not a security run".
      - **A security run** posts its step 0 progress comment now, before
-       anything else is published, with a neutral first line (for example,
-       `Planning started; brainstorm next.`) and a `Security run: yes`
-       line, alone on its line. Never clear it.
+       anything else is published (the stage checklist's `init` included),
+       with a neutral first line (for example, `Planning started.`) and a
+       `Security run: yes` line, alone on its line. Never clear it.
    - **The public-wording rule (security run).** Every public artifact the
      run produces stays in general terms: progress and round comments, the
      epic title and body, task titles and bodies, the slug and branch
@@ -679,8 +969,71 @@ details, step 0's public-wording rule) goes into it.
      the file once the note is in. The round reviewers already keep
      security findings out of public text
      ([doctrine §2.7](../../docs/paad-review-doctrine.md#27-security-findings)).
-1. **Brainstorm.** Run `superpowers:brainstorming` to converge on an approved
-   design.
+1. **`bootstrap`: create the epic's skeleton** from the planning issue
+   alone, before any design work. Create nothing else here: every other
+   task, the closing bookends and the operational tasks included, is filed
+   in `file-tasks` (step 8). On re-entry each creation below checks its
+   evidence first and creates only what is missing; a marker naming an
+   issue closed as not planned (`vrg-gh issue view <ref> --json
+   state,stateReason`) is an abandoned skeleton's, and is ignored.
+   - **Choose the name and the slug** from the planning issue's title: the
+     epic's title `Epic: <name>`, and `<slug>`, 2–4 kebab tokens. The slug
+     is chosen once, here, and not changed later; it names the docs branch
+     and the epic's directory. Record it in the first line of the
+     epic-created progress comment below, which a re-entry reads it from.
+   - **Create the epic.** Write a placeholder body to a temp file: a short
+     statement of the problem drawn from the planning issue, a line saying
+     the design is in progress and this body is replaced once the spec is
+     committed, and the `Planning: <owner>/<repo>#<M>` line. Then
+     `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>"
+     --body-file <tmp>` creates the issue in the target's **home**,
+     `<org>/.github`, with the `epic` label and the `epic-development`
+     category label (`--repo` defaults to the current repo; the command
+     echoes the home); note the number **N**. The tool derives the category
+     label itself, so never pass it with `--label`: it refuses `--label
+     epic-development` and `--label epic-management`. The category labels
+     (`epic-development`, `epic-management`, `ad-hoc`, `proxy`) are for
+     display only: no skill or tool reads `epic-development` or
+     `epic-management` to decide behaviour or to find an epic, so the label
+     tests the skills make (`epic` + `intake`, `epic` + `proxy` and the
+     rest) are unchanged. At once post a progress comment whose first line
+     records the epic and the slug (for example ``Epic created (slug
+     `<slug>`); documentation task next.``) and which carries
+     `Epic: <home>#<N>`.
+   - **Seed the epic's Documents section:**
+     `vrg-epic-docs set --epic <home>#<N>`, with `<home>` the home
+     `vrg-epic-create` echoed, adds it to the top of the body with all three
+     entries `pending`; it makes no edit when the section is already there.
+     The body you write carries no document lines; the tool owns that
+     section. If it fails, stop and report its error.
+   - **Create the documentation task** in `<org>/.github`, where its PR
+     publishes `spec.md` and `plan.md`, linked under N: `vrg-issue-create
+     --epic <home>#<N> --repo <org>/.github --title …`. At once post a
+     progress comment carrying `Docs task: <home>#<D>`. On re-entry with an
+     `Epic:` marker and no `Docs task:` marker, first list the epic's
+     children with `vrg-epic-audit --epic <home>#<N>`: `bootstrap` files
+     nothing else, so a single child is the documentation task, created
+     before its marker was posted; post its marker instead of creating
+     another. More than one child stops for the human.
+   - **Create the docs worktree** on the documentation task's branch, from
+     the home repo's main clone: `vrg-git fetch origin`, then `vrg-git
+     worktree add -b feature/<D>-<slug> .worktrees/issue-<D>-<slug>
+     origin/develop`. On re-entry, `vrg-git worktree list` showing it there
+     is its evidence.
+   - **End the stage:** post the stage's progress comment (for example
+     `Skeleton created; brainstorm next.`) carrying both the `Epic:` and
+     `Docs task:` markers, tick `bootstrap`, and take the checkpoint pause
+     ([the order at a checkpoint](#the-order-at-a-checkpoint)).
+   - **A security run keeps the skeleton neutral.** `bootstrap` publishes
+     before the human gate of step 2, so the epic's title and placeholder
+     body, the documentation task's title, and the slug and branch name say
+     nothing about the design, under step 0's public-wording rule. Draw the
+     placeholder from nothing beyond the planning issue's neutral title.
+2. **`brainstorm`.** Run `superpowers:brainstorming` to converge on an
+   approved design. The stage ends at step 3. On re-entry, if the spec is
+   already committed on the docs branch, go straight to step 3's write of
+   the epic body; otherwise the brainstorm restarts, which is safe, since it
+   creates no issue.
    - **Brief it from the planning issue.** Read the issue body first, from
      the `vrg-issue-read` read of "Resuming" above, and pass
      in what it settles (problem, need, constraints, out of scope) as given
@@ -696,30 +1049,45 @@ details, step 0's public-wording rule) goes into it.
      from the documents.
    - **Never skip it implicitly.** "Skip the questions", "go fast" or "don't
      ask why" mean fewer questions, answered from the issue where possible —
-     never no brainstorm. A design is still presented and approved, with the
-     brainstorm-approved progress comment, before step 2.
+     never no brainstorm. A design is still presented and approved before
+     the spec is written (step 3).
    - **Skip it only when asked to skip the brainstorm.** Confirm once ("skip
      straight to the spec?"), then record the skip and the human's reason in
-     the progress comment.
+     the stage's progress comment (step 3).
    - **Security run: the human gate.** Once the design is approved (or the
-     brainstorm skipped), and before any step 1 outcome publishes anything
-     about it (the single-task exit, the not-planned exit, the
-     brainstorm-approved comment, and so step 2's epic), ask the human
+     brainstorm skipped), and before any outcome of this stage publishes
+     anything about it (the single-task exit, the not-planned exit, the
+     spec, the epic body and the stage's progress comment), ask the human
      whether the item is safe to describe in general terms in public.
-     - **Yes:** continue. The brainstorm-approved comment says only that the
-       design is approved and the epic is next, with nothing of the design
-       in it.
-     - **No:** post a neutral progress comment saying only that the run is
-       paused for a design-placement decision, and stop. Publish nothing
-       design-shaped: no epic, no task, no spec, no other comment.
-
-   (If it reduces to a single-PR task, stop — file a task, not an epic,
-   and close the planning issue with a pointer to it:
-   `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed --comment
-   "Filed as task <owner>/<repo>#<T>"`.) If brainstorming
-   concludes the idea is **not worth doing**, close the planning issue with the
-   reason: `vrg-gh issue close <M> --repo <owner>/<repo> --reason "not planned"
-   --comment "<reason>"`.
+     - **Yes:** continue. The stage's progress comment says only that the
+       design is approved and spec pushback is next, with nothing of the
+       design in it.
+     - **No:** keep the neutral skeleton `bootstrap` made as it is (the
+       epic, the documentation task and the docs worktree; close nothing),
+       post a neutral progress comment saying only that the run is paused
+       for a design-placement decision, and stop. Publish nothing further:
+       no task, no spec, no epic body write, no other comment, and no tick.
+       A later "Yes" continues the stage: in this session, from the gate;
+       in a resumed one, the brainstorm restarts, as its re-entry above
+       says, and reaches the gate again.
+   - **The early exits.** Three outcomes end a run early: the work reduces
+     to a single-PR task, it is not worth doing, or it must be deferred or
+     dropped. `bootstrap` has already published a skeleton, so each first
+     runs [abandon the skeleton](#abandon-the-skeleton), with a comment on
+     the epic and the documentation task pointing to the outcome. If that
+     step stops, the exit stops too. Only once it has finished:
+     - **A single task:** file the task, not an epic, in the member repo
+       under an existing finite epic or the repo's ad-hoc epic, and close
+       the planning issue with a pointer to it:
+       `vrg-gh issue close <M> --repo <owner>/<repo> --reason completed
+       --comment "Filed as task <owner>/<repo>#<T>"`.
+     - **Not worth doing:** close the planning issue with the reason:
+       `vrg-gh issue close <M> --repo <owner>/<repo> --reason "not planned"
+       --comment "<reason>"`.
+     - **Deferred or dropped:** route it with `vrg-intake-route
+       <owner>/<repo>#<M> defer --reason "<why>" --revisit-when
+       "<conditions>"`, or `… drop`. The tool refuses while the epic is
+       open, which is why the skeleton is abandoned first.
    - **A single task, in a security run: hand each advisory on before the
      close.** After the human gate (above), file the task (its title and
      body under step 0's public-wording rule), then retarget each advisory
@@ -732,62 +1100,17 @@ details, step 0's public-wording rule) goes into it.
      tracking a closed issue with no fix.
    - **Not worth doing, in a security run: do not close.** Closing the
      planning issue would leave its advisories tracking a closed issue with
-     no fix. Stop and hand each advisory to the human, naming the two paths
-     in this order:
+     no fix. Once the skeleton is abandoned, stop and hand each advisory to
+     the human, naming the two paths in this order:
      1. retarget the advisory to a fix task that will fix it; or
      2. close the planning issue as not planned with a neutral comment,
         then close the advisory with
         `vrg-security-record close <GHSA-id> --reason "<neutral reason>"`,
         which refuses while any issue it tracks is open.
-2. **Create the epic and seed its bookend tasks.**
-   - `vrg-epic-create --repo <owner>/<repo> --title "Epic: <name>" --body-file
-     <tmp>` creates the issue in the target's **home**, `<org>/.github`, with
-     the `epic` label and the `epic-development` category label (`--repo`
-     defaults to the current repo; the command echoes the home); note the
-     number **N**. The tool derives the category label itself, so never pass it
-     with `--label`: it refuses `--label epic-development` and
-     `--label epic-management`. The category labels (`epic-development`,
-     `epic-management`, `ad-hoc`, `proxy`) are for display only: no skill or
-     tool reads `epic-development` or `epic-management` to decide behaviour or
-     to find an epic, so the label tests the skills make (`epic` + `intake`,
-     `epic` + `proxy` and the rest) are unchanged. The body carries the `Planning: <owner>/<repo>#<M>` line, and
-     the progress comment that follows carries `Epic: <owner>/<repo>#<N>`.
-   - Seed the epic's **Documents** section:
-     `vrg-epic-docs set --epic <home>#<N>`, with `<home>` the home
-     `vrg-epic-create` echoed, adds it to the top of the body with all three
-     entries `pending`. The body you write carries no document lines; the tool
-     owns that section. If it fails, stop and report its error.
-   - Create the **documentation task** and the **closing bookends** (the
-     **documentation-review** task and the **retrospective** task), each linked
-     under N. **File each in the repo where its closing PR will land** (the
-     placement law — see Notes): the documentation and retrospective tasks live in
-     `.github` (`--repo <org>/.github`) — their PRs publish `spec.md`/`plan.md`
-     and `retrospective.md` into `.github` — but the **documentation-review** task
-     usually lands its PR in the **member repo** holding the site docs
-     (e.g. `vergil-tooling/docs/site`), so file it there
-     (`--repo <owner>/<repo>`) — never blanket `.github`:
-     `vrg-issue-create --epic <org>/.github#N --repo <owner>/<repo> --title … `.
-     Create the retrospective task with `--kind retrospective` and the title
-     `Retrospective: <epic-slug>`, so it carries the `retrospective` label
-     that `epic-retrospective` finds it by.
-     The documentation-review task is a **multi-repo sweep**: at review time it
-     may **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
-     linked under N, or under that org's proxy for a repo in another org,
-     closed by a same-repo PR) for documentation that lives in other repos. Seed only the review task here; its siblings are filed as the
-     sweep discovers where docs actually need to change. Seed a **follow-on
-     brainstorm** task **only** when a known enabling chain exists at creation
-     (see the bookend architecture above); otherwise leave it — it is accrued
-     during implementation or skipped. Record the documentation task as
-     `Docs task: <owner>/<repo>#<D>` in the next progress comment.
-   - **Seed operational tasks the epic will need** — see "Operational tasks"
-     above. Infra/provisioning-shaped epics carry a cold-rebuild **validation**
-     by default (`--kind validation`); seed a **deployment** task
-     (`--kind deployment`) wherever a later step needs the change *deployed*, not
-     just merged. Add more here or at plan time as the judgment calls for.
-3. **Write the spec** on a worktree of the documentation task's branch in the
-   epic's **home repo**, `<org>/.github`, at `epics/<N>-<slug>/spec.md`
-   (`<slug>` = 2–4 kebab tokens), and commit it as an ordinary commit, not a round commit. Then run the epic
-   body sync (above).
+3. **Write the spec and the epic body** (the end of `brainstorm`). Write the
+   spec on the docs worktree (step 1), in the epic's **home repo**,
+   `<org>/.github`, at `epics/<N>-<slug>/spec.md`, and commit it as an
+   ordinary commit, not a round commit.
    - **Header rule** ([doctrine §2.8](../../docs/paad-review-doctrine.md#28-no-review-history)):
      a spec or plan header carries `Planning issue` (with "review history is in
      its comments") and `Status`, and the document carries **no review
@@ -795,25 +1118,71 @@ details, step 0's public-wording rule) goes into it.
      round or decision produced which text, no review section. **Why:** the
      next reviewer reads the artifact, and provenance in it would bring back
      the deference to earlier rounds that fresh reviewers exist to avoid.
-4. **Stage 1: spec pushback rounds** (see "Design review rounds" above), until
-   the human stops the stage.
-5. **Human review** of the spec. Commit any edits as an ordinary commit, then
-   run the epic body sync (above).
-6. **`superpowers:writing-plans`** → `epics/<N>-<slug>/plan.md` on the same
-   worktree: one automated pass, no rounds. Its header follows the step 3 rule,
-   and its tasks follow "Task sizing" above.
+   - **Write the epic body**, a one-time step, separate from the epic body
+     sync. Read the body with `vrg-issue-read <home>#<N> --json` (its
+     `issue.body`; exit 3 or 1 stops for the human, writing nothing).
+     Replace the placeholder prose, in a temp copy, with an account of the
+     epic drawn from the spec (its intent, scope and approach). Keep the
+     `Planning:` line, leave the **Documents** section exactly as it is
+     (`vrg-epic-docs` owns it), and follow step 0's public-wording rule.
+     Write it back with `vrg-gh issue edit <N> --repo <home> --body-file
+     <tmp>`. On re-entry it is written again from the committed spec, which
+     is safe to repeat. The epic body sync (above), unchanged, runs at every
+     later spec or plan change.
+   - **End the stage:** post the stage's progress comment (for example
+     `Spec committed; spec pushback next.`, recording a skipped brainstorm
+     and its reason if there was one), tick `brainstorm`, and take the
+     checkpoint pause.
+4. **`spec-pushback`: Stage 1, spec pushback rounds** (see "Design review
+   rounds" above), until the human stops the stage. The stop posts the
+   stage's progress comment, then ticks `spec-pushback`.
+5. **`spec-review`: human review** of the spec. Commit any edits as an
+   ordinary commit, then run the epic body sync (above). Once the human says
+   the review is done, post the stage's progress comment (recording that
+   there were no edits, if there were none), tick `spec-review`, and take the
+   checkpoint pause.
+6. **`plan`: `superpowers:writing-plans`** → `epics/<N>-<slug>/plan.md` on the
+   same worktree: one automated pass, no rounds. Its header follows the step 3
+   rule, and its tasks follow "Task sizing" above. The plan lists every task
+   the epic will file, the operational and follow-on tasks included, each
+   with its plan task ID ("Operational tasks" above).
    Commit it as an ordinary commit.
-   Then run the epic body sync (above).
-7. **Stage 2: plan pushback rounds** (the plan under review, the spec as
-   context), **then Stage 3: alignment rounds** (both under review; they may
-   change the spec and the plan). Each stage runs until the human stops it.
+   Then run the epic body sync (above), post the stage's progress comment,
+   tick `plan`, and take the checkpoint pause.
+7. **`plan-pushback` and `alignment`: Stage 2, plan pushback rounds** (the
+   plan under review, the spec as context), **then Stage 3: alignment
+   rounds** (both under review; they may change the spec and the plan). Each
+   stage runs until the human stops it, and the stop posts its progress
+   comment, then ticks it (`plan-pushback`, then `alignment`).
    While walking the human through each plan pushback round, hold the plan to
    "Task sizing" above, and raise any task it marks too big.
-8. **File the implementation tasks** from the plan, each in the repo where its PR
+8. **`file-tasks`: file the tasks** from the plan, each in the repo where its PR
    lands and linked under the epic: born linked via `vrg-issue-create --epic
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
    `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
-   last one is filed, post the progress comment with `Tasks filed: yes`.
+   last one is filed (and every retarget below has succeeded), post the
+   progress comment with `Tasks filed: yes`, tick `file-tasks`, and take the
+   checkpoint pause. The pause comes only at the stage's end, not after each
+   task.
+   - **The closing bookends are filed here,** with the plan's tasks. **File
+     each in the repo where its closing PR will land** (the placement law —
+     see Notes). The **retrospective** task lives in `.github`
+     (`--repo <org>/.github`), since its PR publishes `retrospective.md`
+     there: create it with `--kind retrospective` and the title
+     `Retrospective: <epic-slug>`, so it carries the `retrospective` label
+     that `epic-retrospective` finds it by, and key it `Plan task:
+     retrospective`. The **documentation-review** task usually lands its PR
+     in the **member repo** holding the site docs (e.g.
+     `vergil-tooling/docs/site`), which the design decides, so file it there
+     (`--repo <owner>/<repo>`), never blanket `.github`, and key it `Plan
+     task: doc-review`. It is a **multi-repo sweep**: at review time it may
+     **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
+     linked under N, or under that org's proxy for a repo in another org,
+     closed by a same-repo PR) for documentation that lives in other repos.
+     File only the review task here; its siblings are filed as the sweep
+     discovers where docs actually need to change.
+   - **Operational and follow-on tasks are plan tasks,** filed here like
+     any other, with the commands "Operational tasks" above gives.
    - **A task in another org goes under that org's proxy.** GitHub cannot
      link a sub-issue across orgs, so when the plan files a task in a repo
      whose org is not the epic's, first ensure that org's proxy epic:
@@ -933,7 +1302,10 @@ details, step 0's public-wording rule) goes into it.
     progress comment that records the handoff. That comment carries a
     `Planned as <owner>/<repo>#<N>` line, which is the planning issue's
     record of the epic it became. Leave the item `in-progress` until the
-    merge closes it.
+    merge closes it. Once that comment is posted, and any re-run of
+    report-ready a bullet below calls for is done, tick `docs-pr` as the
+    stage's last write and give the human the summary (the checkpoint
+    pause, with no reset recommendation).
     - **`{"closes": "<M ref>"}`.** Merging the docs PR closes the planning
       issue. The progress comment says so.
     - **`{"planning": …, "skipped": "<why>"}`, `{"unknown": "<why>"}`, or
