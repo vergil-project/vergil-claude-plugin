@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.91] - 2026-11-24
+
+### Documentation
+
+- name the release's runs in the validation scaffold's precondition (#1331)
+- say the daily review reads the operations queue (#1339)
+- record the security-run answer, a no included, and read it back on resume (#1341)
+- add the plan's Blocked-by refs when keying an existing task (#1342)
+- key a convention-titled bookend without asking (#1343)
+- say which parts of the brainstorming skill's ending apply in the brainstorm stage (#1344)
+- state the documentation-review bookend's title when filing it (#1348)
+
+### Features
+
+- the daily agent audit (#1338)
+
 ## [2.1.90] - 2026-11-24
 
 ### Documentation
