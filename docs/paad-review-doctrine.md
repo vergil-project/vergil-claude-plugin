@@ -281,11 +281,19 @@ issue, finds it. Find the main clone from inside a worktree with
   - **Absent:** there is nothing to confirm, so do not ask the human. Go
     on, creating it level by level (above) when the round first writes
     there.
-  - **Present:** it must hold only what the trusted records on the issue
-    say was kept (a `scratch copy kept` round comment). Show the human its
-    listing and wait for their confirmation. Anything else means stop.
+  - **Present and empty, with nothing recorded as kept:** it is a real
+    directory (`test ! -L`, then `test -d`; otherwise stop), `find <task
+    state dir> -mindepth 1` prints nothing and exits zero, and no trusted
+    record on the issue says anything was kept there. Treat it as absent:
+    there is nothing to confirm, so do not ask the human. Its mode check
+    (above) still runs before the round first writes there.
+  - **Present otherwise:** it must hold only what the trusted records on
+    the issue say was kept (a `scratch copy kept` round comment). Show the
+    human its listing and wait for their confirmation. Anything else means
+    stop.
 
-  The hash you take then seals the directory for the rest of the session.
+  The hash you take then seals the directory for the rest of the session,
+  an empty one included.
 - **After a stop on a state-directory check,** the human looks at the
   directory and rules. Once they confirm its contents, a fresh hash becomes
   the seal.
@@ -303,7 +311,8 @@ issue, finds it. Find the main clone from inside a worktree with
   write or deletion, before reading a draft back and before the report is
   sent; a difference means stop and ask the human. A session that finds the
   directory present shows the human its listing first, as for the first
-  round of a session; one that finds it absent asks the human nothing.
+  round of a session; one that finds it absent, or present and empty with
+  nothing recorded as kept, asks the human nothing.
 - **The `operational` directory** follows the `upstream-report` rules, with
   a details file, named `security-<i>.md` after a `test ! -e` check as in
   [§1.6](#16-security-findings), in place of a draft and a record in place
@@ -322,8 +331,9 @@ issue, finds it. Find the main clone from inside a worktree with
   directory (`test ! -L`, then `test -d`; otherwise stop), then prune it
   from the hash and the type check (`find . -path ./merge-review -prune -o
   -print`, and the same `-prune -o` before `-type f -exec shasum -a 256 {}
-  +` and before `! -type d ! -type f -print`), and from the listing shown
-  to the human. `<N>/` is deleted once it holds no file and no
+  +` and before `! -type d ! -type f -print`), from the listing shown
+  to the human, and from the test for an empty directory (`find . -path
+  ./merge-review -prune -o -print` prints only `.`). `<N>/` is deleted once it holds no file and no
   `merge-review/`.
 - **The `merge-review/` directory**,
   `build/.vergil-state/issue-implement/<N>/merge-review/`, is the working
@@ -927,7 +937,8 @@ These checks guard every round. Mode 1's own checks
   the review expects;
 - last, just before dispatch: the task's state directory: its seal (or, in
   the first round of a session, the listing the human confirmed, or
-  nothing to confirm if it was absent), its mode, and its hash
+  nothing to confirm if it was absent, or present and empty with nothing
+  recorded as kept), its mode, and its hash
   ([§1.5](#15-state-directories)).
 
 A check that fails, or a command that fails, stops the round before
@@ -1133,8 +1144,9 @@ Rules the template carries, and why:
 - last, just before dispatch, the planning issue's state directory,
   `build/.vergil-state/design-review/<M>/` in the docs repo's main clone
   ([§1.5](#15-state-directories)): check its seal (or, in the first round
-  of a session, the listing the human confirmed if it was present; an
-  absent one needs no confirmation), create it level by level if it is
+  of a session, the listing the human confirmed if it held anything; an
+  absent one, or an empty one with nothing recorded as kept, needs no
+  confirmation), create it level by level if it is
   absent, check its mode, and take its hash.
 
 A dirty worktree at this point (for example, a session resumed partway

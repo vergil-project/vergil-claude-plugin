@@ -330,8 +330,9 @@ round. The human decides every round. Each round has seven steps:
    ([§1.10](../../docs/paad-review-doctrine.md#110-checks-around-every-round));
    fetch each member repo the prompt names; and last the state directory's
    seal and hash (in the first round of a session, instead of the seal,
-   the human's confirmation of its listing if it is present; an absent
-   directory needs no confirmation, so do not ask)
+   the human's confirmation of its listing if it holds anything; an
+   absent directory, or an empty one with no `scratch copy kept` round
+   comment, needs no confirmation, so do not ask)
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
    start a fresh `paad:paad-delegate` subagent **in the background** with
    the [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
@@ -608,8 +609,9 @@ A planning issue is public, so anyone can comment on it. When resuming:
   at the [§2.7](../../docs/paad-review-doctrine.md#27-security-findings) path,
   derived from the planning issue and the round ID. Use a round ID in that
   path only if it matches `^[SPA][0-9]+$`; otherwise refuse and ask the human.
-  Show the human the listing of the planning issue's state directory to
-  confirm, and check each kept file against the hash its round comment
+  If the planning issue's state directory holds anything, show the human
+  its listing to confirm (an absent one, or an empty one with no kept copy
+  recorded, needs none), and check each kept file against the hash its round comment
   records before you read it or pass it on
   ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 - **If the docs worktree is dirty,** it belongs to the stage `status` names:
