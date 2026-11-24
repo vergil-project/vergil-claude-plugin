@@ -727,8 +727,10 @@ checkpoint leaves (what a later stage or a resume reads back), and what
 - **`plan-pushback`** and **`alignment`** (step 7). As `spec-pushback`.
 - **`file-tasks`** (step 8). Ends when every task in the plan is filed, the
   documentation-review and retrospective tasks exist, every advisory is
-  retargeted, and `Tasks filed: yes` is posted. Evidence: the filed tasks.
-  Re-entry: file only the tasks that are missing.
+  retargeted, and `Tasks filed: yes` is posted. Evidence: the filed tasks,
+  each carrying its `Plan task:` line. Re-entry: [keyed
+  filing](#keyed-filing) keys any unkeyed task, then files only the tasks
+  that are missing.
 - **`docs-pr`** (steps 9 and 10). Ends when report-ready has recorded the
   handoff and the handoff comment, with its `Planned as` line, is posted.
   Evidence: the report-ready record (`vrg-pr-workflow status` in the docs
@@ -756,10 +758,10 @@ triggers it.
 
 A session lost between the work and the tick leaves the stage unticked, and
 re-entry redoes or completes it: redoing beats skipping, and every re-entry
-above is safe to repeat. A tick already made succeeds and writes nothing. Any
-other non-zero exit from `tick` (3 untrusted, 5 skew, 6 malformed, 1 a
-refusal or failure) stops the run for the human: show its output and write
-nothing more.
+above is safe to repeat. A tick already made succeeds and writes nothing. An
+exit of 5 from `tick` is skew: handle it as [skew](#skew) says. Any other
+non-zero exit (3 untrusted, 6 malformed, 1 a refusal or failure) stops the
+run for the human: show its output and write nothing more.
 
 ### The checkpoint pause
 
@@ -848,6 +850,208 @@ was abandoned has no block, so step 0 runs `init` and the run starts at
 both markers, which are then the latest. The old markers name issues closed
 as not planned, so they are not evidence.
 
+### Skew
+
+A tooling release can land in the middle of a run, and a run can sit for
+days, so the block may not match the stage list `vrg-checkpoint` now
+defines. `status` then exits 5 (as can `tick`), and its JSON's `skew` object
+gives the `recorded` and `current` lists, the `added` and `removed` stages
+and whether the common stages are `reordered` (spec §4.4). Every change to
+the cursor is shown to the human before it is made; nothing is remapped
+silently.
+
+1. **Check the current list against this skill.** If `current` names a
+   stage that [Stages](#stages) does not define, or leaves out one it
+   does, this skill and the installed tooling disagree: stop and tell the
+   human (the plugin or the tooling needs updating), writing nothing.
+2. **Show the human the difference:** each stage added, each removed (and
+   whether it was ticked), and any reordering. The **cursor** is the
+   recorded block's first unticked stage. A removed stage is dropped, and
+   a matching stage keeps its tick.
+3. **Ask about each new stage.** A new stage that sits **before the
+   cursor** (in the current list, ahead of a stage already ticked) is
+   always the human's call: **run it** (it stays unticked, so it is the
+   next stage) or **tick it** (the human says it is done). A new stage
+   after the cursor stays unticked unless the human says it is done.
+   Never decide either yourself.
+4. **Reconcile**, with one `--tick` per new stage the human said is done:
+
+   ```bash
+   vrg-checkpoint reconcile <owner>/<repo>#<M> --workflow epic-create \
+     [--tick <stage>]…
+   ```
+
+   It rewrites the block to the current list, prints one line per change
+   and the next stage, and posts the same lines in a comment on the
+   planning issue (first line `vrg-checkpoint: reconciled epic-create`),
+   so the log records the change. Show the human its output. If it exits 1
+   saying the block was written but the comment failed, post the comment
+   text it printed, exactly, with `vrg-gh issue comment <M> --repo
+   <owner>/<repo> --body-file <tmp>`, and go on. Any other non-zero exit
+   (1 a refusal or a failed write, 3 untrusted, 4 missing, 6 malformed)
+   stops for the human; after a failed write, `status` shows whether the
+   block was reconciled.
+5. **Re-read the checklist** with `status`, and go on from its exit as
+   step 0 says. A new stage the human chose to run is the `next` it names.
+
+A `tick` that exits 5 (a release landed during the session) is handled the
+same way: reconcile, then run `status` again. If the stage being ended is
+still in the list and is the `next` it names, repeat its tick. If it was
+removed, or a new stage before it is now unticked (one the human chose to
+run), there is nothing to tick: take the checkpoint pause, and the run goes
+on at the stage `status` names.
+
+### A run already in flight
+
+A planning issue whose run started before the stage checklist existed has
+no block, but has evidence of finished stages: `status` exits 4 and step 0
+finds that evidence (spec §4.8). Adopt it before anything else is written:
+
+1. **Infer the finished stages** from the run's evidence, read from the
+   planning issue's trusted comments (through `vrg-issue-read`, as
+   "Resuming" says), the docs branch and the epic's children: the `Epic:`,
+   `Docs task:` and `Tasks filed: yes` markers; the progress comment of
+   each stage boundary; the latest trusted `Design review: <stage> round
+   <n>` comment of each review stage, and a progress comment naming the
+   next stage after it (the human stopped that stage); the spec and plan
+   commits on the docs branch; the filed tasks
+   (`vrg-epic-audit --epic <home>#<N>`); and the report-ready record
+   (`vrg-pr-workflow status` in the docs worktree) and any `Planned as`
+   comment. The earlier skill ran the same steps in the same order, except
+   that it created the epic and the documentation task after the
+   brainstorm, with the spec next, and posted no progress comment for the
+   spec review: so evidence of a later stage (the plan commit, say) also
+   shows every stage before it done. An adopted run's slug is the one in
+   its docs branch name, `feature/<D>-<slug>`.
+2. **An abandoned skeleton is not evidence.** An `Epic:` or `Docs task:`
+   marker naming an issue closed as not planned (`vrg-gh issue view <ref>
+   --repo <repo> --json state,stateReason`) is ignored, and so is
+   everything that skeleton left. A run with nothing else is a revived
+   item, a first run: `init` with no `--tick`, and it starts at
+   `bootstrap`, whose re-entry ignores those markers, creating a new epic
+   and a new documentation task and posting both markers, which are then
+   the latest.
+3. **Propose the ticks.** Stages are linear, so the proposal is the first
+   stages of the list, up to the last one whose evidence is complete. A
+   stage whose evidence is partial (a `bootstrap` whose epic has no
+   Documents section, a review stage with no progress comment after its
+   last round) is not proposed, and nor is any stage after it: its
+   re-entry completes it. Show the human each proposed stage with the
+   evidence for it, and the first stage left unticked.
+4. **Init with the stages the human confirms**, which must again be the
+   first stages, in order:
+
+   ```bash
+   vrg-checkpoint init <owner>/<repo>#<M> --workflow epic-create \
+     --tick bootstrap [--tick <stage>]…
+   ```
+
+   With no stage confirmed, run `init` with no `--tick`. The human may
+   confirm fewer stages than proposed, or tick a stage the evidence does
+   not show, never leaving a gap. A non-zero exit stops for the human.
+   Then go on as step 0 says for a
+   `status` of 0, and post the `Resuming at` line, naming the stages
+   adoption ticked.
+
+An adopted run can reach `file-tasks` with tasks already filed and no
+`Plan task:` line (the bookends and operational tasks an earlier skill
+filed when it created the epic, or tasks filed before an interruption).
+Step 8's [keyed filing](#keyed-filing) matches and keys them before it
+files anything.
+
+### Keyed filing
+
+A large plan files tens of tasks, so a clear halfway through `file-tasks`
+must be safe (spec §4.5). Every task step 8 files carries a stable **key**,
+a line of its body, alone on the line:
+
+```text
+Plan task: <id>
+```
+
+`<id>` is the task's plan task ID as the plan's delivery table gives it
+(`2a`, `13b`), or one of the closing bookends' fixed IDs, `doc-review` and
+`retrospective`. A fixture run is one trio (change, release, validation)
+on one fixture, and one plan entry can seed runs on several fixtures, so
+each task of a run carries the entry's ID and the run's fixture,
+`Plan task: <id> <fixture>` (for example `Plan task: 7 python-lib`): the
+three tasks of one run share a key, and each fixture's run has its own. The
+documentation task, filed at `bootstrap`, has no key.
+
+**Writing the key.** A plain task's body file carries the line. An
+operational task (`--kind validation` or `deployment`) carries it in the
+`## Intro` section of its body file, or as its `--body` when it has no body
+file. A retrospective takes no body file, so its key is its `--body`:
+
+```bash
+vrg-issue-create --epic <home>#<N> --repo <org>/.github --kind retrospective \
+  --title "Retrospective: <epic-slug>" --body "Plan task: retrospective"
+```
+
+A fixture run is filed by the `fixture-run` skill, which takes no key: once
+it prints each trio's refs, add that run's key line to each of its three
+tasks, as the key pass below does.
+
+**On every entry to `file-tasks`**, first entry or re-entry, before filing
+anything:
+
+1. **List the epic's tasks and their keys.** `vrg-epic-audit --epic
+   <home>#<N>` lists the epic's children and those of every proxy epic it
+   names (exit 1 is link drift: stop for the human). Add any ref a trusted
+   progress comment records on an `Unlinked task: <ref>` line (below). Read
+   only each task's key, so one line per task reaches context:
+
+   ```bash
+   set -euo pipefail
+   list="<scratch dir>/children.txt"
+   vrg-epic-audit --epic <home>#<N> \
+     | jq -r '.children[] | "\(.repo)#\(.number)"' > "$list"
+   # append each Unlinked task: ref to "$list" here
+   while read -r ref; do
+     key=$(vrg-issue-read "$ref" --json | jq -r '.issue.body | split("\n")
+       | map(sub("\r$"; "")) | map(select(startswith("Plan task: ")))
+       | first // ""')
+     printf '%s\t%s\n' "$ref" "$key"
+   done < "$list"
+   ```
+
+   An exit of 3 (an untrusted body) or 1 from either command stops the
+   stage for the human, filing nothing. An empty key means the task has no
+   key. Every state counts: a closed task is filed. Two tasks with the same
+   key stop for the human, except a fixture run's key, which exactly three
+   tasks share; a fixture run's key on fewer or more than three tasks (a
+   trio filed only in part) stops for the human too.
+2. **Match and key the unkeyed tasks.** If any task other than the
+   documentation task has an empty key (the bookends and operational tasks
+   an earlier skill filed when it created the epic, or tasks filed before
+   an interruption), match each to a plan task ID, `doc-review` or
+   `retrospective`, from its title (read its body with `vrg-issue-read`
+   only when the title does not settle it), and show the human the
+   matches (a fixture run's task to its entry's ID and its fixture). For
+   each match the human confirms, add the key: write the body
+   from `vrg-issue-read <ref> --json` (its `issue.body`; exit 3 or 1 stops)
+   to a temp file, append a blank line and the key line, and write it back
+   with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. A task the
+   human matches to no ID is left as it is, and is shown again on the next
+   entry.
+3. **File only what is missing**: the plan's task IDs, `doc-review` and
+   `retrospective` that no task carries, in the plan's order. A plan entry
+   that seeds fixture runs is filed only when every fixture it names has
+   its run's key: run `fixture-run` for the fixtures that have none, and
+   only those. A
+   `Blocked-by:` ref to a task filed earlier comes from this listing's
+   key-to-ref map, never from memory. If every ID is filed, and a trusted
+   `Tasks filed: yes` is already posted, go straight to the stage's tick.
+
+**A task created but not linked** (`vrg-issue-create` exits 1 with `created
+<url> but failed to link it`) is resolved before anything else is filed and
+before any checkpoint pause, so a re-entry never files it a second time.
+Link it with the command the error names; if that fails too, post a
+progress comment carrying an `Unlinked task: <owner>/<repo>#<T>` line,
+alone on its line, which the listing above reads, and stop for the human.
+Any other failure of `vrg-issue-create` stops the stage for the human, who
+checks whether an issue was created before anything is filed again.
+
 ## Epic body sync
 
 The epic body is written twice before this rule applies: a placeholder at
@@ -887,8 +1091,15 @@ details, step 0's public-wording rule) goes into it.
       - **4:** the block is missing (handled at 3 below).
       - **3:** the body is untrusted. Stop and tell the human, as
         "Resuming" says for an untrusted body, and never work around it.
-      - **5 (skew) or 6 (malformed):** stop and ask the human, showing the
-        JSON's `skew` object or the command's stderr. Write nothing.
+      - **5:** the block has skew. Read the planning issue's state first,
+        as 2 below does: a closed planning issue stops for the human, its
+        block left as it is. On an open one, reconcile the block as
+        [skew](#skew) says, then go on as for an exit of 0.
+      - **6:** the block is malformed. Show the human the command's
+        stderr and the block as the body holds it (from `vrg-issue-read
+        <owner>/<repo>#<M> --json`, its `issue.body`, the lines from
+        `<!-- vrg-checkpoint:epic-create -->` to its end marker), and stop.
+        Write nothing; repairing the block is the human's call.
       - **1 or 2:** the read failed, or its arguments were wrong: show its
         stderr and stop.
    2. **A closed planning issue** gets no label. Read its state with
@@ -909,15 +1120,16 @@ details, step 0's public-wording rule) goes into it.
       run `vrg-checkpoint init <owner>/<repo>#<M> --workflow epic-create`
       without asking the human (a non-zero exit stops for the human), and
       go on at 6 below, with `bootstrap` the stage to enter. With evidence
-      of any
-      stage, a run that started before the checklist existed, stop and ask
-      the human, showing the evidence found and writing nothing.
+      of any stage, the run started before the checklist existed: adopt
+      it, as [a run already in flight](#a-run-already-in-flight) says, then
+      go on as for an exit of 0.
    4. **Every stage ticked** (`next` is `null`): the run has been handed
       off. Run `vrg-queue planning` (exit 2 is a complete listing, not a
       failure). If it shows the item `ready-to-close`, close it as step 10
       says. Otherwise report the item's note ("handed off, awaiting merge",
       or the `held:` note) and exit, changing nothing.
-   5. **An abandoned epic.** After a `status` of 0, if a trusted `Epic:`
+   5. **An abandoned epic.** After a `status` of 0 (a reconciled skew and
+      an adopted run included), if a trusted `Epic:`
       marker exists, read the state of the epic the latest one names:
       `vrg-gh issue view <N> --repo <home> --json state,stateReason`. If it
       is closed as not planned while the block still exists (an abandon
@@ -929,9 +1141,11 @@ details, step 0's public-wording rule) goes into it.
       a stage is still unticked also stops for the human.
    6. **Mark it in progress:**
       `vrg-gh issue edit <M> --repo <owner>/<repo> --add-label in-progress`.
-   7. **On a resume** (`status` exited 0 at 1 above, so the block existed
-      before this invocation), post a progress comment whose first line is
-      ``Resuming at `<stage>`.``, naming the stage `next` gives. A first run,
+   7. **On a resume** (`status` exited 0 or 5 at 1 above, so the block
+      existed before this invocation, or an in-flight run was adopted at 3
+      above), post a progress comment whose first line is
+      ``Resuming at `<stage>`.``, naming the stage `next` gives. An adopted
+      run's comment also names the stages adoption ticked. A first run,
       and a restart at `bootstrap` after 5 above, posts no such line.
    8. **Enter the stage** at its step, after handling any dirty docs
       worktree as [a dirty worktree on resume](#a-dirty-worktree-on-resume)
@@ -1162,7 +1376,10 @@ details, step 0's public-wording rule) goes into it.
 8. **`file-tasks`: file the tasks** from the plan, each in the repo where its PR
    lands and linked under the epic: born linked via `vrg-issue-create --epic
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
-   `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. When the
+   `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. Each
+   carries its `Plan task: <id>` key, and on every entry to the stage the
+   [keyed filing](#keyed-filing) pass lists the tasks already filed, keys
+   any that have none, and files only those missing. When the
    last one is filed (and every retarget below has succeeded), post the
    progress comment with `Tasks filed: yes`, tick `file-tasks`, and take the
    checkpoint pause. The pause comes only at the stage's end, not after each
