@@ -400,8 +400,10 @@ A merged PR is finished: the branch is done for good, and any further
 change is a new follow-up issue, proposed to the human first. Read the
 review comments once more, as
 [Review comments](#review-comments--found-and-handled-here) says, and
-propose a follow-up for each one still unaddressed. If no finalize run
-has counted the merge (it merged during a `vrg-pr-await` wait), run
+propose a follow-up for each one still unaddressed. `issue-implement`
+comes here straight after a submit that merged, for these comments. If no
+finalize run has counted the merge (it merged during a `vrg-pr-await`
+wait), run
 `vrg-finalize-pr <PR>` yourself, never with `--release`, so it counts the
 PR and settles `develop`, and act on its exit as
 [Before every push](#before-every-push) step 5 says. Then tell the human

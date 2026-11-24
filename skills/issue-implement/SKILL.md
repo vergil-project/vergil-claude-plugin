@@ -522,7 +522,7 @@ Act on its exit status:
 
 | Exit | Then |
 | --- | --- |
-| 0 | The PR merged and `develop` is settled. Tell the human it merged, with its URL. The task is done. |
+| 0 | The PR merged and `develop` is settled. Run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR too: its preflight sees it merged and goes straight to its [The PR merged](../pr-watch/SKILL.md#the-pr-merged) step, which reads the review comments posted during the wait and proposes a follow-up for each one still unaddressed. Finalize has already counted the merge, so it is not rerun. Then tell the human it merged, with its URL. The task is done. |
 | 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it. |
 | 4 | `develop` did not validate after the settle. Stop and tell the human, with the output. |
 | 1, or any other | A refusal or a tool error. Show its output and stop; never retry with other flags. |
