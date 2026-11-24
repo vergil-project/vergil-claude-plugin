@@ -403,10 +403,9 @@ skill, which reviews afresh if `HEAD` has moved.
 
 | Outcome | Then |
 |---|---|
-| `eligible` or `not-eligible (<reason>)` | Go on to [Record the PR metadata](#record-the-pr-metadata-and-hand-off), with the eligibility line in `--notes`, and the approval line, `Protected change: approved: request <id>`, when the skill gave one. |
-| `exempt: request <id>` | The human approved a merge-review exemption. Go on to [Record the PR metadata](#record-the-pr-metadata-and-hand-off) with the exemption line, `Merge review: exempt: request <id>`, in `--notes` in place of the eligibility line, and any approval line. |
-| `refused: request <id>` | The human refused the protected-change approval. End the run with nothing handed off; your final report gives the request ID. The human rules how the change goes on; a change to the branch makes the next run review afresh. |
-| `stopped: request <id>` | End the run; your final report gives the request ID and its kind. The human replies with `vrg-ruling-reply`, and running this skill on the task again resumes. With the human present, the skill drafts the reply with them first and resumes once it is posted; a protected-change or exemption request has no draft, and the skill gives the human its two `vrg-ruling-reply` commands. Dispatched, report those commands, and any diff command the skill gave, for the driver. |
+| `eligible` or `not-eligible (<reason>)` | Go on to [Record the PR metadata](#record-the-pr-metadata-and-hand-off), with the eligibility line in `--notes`. |
+| `exempt: request <id>` | The human approved a merge-review exemption. Go on to [Record the PR metadata](#record-the-pr-metadata-and-hand-off) with the exemption line, `Merge review: exempt: request <id>`, in `--notes` in place of the eligibility line. |
+| `stopped: request <id>` | End the run; your final report gives the request ID and its kind. The human replies with `vrg-ruling-reply`, and running this skill on the task again resumes. With the human present, the skill drafts the reply with them first and resumes once it is posted; an exemption request has no draft, and the skill gives the human its two `vrg-ruling-reply` commands. Dispatched, report those commands for the driver. |
 | `waiting: non-review items` | End the run; your final report lists the items, security details included. |
 | `fatal` | End the run. The task never reaches report-ready: tell the human, who recovers on a new issue as epic 889's spec (its §10) says. The directory stays until the human deletes it. |
 | `error` | End the run with the error shown. Running this skill again resumes. |
@@ -434,8 +433,8 @@ vrg-pr-workflow report-ready --issue <N> \
 The `--notes` carry the merge review's eligibility line,
 `Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`,
 exactly as the skill gave it (it is also the first line of the closing
-comment on the issue) or, on `exempt`, the exemption line, then any
-approval line the skill gave, what a reviewer needs to know about the
+comment on the issue) or, on `exempt`, the exemption line, then what a
+reviewer needs to know about the
 change, and every non-review item still listed under `Awaiting a ruling`
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
 Such an item can only be one found after the review's step comment was
@@ -459,17 +458,13 @@ The skill refused to hand off while any security details still await a
 record, so nothing private is lost. If a deletion fails, tell the human;
 the handoff stands. From here on nothing expects the directory: re-running
 `report-ready` to fix the prose takes the eligibility line from the
-closing comment on the issue, and an exemption or approval line from its
-request's ID on the issue.
+closing comment on the issue, and an exemption line from its request's
+ID on the issue.
 
 This **publishes the branch** — it pushes the reported commit to
 `origin/<branch>` (setting upstream) — then writes `.vergil/pr-workflow.json`,
 the file `vrg-submit-pr` reads. **Do not push the branch yourself first**; there
-is no separate push step. The one exception is merge review's plain push
-before a protected-change approval
-([its step 3](../merge-review/SKILL.md#the-protected-change-approval)),
-so the request's diff link opens; report-ready's push is then a no-op or a
-fast-forward, and a diverged branch is the case below. It is a plain run-and-done command: it pushes, records
+is no separate push step. It is a plain run-and-done command: it pushes, records
 the metadata, and exits. There is no loop to drive, nothing to poll, and no
 second agent to wait for. If you need to correct the title/summary/notes before
 the human submits, just run `report-ready` again — it overwrites (and the push

@@ -1503,7 +1503,7 @@ details, step 0's public-wording rule) goes into it.
    from its directory. Then hand off the
    single spec + plan PR against `.github` — agents record it via
    `vrg-pr-workflow report-ready`, with the merge review's eligibility
-   line (and any approval line) in `--notes`, then delete its directory
+   line (or its exemption line) in `--notes`, then delete its directory
    as `issue-implement` says; the human runs `vrg-submit-pr`. At the
    handoff, link the documents from the epic:
    `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md

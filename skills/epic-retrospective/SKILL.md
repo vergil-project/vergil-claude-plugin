@@ -324,7 +324,7 @@ On approval:
    follow-up.
 4. Record the PR metadata and hand off — agents run
    `vrg-pr-workflow report-ready --issue <retrospective-task> --title … --summary
-   … --notes …`, with the merge review's eligibility line (and any approval
+   … --notes …`, with the merge review's eligibility line (or its exemption
    line) in `--notes`, then delete its directory as `issue-implement`'s
    [Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off)
    says; the **human** runs `vrg-submit-pr`. You never open the PR.
