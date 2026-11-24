@@ -1037,9 +1037,16 @@ anything:
    each match the human confirms, add the key: write the body
    from `vrg-issue-read <ref> --json` (its `issue.body`; exit 3 or 1 stops)
    to a temp file, append a blank line and the key line, and write it back
-   with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. A task the
-   human matches to no ID is left as it is, and is shown again on the next
-   entry.
+   with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. In the same
+   edit, add every `Blocked-by:` ref the plan gives that plan task and the
+   body lacks, each a `Blocked-by: <owner>/<repo>#<T>` line in the body's
+   `## Dependencies` section (adding the section if the body has none). A
+   task filed by an earlier skill, such as a bookend seeded when the epic
+   was created, can lack them, and without them `epic-implement` may start
+   it too early. Take each ref from this listing's key-to-ref map, never
+   from memory. A ref to a plan task not filed yet is added by step 4,
+   once step 3 has filed that task. A task the human matches to no ID is
+   left as it is, and is shown again on the next entry.
 3. **File only what is missing**: the plan's task IDs, `doc-review` and
    `retrospective` that no task carries, in the plan's order. A plan entry
    that seeds fixture runs is filed only when every fixture it names has
@@ -1048,6 +1055,18 @@ anything:
    `Blocked-by:` ref to a task filed earlier comes from this listing's
    key-to-ref map, never from memory. If every ID is filed, and a trusted
    `Tasks filed: yes` is already posted, go straight to the stage's tick.
+4. **Complete the `Blocked-by:` refs**, once every ID is filed and before
+   `Tasks filed: yes` is posted, on every entry that reaches this point.
+   For each keyed task (a fixture run's tasks excepted, whose dependencies
+   `fixture-run` sets from its `--after`), read the `Blocked-by:` lines of
+   its body with `vrg-issue-read <ref> --json` (exit 3 or 1 stops), as
+   step 1 reads the key, so only those lines reach context. Compare them
+   with the refs the plan gives its plan task, mapped through the
+   listing's key-to-ref map with the tasks step 3 filed added, and add
+   every missing ref as step 2 says. Nothing depends on what an earlier
+   session remembers: a clear between keying a task and adding its refs
+   loses nothing, since the next entry finds the gap here and fills it,
+   and a repeat finds nothing missing and writes nothing.
 
 **A task created but not linked** (`vrg-issue-create` exits 1 with `created
 <url> but failed to link it`) is resolved before anything else is filed and
@@ -1406,7 +1425,8 @@ details, step 0's public-wording rule) goes into it.
    <fixture>` for a fixture run's tasks), and on every entry to the stage the
    [keyed filing](#keyed-filing) pass lists the tasks already filed, keys
    any that have none, and files only those missing. When the
-   last one is filed (and every retarget below has succeeded), post the
+   last one is filed (every retarget below has succeeded, and the key
+   pass has completed every task's `Blocked-by:` refs), post the
    progress comment with `Tasks filed: yes`, tick `file-tasks`, and take the
    checkpoint pause. The pause comes only at the stage's end, not after each
    task.

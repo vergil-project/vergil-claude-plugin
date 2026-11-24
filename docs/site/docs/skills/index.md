@@ -120,8 +120,9 @@ comment and ticks its box as its last write, then pauses with the
 so a fresh session resumes at the first unticked stage with no decision or
 work lost and nothing created twice. Every task `file-tasks`
 files carries a `Plan task: <id>` key (`Plan task: <id> <fixture>` for a
-fixture run's tasks), so a re-entry keys any task filed without one and
-files only those missing. A checklist that a tooling release changed under
+fixture run's tasks), so a re-entry keys any task filed without one,
+adding any `Blocked-by:` refs the plan gives it that it lacks, and files
+only those missing. A checklist that a tooling release changed under
 a run (skew) is shown to the human and rewritten with `vrg-checkpoint
 reconcile`, never remapped silently. A run started before the checklist
 existed is adopted: the stages its evidence shows done are proposed, and
