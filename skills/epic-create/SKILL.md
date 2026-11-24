@@ -180,13 +180,23 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
-**Steps that refuse the agent identity are human-run.** When writing a
-deployment task's steps, check each one against the agent identity. A
-step that refuses it goes under the scaffold's **Human-run steps (need a
-human identity)** section, never under the agent-safe deploy steps, so
-`issue-deploy` hands it to the human instead of stopping on it. The
-common ones are `vrg-host plugins`, `vrg-host upgrade` and
-`vrg-vm update --all`.
+**Steps that refuse the agent identity are human-run.** When filing a
+deployment or validation task, check each step of its procedure, its
+precondition checks included, against what the user agent identity can
+do. In a deployment task, a step that refuses it, or needs a permission
+or secret the agent does not hold, goes under the scaffold's **Human-run
+steps (need a human identity)** section with its paste-ready command,
+never under the agent-safe steps, so `issue-deploy` hands it to the
+human instead of stopping on it. The validation scaffold has no such
+section: write a check of that kind as a human-attested precondition
+that names the paste-ready command the human runs, never as a step the
+agent runs. The known cases:
+
+- `vrg-host plugins`, `vrg-host upgrade` and `vrg-vm update --all`;
+- reading or checking org variables, such as `vrg-trusted-authors check`:
+  the user mode holds no Variables permission;
+- reading Actions secrets, which the agent has no way to do;
+- any other command that refuses the user mode.
 
 **Checking that a release carries the changes.** Where a deployment (or
 release) task's procedure must confirm that a release contains given changes,
@@ -886,9 +896,25 @@ details, step 0's public-wording rule) goes into it.
      planning issue, before step 9 hands it off.
 9. **Docs PR.** Run the epic body sync (above) a last time, against the spec
    and plan the PR publishes.
-   Validate (`vrg-container-run -- vrg-validate`) and hand off the
+   Validate (`vrg-container-run -- vrg-validate`) to green on the
+   committed branch, then run the **`merge-review`** skill
+   (`vergil:merge-review`) on the documentation task (`--issue
+   '<home>#<D>'`), from its worktree, as `issue-implement`'s
+   [Merge review](../issue-implement/SKILL.md#merge-review) section says.
+   The change is `docs-only`, so the review asks only the merge-quality
+   question. Run it before `vrg-epic-docs set` below: until then the
+   epic's Documents section lists no design source, so the review judges
+   the spec and plan as the diff it reads, rather than stopping on links
+   that resolve only once the PR merges. Anything the run writes into a
+   ruling request or a reply follows step 0's public-wording rule. Only
+   an `eligible` or `not-eligible (<reason>)` outcome, or an `exempt` one
+   the human asked for, goes on; any other ends the step for the human,
+   and a resumed run at this step runs merge review again, which picks up
+   from its directory. Then hand off the
    single spec + plan PR against `.github` — agents record it via
-   `vrg-pr-workflow report-ready`; the human runs `vrg-submit-pr`. At the
+   `vrg-pr-workflow report-ready`, with the merge review's eligibility
+   line (and any approval line) in `--notes`, then delete its directory
+   as `issue-implement` says; the human runs `vrg-submit-pr`. At the
    handoff, link the documents from the epic:
    `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
    --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;

@@ -15,6 +15,8 @@ jobs:
     permissions:
       contents: read
       issues: write
-    secrets:
-      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
-      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+    # `inherit` is required: the automation App keys live in the
+    # `automation` environment, and environment secrets reach a cross-repo
+    # reusable workflow only under `secrets: inherit`. Allowed only for the
+    # App-key workflows (vrg-validate's secrets-inherit check).
+    secrets: inherit

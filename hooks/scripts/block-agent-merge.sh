@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # block-agent-merge.sh — PreToolUse hook for Bash.
 # Unconditionally denies gh pr merge / gh pr review --approve and the
-# equivalent gh api calls. Agents have no merge path at all
-# (credential-enforced); merging is a human action: the human's
-# vrg-submit-pr turns auto-merge on. This hook is the ergonomic fast-fail on
-# top of that hard credential gate.
+# equivalent gh api calls. No agent merges a PR directly or approves one:
+# a PR merges only through vrg-submit-pr, which opens it with auto-merge
+# on. This hook is the ergonomic fast-fail on top of the hard credential
+# and server-side gates.
 # Note: vrg-gh also rejects pr merge for non-escalated contexts.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
@@ -51,7 +51,7 @@ if [ "$is_merge_command" = false ]; then
   exit 0
 fi
 
-reason="Agents never merge or approve PRs. Merging is a human action: the human's \`vrg-submit-pr\` turns auto-merge on. Hand the PR URL to the human. This applies to all identities and all branches, release PRs included. See issue #441."
+reason="Agents never merge or approve PRs directly. A PR merges only through \`vrg-submit-pr\`, which opens it with auto-merge on, so it merges by itself once its checks pass; an agent never approves any PR. This applies to all identities and all branches, release PRs included. See issue #441."
 
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
