@@ -764,6 +764,8 @@
       
         
       
+        
+      
     
     
     
@@ -816,6 +818,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.91/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.91
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5382,8 +5412,9 @@ comment and ticks its box as its last write, then pauses with the
 so a fresh session resumes at the first unticked stage with no decision or
 work lost and nothing created twice. Every task <code>file-tasks</code>
 files carries a <code>Plan task: &lt;id&gt;</code> key (<code>Plan task: &lt;id&gt; &lt;fixture&gt;</code> for a
-fixture run's tasks), so a re-entry keys any task filed without one and
-files only those missing. A checklist that a tooling release changed under
+fixture run's tasks), so a re-entry keys any task filed without one,
+adding any <code>Blocked-by:</code> refs the plan gives it that it lacks, and files
+only those missing. A checklist that a tooling release changed under
 a run (skew) is shown to the human and rewritten with <code>vrg-checkpoint
 reconcile</code>, never remapped silently. A run started before the checklist
 existed is adopted: the stages its evidence shows done are proposed, and
@@ -5395,7 +5426,10 @@ checklist reset, so a revived item starts afresh.</p>
 <p>At step 0 it checks whether the run is a security run (the planning issue
 carries the <code>security</code> label, has a <code>Security advisory:</code> line, or is tracked
 by an advisory), stops on any disagreement between the three as a broken
-pair, and records a <code>Security run: yes</code> marker that is never cleared. A
+pair, and records a <code>Security run: yes</code> marker that is never cleared, or a
+<code>Security run: no</code> marker naming the signals present. A resumed run reads
+the answer back, and asks the human again only when a signal the <code>no</code> did
+not name has appeared since. A
 security run keeps every public artifact in general terms, naming findings
 by issue ref and GHSA ID alone, and puts specifics into the advisory. Once
 the design is approved, it asks the human whether the item is safe to
@@ -5905,7 +5939,16 @@ the largest level down, and names any week or longer period with no
 entries. <code>/vergil:hoshin end</code> closes the day (終礼 shūrei), and
 <code>end &lt;week|month|quarter|year&gt;</code> closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
-with a kaizen prompt, and leaves one dated entry. The daily review also
+with a kaizen prompt, and leaves one dated entry. The daily review's
+failed and cancelled runs check reads each org's operations queue, the
+ops issues under <code>Epic (operations): &lt;org&gt;</code> in <code>&lt;org&gt;/.github</code> that the
+reporter (<code>vrg-ops-report</code>) files and comments on for each unattended
+job's failures, cancels and recoveries. GitHub Actions run history is a
+backstop, for runs that never reported, shown under a separate
+"Not reported" heading; the security-signal jobs of the <code>ops.yml</code> audit
+file no ops issue, so their runs are their only source. An org with no
+operations epic, or with more than one, is flagged rather than shown as
+clean. The daily review also
 shows two trust checks, in the terminal only: the outsider report
 (<code>vrg-epic-audit --untrusted</code>), which lists what accounts outside the
 trusted roles did in each Vergil org since the last daily review, by
