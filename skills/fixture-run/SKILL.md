@@ -63,13 +63,29 @@ the rollback on for that language.
 one fixture are serialized. Every other condition is learned from the runs
 and recorded here, one bullet each, with the run that found it:
 
-- The fixture's managed files match the released vergil-tooling:
-  `vrg-github-repo-config diff` shows no `local` drift. The agent identity
-  cannot run that check (it exits 2 under it), so the human runs it and
-  confirms the result before the change task starts. If there is drift,
-  the human syncs the files with `vrg-github-repo-config update` (merged as
-  its own `chore(repo-config)` PR) first. Found by
-  vergil-project/vergil-fixture-rust-app#20.
+- The fixture's managed files match the released vergil-tooling: run
+  `vrg-github-repo-config diff` yourself and see `local: compliant`. Under
+  the agent identity it prints the `local:` verdict, then exits 2 only
+  because the remote settings that need `administration=read` go
+  unchecked; that exit alone does not fail the condition. Only those
+  admin-only remote settings rest on the human's own run of the check or
+  their sync, cited by its PR. If there is `local` drift, stop: the human
+  syncs the files with `vrg-github-repo-config update` (merged as its own
+  `chore(repo-config)` PR) first. Found by
+  vergil-project/vergil-fixture-rust-app#20; the agent-run check by
+  vergil-project/vergil-fixture-rust-lib#46,
+  vergil-project/vergil-fixture-python-app#30,
+  vergil-project/vergil-fixture-rust-app#45,
+  vergil-project/vergil-fixture-python-lib#36,
+  vergil-project/vergil-fixture-ts-app#47 and
+  vergil-project/vergil-fixture-ts-lib#46.
+- The serialization check runs through the trust layer, as
+  `vrg-issue-read --repo vergil-project/<repo> --search "Fixture run in:title"`.
+  A trio filed from an older template may carry
+  `vrg-gh issue list --search "Fixture run in:title"` instead, which the
+  hook guard refuses as a raw-content read: run the `vrg-issue-read`
+  equivalent in its place. Found by
+  vergil-project/vergil-fixture-python-app#30.
 - **TypeScript only:** `develop` passes the audit before the change starts.
   Run `vrg-container-run -- vrg-validate --check audit` on an up-to-date
   `develop` (the change worktree before its first commit will do). The
@@ -290,10 +306,14 @@ the full cycle can begin.
   run's release or validation task on this repo is open:
   `vrg-issue-read --repo vergil-project/<repo> --search "Fixture run in:title"`
   must show no `deployment` or `validation` task other than this run's own
-  (named in the trio comment below). It shows only trusted results; one it
-  reports on stderr as untrusted neither blocks nor counts, and is named to
-  the human by that metadata. If it exits non-zero, show its stderr and
-  stop.
+  (named in the trio comment below). Only another fixture run's open
+  release or validation task blocks. The search matches only titles
+  starting "Fixture run", so any other open task on the repo (such as a
+  `Validate: …` task an epic files to run after the trio) is deliberately
+  not counted and does not block. It shows only trusted results; one it
+  reports on stderr as untrusted neither blocks nor counts, and is named
+  to the human by that metadata. If it exits non-zero, show its stderr
+  and stop.
 - Learned conditions (from the `fixture-run` skill):
   <the learned conditions, one bullet each, or "none yet">
 
