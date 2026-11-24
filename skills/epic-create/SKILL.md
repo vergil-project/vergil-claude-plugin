@@ -1303,6 +1303,20 @@ details, step 0's public-wording rule) goes into it.
    already committed on the docs branch, go straight to step 3's write of
    the epic body; otherwise the brainstorm restarts, which is safe, since it
    creates no issue.
+   - **Brainstorming runs up to the approved design, then `epic-create`
+     takes over.** Use brainstorming's conversation up to the point where
+     the human approves the design in the conversation. Skip the rest of
+     its ending: do not write its design document (under
+     `docs/superpowers/specs/` by default), do not dispatch its builder
+     check, do not wait for its approval of that document, and do not hand
+     off to `superpowers:writing-plans`. Instead, write the spec to
+     `epics/<N>-<slug>/spec.md` and commit it in step 3, then take the
+     checkpoint. `spec-pushback` (the recorded form of the builder
+     check), `spec-review` (the human's review of the written spec) and
+     `plan` replace those parts. The builder check would also run before
+     the spec is committed and ticked, so a `/clear` during it would lose
+     it. `superpowers:brainstorming` changes upstream: when its ending
+     changes, review this step against it.
    - **Brief it from the planning issue.** Read the issue body first, from
      the `vrg-issue-read` read of "Resuming" above, and pass
      in what it settles (problem, need, constraints, out of scope) as given
