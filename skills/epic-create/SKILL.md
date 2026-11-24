@@ -596,7 +596,9 @@ A planning issue is public, so anyone can comment on it. When resuming:
   or an untrusted identity edited its body), and exit 1 is a read failure:
   either way stop and tell the human, and never work around it.
 - **Check for a security run before posting anything:** a trusted
-  `Security run: yes` line makes it one (step 0's security check).
+  `Security run: yes` line makes it one, and a trusted `Security run: no`
+  line holds until a signal it does not name appears (step 0's security
+  check).
 - **The stage comes from `vrg-checkpoint status`** (step 0) and the stage
   list in [Stages](#stages), never from the latest round or progress
   comment. Inside a review stage, the round count comes from that stage's
@@ -657,6 +659,10 @@ last round comment.
   in its step 0 progress comment (step 0 says when). It is never cleared: no
   later comment removes or overrides it, and a resumed run reads it as step
   0 says.
+- An ordinary run carries a `Security run: no` line, alone on its line, in
+  its step 0 progress comment instead, the first line naming the security
+  signals present when it was recorded. A later `no` replaces it (the
+  latest wins); a `yes` overrides any `no`.
 - When you create the epic (`bootstrap`), put a `Planning: <owner>/<repo>#<M>`
   line (the planning issue's ref) in the **epic's body**.
 
@@ -1154,26 +1160,45 @@ details, step 0's public-wording rule) goes into it.
    Post the progress comments (above) at each stage boundary that follows.
    - **Security check: is this a security run?** Before posting anything,
      read the planning issue's trusted comments (see "Resuming" above) for
-     a `Security run: yes` line.
-     - **The marker is there:** this is a security run, and stays one for
-       the rest of its life. Skip the detection below and its broken-pair
-       stop: step 8's retargets remove the label, the body line and the
-       tracking, so a resumed run cannot detect it again. Resume at the
-       stage `vrg-checkpoint status` names; an interrupted step 8 re-runs
-       its identical retargets.
+     a `Security run: yes` or `Security run: no` line.
+     - **A `yes` marker is there:** this is a security run, and stays one
+       for the rest of its life, whatever any `no` marker says. Skip the
+       detection below and its broken-pair stop: step 8's retargets remove
+       the label, the body line and the tracking, so a resumed run cannot
+       detect it again. Resume at the stage `vrg-checkpoint status` names;
+       an interrupted step 8 re-runs its identical retargets.
      - **No marker:** detect it. The run is a security run if the planning
        issue carries the `security` label, has a `Security advisory:` line
        in its body, or is tracked by an advisory (`vrg-security-record list`
-       shows its ref under `tracks:`). Any disagreement between the three
-       (a label without a line, a line without the label, a tracking
-       advisory the body does not name, or a body line naming an advisory
-       that does not track it) is a **broken pair**: stop and ask the
-       human, posting nothing. If any of the three reads fails, stop and
-       report it; a failed read never means "not a security run".
+       shows its ref under `tracks:`). These are its three **signals**. Any
+       disagreement between them (a label without a line, a line without
+       the label, a tracking advisory the body does not name, or a body
+       line naming an advisory that does not track it) is a **broken
+       pair**: stop and ask the human, posting nothing, and record their
+       answer as below. If any of the three reads fails, stop and report
+       it; a failed read never means "not a security run".
+     - **Only a `no` marker is there:** the run was settled as not a
+       security run. Read the three signals again, as above. If every
+       signal present now is one the latest trusted `no` comment names, it
+       stays an ordinary run, and this check posts nothing. If a signal it
+       does not name is present (a `security` label or an advisory that
+       appeared after the answer), the record and the signals disagree:
+       stop and ask the human whether this is now a security run, posting
+       nothing until they answer, and record the answer as below, a `no`
+       again included. A failed read stops, as above.
      - **A security run** posts its step 0 progress comment now, before
        anything else is published (the stage checklist's `init` included),
        with a neutral first line (for example, `Planning started.`) and a
        `Security run: yes` line, alone on its line. Never clear it.
+     - **Not a security run** (no signal at all, or the human answered no)
+       posts its step 0 progress comment now too, unless the latest
+       trusted `no` comment already names every signal present: a first
+       line saying it is not a security run and naming the signals present
+       (`no security signals`, or which of the three, for example
+       ``Not a security run (the human's answer, with the `security` label
+       present).``), and a `Security run: no` line, alone on its line. A
+       later run reads it back as above, so a `/clear` never loses the
+       answer.
    - **The public-wording rule (security run).** Every public artifact the
      run produces stays in general terms: progress and round comments, the
      epic title and body, task titles and bodies, the slug and branch
