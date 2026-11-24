@@ -379,10 +379,12 @@ issue and in the report-ready notes as one line:
 
 ## Submit and merge
 
-The human runs `vrg-submit-pr`, which opens the PR with auto-merge on and
-always finalizes. The PR squash-merges by itself once its CI is green.
-`vrg-finalize-pr` watches it, then settles `develop` and closes this task;
-it never merges.
+After report-ready, the agent running this task submits the PR with
+`vrg-submit-pr`, as `issue-implement` says, which opens it with auto-merge
+on and always finalizes. The PR squash-merges by itself once its CI is
+green. `vrg-finalize-pr` watches it, then settles `develop` and closes this
+task; it never merges. The fixture's release stays with the human (the
+release task).
 ````
 
 ### (r) Release task
@@ -559,8 +561,9 @@ failure.
 ## Boundaries
 
 - **Files tasks only.** The recipe never runs a task of the trio, never
-  opens a PR, and never releases. The human submits the change task's PR
-  (submit turns auto-merge on and finalizes) and runs `vrg-release`.
+  opens a PR, and never releases. The agent running the change task
+  submits its PR (submit turns auto-merge on and finalizes); the human
+  runs `vrg-release`.
 - **The approval is the plan's.** The recipe files what the epic's plan
   seeded; anything else it would file needs the human's approval first
   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).

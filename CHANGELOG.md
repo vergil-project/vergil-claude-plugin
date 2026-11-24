@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.93] - 2026-11-24
+
+### Features
+
+- the implementer owns the PR to merge (#1357)
+- agents submit epic and fixture PRs (#1358)
+
 ## [2.1.92] - 2026-11-24
 
 ### Documentation

@@ -66,9 +66,9 @@ Work the issue's **Preconditions** first. Deployment has one that matters
 especially:
 
 - **A required release is a human-gated precondition.** Where deploying needs a
-  release (bump → main → tag → publish), that release is performed by a human —
-  the same policy that makes agents hand off `vrg-submit-pr` and never merge or
-  finalize. **`issue-deploy` never cuts a release.** Confirm (attest) the release
+  release (bump → main → tag → publish), that release is performed by a human:
+  agents submit and finalize their own PRs into `develop`, but releases and
+  promotion stay human-gated. **`issue-deploy` never cuts a release.** Confirm (attest) the release
   is published; do not perform it.
 - Confirm the target is reachable.
 
