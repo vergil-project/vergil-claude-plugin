@@ -134,7 +134,10 @@ checklist reset, so a revived item starts afresh.
 At step 0 it checks whether the run is a security run (the planning issue
 carries the `security` label, has a `Security advisory:` line, or is tracked
 by an advisory), stops on any disagreement between the three as a broken
-pair, and records a `Security run: yes` marker that is never cleared. A
+pair, and records a `Security run: yes` marker that is never cleared, or a
+`Security run: no` marker naming the signals present. A resumed run reads
+the answer back, and asks the human again only when a signal the `no` did
+not name has appeared since. A
 security run keeps every public artifact in general terms, naming findings
 by issue ref and GHSA ID alone, and puts specifics into the advisory. Once
 the design is approved, it asks the human whether the item is safe to
