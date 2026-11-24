@@ -596,7 +596,9 @@ A planning issue is public, so anyone can comment on it. When resuming:
   or an untrusted identity edited its body), and exit 1 is a read failure:
   either way stop and tell the human, and never work around it.
 - **Check for a security run before posting anything:** a trusted
-  `Security run: yes` line makes it one (step 0's security check).
+  `Security run: yes` line makes it one, and a trusted `Security run: no`
+  line holds until a signal it does not name appears (step 0's security
+  check).
 - **The stage comes from `vrg-checkpoint status`** (step 0) and the stage
   list in [Stages](#stages), never from the latest round or progress
   comment. Inside a review stage, the round count comes from that stage's
@@ -657,6 +659,10 @@ last round comment.
   in its step 0 progress comment (step 0 says when). It is never cleared: no
   later comment removes or overrides it, and a resumed run reads it as step
   0 says.
+- An ordinary run carries a `Security run: no` line, alone on its line, in
+  its step 0 progress comment instead, the first line naming the security
+  signals present when it was recorded. A later `no` replaces it (the
+  latest wins); a `yes` overrides any `no`.
 - When you create the epic (`bootstrap`), put a `Planning: <owner>/<repo>#<M>`
   line (the planning issue's ref) in the **epic's body**.
 
@@ -1028,12 +1034,27 @@ anything:
    `retrospective`, from its title (read its body with `vrg-issue-read`
    only when the title does not settle it), and show the human the
    matches (a fixture run's task to its entry's ID and its fixture). For
-   each match the human confirms, add the key: write the body
+   each match the human confirms, add the key. A closing bookend whose
+   title matches the convention exactly for this epic's slug (the slug
+   `bootstrap` recorded), `Retrospective: <slug>` or
+   `Documentation review: <slug>`, is keyed `retrospective` or
+   `doc-review` without asking: the match is not in doubt. Name each task
+   keyed this way, with its key, in the stage's next progress comment. Every
+   other match (a different title, an operational task, a plan task) still
+   waits for the human's confirmation, since a wrong key silently marks a
+   plan task as filed. To add a key, write the body
    from `vrg-issue-read <ref> --json` (its `issue.body`; exit 3 or 1 stops)
    to a temp file, append a blank line and the key line, and write it back
-   with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. A task the
-   human matches to no ID is left as it is, and is shown again on the next
-   entry.
+   with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. In the same
+   edit, add every `Blocked-by:` ref the plan gives that plan task and the
+   body lacks, each a `Blocked-by: <owner>/<repo>#<T>` line in the body's
+   `## Dependencies` section (adding the section if the body has none). A
+   task filed by an earlier skill, such as a bookend seeded when the epic
+   was created, can lack them, and without them `epic-implement` may start
+   it too early. Take each ref from this listing's key-to-ref map, never
+   from memory. A ref to a plan task not filed yet is added by step 4,
+   once step 3 has filed that task. A task the human matches to no ID is
+   left as it is, and is shown again on the next entry.
 3. **File only what is missing**: the plan's task IDs, `doc-review` and
    `retrospective` that no task carries, in the plan's order. A plan entry
    that seeds fixture runs is filed only when every fixture it names has
@@ -1042,6 +1063,18 @@ anything:
    `Blocked-by:` ref to a task filed earlier comes from this listing's
    key-to-ref map, never from memory. If every ID is filed, and a trusted
    `Tasks filed: yes` is already posted, go straight to the stage's tick.
+4. **Complete the `Blocked-by:` refs**, once every ID is filed and before
+   `Tasks filed: yes` is posted, on every entry that reaches this point.
+   For each keyed task (a fixture run's tasks excepted, whose dependencies
+   `fixture-run` sets from its `--after`), read the `Blocked-by:` lines of
+   its body with `vrg-issue-read <ref> --json` (exit 3 or 1 stops), as
+   step 1 reads the key, so only those lines reach context. Compare them
+   with the refs the plan gives its plan task, mapped through the
+   listing's key-to-ref map with the tasks step 3 filed added, and add
+   every missing ref as step 2 says. Nothing depends on what an earlier
+   session remembers: a clear between keying a task and adding its refs
+   loses nothing, since the next entry finds the gap here and fills it,
+   and a repeat finds nothing missing and writes nothing.
 
 **A task created but not linked** (`vrg-issue-create` exits 1 with `created
 <url> but failed to link it`) is resolved before anything else is filed and
@@ -1154,26 +1187,45 @@ details, step 0's public-wording rule) goes into it.
    Post the progress comments (above) at each stage boundary that follows.
    - **Security check: is this a security run?** Before posting anything,
      read the planning issue's trusted comments (see "Resuming" above) for
-     a `Security run: yes` line.
-     - **The marker is there:** this is a security run, and stays one for
-       the rest of its life. Skip the detection below and its broken-pair
-       stop: step 8's retargets remove the label, the body line and the
-       tracking, so a resumed run cannot detect it again. Resume at the
-       stage `vrg-checkpoint status` names; an interrupted step 8 re-runs
-       its identical retargets.
+     a `Security run: yes` or `Security run: no` line.
+     - **A `yes` marker is there:** this is a security run, and stays one
+       for the rest of its life, whatever any `no` marker says. Skip the
+       detection below and its broken-pair stop: step 8's retargets remove
+       the label, the body line and the tracking, so a resumed run cannot
+       detect it again. Resume at the stage `vrg-checkpoint status` names;
+       an interrupted step 8 re-runs its identical retargets.
      - **No marker:** detect it. The run is a security run if the planning
        issue carries the `security` label, has a `Security advisory:` line
        in its body, or is tracked by an advisory (`vrg-security-record list`
-       shows its ref under `tracks:`). Any disagreement between the three
-       (a label without a line, a line without the label, a tracking
-       advisory the body does not name, or a body line naming an advisory
-       that does not track it) is a **broken pair**: stop and ask the
-       human, posting nothing. If any of the three reads fails, stop and
-       report it; a failed read never means "not a security run".
+       shows its ref under `tracks:`). These are its three **signals**. Any
+       disagreement between them (a label without a line, a line without
+       the label, a tracking advisory the body does not name, or a body
+       line naming an advisory that does not track it) is a **broken
+       pair**: stop and ask the human, posting nothing, and record their
+       answer as below. If any of the three reads fails, stop and report
+       it; a failed read never means "not a security run".
+     - **Only a `no` marker is there:** the run was settled as not a
+       security run. Read the three signals again, as above. If every
+       signal present now is one the latest trusted `no` comment names, it
+       stays an ordinary run, and this check posts nothing. If a signal it
+       does not name is present (a `security` label or an advisory that
+       appeared after the answer), the record and the signals disagree:
+       stop and ask the human whether this is now a security run, posting
+       nothing until they answer, and record the answer as below, a `no`
+       again included. A failed read stops, as above.
      - **A security run** posts its step 0 progress comment now, before
        anything else is published (the stage checklist's `init` included),
        with a neutral first line (for example, `Planning started.`) and a
        `Security run: yes` line, alone on its line. Never clear it.
+     - **Not a security run** (no signal at all, or the human answered no)
+       posts its step 0 progress comment now too, unless the latest
+       trusted `no` comment already names every signal present: a first
+       line saying it is not a security run and naming the signals present
+       (`no security signals`, or which of the three, for example
+       ``Not a security run (the human's answer, with the `security` label
+       present).``), and a `Security run: no` line, alone on its line. A
+       later run reads it back as above, so a `/clear` never loses the
+       answer.
    - **The public-wording rule (security run).** Every public artifact the
      run produces stays in general terms: progress and round comments, the
      epic title and body, task titles and bodies, the slug and branch
@@ -1251,6 +1303,20 @@ details, step 0's public-wording rule) goes into it.
    already committed on the docs branch, go straight to step 3's write of
    the epic body; otherwise the brainstorm restarts, which is safe, since it
    creates no issue.
+   - **Brainstorming runs up to the approved design, then `epic-create`
+     takes over.** Use brainstorming's conversation up to the point where
+     the human approves the design in the conversation. Skip the rest of
+     its ending: do not write its design document (under
+     `docs/superpowers/specs/` by default), do not dispatch its builder
+     check, do not wait for its approval of that document, and do not hand
+     off to `superpowers:writing-plans`. Instead, write the spec to
+     `epics/<N>-<slug>/spec.md` and commit it in step 3, then take the
+     checkpoint. `spec-pushback` (the recorded form of the builder
+     check), `spec-review` (the human's review of the written spec) and
+     `plan` replace those parts. The builder check would also run before
+     the spec is committed and ticked, so a `/clear` during it would lose
+     it. `superpowers:brainstorming` changes upstream: when its ending
+     changes, review this step against it.
    - **Brief it from the planning issue.** Read the issue body first, from
      the `vrg-issue-read` read of "Resuming" above, and pass
      in what it settles (problem, need, constraints, out of scope) as given
@@ -1381,7 +1447,8 @@ details, step 0's public-wording rule) goes into it.
    <fixture>` for a fixture run's tasks), and on every entry to the stage the
    [keyed filing](#keyed-filing) pass lists the tasks already filed, keys
    any that have none, and files only those missing. When the
-   last one is filed (and every retarget below has succeeded), post the
+   last one is filed (every retarget below has succeeded, and the key
+   pass has completed every task's `Blocked-by:` refs), post the
    progress comment with `Tasks filed: yes`, tick `file-tasks`, and take the
    checkpoint pause. The pause comes only at the stage's end, not after each
    task.
@@ -1395,8 +1462,9 @@ details, step 0's public-wording rule) goes into it.
      retrospective`. The **documentation-review** task usually lands its PR
      in the **member repo** holding the site docs (e.g.
      `vergil-tooling/docs/site`), which the design decides, so file it there
-     (`--repo <owner>/<repo>`), never blanket `.github`, and key it `Plan
-     task: doc-review`. It is a **multi-repo sweep**: at review time it may
+     (`--repo <owner>/<repo>`), never blanket `.github`, with the title
+     `Documentation review: <epic-slug>`, and key it `Plan task:
+     doc-review`. It is a **multi-repo sweep**: at review time it may
      **spawn additional per-repo doc tasks** (each `--repo <that-repo>`,
      linked under N, or under that org's proxy for a repo in another org,
      closed by a same-repo PR) for documentation that lives in other repos.

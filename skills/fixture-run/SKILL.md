@@ -474,8 +474,11 @@ A machine probe; check each before anything else, with evidence.
 - The release task vergil-project/<repo>#<r> is closed with
   `Outcome: SUCCESS`, and the release it recorded (`Released: vX.Y.Z`)
   contains the change task vergil-project/<repo>#<a>'s merge.
-- The release's workflow runs have **finished**. A `vX.Y.Z` tag that exists
-  while its release workflow is queued or still running is blocked, not
+- The release's runs have **finished**. No workflow runs on the tag push
+  itself: the release work runs in the release PR's CI, the CD run on the
+  push to `main` at the release commit, and the runs of the back-merge PR to
+  `develop` and of the dependency-update PR that follow the release. A
+  release whose runs are queued or still in progress is blocked, not
   FAILURE.
 - **Deployed-version probe.** <what> is what the fixture actually consumed
   in the runs this task judges (the change PR's CI and `main`'s CI for the

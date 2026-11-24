@@ -120,8 +120,9 @@ comment and ticks its box as its last write, then pauses with the
 so a fresh session resumes at the first unticked stage with no decision or
 work lost and nothing created twice. Every task `file-tasks`
 files carries a `Plan task: <id>` key (`Plan task: <id> <fixture>` for a
-fixture run's tasks), so a re-entry keys any task filed without one and
-files only those missing. A checklist that a tooling release changed under
+fixture run's tasks), so a re-entry keys any task filed without one,
+adding any `Blocked-by:` refs the plan gives it that it lacks, and files
+only those missing. A checklist that a tooling release changed under
 a run (skew) is shown to the human and rewritten with `vrg-checkpoint
 reconcile`, never remapped silently. A run started before the checklist
 existed is adopted: the stages its evidence shows done are proposed, and
@@ -134,7 +135,10 @@ checklist reset, so a revived item starts afresh.
 At step 0 it checks whether the run is a security run (the planning issue
 carries the `security` label, has a `Security advisory:` line, or is tracked
 by an advisory), stops on any disagreement between the three as a broken
-pair, and records a `Security run: yes` marker that is never cleared. A
+pair, and records a `Security run: yes` marker that is never cleared, or a
+`Security run: no` marker naming the signals present. A resumed run reads
+the answer back, and asks the human again only when a signal the `no` did
+not name has appeared since. A
 security run keeps every public artifact in general terms, naming findings
 by issue ref and GHSA ID alone, and puts specifics into the advisory. Once
 the design is approved, it asks the human whether the item is safe to
@@ -717,7 +721,16 @@ the largest level down, and names any week or longer period with no
 entries. `/vergil:hoshin end` closes the day (終礼 shūrei), and
 `end <week|month|quarter|year>` closes that period with every smaller one
 still open. Each review runs its level's checklist with the human, ends
-with a kaizen prompt, and leaves one dated entry. The daily review also
+with a kaizen prompt, and leaves one dated entry. The daily review's
+failed and cancelled runs check reads each org's operations queue, the
+ops issues under `Epic (operations): <org>` in `<org>/.github` that the
+reporter (`vrg-ops-report`) files and comments on for each unattended
+job's failures, cancels and recoveries. GitHub Actions run history is a
+backstop, for runs that never reported, shown under a separate
+"Not reported" heading; the security-signal jobs of the `ops.yml` audit
+file no ops issue, so their runs are their only source. An org with no
+operations epic, or with more than one, is flagged rather than shown as
+clean. The daily review also
 shows two trust checks, in the terminal only: the outsider report
 (`vrg-epic-audit --untrusted`), which lists what accounts outside the
 trusted roles did in each Vergil org since the last daily review, by
