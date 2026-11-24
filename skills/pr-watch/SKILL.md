@@ -1,26 +1,29 @@
 ---
 name: pr-watch
-description: Monitor and reconcile an open PR that `vrg-submit-pr` opened with auto-merge on: the skill the agent uses to repair a submitted PR that did not merge. Use whenever a submitted PR needs watching or fixing — `vrg-finalize-pr` reports a PR not merged, the human reports a red check or a conflict, or the human asks to watch, monitor, babysit or fix the PR through CI and review. On a reported failure the agent runs it at once and never hands the command back; it does not start it after a submit by itself, since vrg-finalize-pr watches. Runs in the USER agent session: block on vrg-pr-await until the PR merges (exit 0) or cannot merge (exit 1, with a reason), reconcile failing CI, conflicts and human review comments (found by pr-watch itself, since the wait never returns on a review), merge-review every fix but a clean rebase before pushing it, run the batch check before any push to a batch PR, and tell the human to rerun `vrg-finalize-pr` once a fix is pushed.
+description: Monitor and reconcile an open PR that `vrg-submit-pr` opened with auto-merge on: the one watch procedure, which issue-implement runs after its own submit reports a PR not merged, and the standalone entry for re-entering an open PR. Use whenever a submitted PR needs watching or fixing — `vrg-submit-pr` or `vrg-finalize-pr` reports a PR not merged, the human reports a red check or a conflict, or the human asks to watch, monitor, babysit or fix the PR through CI and review. On a reported failure the agent runs it at once and never hands the command back; it does not start while submit or finalize is still watching the PR. Runs in the USER agent session: block on vrg-pr-await until the PR merges (exit 0) or cannot merge (exit 1, with a reason), reconcile failing CI, conflicts and human review comments (found by pr-watch itself, since the wait never returns on a review), merge-review every fix but a clean rebase before pushing it, run the batch check before any push to a batch PR, and rerun `vrg-finalize-pr` itself once a fix is pushed. Never runs anything with `--release`.
 ---
 
 # PR watch
 
 Drive the post-submit loop. `vrg-submit-pr` opens each PR against `develop`
 with GitHub **auto-merge on**, pinned to the pushed head, so the PR lands by
-itself as soon as its required checks are green. Submitting is the human's
+itself as soon as its required checks are green. Submitting is the
 consent to merge. This skill's job is to get a PR that did not land to
 green: it fixes failing CI, resolves conflicts and addresses review
 comments, and it guards every push, because a pushed fix that turns CI
 green merges with no further human step.
 
-It is how the agent repairs a submitted PR that did not merge. Run it
-yourself, at once, when `vrg-finalize-pr`'s report names a PR as not
-merged (see
+It is the one watch procedure, and how the agent repairs a submitted PR
+that did not merge. `issue-implement` runs it after its own `vrg-submit-pr`
+reports the PR not merged; it is also the standalone entry for re-entering
+an open PR. Run it yourself, at once, when the report of `vrg-submit-pr` or
+`vrg-finalize-pr` names a PR as not merged (see
 [Finalize's reasons](#finalizes-reasons--what-to-do-for-each)), when the
 human reports a red check or a conflict on one, or when the human asks for
 a PR to be watched or fixed. Never hand the `/vergil:pr-watch <PR_URL>`
-command back to the human to run. Do not start it after a submit by yourself:
-`vrg-finalize-pr` already watches the PRs.
+command back to the human to run. Do not start it while submit or finalize
+is still watching the PR: they watch it first, and this skill starts from
+their report.
 
 ## `vrg-pr-await` waits for the merge — one wait per pass, don't poll
 
@@ -142,9 +145,11 @@ Loop:
    Exit 1 goes to the action for its `reason` in
    [Cannot merge](#cannot-merge--what-to-do-for-each-reason). Any other
    exit is an error: show it to the human and stop.
-4. Once a fix is pushed, **loop** from step 1. The new head re-triggers
-   CI, and auto-merge lands the PR by itself once its required checks are
-   green.
+4. Once a fix is pushed, the rerun of `vrg-finalize-pr`
+   ([Before every push](#before-every-push) step 5) is the next wait, in
+   place of `vrg-pr-await`; act on its exit as that step says, then
+   **loop** from step 1. The new head re-triggers CI, and auto-merge lands
+   the PR by itself once its required checks are green.
 
 If you cannot get a check green, cannot resolve a conflict or cannot
 satisfy a comment, **stop and ask the human** rather than thrashing.
@@ -255,8 +260,7 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    | Outcome | Then |
    | --- | --- |
    | `eligible` | Go on to the next step. |
-   | `not-eligible (human-ruling)` with `Branch as reviewed: yes` | Go on to the next step. The human has ruled on every item and no ruling changed the branch the review judged, so a second decision would add nothing. Tell the human the eligibility line when you report the push. |
-   | Any other `not-eligible (<reason>)` | **Do not push.** Tell the human the eligibility line, the branch-as-reviewed line and the branch's head, and stop; the human decides what happens to the fix. |
+   | `not-eligible (<reason>)` | Go on to the next step. The run needed the human, and every ruling it asked for is answered: the human's ruling is the decision, so a second one would add nothing. Tell the human the eligibility line and the branch-as-reviewed line when you report the push. |
    | `exempt: request <id>` | Go on to the next step. The human approved an exemption for this fix, which they asked for. Tell the human the exemption line when you report the push. |
    | `stopped: request <id>` | Do not push. Stop, giving the request ID and its kind. The human replies with `vrg-ruling-reply` (for an exemption request, one of the two commands the skill printed), and running this skill again resumes the review. |
    | `waiting: non-review items` | Do not push. Stop and list the items. |
@@ -283,9 +287,19 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    so running it there is harmless but not needed.
 4. **Push.** After a rebase or a fold, `vrg-git push --force-with-lease`;
    otherwise `vrg-git push`. Never a bare `--force`.
-5. **Tell the human** to rerun `vrg-finalize-pr <PR>`, not to merge: the
-   fix lands by itself once CI is green, and finalize then counts the PR
-   as merged and settles `develop`. Then loop.
+5. **Rerun `vrg-finalize-pr <PR>` yourself**, never with `--release`. It
+   watches the fixed head, re-running the merge-review gate on it, and,
+   once the PR lands, counts it as merged and settles `develop`. Wait for
+   it as for `vrg-pr-await`: a background command where the harness
+   notifies on its exit, otherwise in the foreground with a short
+   `$VRG_FINALIZE_DEADLINE`. Act on its exit:
+
+   | Exit | Then |
+   | --- | --- |
+   | 0 | Go to [The PR merged](#the-pr-merged); finalize has counted it. |
+   | 3 | Act on the PR's reason in its report, as [Finalize's reasons](#finalizes-reasons--what-to-do-for-each) says, then loop. |
+   | 4 | `develop` did not validate. Stop and tell the human, with the output. Push nothing. |
+   | anything else | A tool error: show it to the human and stop. Push nothing. |
 
 ## Batch PRs — fold every fix into its issue's commit
 
@@ -367,8 +381,9 @@ itself.
 | `failed: not a develop PR` | Stop and tell the human. Finalize does not watch it, and neither does this skill. |
 | merged, with a provenance violation flagged | Nothing to fix on the branch. Tell the human, who investigates it; push nothing. |
 
-After any fix is pushed, the human reruns `vrg-finalize-pr <PR>`, which
-counts the PR as merged once it lands.
+After any fix is pushed, you rerun `vrg-finalize-pr <PR>`
+([Before every push](#before-every-push) step 5), which counts the PR as
+merged once it lands.
 
 ### Auto-merge off or a provenance violation — stop
 
@@ -385,10 +400,12 @@ A merged PR is finished: the branch is done for good, and any further
 change is a new follow-up issue, proposed to the human first. Read the
 review comments once more, as
 [Review comments](#review-comments--found-and-handled-here) says, and
-propose a follow-up for each one still unaddressed. Tell the
-human it merged, and whether any fix was pushed since finalize last ran:
-if so, they rerun `vrg-finalize-pr <PR>` so finalize counts it and settles
-`develop`.
+propose a follow-up for each one still unaddressed. If no finalize run
+has counted the merge (it merged during a `vrg-pr-await` wait), run
+`vrg-finalize-pr <PR>` yourself, never with `--release`, so it counts the
+PR and settles `develop`, and act on its exit as
+[Before every push](#before-every-push) step 5 says. Then tell the human
+it merged.
 
 ## Why pushing here is allowed (the freeze lifts at submit)
 
@@ -401,7 +418,7 @@ rebase/force-push above are legitimate — they act on an open PR, not on a froz
 pre-submit branch.
 
 That distinction is the whole point: this skill is the *only* place a
-reported-ready branch is touched again, and only because the human's submit
+reported-ready branch is touched again, and only because the submit
 reopened it. It is not a license to reopen a branch that has not been submitted —
 that still requires a deliberate `vrg-pr-workflow unfreeze`. And once the PR
 merges the branch is done for good: any further change is a new follow-up issue,
@@ -409,13 +426,14 @@ never a mutation of the merged branch.
 
 ## Notes
 
-- **The human's submit turned auto-merge on.** `vrg-submit-pr` enables it
+- **The submit turned auto-merge on.** `vrg-submit-pr` enables it
   on every PR it opens, squash for a single-issue PR and rebase for a
   batch PR, so the PR merges once its required checks are green. That is
-  the merge: the human consented to it by submitting.
+  the merge: submitting was the consent to it.
 - **You never merge the PR, and never turn auto-merge on or off.** You
-  never run `vrg-submit-pr` or `vrg-finalize-pr` either; you tell the
-  human when to rerun finalize. Repositories also let the automation
-  App's mechanized PRs merge on CI alone; that path is not this skill's.
+  rerun `vrg-finalize-pr` yourself after a fix; you never run anything
+  with `--release`, since releases and promotion stay the human's.
+  Repositories also let the automation App's mechanized PRs merge on CI
+  alone; that path is not this skill's.
 - **Every push can merge.** That is why a fix other than a clean rebase is
   merge-reviewed first, and why a batch PR is checked before every push.

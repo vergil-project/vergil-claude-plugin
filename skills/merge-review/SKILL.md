@@ -361,8 +361,8 @@ line is the `request_id` of this run's `request-review.json`).
 **No report-ready.** The run ends `eligible` or `not-eligible (<reason>)`
 and hands `pr-watch` the eligibility line and the
 [branch-as-reviewed line](#branch-as-reviewed-open-pr-only). `pr-watch`
-pushes on `eligible`, and on `not-eligible (human-ruling)` only with
-`Branch as reviewed: yes`. Once the closing comment is posted, the run deletes `<dir>`,
+pushes on either, since a `not-eligible` run has every ruling answered,
+and reports the branch-as-reviewed line with the push. Once the closing comment is posted, the run deletes `<dir>`,
 and its parent `issue-implement/<N>/` if then empty, as `issue-implement`
 does after report-ready
 ([Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off));
@@ -1033,8 +1033,9 @@ run needed the human, and that stays true.
 
 ### Branch as reviewed (open PR only)
 
-A run on an open PR adds one more fact for `pr-watch`, which must not hold
-a passing fix for a second human decision that carries no information.
+A run on an open PR adds one more fact, which `pr-watch` reports to the
+human with the push: whether the human's rulings left the reviewed branch
+as it was.
 `Branch as reviewed: yes` when **all** of these hold, and `no` otherwise:
 
 - `stop-reason.txt` is `human-ruling` from a [Decide](#decide) stop (not

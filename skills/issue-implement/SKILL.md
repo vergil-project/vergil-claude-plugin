@@ -1,16 +1,16 @@
 ---
 name: issue-implement
-description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. Also takes a list of small same-epic issues and implements them as one batch PR, one commit per issue. You implement directly in a worktree, validate to green, run the merge-review skill, then record the PR metadata with `vrg-pr-workflow report-ready`, which writes the `.vergil/pr-workflow.json` that vrg-submit-pr consumes. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Run as the vergil-user agent.
+description: Implement a GitHub issue end-to-end as the USER agent. Use whenever the human asks to implement, build, fix, or start work on an issue — "implement #170", "go implement this", "let's do issue N", "build out this issue" — with or without the slash command. Also takes a list of small same-epic issues and implements them as one batch PR, one commit per issue. You implement directly in a worktree, validate to green, run the merge-review skill, then record the PR metadata with `vrg-pr-workflow report-ready`, which writes the `.vergil/pr-workflow.json` that vrg-submit-pr consumes, submit the PR yourself with `vrg-submit-pr` (auto-merge on; it always finalizes), and carry it to the merge through pr-watch's watch procedure, stopping only for a ruling or a failure that needs the human. PR creation is funneled exclusively through vrg-submit-pr (vrg-gh pr create is banned), so hand-rolling the worktree/commit/PR flow instead leaves the work stranded with no path to a PR. Releases stay human: never `--release`. Run as the vergil-user agent.
 ---
 
 # Issue Implement
 
-Implement a GitHub issue end-to-end as the USER agent, then hand the PR off to
-the human. You **implement the issue directly** in a worktree, validate it
-green, run the [merge review](#merge-review), record the PR metadata through
-`vrg-pr-workflow report-ready` (which also
-pushes the branch to origin), and tell
-the human to open the PR with `vrg-submit-pr`. You never open the PR yourself.
+Implement a GitHub issue end-to-end as the USER agent, through to the merge.
+You **implement the issue directly** in a worktree, validate it green, run the
+[merge review](#merge-review), record the PR metadata through
+`vrg-pr-workflow report-ready` (which also pushes the branch to origin), then
+[submit the PR and watch it to the merge](#submit-and-watch-to-the-merge)
+yourself. You own the PR until it merges or needs the human.
 Given a list of issues, you implement them as one batch: see
 [Batch mode](#batch-mode--a-list-of-issues).
 
@@ -20,7 +20,8 @@ Implement by the most efficient means at your disposal. **Sub-agents are
 encouraged** wherever they make the work faster or keep your context clean —
 research fan-out, parallel sub-tasks, isolated exploration. You need not narrate
 every step for the human to watch: oversight lives in the front-loaded plan and
-at the hard gates (PR submit, merge, release), not in a live transcript. This is
+at the hard gates (merge review, the checks submit and finalize run, CI,
+release), not in a live transcript. This is
 the **Front-Loaded Judgment, Trusted Execution** doctrine (see the
 [execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)).
 
@@ -214,6 +215,11 @@ drafts it at the gate.
    issue's batch worktree, the task is the last issue of a collapsed batch
    whose run ended before its merge review. Skip step 7, `cd` into that
    worktree, and continue at [Implement](#implement) on its work there.
+   If the task's worktree exists and `vrg-pr-workflow status`, run in it,
+   shows it reported ready or submitted, the run stopped after
+   `report-ready`: skip step 7, `cd` into it and resume at
+   [Submit and watch to the merge](#submit-and-watch-to-the-merge),
+   running `pr-watch` on the PR if one is already open for the branch.
 7. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
@@ -467,14 +473,11 @@ the file `vrg-submit-pr` reads. **Do not push the branch yourself first**; there
 is no separate push step. It is a plain run-and-done command: it pushes, records
 the metadata, and exits. There is no loop to drive, nothing to poll, and no
 second agent to wait for. If you need to correct the title/summary/notes before
-the human submits, just run `report-ready` again — it overwrites (and the push
+you submit, just run `report-ready` again — it overwrites (and the push
 is a no-op when origin already has the reported commit).
 
 How the push can end:
 
-- **`.github/workflows/**` changes** — GitHub refuses an agent identity's push of
-  workflow files. That is expected: `report-ready` warns, **records the state
-  anyway**, and the human's `vrg-submit-pr` pushes the branch at submit time.
 - **`origin/<branch>` has diverged on a first report** (you rebased after an
   earlier push, before any report was recorded) — the plain push is refused and
   `report-ready` stops with nothing recorded. Update the branch with
@@ -488,18 +491,59 @@ How the push can end:
 - **Any other push failure** — `report-ready` fails with **nothing recorded** and
   no relay ref written. Fix the cause and re-run it.
 
-Then tell the human: *"Ready — run `vrg-submit-pr` to open the PR."* Stop. Only
-the human opens the PR. Submitting is the human's consent to merge:
-`vrg-submit-pr` opens the PR with auto-merge on, so it merges by itself once
-its CI is green, and always finalizes (`vrg-finalize-pr` watches and
-settles, and never merges).
+If GitHub refuses the push for workflow files (an installation without
+`workflows: write`), stop and hand off: report-ready has recorded the state,
+and the human's `vrg-submit-pr` pushes it.
+
+Then go on to [Submit and watch to the merge](#submit-and-watch-to-the-merge).
+
+## Submit and watch to the merge
+
+Once `report-ready` has succeeded, submit the PR yourself, from the
+worktree, with no arguments:
+
+```bash
+vrg-submit-pr
+```
+
+It runs the merge-review gate before it pushes or opens anything, opens
+the PR against `develop` with auto-merge on, pinned to the reported head,
+and always finalizes: it blocks while `vrg-finalize-pr` watches the PR to
+a merge or a reason it cannot merge, then settles `develop`. Your submit,
+after a merge review that let the handoff go on, is the consent to merge.
+The wait can last up to `$VRG_FINALIZE_DEADLINE` (7200s by default), so
+run it as a background command where the harness notifies on its exit
+(in Claude Code, a Bash call with `run_in_background`), and wait for the
+notification; do not poll it. Never pass `--release`, and never use the
+branch-list or `--issue`/`--summary`/`--title` modes: submit refuses them
+for agents.
+
+Act on its exit status:
+
+| Exit | Then |
+| --- | --- |
+| 0 | The PR merged and `develop` is settled. Tell the human it merged, with its URL. The task is done. |
+| 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it. |
+| 4 | `develop` did not validate after the settle. Stop and tell the human, with the output. |
+| 1, or any other | A refusal or a tool error. Show its output and stop; never retry with other flags. |
+
+Find the PR's URL with `vrg-gh pr list --repo <owner>/<repo> --head
+<branch> --state all --json url,state`. `pr-watch` holds the one watch
+procedure: it fixes, merge-reviews and pushes, reruns `vrg-finalize-pr`
+itself after each fix, and goes on until the PR merges or the human is
+needed. Its stops are yours: end the run with what it reports.
+
+Where the repository's CLAUDE.md still says agents never run
+`vrg-submit-pr`, it governs: stop after `report-ready` and tell the human
+*"Ready — run `vrg-submit-pr` to open the PR."*
 
 ## Cloud / remote sessions — the relay handoff
 
-With the relay tooling
+A cloud session does not submit: submission there stays the human's, on
+the Mac (the relay path refuses agents). Stop after `report-ready` and tell
+the human to submit. With the relay tooling
 (epic [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148)),
-the Mac does not need the session's filesystem, and only PR **submission
-and merge** stay human-on-Mac:
+the Mac does not need the session's filesystem:
 
 - `report-ready` pushes the **feature branch** and then a **relay ref** to
   origin carrying the ready-state, so the Mac no longer needs the session's
@@ -516,7 +560,7 @@ and merge** stay human-on-Mac:
 ## The branch is frozen once you report it ready
 
 Reporting ready is a one-way handoff. From the moment `report-ready` records the
-metadata until the human runs `vrg-submit-pr`, the branch is **frozen** —
+metadata until `vrg-submit-pr` submits it, the branch is **frozen** —
 `vrg-commit` and the `vrg-git` push path refuse any new commit or
 branch-advancing push to it, and the enforcement flags "drift" if HEAD has
 already moved past the reported commit. This is the tooling stopping the
@@ -572,7 +616,7 @@ it refuses to overwrite if the remote moved unexpectedly), never a bare
 
 If the base only advances **after** you have reported ready, do **not** rebase
 the frozen branch — the push path refuses it. Leave it: a conflict that surfaces
-between report-ready and submit is resolved after the human submits, in
+between report-ready and submit is resolved after the submit, in
 `pr-watch` (submitting lifts the freeze, so the post-submit rebase/force-push
 there is legitimate). Reopening earlier requires a deliberate
 `vrg-pr-workflow unfreeze`. After an unfreeze, rebase and validate as in steps
@@ -877,7 +921,7 @@ run of the issue is under way.
 **Its handoff** is a single issue's:
 [Record the PR metadata](#record-the-pr-metadata-and-hand-off) from the
 batch worktree, with the one `--issue <N>`, and the default linkage. The
-human's `vrg-submit-pr` takes the batch branch as it is: one issue makes
+`vrg-submit-pr` takes the batch branch as it is: one issue makes
 it an ordinary PR, with one linkage line, and it squash-merges through
 auto-merge once its CI is green.
 
@@ -906,7 +950,7 @@ gave it, prefixed with its ref (`#<N>: Merge review: done: …`), then the
 rest as for a single issue. Then delete each issue's `merge-review/`
 directory, and its `issue-implement/<N>/` if then empty, as
 [Record the PR metadata](#record-the-pr-metadata-and-hand-off) says. The
-freeze, the push outcomes and the human's `vrg-submit-pr` are as for a
+freeze, the push outcomes, the submit and the watch are as for a
 single issue, except that the batch PR rebase-merges through auto-merge,
 so each issue's commit lands on `develop` as it is.
 
@@ -914,7 +958,8 @@ so each issue's commit lands on `develop` as it is.
 
 - `vrg-submit-pr` reads the PR metadata from the state file `report-ready` wrote
   (`.vergil/pr-workflow.json`); you never write a PR template by hand.
-- You never open the PR and never post checks.
+- You open the PR only through `vrg-submit-pr`, never with `--release`,
+  and never post checks. Releases and promotion are the human's.
 - The issue's comments, read through `vrg-issue-read`, are the recovery
   record if a session is lost mid-task;
   `paad:handoff` is available for session continuity.
