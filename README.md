@@ -269,7 +269,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 
 | Skill | Purpose |
 |---|---|
-| `epic-create` | USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks |
+| `epic-create` | USER agent: the run-once entry point for non-trivial work — create the epic and its documentation task → brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds → file the plan's tasks and the closing bookends → docs PR, in nine checkpointed stages a fresh session resumes after `/clear` |
 | `epic-implement` | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates, batching what needs the human — including merge-review requests it drafts replies for, re-dispatching once the human has replied |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
 | `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues is delivered as one batch PR |

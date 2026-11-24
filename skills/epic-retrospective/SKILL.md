@@ -37,7 +37,8 @@ Canonical convention: `vergil-project/.github#40`; this skill's own epic:
    must print `ok`. If not, stop.
 2. Resolve the epic ref (`<org>/.github#N`, `#N`, or a URL) and read the epic
    issue. Identify the **retrospective task** — the epic's retrospective bookend,
-   seeded by `epic-create` and stamped with the `retrospective` label
+   filed by `epic-create` (since plugin 2.1.89 in its `file-tasks` stage,
+   keyed `Plan task: retrospective`) and stamped with the `retrospective` label
    (`vrg-issue-create --kind retrospective`, tooling ≥ 2.1.167). **Identify it by
    that label.** Fall back to the title convention (`Retrospective: <epic-slug>`)
    only for epics created before the label existed.

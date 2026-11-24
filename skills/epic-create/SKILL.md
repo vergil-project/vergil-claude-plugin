@@ -1,6 +1,6 @@
 ---
 name: epic-create
-description: Use as the DEFAULT entry point for non-trivial work — a feature, a cross-cutting or multi-PR initiative, or a brainstorm promoted into the epic/task framework. It runs brainstorming, creates the epic and its bookend tasks in the org .github, and drives spec → spec pushback rounds → human spec review → plan → plan pushback and alignment rounds → docs PR, each review round a fresh review-only subagent, the human deciding every finding and round. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding if a spec is an epic or one task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue and choose what to plan next ("what's in planning", "what should we plan next", "prioritize the planning queue", "what's in planning worth planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
+description: Use as the DEFAULT entry point for non-trivial work — a feature, a cross-cutting or multi-PR initiative, or a brainstorm promoted into the epic/task framework. It creates the epic in the org .github and drives brainstorm → spec pushback rounds → human spec review → plan → plan pushback and alignment rounds → task filing → docs PR in nine checkpointed stages, resumable after /clear, each review round a fresh review-only subagent, the human deciding every finding and round. Triggers: "let's build X", "start an epic for this", "save this spec as an epic", "this is an epic, not a task", or deciding if a spec is an epic or one task. Every run is tracked in a planning issue — pass a planning, intake or deferred issue, a free-text idea, or no argument to summarize the planning queue and choose what to plan next ("what's in planning", "what should we plan next", "prioritize the planning queue", "what's in planning worth planning", "resume planning on #N"). If the work reduces to one PR, it is a task, not an epic.
 ---
 
 # Epic create
@@ -1377,7 +1377,8 @@ details, step 0's public-wording rule) goes into it.
    lands and linked under the epic: born linked via `vrg-issue-create --epic
    <org>/.github#N --repo <owner>/<repo> …`, or linked after the fact with
    `vrg-epic-link --epic <org>/.github#N --task <owner>/<repo>#<TASK>`. Each
-   carries its `Plan task: <id>` key, and on every entry to the stage the
+   carries its `Plan task:` key (`Plan task: <id>`, or `Plan task: <id>
+   <fixture>` for a fixture run's tasks), and on every entry to the stage the
    [keyed filing](#keyed-filing) pass lists the tasks already filed, keys
    any that have none, and files only those missing. When the
    last one is filed (and every retarget below has succeeded), post the
