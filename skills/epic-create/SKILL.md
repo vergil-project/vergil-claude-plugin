@@ -1034,7 +1034,15 @@ anything:
    `retrospective`, from its title (read its body with `vrg-issue-read`
    only when the title does not settle it), and show the human the
    matches (a fixture run's task to its entry's ID and its fixture). For
-   each match the human confirms, add the key: write the body
+   each match the human confirms, add the key. A closing bookend whose
+   title matches the convention exactly for this epic's slug (the slug
+   `bootstrap` recorded), `Retrospective: <slug>` or
+   `Documentation review: <slug>`, is keyed `retrospective` or
+   `doc-review` without asking: the match is not in doubt. Name each task
+   keyed this way, with its key, in the stage's next progress comment. Every
+   other match (a different title, an operational task, a plan task) still
+   waits for the human's confirmation, since a wrong key silently marks a
+   plan task as filed. To add a key, write the body
    from `vrg-issue-read <ref> --json` (its `issue.body`; exit 3 or 1 stops)
    to a temp file, append a blank line and the key line, and write it back
    with `vrg-gh issue edit <T> --repo <repo> --body-file <tmp>`. In the same
