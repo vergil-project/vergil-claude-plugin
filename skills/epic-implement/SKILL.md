@@ -184,8 +184,9 @@ gate (step 4) with its ref and that reason, and never worked around. Exit
 1 or 2: a problem (step 5).
 
 Before dispatching any `issue-validate` or `issue-deploy` run whose task
-has an `operational/<N>/` state directory, show the human its listing for
-confirmation and pass the answer in the prompt
+has an `operational/<N>/` state directory that holds anything, show the
+human its listing for confirmation and pass the answer in the prompt; an
+empty one with no `Kept:` line recorded counts as absent and needs none
 ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)).
 
 **Code tasks at merge review.** `issue-implement` runs the `merge-review`
@@ -286,7 +287,7 @@ present everything needing the human:
   together, with each
   item's text, the approved form, any security details and the human's
   confirmation of the listing of any `operational/<N>/` state directory the
-  task has ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)),
+  task has that holds anything ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)),
   to one new run of that task's skill, never alongside another run of the
   same task, which carries out those
   rulings and nothing else, even on a reported-ready or closed task
