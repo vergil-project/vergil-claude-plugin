@@ -51,7 +51,10 @@ Canonical convention: `vergil-project/.github#40`; this skill's own epic:
    close-out step 3, skipping the sweep, the drafting and the approval:
    the retrospective stays as the human approved it, so merge review
    resumes on the branch its ruling was about. A merge-review directory
-   with no such worktree: stop and ask the human.
+   with no such worktree: stop and ask the human. If instead the
+   retrospective task's PR is already open (an earlier run submitted it and
+   ended before the merge), run the **`pr-watch`** skill on that PR once
+   the gate below passes, and do nothing else.
 
 ### The definition-of-done gate
 
@@ -327,22 +330,30 @@ On approval:
    … --notes …`, with the merge review's eligibility line (or its exemption
    line) in `--notes`, then delete its directory as `issue-implement`'s
    [Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off)
-   says; the **human** runs `vrg-submit-pr`. You never open the PR.
+   says.
    At the handoff, link the retrospective from the epic:
    `vrg-epic-docs set --epic <owner>/<repo>#<N> --retrospective
    epics/<N>-<slug>/retrospective.md`, with the epic ref fully qualified (the
    tool refuses a bare `#N` or a URL) and `<slug>` taken from the epic's
    existing `epics/<N>-*/` directory. The link resolves once the PR merges. If
    it fails, stop and report its error.
-5. Merging the retrospective's docs PR closes the retrospective task — the **last
+5. **Submit the PR** from the worktree and watch it to the merge, as
+   `issue-implement`'s
+   [Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+   says: the human's review of the retrospective already happened in the
+   draft → review loop. Where the home repo's CLAUDE.md still forbids agent
+   submits, or GitHub refused the push for workflow files, that section's
+   handoff to the human applies instead.
+6. Merging the retrospective's docs PR closes the retrospective task — the **last
    open child** — and `vrg-finalize-pr` rolls up and **closes the epic**.
 
 ## Notes
 
 - **Run once, last.** The gate guarantees the retrospective is the terminal act;
   do not run it while other tasks are open.
-- You never open the PR, never merge, and never cut a release — those are human
-  gates.
+- You submit the retrospective PR with `vrg-submit-pr`, never with
+  `--release`; it merges through auto-merge once its CI is green. You never
+  cut a release: that is a human gate.
 - Identifying **R** prefers the `retrospective` label stamped by
   `vrg-issue-create --kind retrospective` (tooling ≥ 2.1.167) — mechanical
   label-matching is more robust than string-matching a title — with the title
