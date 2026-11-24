@@ -762,6 +762,8 @@
       
         
       
+        
+      
     
     
     
@@ -814,6 +816,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.90/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.90
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5230,7 +5260,7 @@ unattended runner, <code>paad:paad-delegate</code>
 <tbody>
 <tr>
 <td><a href="#epic-create">epic-create</a></td>
-<td>USER agent: the run-once entry point for non-trivial work — brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds, create the epic and seed its bookend tasks</td>
+<td>USER agent: the run-once entry point for non-trivial work — create the epic and its documentation task → brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds → file the plan's tasks and the closing bookends → docs PR, in nine checkpointed stages a fresh session resumes after <code>/clear</code></td>
 <td>Current (2.1)</td>
 </tr>
 <tr>
@@ -5312,12 +5342,13 @@ queues upstream of it: it places intake, planning and deferred items, and never
 implements one or starts <code>epic-create</code>.</p>
 <h2 id="epic-create">epic-create<a class="headerlink" href="#epic-create" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> USER-identity skill and the <strong>entry point</strong> for non-trivial
-work. It opens into brainstorming, runs the front-loaded pipeline
+work. It creates the finite epic in its home, the org <code>.github</code>, with its
+documentation task, opens into brainstorming, runs the front-loaded pipeline
 (brainstorm → spec pushback rounds → human spec review → writing-plans →
-plan pushback rounds → alignment rounds), creates the finite epic in its
-home, the org <code>.github</code>, seeds the <strong>bookend tasks</strong> — documentation,
-documentation-review, and the terminal <strong>retrospective</strong> — and publishes the
-spec + plan as a docs PR. It also seeds the operational (deployment and
+plan pushback rounds → alignment rounds), files the plan's tasks with the
+closing <strong>bookend tasks</strong> — documentation-review and the terminal
+<strong>retrospective</strong> — and publishes the spec + plan as a docs PR, which closes
+the documentation task. It also files the operational (deployment and
 validation) tasks the plan needs, and when an epic changes language support,
 container images, shared CI workflows or release tooling, its plan seeds a
 <strong>fixture run</strong> for each fixture whose language or shape the change affects,
@@ -5339,8 +5370,29 @@ usually one pick at a time). It labels the item <code>in-progress</code>,
 records progress comments with the <code>Epic:</code> / <code>Docs task:</code> / <code>Tasks filed: yes</code>
 markers, and files every task before it hands off the docs PR. That PR also
 closes the planning issue: <code>vrg-submit-pr</code> adds a <code>Planning issue: Closes</code>
-line for it, so the merge that publishes the spec and plan ends the planning.
-At step 0 it checks whether the run is a security run (the planning issue
+line for it, so the merge that publishes the spec and plan ends the planning.</p>
+<p>A run is nine <strong>checkpointed stages</strong>: <code>bootstrap</code>, <code>brainstorm</code>,
+<code>spec-pushback</code>, <code>spec-review</code>, <code>plan</code>, <code>plan-pushback</code>, <code>alignment</code>,
+<code>file-tasks</code> and <code>docs-pr</code>. Their checklist is a block in the planning
+issue's body, written only by
+<a href="https://vergil-project.github.io/vergil-tooling/latest/reference/cli-tools-overview/#vrg-checkpoint"><code>vrg-checkpoint</code></a>
+(tooling ≥ 2.1.340). Each stage makes its work durable, posts its progress
+comment and ticks its box as its last write, then pauses with the
+<code>/clear</code> and <code>/vergil:epic-create &lt;planning issue&gt;</code> commands ready to paste,
+so a fresh session resumes at the first unticked stage with no decision or
+work lost and nothing created twice. Every task <code>file-tasks</code>
+files carries a <code>Plan task: &lt;id&gt;</code> key (<code>Plan task: &lt;id&gt; &lt;fixture&gt;</code> for a
+fixture run's tasks), so a re-entry keys any task filed without one and
+files only those missing. A checklist that a tooling release changed under
+a run (skew) is shown to the human and rewritten with <code>vrg-checkpoint
+reconcile</code>, never remapped silently. A run started before the checklist
+existed is adopted: the stages its evidence shows done are proposed, and
+the human confirms the ticks. An early exit from <code>brainstorm</code>, and
+<a href="#epic-review">epic-review</a>'s defer or drop of a planning item whose
+skeleton exists, first abandons the skeleton: the epic and documentation
+task are closed as not planned, the unused docs worktree removed and the
+checklist reset, so a revived item starts afresh.</p>
+<p>At step 0 it checks whether the run is a security run (the planning issue
 carries the <code>security</code> label, has a <code>Security advisory:</code> line, or is tracked
 by an advisory), stops on any disagreement between the three as a broken
 pair, and records a <code>Security run: yes</code> marker that is never cleared. A
