@@ -308,7 +308,9 @@ the rule `vrg-intake-route` enforces (since
 vergil-project/vergil-tooling#4170), and it guards one-off from planning the
 same way. A recorded `Epic:` marker alone does not block a drop. When the
 tool refuses, the item's epic is still being built: report it, and
-recommend leave.
+recommend leave. A planning item that is only a skeleton is the exception:
+the defer or drop first abandons its skeleton, which closes its epic, and
+the route then runs (see [Planning mode](#planning-mode)).
 
 ## Intake mode
 
@@ -379,9 +381,25 @@ being expanded. Show each with its latest note and how long it has sat (read
 its trusted comments with step 3's `vrg-issue-read` when the one-line note
 is not enough), and offer only
 **leave**. Offer defer or drop only where the tool allows them, that is when
-every development epic of the item is closed. **Never offer one-off for
-them**, and never resume or finish them here: the human does that with
-`epic-create <ref>`.
+every development epic of the item is closed, or for a skeleton (below).
+**Never offer one-off for them**, and never resume or finish them here: the
+human does that with `epic-create <ref>`.
+
+**A skeleton may be deferred or dropped.** A skeleton is an `in-progress`
+item whose `bootstrap` is done and whose spec is not yet committed:
+`vrg-checkpoint status <owner>/<repo>#<N> --workflow epic-create --json`
+exits 0 with `"next": "brainstorm"`. Its epic is still open, so
+`vrg-intake-route` would refuse a defer or drop. For a skeleton, offer
+**leave**, **defer** or **drop**, and still never one-off. Any other `status`
+result (another `next`, `null`, or any non-zero exit, a missing block
+included) is not a skeleton: offer only leave, as above. Once the batch is
+confirmed, for each skeleton the human chose to defer or drop, run
+`epic-create`'s
+[abandon the skeleton](../epic-create/SKILL.md#abandon-the-skeleton) step,
+its closing comments pointing to the deferral or drop, and only once that
+step has finished run `vrg-intake-route <ref> defer` or `drop` as step 5
+says. If the abandon step stops for the human, route nothing for that item:
+report where it stopped with the batch results.
 
 **A `ready-to-close` item was missed: close it.** Its planning is done (its
 epic exists, every task is filed and its docs PR has merged), but nothing

@@ -242,9 +242,14 @@ present everything needing the human:
   run one yourself, under any identity. Once the human has run them,
   dispatch one new `issue-deploy` run of the task, never alongside another
   run of the same task, whose prompt carries each step's command and the
-  full output and exit status of the human's run of it: the run checks the
-  preconditions again, verifies each step from that output and records the
-  result. A step the human declines or cannot run gets no dispatch: the
+  full output and exit status of the human's run of it, or, where the human
+  gave no output, the human's own report of its result as they gave it at
+  the gate: the run checks the preconditions again, verifies each step from
+  what it was given and records the result. A step given only as a report is
+  recorded only when the run's own checks confirm its result independently
+  ([Recording a step from the human's report](../issue-deploy/SKILL.md#recording-a-step-from-the-humans-report));
+  otherwise the run ends `waiting` again, and you ask the human for the
+  output. A step the human declines or cannot run gets no dispatch: the
   task stays open, and you say so at the gate. The run's task is not
   finished until it records an outcome, so on re-entry a task left waiting
   is dispatched again as any runnable deployment task, and its run ends

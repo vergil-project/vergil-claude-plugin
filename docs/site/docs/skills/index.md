@@ -384,7 +384,9 @@ and the deployment tooling refuses one. A step the task lists under
 **Human-run steps** (one that needs a human identity, such as
 `vrg-github-repo-config update`) is never run under the agent identity: the
 skill checks its preconditions, hands the human the paste-ready command,
-waits, then verifies the human's run and records it with the rest. With no
+waits, then verifies the human's run and records it with the rest: from the
+run's pasted output, or from the human's report when the agent's own checks
+confirm the step's result independently. With no
 human present, the run ends `waiting: human-run steps` rather than
 `blocked`.
 
@@ -421,7 +423,7 @@ run with `issue-validate`) checks the CI gates, ops, the release, its
 evidence bundle, the dependency update, the docs site and that nothing
 reached a package registry. It files tasks only and never runs them. The
 skill holds the one list of fixtures, the known gaps and the learned
-ready-to-start conditions.
+ready-to-start and validation conditions.
 
 **When to use.** When an epic's plan seeds a fixture run, which
 `epic-create`'s fixture-run rule asks of every epic that changes language
@@ -589,7 +591,10 @@ The modes differ only in order, check and outcomes:
   **one-off** for an item small enough for one PR or whose scope can be cut
   until it is. Items `epic-create` is expanding (`in-progress`) are shown
   with their latest note and offered only leave; the review never resumes
-  them and never offers them one-off. A finished item that nothing closed
+  them and never offers them one-off. The exception is a skeleton, an item
+  whose `bootstrap` is done and whose spec is not yet written: it may also
+  be deferred or dropped, and the review first abandons the skeleton
+  through `epic-create`'s shared step, then routes it. A finished item that nothing closed
   (`ready-to-close`) is offered **close**, unless its epic was abandoned
   (closed as not planned), which means it needs planning again.
   It ends with the surviving queue sorted oldest first. Choosing what to

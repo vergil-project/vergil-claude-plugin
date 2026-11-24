@@ -178,7 +178,10 @@ after the agent-safe deploy steps. For each one:
 4. **Verify it** with the step's check, as the issue names it, against the
    real output: the exit status and output of the human's run, and any
    agent-runnable check the step adds. Record which evidence came from the
-   human's run and which from your own.
+   human's run and which from your own. The human's report in place of
+   pasted output is enough only as
+   [Recording a step from the human's report](#recording-a-step-from-the-humans-report)
+   says.
 
 For repo config, the check is the human's `vrg-github-repo-config update`
 exiting 0: the repo is in sync, or its sync PR merged. Exit 1 means drift it
@@ -201,10 +204,36 @@ agent-safe steps and check each human-run step's preconditions, then post no
 outcome and no `blocked` comment. End the run `waiting: human-run steps`,
 giving in your final report each step's precondition result and its
 paste-ready command. The human runs them at the gate. A later run, with the
-human present or given the output of the human's runs in its prompt, checks
-the preconditions again, verifies each step from that output, and records the
-result. Never record a human-run step from a bare claim that it ran, without
-its output.
+human present or given the output of the human's runs (or the human's
+reports of them) in its prompt, checks the preconditions again, verifies each
+step from what it was given, and records the result. A step given only as the
+human's report is recorded only as
+[Recording a step from the human's report](#recording-a-step-from-the-humans-report)
+allows; otherwise the run records no outcome and ends `waiting: human-run
+steps` again, asking for the step's output.
+
+### Recording a step from the human's report
+
+The human's own report of a human-run step's result, given in the session
+(for example, "`vrg-release` exited 0"), is enough to record the step
+**when your own checks confirm the step's result independently**: checks
+you run yourself that show the result the step was meant to produce, not
+merely that something ran. The result comment then names those checks and
+says the step was recorded from the human's report. **When no independent
+check of the step's result exists, the human's pasted output stays
+required**: its exit status and output, run as the `! <command>` line
+so it reaches you. A report alone is then not recorded; ask for the
+output, and if the human cannot give it, record no outcome and leave the
+task open.
+
+For example, the six fixture release tasks of epic
+vergil-project/.github#1494 (vergil-project/vergil-fixture-rust-app#72 and
+vergil-project/vergil-fixture-ts-app#74 among them) each recorded the
+human's report that `vrg-release` exited 0, with no pasted output. The
+agent then confirmed the result itself: the release was published, its
+workflows were green, its release record passed, and the tag contained the
+change. Those checks confirm the release's result on their own, so the
+report was enough. Under this rule the result comment names those checks.
 
 ## Record the result and close
 
