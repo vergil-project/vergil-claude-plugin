@@ -37,7 +37,8 @@ Canonical convention: `vergil-project/.github#40`; this skill's own epic:
    must print `ok`. If not, stop.
 2. Resolve the epic ref (`<org>/.github#N`, `#N`, or a URL) and read the epic
    issue. Identify the **retrospective task** — the epic's retrospective bookend,
-   seeded by `epic-create` and stamped with the `retrospective` label
+   filed by `epic-create` (since plugin 2.1.89 in its `file-tasks` stage,
+   keyed `Plan task: retrospective`) and stamped with the `retrospective` label
    (`vrg-issue-create --kind retrospective`, tooling ≥ 2.1.167). **Identify it by
    that label.** Fall back to the title convention (`Retrospective: <epic-slug>`)
    only for epics created before the label existed.
@@ -323,7 +324,7 @@ On approval:
    follow-up.
 4. Record the PR metadata and hand off — agents run
    `vrg-pr-workflow report-ready --issue <retrospective-task> --title … --summary
-   … --notes …`, with the merge review's eligibility line (and any approval
+   … --notes …`, with the merge review's eligibility line (or its exemption
    line) in `--notes`, then delete its directory as `issue-implement`'s
    [Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off)
    says; the **human** runs `vrg-submit-pr`. You never open the PR.

@@ -187,7 +187,7 @@ whatever levels it reviews.
 
   The summary names the entries by path. The notes start with the merge
   review's eligibility line exactly as it gave it (or its exemption line),
-  then any approval line it gave, then name every file the commit changes,
+  then name every file the commit changes,
   by path (the entries, the index files and any `hoshin.md`). The PR title
   starts `Logbook:`, which is how a later run's preflight recognises an
   open logbook PR.
