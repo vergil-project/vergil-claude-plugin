@@ -33,16 +33,16 @@ run it with `! <command>` in the prompt.
 
 ## PR handoff
 
-- Agents never run `vrg-submit-pr`. Submitting, merging and finalizing a PR are
-  human actions.
-- Hand off with `vrg-pr-workflow report-ready --issue <N> --title --summary
-  --notes`. It pushes the branch itself. Leave `--linkage` at its default (`Ref`).
-- A delta touching `.github/workflows/**` makes GitHub refuse the agent push.
-  That is expected: report-ready records the state anyway and the human's
-  `vrg-submit-pr` pushes the branch.
-- After report-ready the branch is frozen: no new commits and no push that
-  advances it; more work is a new follow-up issue. Re-running report-ready to
-  fix the prose is allowed. Submitting with `vrg-submit-pr` lifts it, as does `vrg-pr-workflow unfreeze`.
+- After the merge review, record the PR with `vrg-pr-workflow report-ready
+  --issue <N> --title --summary --notes`. It pushes the branch itself. Leave
+  `--linkage` at its default (`Ref`).
+- Agents submit and finalize their own PRs into `develop` through the tools,
+  never with `--release`: `vrg-submit-pr` runs the gates, opens the PR with
+  auto-merge on and finalizes it; after a fix, rerun `vrg-finalize-pr`.
+- Releases and promotion to `main` are human actions.
+- From report-ready until the agent's own submit the branch is frozen: no new commits and no
+  push that advances it; more work is a new follow-up issue. Re-running report-ready to fix the
+  prose is allowed. Submitting with `vrg-submit-pr` lifts it, as does `vrg-pr-workflow unfreeze`.
 - The report-ready title, summary and notes are public (the relay ref is
   world-readable): never put secrets in them.
 
