@@ -1,6 +1,6 @@
 ---
 name: merge-review
-description: Pre-PR merge review of a task branch, run by issue-implement once `vrg-container-run -- vrg-validate` is green on the committed branch and before `vrg-pr-workflow report-ready`. Asks one question, "is this change good enough to merge?" — one review by the read-only `vergil:merge-reviewer`, at most one fix and check, every stop for the human through `vrg-ruling`, every raised item closed before handoff, a protected-change approval asked whenever a protected path changes, a merge-review exemption only on the human's instruction, and a closing comment posted with `vrg-merge-review-close` as the machine-readable record, carrying the eligibility line for report-ready's notes. Also reviews a fix to an open, submitted PR as a whole branch before pr-watch pushes it, and resumes a run stopped at merge review once the human has replied. Not a general code review and not for a branch with no task issue.
+description: Pre-PR merge review of a task branch, run by issue-implement, and by epic-create, epic-retrospective and hoshin for their docs PRs, once `vrg-container-run -- vrg-validate` is green on the committed branch and before `vrg-pr-workflow report-ready`. Asks one question, "is this change good enough to merge?" — one review by the read-only `vergil:merge-reviewer`, at most one fix and check, every stop for the human through `vrg-ruling`, every raised item closed before handoff, a protected-change approval asked whenever a protected path changes, a merge-review exemption only on the human's instruction, and a closing comment posted with `vrg-merge-review-close` as the machine-readable record, carrying the eligibility line for report-ready's notes. Also reviews a fix to an open, submitted PR as a whole branch before pr-watch pushes it, and resumes a run stopped at merge review once the human has replied. Not a general code review and not for a branch with no task issue.
 ---
 
 # Merge review
@@ -9,7 +9,13 @@ Merge review is the judgement-level check between a green `vrg-validate` and
 the PR. CI covers everything deterministic; merge review asks whether the
 change is good enough to merge, the way a second engineer would. It runs in
 the USER agent session, inside `issue-implement`, on the task's worktree.
-`pr-watch` also runs it on an open, submitted PR, before it pushes a fix:
+The skills that hand off a docs PR of their own run it the same way, on
+that PR's task: `epic-create` (its spec-and-plan PR, on the documentation
+task), `epic-retrospective` (on the retrospective task) and `hoshin` (on
+its logbook task). Each follows `issue-implement`'s
+[Merge review](../issue-implement/SKILL.md#merge-review) section for the
+outcomes and the directory, and stands in for `issue-implement` wherever
+this skill names it as the caller. `pr-watch` also runs it on an open, submitted PR, before it pushes a fix:
 see [Fix to an open PR](#fix-to-an-open-pr). A stopped run is resumed by
 running this skill again on the same task.
 
@@ -119,7 +125,8 @@ whether the human's rulings left the reviewed branch as it was.
 ## Terms and files
 
 **Human present** means the human started `issue-implement` (or, for a
-[fix to an open PR](#fix-to-an-open-pr), `pr-watch`) in this very
+[fix to an open PR](#fix-to-an-open-pr), `pr-watch`; for a docs PR,
+`epic-create`, `epic-retrospective` or `hoshin`) in this very
 session and is answering you directly in its terminal. A run started by
 another agent is **dispatched**, whatever the driver (`epic-implement`, an
 interactive driver agent, another skill or any subagent dispatch), even

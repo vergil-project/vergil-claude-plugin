@@ -41,6 +41,16 @@ Canonical convention: `vergil-project/.github#40`; this skill's own epic:
    (`vrg-issue-create --kind retrospective`, tooling ≥ 2.1.167). **Identify it by
    that label.** Fall back to the title convention (`Retrospective: <epic-slug>`)
    only for epics created before the label existed.
+3. **A close-out stopped at merge review.** If the retrospective task
+   `<R>` has a merge-review directory
+   (`build/.vergil-state/issue-implement/<R>/merge-review/` in the home
+   repo's main clone) and a worktree whose branch holds the committed
+   `retrospective.md`, an earlier run stopped at close-out step 3. Once the
+   gate below passes, `cd` into that worktree and go straight to
+   close-out step 3, skipping the sweep, the drafting and the approval:
+   the retrospective stays as the human approved it, so merge review
+   resumes on the branch its ruling was about. A merge-review directory
+   with no such worktree: stop and ask the human.
 
 ### The definition-of-done gate
 
@@ -295,17 +305,35 @@ On approval:
 1. Write `retrospective.md` at `epics/<N>-<slug>/retrospective.md` on a worktree
    of the retrospective task's branch in the epic's **home repo**, the org
    `.github`.
-2. Validate green: `vrg-container-run -- vrg-validate`.
-3. Record the PR metadata and hand off — agents run
+2. Validate green on the committed branch:
+   `vrg-container-run -- vrg-validate`.
+3. **Merge review.** Run the **`merge-review`** skill
+   (`vergil:merge-review`) on the retrospective task (`--issue
+   '<owner>/<repo>#<retrospective-task>'`), from its worktree, as
+   `issue-implement`'s
+   [Merge review](../issue-implement/SKILL.md#merge-review) section says.
+   The change is `docs-only`, so the review asks only the merge-quality
+   question, against the epic's spec and plan as its design sources. Only
+   an `eligible` or `not-eligible (<reason>)` outcome, or an `exempt` one
+   the human asked for, goes on to step 4; any other ends the close-out
+   for the human, and running this skill again resumes it there (Preflight
+   step 3), where merge review picks up from its directory. A doc the review leaves for the
+   documentation-review sweep has no open bookend by now (it closed
+   before this run's gate): tell the human, who rules on it as a
+   follow-up.
+4. Record the PR metadata and hand off — agents run
    `vrg-pr-workflow report-ready --issue <retrospective-task> --title … --summary
-   … --notes …`; the **human** runs `vrg-submit-pr`. You never open the PR.
+   … --notes …`, with the merge review's eligibility line (and any approval
+   line) in `--notes`, then delete its directory as `issue-implement`'s
+   [Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off)
+   says; the **human** runs `vrg-submit-pr`. You never open the PR.
    At the handoff, link the retrospective from the epic:
    `vrg-epic-docs set --epic <owner>/<repo>#<N> --retrospective
    epics/<N>-<slug>/retrospective.md`, with the epic ref fully qualified (the
    tool refuses a bare `#N` or a URL) and `<slug>` taken from the epic's
    existing `epics/<N>-*/` directory. The link resolves once the PR merges. If
    it fails, stop and report its error.
-4. Merging the retrospective's docs PR closes the retrospective task — the **last
+5. Merging the retrospective's docs PR closes the retrospective task — the **last
    open child** — and `vrg-finalize-pr` rolls up and **closes the epic**.
 
 ## Notes

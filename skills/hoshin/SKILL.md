@@ -1,6 +1,6 @@
 ---
 name: hoshin
-description: Run the fleet's 方針管理 hōshin kanri review cadence and write its public logbook, as the USER agent. Use when the human starts or ends a working day or period — `/vergil:hoshin start` ("start the day", "hoshin start", "morning review", "chōrei"), `/vergil:hoshin end` ("end of day", "hoshin end", "shūrei") or `/vergil:hoshin end <week|month|quarter|year>` ("close the week", "close the month", "wrap up the quarter"). It works out from the date and the logbook which reviews are due, closes any period left open (late, or recorded as not performed), runs the daily review and any boundary reviews with the human, files the follow-ups they decide on, and hands off one docs PR of dated logbook entries with `vrg-pr-workflow report-ready`, after a mechanical security screen and the human's approval of the full text. It skips merge review on purpose and never submits, merges or releases.
+description: Run the fleet's 方針管理 hōshin kanri review cadence and write its public logbook, as the USER agent. Use when the human starts or ends a working day or period — `/vergil:hoshin start` ("start the day", "hoshin start", "morning review", "chōrei"), `/vergil:hoshin end` ("end of day", "hoshin end", "shūrei") or `/vergil:hoshin end <week|month|quarter|year>` ("close the week", "close the month", "wrap up the quarter"). It works out from the date and the logbook which reviews are due, closes any period left open (late, or recorded as not performed), runs the daily review and any boundary reviews with the human, files the follow-ups they decide on, and hands off one docs PR of dated logbook entries with `vrg-pr-workflow report-ready`, after a mechanical security screen, the human's approval of the full text and a merge review. It never submits, merges or releases.
 ---
 
 # Hoshin
@@ -98,7 +98,12 @@ come from the configured time zone, never the host clock.
      `vrg-git branch -D`; one with commits is left, and named to the human.
    - If a worktree is live for it, or it is `handed-off` (reported ready but
      never submitted), stop and ask the human what to do with it. Never
-     close or delete it yourself.
+     close or delete it yourself. A live worktree whose task has a merge
+     review directory
+     (`<docs>/build/.vergil-state/issue-implement/<N>/merge-review/`) is a
+     run that stopped at merge review: the human may rule to resume it,
+     which runs [Merge review](#merge-review) again from that worktree
+     (it picks up from its directory) and then the handoff's step 8.
 7. **Read the logbook** as step 2 says, then refuse, writing nothing:
    - **`start`** when `<logbook>daily/<date>-start.md` already exists (the
      same mode run twice in one day);
@@ -195,7 +200,7 @@ conversation.
 ## 6. Write the entries and hand off
 
 Hand off exactly one docs PR for the run, in this order. Step 1 runs in
-`<docs>`; steps 2 to 7 run inside the new worktree,
+`<docs>`; steps 2 to 8 run inside the new worktree,
 `<docs>/.worktrees/issue-<N>-logbook`:
 
 1. **File the logbook task and its worktree.** Write the task body (the
@@ -218,15 +223,23 @@ Hand off exactly one docs PR for the run, in this order. Step 1 runs in
 5. **Approve.** Show the human the full final text of every entry and of
    every other changed file, and wait for their approval.
 6. **Commit** in the worktree:
-   `vrg-commit --type docs --scope logbook --message "Logbook: <date> <mode>"`.
-7. **Report ready** with the fixed wording
+   `vrg-commit --type docs --scope logbook --message "Logbook: <date> <mode>"`,
+   then validate again to green on the committed branch
+   (`vrg-container-run -- vrg-validate`), which merge review's request
+   builder requires at `HEAD`.
+7. **Merge review**, as [Merge review](#merge-review) below says.
+8. **Report ready** with the fixed wording
    ([logbook.md](references/logbook.md#fixed-wording)):
    `vrg-pr-workflow report-ready --issue <N> --title "Logbook: <date> <mode>"
-   --summary "<entries by path>" --notes "<files by path>"`. It pushes the
-   branch; never push it yourself.
+   --summary "<entries by path>" --notes "<merge-review lines> Files: <files by path>"`.
+   It pushes the branch; never push it yourself. Then delete the merge
+   review's directory as `issue-implement`'s
+   [Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off)
+   says, run from `<docs>`.
 
 **Entry text changes only inside the run.** Any edit after step 5, however
-small, goes back through steps 3 to 5 before the commit.
+small, goes back through steps 3 to 5 before the commit, a merge-review fix
+included.
 
 **A run that stops at step 3, 4 or 5** (a validation failure it cannot fix,
 a screen hit, the human withholding approval) offers the human two choices,
@@ -247,20 +260,44 @@ screen terms directory, `<docs>/build/.vergil-state/hoshin/<date>-<mode>/`.
 Then tell the human: *"Ready — run `vrg-submit-pr` to open the logbook PR."*
 Stop. The human submitting the PR is the review's sign-off.
 
-## No merge review, by design
+## Merge review
 
-A logbook run **skips `merge-review` on purpose**. Merge review is too heavy
-for a documentation-generating run, and the gates that matter, mostly keeping
-security content out of public records, run inside this skill before
-anything is pushed: validation, the mechanical screen and the human's
-approval of the full text. The handoff notes therefore carry no merge-review
-eligibility line.
+Merge review runs on every PR, the logbook PR included. Once the commit is
+validated green (step 6), run the **`merge-review`** skill
+(`vergil:merge-review`) on the logbook task (`--issue
+'vergil-project/docs#<N>'`), from its worktree, as `issue-implement`'s
+[Merge review](../issue-implement/SKILL.md#merge-review) section says. The
+change is `docs-only`, so the review asks only the merge-quality question;
+the hoshin epic lists no design source. The run's own gates (validation,
+the screen and the human's approval of the full text) still come first:
+merge review judges the text the human approved.
+
+- **A fix** merge review makes to a file the run wrote goes back through
+  steps 3 to 5 (validation, the screen and the human's approval) before
+  merge review commits it. A screen hit or a withheld approval there is a
+  problem the run cannot resolve: stop and ask the human.
+- **Public records.** Merge review's step and closing comments, ruling
+  requests and replies are posted on the logbook task, outside the fixed
+  wording. They name a security item by ID or count only, as merge review
+  requires, and anything the run writes in them follows
+  [security.md](references/security.md).
+- **The outcome.** `eligible` or `not-eligible (<reason>)`, or `exempt`
+  when the human asked for an exemption, goes on to step 8, the
+  eligibility line (or the exemption line) and any approval line leading
+  the `--notes`. Any other outcome ends the run for the human. Merge
+  review's directory is
+  `<docs>/build/.vergil-state/issue-implement/<N>/merge-review/`; a later
+  run finds it through the stale-task rule (Preflight step 6).
+- **A doc the review leaves for a sweep** has no bookend: the hoshin epic
+  has none. Name it to the human, who decides on a follow-up as
+  [File follow-ups](#5-file-follow-ups) says.
+
+Afterwards:
 
 - **A submitted logbook PR's task closes through finalize:**
   `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
-- **A failing logbook PR is fixed by `pr-watch`,** like any other PR.
-  `pr-watch` recognises a logbook PR by its `Logbook:` title and skips the
-  merge review of its fixes, which are mechanical. A logbook task
+- **A failing logbook PR is fixed by `pr-watch`,** like any other PR, and
+  each fix is merge-reviewed like any other. A logbook task
   is controlled by its run and is never ad-hoc work: it lives under the
   hoshin epic, which `epic-implement` and `issue-implement` refuse.
 

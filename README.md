@@ -273,7 +273,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `epic-implement` | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates, batching what needs the human — including merge-review requests it drafts replies for, re-dispatching once the human has replied |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
 | `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues is delivered as one batch PR |
-| `merge-review` | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, and an eligibility line for report-ready's notes |
+| `merge-review` | USER agent: the pre-PR merge review `issue-implement` (and `epic-create`, `epic-retrospective` and `hoshin` for their docs PRs) runs once validation is green — one review by `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, and an eligibility line for report-ready's notes |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
 | `fixture-run` | USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only |
@@ -283,7 +283,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `intake-capture` | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` |
 | `epic-review` | USER agent: review the intake, planning or deferred queue with the human in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions |
 | `steering-audit` | Review the steering and settings files against the Claude config ownership model, one finding at a time; `steering-audit user` reviews the user-level files read-only |
-| `hoshin` | USER agent: run the hōshin kanri review cadence (`start` each working day, optional `end` or `end <level>`) and hand off one docs PR of dated logbook entries after a security screen and the human's approval; skips merge review on purpose, so a logbook handoff carries no eligibility line |
+| `hoshin` | USER agent: run the hōshin kanri review cadence (`start` each working day, optional `end` or `end <level>`) and hand off one docs PR of dated logbook entries after a security screen, the human's approval and a merge review |
 
 Full reference:
 <https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md>.
