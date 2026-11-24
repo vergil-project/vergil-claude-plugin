@@ -740,11 +740,14 @@ checkpoint leaves (what a later stage or a resume reads back), and what
   filing](#keyed-filing) keys any unkeyed task, then files only the tasks
   that are missing.
 - **`docs-pr`** (steps 9 and 10). Ends when report-ready has recorded the
-  handoff and the handoff comment, with its `Planned as` line, is posted.
+  handoff, the handoff comment, with its `Planned as` line, is posted, and
+  the docs PR's submit has ended (or the PR is left for the human's
+  submit, as step 10 says).
   Evidence: the report-ready record (`vrg-pr-workflow status` in the docs
-  worktree) and the `Planned as` comment. Re-entry: if the docs PR has
+  worktree), the `Planned as` comment and the docs PR. Re-entry: if the docs PR has
   merged (the documentation task is closed as completed), finish as step 0
-  says for a closed planning issue; if report-ready has recorded the
+  says for a closed planning issue; if the docs PR is open, run the
+  **`pr-watch`** skill on it, then tick `docs-pr` as step 10 says; if report-ready has recorded the
   handoff, re-run it, which only rewrites the prose, then finish the rest of
   step 9 after it (deleting the merge-review directory if it is still there,
   `vrg-epic-docs set --spec … --plan …`, which makes no edit when the links
@@ -1551,7 +1554,7 @@ details, step 0's public-wording rule) goes into it.
        error, naming the advisories not yet retargeted.
    - Task titles and bodies follow step 0's public-wording rule.
    - **Before the docs PR, never after.** The docs PR's merge closes the
-     planning issue (step 10), and the human may merge it at any time after
+     planning issue (step 10), and it is submitted and merges right after
      the handoff. So every task is filed, and no advisory still tracks the
      planning issue, before step 9 hands it off.
 9. **Docs PR.** Run the epic body sync (above) a last time, against the spec
@@ -1574,7 +1577,7 @@ details, step 0's public-wording rule) goes into it.
    single spec + plan PR against `.github` — agents record it via
    `vrg-pr-workflow report-ready`, with the merge review's eligibility
    line (or its exemption line) in `--notes`, then delete its directory
-   as `issue-implement` says; the human runs `vrg-submit-pr`. At the
+   as `issue-implement` says; step 10 submits it. At the
    handoff, link the documents from the epic:
    `vrg-epic-docs set --epic <home>#<N> --spec epics/<N>-<slug>/spec.md
    --plan epics/<N>-<slug>/plan.md`. The links resolve once the PR merges;
@@ -1594,9 +1597,15 @@ details, step 0's public-wording rule) goes into it.
     `Planned as <owner>/<repo>#<N>` line, which is the planning issue's
     record of the epic it became. Leave the item `in-progress` until the
     merge closes it. Once that comment is posted, and any re-run of
-    report-ready a bullet below calls for is done, tick `docs-pr` as the
-    stage's last write and give the human the summary (the checkpoint
-    pause, with no reset recommendation).
+    report-ready a bullet below calls for is done, **submit the docs PR**
+    from its worktree and watch it to the merge, as `issue-implement`'s
+    [Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+    says: the human's review of the spec and plan already happened in the
+    session. Where the docs repo's CLAUDE.md still forbids agent submits,
+    or GitHub refused the push for workflow files, that section's handoff
+    to the human applies instead. Then tick `docs-pr` as the stage's last
+    write and give the human the summary (the checkpoint pause, with no
+    reset recommendation), with the PR's URL and how it ended.
     - **`{"closes": "<M ref>"}`.** Merging the docs PR closes the planning
       issue. The progress comment says so.
     - **`{"planning": …, "skipped": "<why>"}`, `{"unknown": "<why>"}`, or
@@ -1614,7 +1623,7 @@ details, step 0's public-wording rule) goes into it.
       listing (some item's size is in error), not a failure. Once it shows the item `ready-to-close`, close
       it with `vrg-gh issue close <M> --repo <owner>/<repo> --reason
       completed --comment "Planned as <owner>/<repo>#<N>"`. If the docs PR
-      has not merged yet (a human action), the next `epic-create` touch or
+      has not merged yet, the next `epic-create` touch or
       `epic-review planning` closes it, once the planning-queue summary shows
       it `ready-to-close`.
     - A planning issue is **held** (`in-progress`) while **any** advisory

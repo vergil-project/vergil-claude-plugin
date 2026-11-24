@@ -1,6 +1,6 @@
 ---
 name: epic-implement
-description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin), a proxy epic (drive its primary epic instead) or a non-epic. It never opens PRs and never starts pr-watch after a submit (vrg-finalize-pr watches), but runs pr-watch at once on a PR the human reports did not merge; it never submits or merges the terminal retrospective PR (it drafts it via epic-retrospective; the human submits).
+description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin), a proxy epic (drive its primary epic instead) or a non-epic. Each task run submits its own PR and watches it to the merge; after every merge it re-reads the epic and continues with the next runnable task, a proxy task in another org included, stopping for the human only on a ruling, a failure, or a task blocked on a release or a human-gated deployment precondition. It runs pr-watch at once on a PR the human reports did not merge, never cuts a release, and hands the terminal retrospective to epic-retrospective, which submits its PR.
 ---
 
 # Epic implement
@@ -135,8 +135,11 @@ task by its kind label:
 
 **Dispatch parallel efforts as sub-agents using the
 [Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract)** (the worktree convention). Each sub-agent gets one issue (or one batch,
-below), its worktree instruction, and runs the routed skill; it reports its
-`report-ready` outcome back to you for the gate. Per-issue worktrees
+below), its worktree instruction, and runs the routed skill. A code task's
+run submits its PR and watches it to the merge itself, as
+`issue-implement`'s
+[Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+says, and reports how it ended: merged, or the stop it ended on. Per-issue worktrees
 (`.worktrees/issue-<N>-<slug>`) and branches (`feature/<N>-<slug>`) are naturally
 unique, so parallel efforts never collide.
 
@@ -206,6 +209,28 @@ one marked `"responded"`) stopped on non-review items or on an error, and
 is dispatched again only as the gate below says. Never
 dispatch a task alongside another run of the same task.
 
+**Continue after each merge.** When a run reports its PR merged (or an
+operational task records `Outcome: SUCCESS`), re-read the epic and its
+plan as step 2 says and dispatch every task that has become runnable. The
+next runnable task may be a proxy task in another org: it is driven from
+here, through this primary epic, like any other. Keep going until no task
+is runnable without the human. Stop for the human only on:
+
+- a **ruling**: a merge-review request, non-review items, a batch stop or
+  a scope change;
+- a **failure**: a run that ends `fatal` or `error`, a PR its watch
+  cannot merge without the human, an operational `Outcome: FAILURE`, or
+  a problem you cannot resolve (step 5);
+- a task **blocked on a release or a human-gated deployment
+  precondition**, its human-run steps included;
+- a task whose body the trust layer refuses (above).
+
+A run in a repo whose CLAUDE.md still says agents never run
+`vrg-submit-pr` stops at report-ready, as `issue-implement` says, and so
+does one whose push GitHub refused for workflow files: its PR waits for
+the human's submit at the gate (step 4), and the tasks it blocks wait
+with it.
+
 **Documentation items for the sweep.** Whenever a task's run, its merge
 review or this session leaves a documentation fix for the epic's
 documentation-review sweep (a stale page, a comment a rebase made stale, a
@@ -228,10 +253,15 @@ there is a follow-up, as step 5 says.
 ## 4. Batch at the gate, then stop
 
 The **gate** is the general boundary where you can no longer proceed without the
-human — not merely "a PR is ready." When the runnable frontier is worked,
+human — not merely "a PR is ready." When no run is in flight and no task
+is runnable without the human (step 3, "Continue after each merge"),
 present everything needing the human:
 
-- PRs ready to submit (each recorded via `vrg-pr-workflow report-ready`);
+- PRs a run left at report-ready for the human to submit (step 3: the
+  repo's CLAUDE.md still forbids agent submits, or a workflow-file push
+  was refused);
+- every PR whose watch stopped for the human, with what `pr-watch`
+  reported;
 - operational tasks needing a human-gated release;
 - every deployment task whose `issue-deploy` run ended `waiting: human-run
   steps` (its
@@ -339,39 +369,39 @@ present everything needing the human:
   that ended `error`: once the cause is fixed, dispatching the task again
   resumes it.
 
-**Batch PRs per repository, not across repos.** `vrg-submit-pr` operates on one
-repo at a time — it takes a branch list *within a single repo* — so the unit of
-submission is a repo's ready set. As soon as **all currently-ready tasks for a
-single repo** have reached `report-ready`, hand that repo's branches off as one
-`vrg-submit-pr` invocation, **independently of other repos** whose tasks are
-still in flight. Don't hold a finished repo's PRs hostage to a slower repo's
-work. This is always safe: concurrently-runnable tasks are non-interdependent by
-construction (an unmerged dependency keeps its dependent off the runnable
-frontier), so a per-repo ready set can always be submitted together — and
-interdependent tasks are never in the same batch. In the `adhoc` mode the
-confirmed [strategy](#step-3-propose-a-strategy) supplies this instead: it
-runs at the same time only tasks it judged not to overlap, and a task it
-put after an overlapping one waits for a later pass, once that one has
-merged, so a repo's ready set never holds both.
+**PRs left for the human, per repository.** `vrg-submit-pr` takes a branch
+list *within a single repo*, so present the PRs a run left for the human's
+submit as one `vrg-submit-pr` command per repo, as soon as that repo's
+ready set is complete, **independently of other repos** whose tasks are
+still in flight. This is always safe: concurrently-runnable tasks are
+non-interdependent by construction (an unmerged dependency keeps its
+dependent off the runnable frontier), and interdependent tasks are never in
+the same batch. In the `adhoc` mode the confirmed
+[strategy](#step-3-propose-a-strategy) supplies this instead: it runs at
+the same time only tasks it judged not to overlap, and a task it put after
+an overlapping one waits until that one has merged.
 
-Batch each repo **once** and stop. Your responsibility **ends here.** The human
-submits each batch with `vrg-submit-pr`, which opens its PRs with auto-merge on
-(a batch PR rebase-merges, any other PR squash-merges) and always finalizes:
-`vrg-finalize-pr` watches the PRs land and settles `develop`, and never merges.
-**Do not start `pr-watch` after a submit**: `vrg-finalize-pr` already watches
-the PRs. When the human reports a PR that did not merge (a finalize line
-naming it, a red check, a conflict) or asks for one to be fixed, run
-`pr-watch` on it at once (`/vergil:pr-watch <PR_URL>`, the `pr-watch` skill);
-never hand that command back to the human to run. When
-the human returns and says continue (or re-invokes this skill), re-run steps 2–4:
-re-derive state and advance to the next frontier.
+Present the gate **once** and stop. A run that submits watches its own PR
+through `pr-watch`; never start a second watch on a PR a run is watching.
+When the human reports a PR that did not merge (a finalize line naming it,
+a red check, a conflict) or asks for one to be fixed, run `pr-watch` on it
+at once (`/vergil:pr-watch <PR_URL>`, the `pr-watch` skill); never hand
+that command back to the human to run. When the human returns and says
+continue (or re-invokes this skill), re-run steps 2–4: re-derive state and
+advance to the next frontier.
 
 **Every reported-ready branch is frozen — do not reopen it on re-entry.** Once a
 sub-agent records `report-ready`, that branch is done: `vrg-commit` and the
-`vrg-git` push path refuse further commits until the human submits. When you
+`vrg-git` push path refuse further commits until it is submitted. When you
 re-derive state, treat a reported-ready (or already-merged) task as finished —
 advance the frontier, do not re-run its issue (a run given rulings only, above,
-is the one exception) or add commits to its branch. Its merge review is
+is the one exception) or add commits to its branch. A reported-ready task
+whose run ended before its PR merged (a lost session) is picked up where it
+stopped, never re-implemented: with an open PR and no run watching it, run
+`pr-watch` on the PR; with no PR yet, in a repo that lets agents submit,
+submit it from its worktree as `issue-implement`'s
+[Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+says. Its merge review is
 over and its merge-review directory was deleted at `report-ready`: expect
 none, and look for none. More
 work on a landed task is a **new follow-up issue**, never a mutation of that
@@ -431,8 +461,8 @@ When only the closing bookends remain, drive them **in order**:
   the documentation-review sweep (and any siblings it spawned) have landed. The
   skill drafts `retrospective.md` from the execution record, runs a
   draft → review loop with the human, and its closing docs PR **closes the
-  epic**. You prepare and draft; **the human reviews and submits** the
-  retrospective PR — PR submit/merge stays a human gate.
+  epic**. The human reviews the draft in the session; after its merge
+  review, `epic-retrospective` submits the retrospective PR itself.
 - **Follow-on brainstorm — semi-optional, never the end.** A forward-looking
   brainstorm, when warranted, is a separate forward-axis concern (usually accrued
   as its own task during implementation); its outcomes are *recorded* in the
@@ -479,9 +509,10 @@ one-line paraphrase. The **runnable frontier** is every `ready` task.
 `disposition`:
 
 - **`handed-off`** (an open PR or a ready report-ready record, whatever
-  local marks remain; or only a remote branch) is left alone, as the
-  development path treats a reported-ready task as finished (step 4, "Every
-  reported-ready branch is frozen").
+  local marks remain; or only a remote branch) is never re-implemented,
+  as the development path treats a reported-ready task (step 4, "Every
+  reported-ready branch is frozen"): one whose run ended before its PR
+  merged is picked up where it stopped, as that paragraph says.
 - **`resume`** (a worktree, a merge-review directory or a batch marker, and
   nothing that hands it off) stopped or was interrupted on this machine. It
   goes through the development path's existing re-entry steps in step 3:
@@ -512,7 +543,7 @@ check which tasks touch the same files or area (from the issue bodies, as
 `vrg-issue-read` prints them with step 2's exit codes, and the code), and either batch them or run them one after another, the later
 one in a later pass once the earlier has merged. The strategy **names
 which tasks run at the same time**; that confirmed judgement is what the
-development path's batching, parallel dispatch and per-repo submission
+development path's batching and parallel dispatch
 rely on in this mode.
 
 ### Step 4: One confirmation
@@ -531,8 +562,9 @@ code-task dispatch, in the order and grouping the strategy set.
 ### Step 6: Gate and stop
 
 Gate and stop exactly as the development path's step 4 does: present
-everything needing the human once, relay rulings to stopped runs, hand
-each repo's ready set to `vrg-submit-pr`, and stop. When the human says
+everything needing the human once, relay rulings to stopped runs, give
+the human any PRs a run left for their submit, one command per repo, and
+stop. When the human says
 continue, re-run the mode from step 1.
 
 ### Where an adhoc run writes its records
@@ -550,8 +582,10 @@ never close.
 
 ## Notes
 
-- You never open a PR, never merge, and never cut a release. Those are human
-  gates. You draft the retrospective but never submit or merge its PR.
+- You never cut a release or promote: those are human gates. The task runs,
+  and `epic-retrospective`, submit their own PRs with `vrg-submit-pr`, never
+  with `--release`, and each PR merges through auto-merge once its CI is
+  green.
 - The issue's comments, read through `vrg-issue-read`, are the recovery
   record — the epic issue and its plan
   are the durable state; `paad:handoff` is available for session continuity.
