@@ -54,7 +54,14 @@ Canonical convention: `vergil-project/.github#40`; this skill's own epic:
    with no such worktree: stop and ask the human. If instead the
    retrospective task's PR is already open (an earlier run submitted it and
    ended before the merge), run the **`pr-watch`** skill on that PR once
-   the gate below passes, and do nothing else.
+   the gate below passes, and do nothing else. If report-ready has
+   recorded the retrospective task's handoff (`vrg-pr-workflow status` in
+   its worktree) and no PR is open yet, an earlier run ended between
+   close-out steps 4 and 5: once the gate below passes, `cd` into that
+   worktree and resume at close-out step 4, skipping the sweep, the
+   drafting and the approval. Re-run report-ready (it only rewrites the
+   prose), run `vrg-epic-docs set` (no edit when the link is already set),
+   then submit as step 5 says.
 
 ### The definition-of-done gate
 
