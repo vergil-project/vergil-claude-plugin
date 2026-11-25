@@ -251,7 +251,7 @@ for the rationale.
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Warns on bare host calls of container-only tools; the `vrg-container-run --` form passes |
 | `block-autoclose-linkage` | PreToolUse/Bash | Blocks `--linkage Fixes/Closes/Resolves` in `vrg-submit-pr` — use `Ref` instead |
-| `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — merging is a human action: the human's `vrg-submit-pr` turns auto-merge on |
+| `block-agent-merge` | PreToolUse/Bash | Unconditionally blocks `gh pr merge` / `gh pr review --approve` — a PR merges only through `vrg-submit-pr`, which opens it with auto-merge on |
 | `block-github-contents-api` | PreToolUse/Bash | Blocks write-method `gh api` calls to the Contents API — file changes go through the local workflow |
 | `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored scratch under the main clone's `build/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
@@ -272,7 +272,7 @@ Shared workflow skills, invoked as `/vergil:<name>`.
 | `epic-create` | USER agent: the run-once entry point for non-trivial work — create the epic and its documentation task → brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds → file the plan's tasks and the closing bookends → docs PR, in nine checkpointed stages a fresh session resumes after `/clear` |
 | `epic-implement` | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates, batching what needs the human — including merge-review requests it drafts replies for, re-dispatching once the human has replied |
 | `epic-retrospective` | USER agent: the run-once terminal finishing gate — draft the epic's retrospective, whose docs PR closes the epic |
-| `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues is delivered as one batch PR |
+| `issue-implement` | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, then submit the PR itself and watch it to the merge; a list of issues is delivered as one batch PR |
 | `merge-review` | USER agent: the pre-PR merge review `issue-implement` (and `epic-create`, `epic-retrospective` and `hoshin` for their docs PRs) runs once validation is green — one review by `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, and an eligibility line for report-ready's notes |
 | `issue-deploy` | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment |
 | `issue-validate` | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment |
@@ -340,22 +340,31 @@ run-time protected-branch check.
 
 ### Ship a change
 
-Under the Vergil 2.1 workflow, the agent prepares the change and
-the **human** opens the PR:
+The agent submits and finalizes its own PRs into `develop`, held by
+the gates: merge review on every PR, its record checked by
+`vrg-submit-pr`, by finalize's watch and by the daily audit, and CI.
+Releases and promotion stay human.
 
 1. The USER agent runs `/vergil:issue-implement <issue>` — implement,
    validate to green, run the merge review, then record the PR metadata via
    `vrg-pr-workflow report-ready`, which also pushes the branch.
-2. **You** run `vrg-submit-pr` to open the PR (agents cannot).
-3. `vrg-submit-pr` always finalizes: `vrg-finalize-pr` watches the
-   PR land. If a PR does not merge, tell the USER agent (paste the
-   finalize line, the red check or the conflict): it runs `pr-watch` on
-   the PR at once, fixing a failing check or a conflict and handling
-   review comments until the PR auto-merges.
+2. The agent runs `vrg-submit-pr` itself, never with `--release`. It
+   opens the PR against `develop` with auto-merge on and always
+   finalizes: `vrg-finalize-pr` watches the PR land and settles
+   `develop`.
+3. If the PR does not merge, the agent runs `pr-watch` on it, fixing a
+   failing check or a conflict and handling review comments, merge-reviewing
+   each fix and rerunning `vrg-finalize-pr` itself, until the PR
+   auto-merges or needs you. You are pulled in for rulings, a merge-review
+   exemption you ask for, and failures it cannot resolve.
 
-Repositories allow auto-merge so the automation App's sync PRs on
-`automation/*` branches merge on CI alone. Agents never turn it on,
-and you still review and merge every feature and bugfix PR yourself.
+A cloud session, a repo whose `CLAUDE.md` still says agents never run
+`vrg-submit-pr`, and a push GitHub refuses for workflow files stop after
+`report-ready`; you then run `vrg-submit-pr` to open the PR.
+
+Repositories allow auto-merge so the PRs `vrg-submit-pr` opens, and
+the automation App's sync PRs on `automation/*` branches, merge on CI
+alone. No agent merges a PR or turns auto-merge on by any other route.
 
 ### Cut a release
 

@@ -195,9 +195,11 @@ an open PR first takes the start check of
 
 Anything else in `<dir>`, or a state these rules do not cover, is an
 `error`: show the human the listing and stop. That includes an
-`approvals.json` or an `open-request.json` whose `"kind"` is
-`protected-change`, left by an earlier release's protected-change
-approval, which this skill no longer asks: never read either as an
+`approvals.json` left by an earlier release's protected-change approval,
+which this skill no longer asks. An `open-request.json` whose `"kind"` is
+`protected-change`, left open the same way, follows the table like any
+other: [The resume](#the-resume) ends `stopped: request <id>` while it
+has no reply, and `error` once it has one. Never read either file as an
 exemption.
 
 ### Where the run stands

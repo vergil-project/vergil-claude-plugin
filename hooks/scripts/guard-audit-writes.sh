@@ -4,7 +4,7 @@
 # Enforces the AUDIT identity's write discipline from the 2.1 workflow
 # spec: AUDIT may write only its own artifacts (.vergil/audit-*) and
 # scratch space (build/). Everything else in a managed repo is denied —
-# including .vergil/pr-template.yml, which is the USER agent's artifact.
+# including .vergil/pr-workflow.json, the USER agent's PR workflow state.
 #
 # SOFT GATE (by design): identity comes from VRG_IDENTITY_MODE, which a
 # misbehaving agent can unset. Every in-VM guard is soft; it steers a
@@ -115,4 +115,4 @@ case "$rel" in
     ;;
 esac
 
-deny "AUDIT write-guard: the audit identity may write only .vergil/audit-* (its feedback artifacts) and build/ (scratch space). '$rel' is outside that allowlist — in particular, .vergil/pr-template.yml belongs to the USER agent. This is a soft gate per the 2.1 soft-gate doctrine; the hard gates are the credentials and the merge check. See issue #442."
+deny "AUDIT write-guard: the audit identity may write only .vergil/audit-* (its feedback artifacts) and build/ (scratch space). '$rel' is outside that allowlist — in particular, .vergil/pr-workflow.json, the PR workflow state, belongs to the USER agent. This is a soft gate per the 2.1 soft-gate doctrine; the hard gates are the credentials and the merge check. See issue #442."

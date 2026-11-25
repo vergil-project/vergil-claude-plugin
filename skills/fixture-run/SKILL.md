@@ -307,10 +307,12 @@ the full cycle can begin.
   `vrg-issue-read --repo vergil-project/<repo> --search "Fixture run in:title"`
   must show no `deployment` or `validation` task other than this run's own
   (named in the trio comment below). Only another fixture run's open
-  release or validation task blocks. The search matches only titles
-  starting "Fixture run", so any other open task on the repo (such as a
-  `Validate: …` task an epic files to run after the trio) is deliberately
-  not counted and does not block. It shows only trusted results; one it
+  release or validation task blocks. `in:title` matches the words
+  anywhere in a title, not only at the start, so the search can also list
+  a task whose title merely mentions a fixture run. Count only a task
+  whose title starts "Fixture run": any other open task on the repo (such
+  as a `Validate: …` task an epic files to run after the trio) is
+  deliberately not counted and does not block. It shows only trusted results; one it
   reports on stderr as untrusted neither blocks nor counts, and is named
   to the human by that metadata. If it exits non-zero, show its stderr
   and stop.
