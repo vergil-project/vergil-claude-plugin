@@ -1331,7 +1331,16 @@ details, step 0's public-wording rule) goes into it.
      section. If it fails, stop and report its error.
    - **Create the documentation task** in `<org>/.github`, where its PR
      publishes `spec.md` and `plan.md`, linked under N: `vrg-issue-create
-     --epic <home>#<N> --repo <org>/.github --title …`. At once post a
+     --epic <home>#<N> --repo <org>/.github --title … --body-file <tmp>`.
+     The body states the task's scope, since the docs PR's merge review
+     (step 9) judges the branch against it: a task with no body has every
+     file on the branch raised as out of scope. Write it to a temp file,
+     for example ``Publish the spec and plan of epic <home>#<N> at
+     `epics/<N>-<slug>/spec.md` and `epics/<N>-<slug>/plan.md`, and the
+     revisions to them that the epic's review rounds make.`` It names only
+     the epic and the paths, so it stays neutral on a security run (the
+     last bullet of this step). A later edit (a `Security advisory:` line
+     that `file-tasks` adds) appends to it and never replaces it. At once post a
      progress comment carrying `Docs task: <home>#<D>`. On re-entry with an
      `Epic:` marker and no `Docs task:` marker, first list the epic's
      children with `vrg-epic-audit --epic <home>#<N>`: `bootstrap` files
