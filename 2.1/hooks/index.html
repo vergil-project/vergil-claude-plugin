@@ -776,6 +776,8 @@
       
         
       
+        
+      
     
     
     
@@ -828,6 +830,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.97/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.97
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5143,6 +5173,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hooks-module-mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hooks module (mod)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hooks module (mod)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-row-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent row labels
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#hooks-deliberately-not-provided" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5591,6 +5649,34 @@
     <span class="md-ellipsis">
       
         capture-merge-review-result
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hooks-module-mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hooks module (mod)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hooks module (mod)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-row-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent row labels
       
     </span>
   </a>
@@ -6096,7 +6182,8 @@ backtick run in the reply, in a collapsed <code>&lt;details&gt;</code> section w
 gives the reply's SHA-256 and size. A reply that does not end in a newline
 gets one before the closing fence, and the summary says so. The skill
 appends this copy unread to the step's public comment when no security
-finding is in the result or, for a check, in an earlier step, so the full reply survives the private directory's
+finding is in the result or, for a check, in an earlier step, and the
+skill's screen of the result withheld nothing, so the full reply survives the private directory's
 deletion at report-ready.</p>
 <p>All three files are written mode 600 and moved into place, the capture
 record last.</p>
@@ -6113,6 +6200,40 @@ last message. The skill deletes the step's result before each dispatch
 and confirms the capture after it, so a failed capture ends the run with
 <code>error</code> rather than going unseen.</p>
 <p>Tests: <code>hooks/tests/capture-merge-review-result.test.sh</code>.</p>
+<h2 id="hooks-module-mod">Hooks module (mod)<a class="headerlink" href="#hooks-module-mod" title="Permanent link">&para;</a></h2>
+<p>Besides its settings hooks, <code>hooks/hooks.json</code> names one hooks module
+under <code>modules</code>: <code>hooks/register.tsx</code>, a Claude Code
+<a href="https://code.claude.com/docs/en/plugins/mods/overview.md">mod</a> that
+runs inside Claude Code rather than as a script. It holds one hook.</p>
+<h3 id="agent-row-labels">Agent row labels<a class="headerlink" href="#agent-row-labels" title="Permanent link">&para;</a></h3>
+<p>A <code>ui.render</code> hook on the
+<a href="https://code.claude.com/docs/en/plugins/mods/reference.md#render-sites"><code>AgentRow</code> render site</a>,
+a subagent's or teammate's row in the agent panel. When several
+subagents run in parallel (an <code>epic-implement</code> run, say), Claude Code
+shows each row as its agent type, <code>general-purpose</code>, and its latest
+activity, so the rows cannot be told apart. The hook redraws a row as
+the task and issue(s) the agent was dispatched for, how long it has
+been running (or <code>done</code>, <code>failed</code> or <code>stopped</code> once it has ended), and
+the first line of its latest activity:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Task 15 (vergil-tooling#4931) · 4m12s · Running the test suite
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Batch 6b/6c/9/10 (#4917, #4918, #4926, #4927) · done
+</code></pre></div>
+<p>The label comes from the Agent call's <code>description</code>. Every issue
+reference in it (<code>owner/repo#N</code>, <code>repo#N</code> or <code>#N</code>) is listed once,
+in order, with the owner dropped; a <code>Task &lt;id&gt;</code> or <code>Batch &lt;id&gt;/&lt;id&gt;…</code>
+in it leads the label. A description that names no issue (an
+<code>Explore</code> fan-out, say), a row the person's settings hide, and a
+row they already redraw (its <code>body</code> arrives set) are left as Claude
+Code draws them.</p>
+<p><code>AgentRow</code> needs Claude Code v2.1.326 or later. An older version
+loads the module but never raises the site, so rows stay as they
+were; <code>claude plugin validate</code> there warns that no component is
+named <code>AgentRow</code>. Mods are on by default; <code>disableAllHooks</code> stops
+this one along with the settings hooks.</p>
+<p>Tests: <code>hooks/tests/register.test.tsx</code>, run with
+<code>claude plugin test .</code> from the repo root on Claude Code v2.1.326 or
+later. <code>vrg-validate</code> does not run them, since its container has no
+Claude Code.</p>
 <h2 id="hooks-deliberately-not-provided">Hooks deliberately not provided<a class="headerlink" href="#hooks-deliberately-not-provided" title="Permanent link">&para;</a></h2>
 <h3 id="per-edit-linting-validation">Per-edit linting / validation<a class="headerlink" href="#per-edit-linting-validation" title="Permanent link">&para;</a></h3>
 <p>The plugin does <strong>not</strong> ship a <code>PostToolUse</code> Write|Edit hook that
@@ -6181,13 +6302,13 @@ with <code>${CLAUDE_PLUGIN_ROOT}/</code> so the check can find its script.</p>
 <h3 id="pretooluse-response">PreToolUse response<a class="headerlink" href="#pretooluse-response" title="Permanent link">&para;</a></h3>
 <p>A PreToolUse hook can deny an action by writing JSON to stdout and
 exiting 0:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">"permissionDecision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deny"</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">"permissionDecisionReason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the action is being denied."</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">"permissionDecision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deny"</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">"permissionDecisionReason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the action is being denied."</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
 </code></pre></div>
 <p>Exit 0 with no JSON = allow. Exit 2 = block: Claude Code refuses the
 call and feeds stderr to the agent. The plugin uses exit 2 for input
@@ -6197,21 +6318,21 @@ other non-zero exit is a non-blocking error, and the call goes ahead.</p>
 <p>A PreToolUse hook can also add context for the agent without a decision,
 and the call then goes ahead as usual
 (<a href="#warn-stale-plugin-version"><code>warn-stale-plugin-version</code></a> does this):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="posttooluse-response">PostToolUse response<a class="headerlink" href="#posttooluse-response" title="Permanent link">&para;</a></h3>
-<p>A PostToolUse hook can inject context by writing JSON and exiting 0:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PostToolUse"</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PreToolUse"</span><span class="p">,</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="posttooluse-response">PostToolUse response<a class="headerlink" href="#posttooluse-response" title="Permanent link">&para;</a></h3>
+<p>A PostToolUse hook can inject context by writing JSON and exiting 0:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">"hookSpecificOutput"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">"hookEventName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PostToolUse"</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">"additionalContext"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Message surfaced to the agent."</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">}</span>
 </code></pre></div>
 <p>PostToolUse hooks cannot un-do the tool action; they can only add
 context the agent sees in its next turn. Exit 2 is a fatal hook
@@ -6219,10 +6340,10 @@ error — useful when validation cannot run and the absence of
 validation should be visible.</p>
 <h3 id="stop-response">Stop response<a class="headerlink" href="#stop-response" title="Permanent link">&para;</a></h3>
 <p>A Stop hook can block session exit by returning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">"decision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block"</span><span class="p">,</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the session cannot exit."</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">"decision"</span><span class="p">:</span><span class="w"> </span><span class="s2">"block"</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">"reason"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Reason the session cannot exit."</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">}</span>
 </code></pre></div>
 
 
