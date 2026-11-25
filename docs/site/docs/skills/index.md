@@ -505,7 +505,8 @@ evidence bundle, the dependency update, the docs site and that nothing
 reached a package registry. For a plugin or skill release, its
 deployed-version probe names the exact plugin version and the
 vergil-tooling (and vergil-actions) versions released with it, from the
-`--after` tasks' release records, and checks that the change PR's CI
+`--after` deployment tasks' `Outcome:` results and the `Released:` records
+on the development tasks they are blocked by, and checks that the change PR's CI
 installed that tooling and that the agent identity opened and merged the
 PR after the plugin release. It files tasks only and never runs them. The
 skill holds the one list of fixtures, the known gaps and the learned

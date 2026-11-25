@@ -162,8 +162,10 @@ it:
   validation ships in a vergil-claude-plugin release (a skill or plugin
   change), the deployed-version probe names the exact plugin version and
   the vergil-tooling (and vergil-actions, if any) versions released with
-  it, taken from the `Released:` records and the `Outcome:` result of the
-  `--after` release or deployment tasks. It then checks that the change
+  it, taken from the `Outcome:` result of each `--after` deployment task
+  and the `Released:` records on the development tasks that task is
+  blocked by (a deployment task carries no `Released:` record of its own,
+  since no release contains it). It then checks that the change
   PR's CI installed that vergil-tooling version or a later release that
   contains it, and that the change PR was opened and merged by the agent
   identity after the plugin release was published. A fixture's CI shows
@@ -210,8 +212,9 @@ fixture-run <epic-ref> <fixture>[,<fixture>…] --validates <what> --after <owne
   when they are known at filing; a label such as "plugin release B" alone
   gives the validation nothing to probe. When the releases are not cut
   yet, name the release and its pairing as the plan does: the validation
-  task resolves the exact versions from the `--after` tasks' release
-  records.
+  task resolves the exact versions from the `--after` tasks' `Outcome:`
+  results and the `Released:` records on the development tasks they are
+  blocked by.
 - **`--after <owner/repo#N>`** — **required**, repeatable. Each ref is the
   release or deployment task that ships the change to the fixtures, and is
   stamped as the change task's `--blocked-by`. A fixture consumes only
@@ -569,9 +572,13 @@ A machine probe; check each before anything else, with evidence.
   release.
 - **Plugin or skill release.** When <what> ships in a vergil-claude-plugin
   release, a fixture's CI shows the tooling, actions and image versions but
-  never the plugin's, so the probe goes on from the release record of the
-  `--after` tasks (<after-refs>): their `Released:` records and `Outcome:`
-  result, read with `vrg-issue-read`.
+  never the plugin's, so the probe goes on from the release record. Each
+  `--after` task (<after-refs>) is a deployment task, which no release
+  contains, so it carries no `Released:` record of its own: read its
+  `Outcome:` result, which names the release versions, and the
+  `Released:` records on the development tasks it is blocked by, which
+  `vrg-release-record check <task ref>` confirms. Read both with
+  `vrg-issue-read`.
   - Name the exact plugin version (`vergil-claude-plugin vX.Y.Z`) and the
     vergil-tooling (and vergil-actions, if any) versions released with it,
     each with its release URL and the record it was taken from.
