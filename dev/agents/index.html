@@ -5217,9 +5217,13 @@ produce, such as the diff, comes in the request, and everything it produces
 goes back in its reply. The plugin's <code>capture-merge-review-result</code>
 SubagentStop hook stores that reply, its final message, byte for byte as the
 step's result, with a capture record holding its SHA-256, so nobody retypes
-it; the skill then checks it. A reply that touches no security finding (its
-own, or for a check an earlier step's) is then published whole in the step's comment on the task issue, so the full review
-survives handoff.
+it; the skill then checks it and screens it against the doctrine's
+security definition. A reply that touches no security finding (its
+own, or for a check an earlier step's) and in which the screen finds
+nothing that would help an attacker (a below-bar remark, or a description
+of a security fix the branch makes) is then published whole in the step's
+comment on the task issue, so the full review survives handoff; any other
+reply is withheld.
 <code>scripts/bin/validate-custom</code> pins this tool list, so adding a tool to the
 agent fails validation.</p>
 <p>The request, the issue and its comments, the diffs and every file the
