@@ -774,6 +774,8 @@
       
         
       
+        
+      
     
     
     
@@ -826,6 +828,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.96/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.96
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5481,7 +5511,7 @@ unattended runner, <code>paad:paad-delegate</code>
 </tr>
 <tr>
 <td><a href="#hoshin">hoshin</a></td>
-<td>USER agent: run the hōshin kanri review cadence — <code>start</code> each working day, optional <code>end</code> or <code>end &lt;level&gt;</code> — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen, the human's approval and a merge review; the human's submit of the logbook PR stays the review's sign-off</td>
+<td>USER agent: run the hōshin kanri review cadence — <code>start</code> each working day, optional <code>end</code> or <code>end &lt;level&gt;</code> — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen, the human's approval and a merge review, then submitting it with <code>vrg-submit-pr</code> (never <code>--release</code>); the human's approval of the full text is the review's sign-off</td>
 <td>Current (2.1)</td>
 </tr>
 </tbody>
@@ -6122,7 +6152,7 @@ repo under the org's hoshin epic, a worktree, the entries and index lines, <code
 a mechanical security screen of the final text, the human's approval of the
 full text, a <code>docs(logbook)</code> commit, a <a href="#merge-review">merge review</a> and
 <code>vrg-pr-workflow report-ready</code>, with fixed wording that names only the
-files written. A run that stops
+files written, then its own <code>vrg-submit-pr</code>. A run that stops
 before its commit offers edit (back through validation, the screen and the
 approval) or abandon (the task closed, the worktree removed). The rules are
 in its <code>references/</code>: the calendar, the logbook and its wording, and the
@@ -6131,10 +6161,11 @@ security rules with the screen's patterns.</p>
 before <code>report-ready</code>, and its eligibility line goes into report-ready's
 notes. The gates that keep
 security content out of the public logbook still run inside the skill
-before anything is pushed. The run then stops for the human: unlike the
-other docs PRs, the logbook PR is submitted by the human, whose
-<code>vrg-submit-pr</code> is the review's sign-off. Its task closes through the
-<code>vrg-finalize-pr</code> that submit always runs; a failing one is fixed by
+before anything is pushed. The run then submits the logbook PR itself
+with <code>vrg-submit-pr</code>, never with <code>--release</code>, like the other docs PRs: the
+human's approval of the full text is the review's sign-off, and releases
+stay human actions. Its task closes through the <code>vrg-finalize-pr</code> that
+submit always runs; a PR that does not merge is watched and fixed by
 <a href="#pr-watch">pr-watch</a>, which merge-reviews each fix like any other. A logbook task lives under the hoshin epic, which
 <a href="#epic-implement">epic-implement</a> and <a href="#issue-implement">issue-implement</a>
 refuse.</p>
