@@ -1268,7 +1268,9 @@ Every other failed check follows these steps:
      `vrg-git` denies `reset` on purpose, and no other command stands in
      for it. Stop, tell the human the branch (or that the worktree is
      detached) and the recorded HEAD SHA so they can restore it (for
-     example `! git reset --hard <sha>`), and wait until they say it is
+     example `git reset --hard <sha>`, handed over as a copy-paste block
+     of its own for their own terminal, with no `!` prefix), and wait
+     until they say it is
      done. Reverting the files first leaves the worktree clean, so the
      restore meets no local change;
    - confirm that the HEAD SHA matches the record and

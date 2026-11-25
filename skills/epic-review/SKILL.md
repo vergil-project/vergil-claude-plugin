@@ -282,7 +282,8 @@ Which routes a mode offers is in its section. Rules for every mode:
   clone of the repo the issue now lives in (its `origin` must push there),
   run `vrg-ruling draft-scope --issue <owner>/<repo>#<N> --text-file <file>`
   with the issue's ref after the route. It posts nothing; give the human the
-  `vrg-scope-change` command it prints, with the batch results. A split's
+  `vrg-scope-change` command it prints, with the batch results, as a
+  copy-paste block of its own with no `!` prefix. A split's
   tasks need none, since their bodies carry their scope, and neither does an
   item routed into another queue, since that queue's review re-scopes it.
 - **A refusal is information, not an obstacle.** `vrg-intake-route` exits 1
