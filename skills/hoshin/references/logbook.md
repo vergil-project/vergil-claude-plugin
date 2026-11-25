@@ -190,7 +190,9 @@ whatever levels it reviews.
   then name every file the commit changes,
   by path (the entries, the index files and any `hoshin.md`). The PR title
   starts `Logbook:`, which is how a later run's preflight recognises an
-  open logbook PR.
+  open logbook PR. The run then submits the PR with `vrg-submit-pr`, which
+  opens it from this recorded metadata, so the submit adds no wording of
+  its own.
 - **Abandoned run** (closing its own task):
 
   ```bash
@@ -283,7 +285,7 @@ screen hits on one line of the entry, which carries an advisory ID.
 - **The human picks edit.** The line becomes `vergil-project/<repo>: a
   security-related failure, vergil-project/.github#<N>.` The run validates again (green), screens again (clean) and
   shows the human the full text of every entry. The human approves; the run
-  commits and hands off.
+  commits, hands off and submits the PR.
 - **Had the human picked abandon,** the run would discard the entry, remove
   the worktree and the branch, close `vergil-project/docs#<N>` with the fixed
   abandon comment, and delete its screen terms. A later `start` the same day
@@ -291,8 +293,10 @@ screen hits on one line of the entry, which carries an advisory ID.
 
 ## A failing logbook PR
 
-A submitted logbook PR whose checks fail, or that conflicts with
-`develop`, is fixed by `pr-watch` like any other PR, and each fix but a
+The run submits its own logbook PR. One whose checks fail, or that
+conflicts with `develop`, is fixed by `pr-watch` like any other PR: the
+run runs it when its submit reports the PR not merged, and a later run's
+preflight runs it on a logbook PR an earlier run left open. Each fix but a
 clean rebase is merge-reviewed before it is pushed, like any other fix.
 A submitted logbook PR that merges closes its task through
 `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
