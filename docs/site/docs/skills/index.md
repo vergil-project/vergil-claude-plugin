@@ -462,7 +462,13 @@ waits, then verifies the human's run and records it with the rest: from the
 run's pasted output, or from the human's report when the agent's own checks
 confirm the step's result independently. With no
 human present, the run ends `waiting: human-run steps` rather than
-`blocked`.
+`blocked`. What each human-gated release already installs, and what it
+leaves over for a deployment task, is defined in the skill's
+[release coverage reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-deploy/references/release-coverage.md),
+which `epic-create` plans deployment tasks from. A release precondition
+is confirmed from the release's own `Released:` records; where it must
+stay human-attested, the run hands the human the filled-in attestation
+command.
 
 **When to use.** When the human asks to deploy, install, roll out, or sync
 merged work, or when a later task needs a change deployed and usable rather
