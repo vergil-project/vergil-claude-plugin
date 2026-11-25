@@ -1,6 +1,6 @@
 ---
 name: hoshin
-description: Run the fleet's 方針管理 hōshin kanri review cadence and write its public logbook, as the USER agent. Use when the human starts or ends a working day or period — `/vergil:hoshin start` ("start the day", "hoshin start", "morning review", "chōrei"), `/vergil:hoshin end` ("end of day", "hoshin end", "shūrei") or `/vergil:hoshin end <week|month|quarter|year>` ("close the week", "close the month", "wrap up the quarter"). It works out from the date and the logbook which reviews are due, closes any period left open (late, or recorded as not performed), runs the daily review and any boundary reviews with the human, files the follow-ups they decide on, and hands off one docs PR of dated logbook entries with `vrg-pr-workflow report-ready`, after a mechanical security screen, the human's approval of the full text and a merge review. It never submits, merges or releases.
+description: Run the fleet's 方針管理 hōshin kanri review cadence and write its public logbook, as the USER agent. Use when the human starts or ends a working day or period — `/vergil:hoshin start` ("start the day", "hoshin start", "morning review", "chōrei"), `/vergil:hoshin end` ("end of day", "hoshin end", "shūrei") or `/vergil:hoshin end <week|month|quarter|year>` ("close the week", "close the month", "wrap up the quarter"). It works out from the date and the logbook which reviews are due, closes any period left open (late, or recorded as not performed), runs the daily review and any boundary reviews with the human, files the follow-ups they decide on, and hands off one docs PR of dated logbook entries with `vrg-pr-workflow report-ready`, after a mechanical security screen, the human's approval of the full text and a merge review, then submits it with `vrg-submit-pr` and watches it to the merge. It never runs anything with `--release`: releases stay human actions.
 ---
 
 # Hoshin
@@ -72,9 +72,10 @@ come from the configured time zone, never the host clock.
    `<scratch>` is a scratch directory outside any worktree.
    `vrg-issue-read` returns only the open PRs whose body and title the
    trust layer trusts. Exit 1 is a read failure: stop and report it, never
-   "no open PR". If a `Logbook:` PR is open, stop before any review, name
-   it (its URL and title), and tell the human it must merge first, fixed
-   through `pr-watch` if it is failing: the logbook on `develop` must be
+   "no open PR". If a `Logbook:` PR is open, an earlier run submitted it
+   and ended before the merge: stop before any review, name it (its URL
+   and title), tell the human it must merge first, run the **`pr-watch`**
+   skill on that PR, and do nothing else. The logbook on `develop` must be
    the full record before a run can reason about it.
    If the command reports a skipped PR on stderr, stop too and show the
    human the skip (metadata only): an open PR this check cannot trust may
@@ -103,7 +104,11 @@ come from the configured time zone, never the host clock.
      (`<docs>/build/.vergil-state/issue-implement/<N>/merge-review/`) is a
      run that stopped at merge review: the human may rule to resume it,
      which runs [Merge review](#merge-review) again from that worktree
-     (it picks up from its directory) and then the handoff's step 8.
+     (it picks up from its directory) and then the handoff's steps 8
+     and 9. A `handed-off` task is a run that ended between its
+     `report-ready` and its submit: the human may rule to resume it, which
+     re-runs step 8's `report-ready` from its worktree (it only rewrites
+     the prose) and then submits as step 9 says.
 7. **Read the logbook** as step 2 says, then refuse, writing nothing:
    - **`start`** when `<logbook>daily/<date>-start.md` already exists (the
      same mode run twice in one day);
@@ -200,7 +205,7 @@ conversation.
 ## 6. Write the entries and hand off
 
 Hand off exactly one docs PR for the run, in this order. Step 1 runs in
-`<docs>`; steps 2 to 8 run inside the new worktree,
+`<docs>`; steps 2 to 9 run inside the new worktree,
 `<docs>/.worktrees/issue-<N>-logbook`:
 
 1. **File the logbook task and its worktree.** Write the task body (the
@@ -236,6 +241,13 @@ Hand off exactly one docs PR for the run, in this order. Step 1 runs in
    review's directory as `issue-implement`'s
    [Record the PR metadata](../issue-implement/SKILL.md#record-the-pr-metadata-and-hand-off)
    says, run from `<docs>`.
+9. **Submit the PR** from the worktree and watch it to the merge, as
+   `issue-implement`'s
+   [Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+   says: the human's review of the logbook already happened at step 5,
+   where they approved the full text. Where the docs repo's CLAUDE.md
+   still forbids agent submits, or GitHub refused the push for workflow
+   files, that section's handoff to the human applies instead.
 
 **Entry text changes only inside the run.** Any edit after step 5, however
 small, goes back through steps 3 to 5 before the commit, a merge-review fix
@@ -256,9 +268,9 @@ Preflight's stale-task rule is the backstop for a run that dies without
 either.
 
 Once `report-ready` has succeeded, or the run is abandoned, delete the run's
-screen terms directory, `<docs>/build/.vergil-state/hoshin/<date>-<mode>/`.
-Then tell the human: *"Ready — run `vrg-submit-pr` to open the logbook PR."*
-Stop. The human submitting the PR is the review's sign-off.
+screen terms directory, `<docs>/build/.vergil-state/hoshin/<date>-<mode>/`;
+a run that reported ready does so before its step 9 submit. The human's
+approval of the full text at step 5 is the review's sign-off.
 
 ## Merge review
 
@@ -295,15 +307,17 @@ Afterwards:
 
 - **A submitted logbook PR's task closes through finalize:**
   `vrg-finalize-pr`, which `vrg-submit-pr` always runs after the merge.
-- **A failing logbook PR is fixed by `pr-watch`,** like any other PR, and
-  each fix is merge-reviewed like any other. A logbook task
+- **A failing logbook PR is fixed by `pr-watch`,** which the run runs
+  when its submit reports the PR not merged, like any other PR, and each
+  fix is merge-reviewed like any other. A logbook task
   is controlled by its run and is never ad-hoc work: it lives under the
   hoshin epic, which `epic-implement` and `issue-implement` refuse.
 
 ## Notes
 
-- The skill runs as the `user` agent and never submits, merges or releases.
-  It never opens the PR itself.
+- The skill runs as the `user` agent. It submits the logbook PR with
+  `vrg-submit-pr`, never with `--release`; it merges through auto-merge
+  once its CI is green. It never cuts a release: that is a human gate.
 - Reviews report on durable state only (git and GitHub today), never on what
   an agent session is doing.
 - The outsider report and the configuration audit stay in the terminal:
