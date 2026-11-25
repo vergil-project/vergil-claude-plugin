@@ -568,11 +568,13 @@ still being built; once every one is closed, both are allowed.
 ### Entry points
 
 Find the planning issue before anything else. Check where an issue stands from
-its native parent:
-`vrg-gh issue view <M> --repo <owner>/<repo> --json parent`, then the parent's
-labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
-(`epic` + `planning` is the planning epic; `epic` + `intake` is the intake epic;
-`epic` + `deferred` is the deferred epic; `epic` + `ad-hoc` is an ad-hoc epic).
+its epic: `vrg-epic-parent <owner>/<repo>#<M>` prints `<epic ref> <kind>`, the
+epic being the head of the chain that holds the issue, never one of its
+continuations, so never read the native parent and its labels instead
+(kind `planning` is the planning epic; `intake` the intake epic; `deferred`
+the deferred epic; `ad-hoc` an ad-hoc epic). Its exit 1 (chain drift, a read
+failure, or a parent that is not a well-formed epic) is a stop: show its error
+to the human.
 
 | Invocation | What to do |
 | --- | --- |
@@ -583,9 +585,12 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 | `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning`: waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on, as [Choosing what to plan next](#choosing-what-to-plan-next) says. |
 | `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <owner>/.github --title "<idea>" --body-file <tmp>` (`<owner>/.github` is the target's queue home). |
 
-- An issue under **any other parent** (a finite epic) is already ready
-  work, not a planning candidate. Stop and ask the human.
-  (`vrg-intake-route … planning` does accept an **unparented** issue.)
+- An issue under **any other parent** (a finite epic, kind `development` or
+  `proxy`) is already ready work, not a planning candidate. Stop and ask the
+  human. So is one whose kind is `not-epic` (a parent with no `epic` label)
+  or `archive` (a closed item in an archive, named in the line): stop and ask
+  the human. (`vrg-intake-route … planning` does accept an **unparented**
+  issue, printed as `none`.)
 - `vrg-queue planning` exits 1 with `no open 'Epic (planning): <name>' planning
   epic in <home>` when no planning queue exists yet. That is **an empty queue,
   not a failure**: say so and offer the free-text entry point. Do not retry.

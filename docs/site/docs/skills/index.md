@@ -315,8 +315,9 @@ push step. The skill then submits the PR itself with `vrg-submit-pr`
 finalizes, and owns the PR until it merges or needs the human: on a PR
 that does not merge it runs [pr-watch](#pr-watch), which fixes it,
 merge-reviews each fix and reruns `vrg-finalize-pr` itself. Releases and
-promotion stay the human's. It refuses an issue whose native parent is the intake,
-planning or deferred epic (route it with `epic-review intake`, expand it with
+promotion stay the human's. It refuses an issue whose epic, as
+`vrg-epic-parent` reads it through the chain, is the intake, planning or
+deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
 PR tooling's refusal. It refuses an ops issue (one under an org's
 `Epic (operations): …` epic) the same way, at Preflight and before any
