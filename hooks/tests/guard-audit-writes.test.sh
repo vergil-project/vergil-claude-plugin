@@ -36,7 +36,7 @@ T_NAME=(
   "non-audit identity is never constrained (user)"
   "audit may write its feedback artifact"
   "audit may write its atomic temp file"
-  "audit must not touch the USER pr-template"
+  "audit must not touch the USER agent's PR workflow state"
   "audit may scribble in build/"
   "audit may create nested build/ paths"
   "audit must not write repo files"
@@ -87,7 +87,7 @@ T_PATH=(
   "$ROOT/README.md"
   "$ROOT/.vergil/audit-feedback.yml"
   "$ROOT/.vergil/audit-feedback.yml.tmp"
-  "$ROOT/.vergil/pr-template.yml"
+  "$ROOT/.vergil/pr-workflow.json"
   "$ROOT/build/notes.md"
   "$ROOT/build/sub/dir/aid.json"
   "$ROOT/README.md"
@@ -95,7 +95,7 @@ T_PATH=(
   "$ROOT/.vergil/../README.md"
   "/tmp/guard-audit-writes-test-scratch.txt"
   ""
-  "$ROOT/.vergil/pr-template.yml"
+  "$ROOT/.vergil/pr-workflow.json"
   "$ROOT/build/review-aid.ipynb"
   "$S/build/out/new.py"
 )
@@ -160,6 +160,23 @@ while [ "$i" -lt "$total" ]; do
   fi
   i=$((i + 1))
 done
+
+# A denied write's reason (here to README.md) names the USER agent's PR
+# workflow state, never the retired .vergil/pr-template.yml.
+total=$((total + 1))
+msg_payload=$(jq -n --arg fp "$ROOT/README.md" --arg cwd "$ROOT" \
+  '{tool_input: {file_path: $fp, cwd: $cwd}, cwd: $cwd}')
+msg_out=$(printf '%s' "$msg_payload" \
+  | VRG_IDENTITY_MODE=audit bash "$HOOK" 2>&1) || true
+if printf '%s' "$msg_out" | grep -q '\.vergil/pr-workflow\.json' \
+  && ! printf '%s' "$msg_out" | grep -q 'pr-template'; then
+  echo "PASS [msg] the deny reason names .vergil/pr-workflow.json"
+  pass=$((pass + 1))
+else
+  echo "FAIL [msg] the deny reason names .vergil/pr-workflow.json"
+  printf '%s\n' "$msg_out" | head -5 | sed 's/^/       /'
+  fail=$((fail + 1))
+fi
 
 echo "----------------------------------------"
 echo "guard-audit-writes: $pass passed, $fail failed, $total total"
