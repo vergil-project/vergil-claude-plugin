@@ -69,7 +69,7 @@ unattended runner, `paad:paad-delegate`
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
 | [epic-review](#epic-review) | USER agent: review the intake, planning or deferred queue in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions. Refuses an ad-hoc or development epic | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
-| [hoshin](#hoshin) | USER agent: run the hōshin kanri review cadence — `start` each working day, optional `end` or `end <level>` — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen, the human's approval and a merge review; the human's submit of the logbook PR stays the review's sign-off | Current (2.1) |
+| [hoshin](#hoshin) | USER agent: run the hōshin kanri review cadence — `start` each working day, optional `end` or `end <level>` — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen, the human's approval and a merge review, then submitting it with `vrg-submit-pr` (never `--release`); the human's approval of the full text is the review's sign-off | Current (2.1) |
 
 Three of the `epic-*` skills form the **epic lifecycle**: `epic-create` (run
 once) → `epic-implement` (run N times) → `epic-retrospective` (run once — the
@@ -786,7 +786,7 @@ repo under the org's hoshin epic, a worktree, the entries and index lines, `vrg-
 a mechanical security screen of the final text, the human's approval of the
 full text, a `docs(logbook)` commit, a [merge review](#merge-review) and
 `vrg-pr-workflow report-ready`, with fixed wording that names only the
-files written. A run that stops
+files written, then its own `vrg-submit-pr`. A run that stops
 before its commit offers edit (back through validation, the screen and the
 approval) or abandon (the task closed, the worktree removed). The rules are
 in its `references/`: the calendar, the logbook and its wording, and the
@@ -796,10 +796,11 @@ security rules with the screen's patterns.
 before `report-ready`, and its eligibility line goes into report-ready's
 notes. The gates that keep
 security content out of the public logbook still run inside the skill
-before anything is pushed. The run then stops for the human: unlike the
-other docs PRs, the logbook PR is submitted by the human, whose
-`vrg-submit-pr` is the review's sign-off. Its task closes through the
-`vrg-finalize-pr` that submit always runs; a failing one is fixed by
+before anything is pushed. The run then submits the logbook PR itself
+with `vrg-submit-pr`, never with `--release`, like the other docs PRs: the
+human's approval of the full text is the review's sign-off, and releases
+stay human actions. Its task closes through the `vrg-finalize-pr` that
+submit always runs; a PR that does not merge is watched and fixed by
 [pr-watch](#pr-watch), which merge-reviews each fix like any other. A logbook task lives under the hoshin epic, which
 [epic-implement](#epic-implement) and [issue-implement](#issue-implement)
 refuse.
