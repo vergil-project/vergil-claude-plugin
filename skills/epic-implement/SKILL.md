@@ -262,7 +262,10 @@ present everything needing the human:
   was refused);
 - every PR whose watch stopped for the human, with what `pr-watch`
   reported;
-- operational tasks needing a human-gated release;
+- operational tasks needing a human-gated release, each with the
+  filled-in attestation command its run's report gives, where its
+  precondition is a human's attestation
+  ([Handing the human the attestation command](../issue-deploy/references/release-coverage.md#handing-the-human-the-attestation-command));
 - every deployment task whose `issue-deploy` run ended `waiting: human-run
   steps` (its
   [human-run steps](../issue-deploy/SKILL.md#hand-the-human-run-steps-to-the-human-then-verify-them)):

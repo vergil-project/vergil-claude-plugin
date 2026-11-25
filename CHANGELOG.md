@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.97] - 2026-11-25
+
+### Bug fixes
+
+- screen every reviewer reply for security content before posting it
+- write security details on resume after the screen
+
+### Documentation
+
+- file operational tasks runnable, with their sections in a --body-file (#1125)
+- order overlapping fixture runs, a run under way first, then by filing (#1258)
+- create the operational state directory with vrg-state-dir (#1315)
+- refuse an ops issue at Preflight, not only at report-ready (#1340)
+- define what a human-gated release covers, so plans stop scheduling redundant installs (#1391)
+
+### Features
+
+- label each subagent's agent-panel row with its task and issues (#1393)
+- read a task's epic and kind with vrg-epic-parent, so a task in a chained epic is judged by its epic (#1395)
+
 ## [2.1.96] - 2026-11-25
 
 ### Documentation

@@ -133,43 +133,43 @@ item.
 ## Writing to the state directory
 
 Before **every** write into `build/.vergil-state/operational/<N>/`, the
-first one included, create and check its levels as doctrine §1.5 requires.
-Never create them with `mkdir -p`, and never write there before this step
-has passed. Run it from the main clone (find it from a worktree with
-`dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)"`),
-with `<N>` the task's number:
+first one included, create and check its levels as doctrine §1.5 requires,
+with `vrg-state-dir`. Never create them with `mkdir -p` or a shell step of
+your own, and never write there before this step has passed. Run it from a
+clone of the repo the task is filed in (its main clone or a worktree of it),
+with `<owner>/<repo>#<N>` the task, as in the block below.
+
+`vrg-state-dir` resolves the main clone itself, refuses unless the clone's `origin` is
+the task's repo, creates each absent level of
+`build/.vergil-state/operational/<N>/` at mode `700`, checks every level
+is a real directory (not a symlink) at mode `700`, and prints the
+directory's absolute path. Write only to the path it prints. Any exit but 0
+(nothing on stdout, the reason on stderr) means **stop**: write nothing,
+leave the directory as it is, unread, and ask the human (§1.5,
+"Stopping").
+
+Each file written there is created at mode `600`. Run the directory step,
+the `test ! -e` check and the file's creation as **one** shell call, since
+a shell variable does not carry over to the next call. It creates the file
+empty under a private umask and prints its absolute path:
 
 ```bash
-if [ ! -e build ] && [ ! -L build ]; then mkdir build || exit 1; fi
-test ! -L build && test -d build || { echo "stop: build is not a real directory"; exit 1; }
-for level in build/.vergil-state build/.vergil-state/operational build/.vergil-state/operational/<N>; do
-  if [ -e "$level" ] || [ -L "$level" ]; then
-    test ! -L "$level" && test -d "$level" || { echo "stop: $level is not a real directory"; exit 1; }
-  fi
-  install -d -m 700 "$level" || { echo "stop: install -d failed on $level"; exit 1; }
-  test ! -L "$level" && test -d "$level" || { echo "stop: $level is not a real directory"; exit 1; }
-  if [ "$(uname)" = Darwin ]; then mode=$(stat -f %Lp "$level"); else mode=$(stat -c %a "$level"); fi
-  [ -n "$mode" ] && [ "${mode: -3}" = 700 ] || { echo "stop: $level is mode '$mode', not 700"; exit 1; }
-done
-echo "ok: build/.vergil-state/operational/<N>"
-```
-
-Anything but the final `ok` line means **stop**: write nothing, leave the
-directory as it is, unread, and ask the human (§1.5, "Stopping").
-
-Each file written there is created at mode `600`. After the `test ! -e`
-check, create it empty under a private umask, then write its content:
-
-```bash
-f=build/.vergil-state/operational/<N>/security-<i>.md
+dir=$(vrg-state-dir --kind operational --issue '<owner>/<repo>#<N>' --ensure) || exit 1
+test -n "$dir" && test -d "$dir" || { echo "stop: no state directory"; exit 1; }
+f="$dir/security-<i>.md"
 test ! -e "$f" && test ! -L "$f" || { echo "stop: $f already exists"; exit 1; }
 (umask 077 && : > "$f") || { echo "stop: cannot create $f"; exit 1; }
+echo "$f"
 ```
 
-Once its content is written, read the file's mode as above (`stat -f %Lp`
-on macOS, `stat -c %a` elsewhere): it must be exactly `600`, or stop. Then
-take its hash, and the directory's, as §1.5 says for the `operational`
-directory.
+Then write the file's content to exactly the absolute path that call
+printed, and nowhere else. A later write into the directory (another file)
+runs the directory step again first, in the same call as
+the write when it is a shell write.
+
+Once its content is written, read the file's mode (`stat -f %Lp` on macOS,
+`stat -c %a` elsewhere): it must be exactly `600`, or stop. Then take its
+hash, and the directory's, as §1.5 says for the `operational` directory.
 
 The issue's comments, read through `vrg-issue-read` ([Lifecycle](#lifecycle)
 step 1), are the recovery record if a session is lost mid-run;

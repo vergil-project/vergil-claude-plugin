@@ -171,18 +171,37 @@ every operational task** as a plan task, with its plan task ID and its
 seeded when the epic is created. The common shape is **impl → deploy →
 validate**.
 
-**Create it** with the sanctioned path (never hand-roll the body):
+**Create it runnable as filed**, with the sanctioned path (never hand-roll the
+body). Write the task's sections from its plan entry into a scratch body file
+and pass it with `--body-file`:
 
 ```bash
 vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> \
-  --kind {validation|deployment} --title "<what>" --blocked-by <org>/<repo>#<TASK> [--blocked-by …]
+  --kind {validation|deployment} --title "<what>" --body-file <tmp> \
+  --blocked-by <org>/<repo>#<TASK> [--blocked-by …]
 ```
 
-This stamps the kind's label and an **executable scaffold**: a generic,
-author-defined **precondition self-check** (a machine probe *or* a human-attested
-statement; the framework prescribes no mechanism — run it first and, if unmet,
-comment "blocked: preconditions not met" and stop, never fabricating), the
-procedure, the acceptance criteria, and a **SUCCESS/FAILURE results template**.
+The body file holds the scaffold's sections as level-2 headings, in this
+order, each filled from the plan:
+
+- `## Intro`: what the task checks or deploys, and why.
+- `## Preconditions`: the precondition self-check, a machine probe *or* a
+  human-attested statement (the framework prescribes no mechanism). The run
+  skill runs it first and, if it is unmet, comments "blocked: preconditions
+  not met" and stops, never fabricating.
+- `## Procedure`: the steps the agent runs, with their commands.
+- `## Acceptance`: the criteria a `SUCCESS` outcome must meet.
+- `## Human-run steps` (deployment only, optional): the steps that need a
+  human identity, below.
+
+`vrg-issue-create` keeps the scaffold's frame around them: the kind's label,
+the headings and the **SUCCESS/FAILURE results template**. It refuses a file
+with text before the first section, an unknown, duplicate or empty section,
+or a missing required one, so fix the file and re-run. Never file the bare
+scaffold and fill it later: its placeholder sections leave the task
+unrunnable, and filling them is a scope change the human must post. If the
+plan entry does not give enough to write a section, the plan is incomplete:
+stop and ask the human rather than file a placeholder.
 
 **Deployment autonomy boundary.** A deployment task owns only the **agent-safe**
 deploy steps (install/sync/restart). Where deploying needs a **release**
@@ -190,12 +209,38 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
+**Plan only what the release leaves over.** A completed release has
+already run every install its repo configures, and its `Released:`
+records attest it. What each release covers, and what it leaves over, is
+defined in one place:
+[What a human-gated release covers](../issue-deploy/references/release-coverage.md).
+Write a deployment task against a release from it:
+
+- Its release precondition is `vrg-release-record check` on each
+  blocked-by development task, not a human-attested statement, wherever
+  the repo releases with `vrg-release`.
+- Its steps never reinstall, update or re-verify what the release itself
+  installs: for vergil-tooling, the host that ran the release and every
+  running VM; for vergil-claude-plugin, the same, which leaves only the
+  `/reload-plugins` in each running session, a human-run step. Name only
+  what the page lists as left over and the next step needs.
+- With nothing left over, the task is the release's gate: its procedure
+  is the release-record check alone.
+- A check that the released behavior works is a validation task, not a
+  deployment step.
+- Where a release precondition must stay human-attested (no records),
+  name the attestation comment in `## Preconditions` with its text's
+  shape, as the page's
+  [attestation section](../issue-deploy/references/release-coverage.md#handing-the-human-the-attestation-command)
+  gives it, so the run can hand the human the filled-in command.
+
 **Steps that refuse the agent identity are human-run.** When filing a
 deployment or validation task, check each step of its procedure, its
 precondition checks included, against what the user agent identity can
 do. In a deployment task, a step that refuses it, or needs a permission
-or secret the agent does not hold, goes under the scaffold's **Human-run
-steps (need a human identity)** section with its paste-ready command,
+or secret the agent does not hold, goes under the body file's
+`## Human-run steps` section, which fills the scaffold's **Human-run
+steps (need a human identity)** section, with its paste-ready command,
 never under the agent-safe steps, so `issue-deploy` hands it to the
 human instead of stopping on it. The validation scaffold has no such
 section: write a check of that kind as a human-attested precondition
@@ -264,7 +309,7 @@ task for that CD build, which `file-tasks` (step 8) files:
 ```bash
 vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
   --title "Validate: the develop CD build publishes <what>" \
-  --blocked-by <org>/<repo>#<TASK>
+  --body-file <tmp> --blocked-by <org>/<repo>#<TASK>
 ```
 
 - **Why.** `vrg-finalize-pr` no longer waits on CD: it reports the develop CD
@@ -523,11 +568,13 @@ still being built; once every one is closed, both are allowed.
 ### Entry points
 
 Find the planning issue before anything else. Check where an issue stands from
-its native parent:
-`vrg-gh issue view <M> --repo <owner>/<repo> --json parent`, then the parent's
-labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
-(`epic` + `planning` is the planning epic; `epic` + `intake` is the intake epic;
-`epic` + `deferred` is the deferred epic; `epic` + `ad-hoc` is an ad-hoc epic).
+its epic: `vrg-epic-parent <owner>/<repo>#<M>` prints `<epic ref> <kind>`, the
+epic being the head of the chain that holds the issue, never one of its
+continuations, so never read the native parent and its labels instead
+(kind `planning` is the planning epic; `intake` the intake epic; `deferred`
+the deferred epic; `ad-hoc` an ad-hoc epic). Its exit 1 (chain drift, a read
+failure, or a parent that is not a well-formed epic) is a stop: show its error
+to the human.
 
 | Invocation | What to do |
 | --- | --- |
@@ -538,9 +585,12 @@ labels with `vrg-gh issue view <P> --repo <parent-repo> --json labels`
 | `epic-create` with **no argument** | Summarize the planning queue with `vrg-queue planning`: waiting items, in-progress items with their latest note, and ready-to-close items. Ask which one to work on, as [Choosing what to plan next](#choosing-what-to-plan-next) says. |
 | `epic-create` with a **free-text idea** | Create a planning issue for it first, skipping intake, then start: `vrg-issue-create --epic planning --repo <owner>/.github --title "<idea>" --body-file <tmp>` (`<owner>/.github` is the target's queue home). |
 
-- An issue under **any other parent** (a finite epic) is already ready
-  work, not a planning candidate. Stop and ask the human.
-  (`vrg-intake-route … planning` does accept an **unparented** issue.)
+- An issue under **any other parent** (a finite epic, kind `development` or
+  `proxy`) is already ready work, not a planning candidate. Stop and ask the
+  human. So is one whose kind is `not-epic` (a parent with no `epic` label)
+  or `archive` (a closed item in an archive, named in the line): stop and ask
+  the human. (`vrg-intake-route … planning` does accept an **unparented**
+  issue, printed as `none`.)
 - `vrg-queue planning` exits 1 with `no open 'Epic (planning): <name>' planning
   epic in <home>` when no planning queue exists yet. That is **an empty queue,
   not a failure**: say so and offer the free-text entry point. Do not retry.
@@ -991,8 +1041,7 @@ documentation task, filed at `bootstrap`, has no key.
 
 **Writing the key.** A plain task's body file carries the line. An
 operational task (`--kind validation` or `deployment`) carries it in the
-`## Intro` section of its body file, or as its `--body` when it has no body
-file. A retrospective takes no body file, so its key is its `--body`:
+`## Intro` section of its body file. A retrospective takes no body file, so its key is its `--body`:
 
 ```bash
 vrg-issue-create --epic <home>#<N> --repo <org>/.github --kind retrospective \
@@ -1433,7 +1482,9 @@ details, step 0's public-wording rule) goes into it.
    same worktree: one automated pass, no rounds. Its header follows the step 3
    rule, and its tasks follow "Task sizing" above. The plan lists every task
    the epic will file, the operational and follow-on tasks included, each
-   with its plan task ID ("Operational tasks" above).
+   with its plan task ID ("Operational tasks" above). An operational task's
+   entry gives its preconditions, procedure and acceptance (and, for a
+   deployment, its human-run steps), so `file-tasks` can file it runnable.
    Commit it as an ordinary commit.
    Then run the epic body sync (above), post the stage's progress comment,
    tick `plan`, and take the checkpoint pause.
@@ -1476,7 +1527,9 @@ details, step 0's public-wording rule) goes into it.
      File only the review task here; its siblings are filed as the sweep
      discovers where docs actually need to change.
    - **Operational and follow-on tasks are plan tasks,** filed here like
-     any other, with the commands "Operational tasks" above gives.
+     any other, with the commands "Operational tasks" above gives. An
+     operational task's body file is written from its plan entry, so it
+     is runnable as filed.
    - **A task in another org goes under that org's proxy.** GitHub cannot
      link a sub-issue across orgs, so when the plan files a task in a repo
      whose org is not the epic's, first ensure that org's proxy epic:

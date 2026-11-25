@@ -112,17 +112,24 @@ drafts it at the gate.
    its acceptance is a recorded `Outcome:` comment, not a PR (and the PR tooling
    refuses it). Hand a `validation` issue to **`issue-validate`** and a
    `deployment` issue to **`issue-deploy`**.
-4. **Not an intake, planning, deferred or hoshin item.** Check the issue's **native
-   parent**:
+4. **Not an intake, planning, deferred, hoshin or ops item.** Find the
+   issue's **epic** and its kind:
 
    ```bash
-   vrg-gh issue view <N> --repo <owner>/<repo> --json parent
-   vrg-gh issue view <P> --repo <parent-owner>/<parent-repo> --json labels
+   vrg-epic-parent '<owner>/<repo>#<N>'
    ```
 
-   If the parent carries `epic` + `intake` (an `Epic (intake): …` queue epic),
-   `epic` + `planning` (an `Epic (planning): …` queue epic) or `epic` +
-   `deferred` (an `Epic (deferred): …` queue epic), stop — the item is not
+   It prints one line, `<epic ref> <kind>`. The epic is the head of the
+   chain that holds the issue, never one of its continuations, so a task
+   in a chained epic is judged by its epic: never read the issue's native
+   parent and that parent's labels instead. Exit 1 (chain drift, a read
+   failure, or a parent that is not a well-formed epic) is a stop: show
+   its error and say the epic could not be read, rather than assume the
+   issue is not queued.
+
+   If the kind is `intake` (an `Epic (intake): …` queue epic), `planning`
+   (an `Epic (planning): …` queue epic) or `deferred` (an
+   `Epic (deferred): …` queue epic), stop — the item is not
    buildable yet. Tell the human, mirroring the PR tooling's refusal:
 
    - intake: `--issue (<ref>) is in the intake queue; it is not buildable until
@@ -133,21 +140,46 @@ drafts it at the gate.
      its revival conditions are met. Revive it with epic-review deferred first.`
 
    This is the upstream half of the refusal: `vrg-pr-workflow report-ready` and
-   `vrg-submit-pr` refuse the same issues by the same native-parent test, so
+   `vrg-submit-pr` refuse the same issues by the same epic test, so
    implementing one would strand the work with no path to a PR. A deferred item
    is refused here, before any implementation work starts, not at
    report-ready. Routing it out of the queue (`epic-review intake` → one-off
    or split; `epic-create` for planning, or `epic-review planning` → one-off
    for an item small enough for one PR; `epic-review deferred` → revive for
-   deferred) is the only way to lift the refusal. If the parent cannot be read,
-   say so and stop rather than assume it is not queued.
+   deferred) is the only way to lift the refusal.
 
-   If the parent carries `epic` + `hoshin` (the `Epic (hoshin): …` epic),
+   If the kind is `hoshin` (the `Epic (hoshin): …` epic),
    stop too: tell the human `<ref> is under the hoshin epic; its tasks
    belong to /vergil:hoshin.` A hoshin task is filed, written and handed off
    by the `/vergil:hoshin` run that owns it, never implemented here. The PR
    tooling does not refuse it (hoshin's own handoff uses `report-ready`), so
    this refusal is the only guard.
+
+   If the kind is `operations` (an org's
+   `Epic (operations): …` epic, whose ops issues `vrg-ops-report` files),
+   stop before any work: an ops issue records that an unattended job broke,
+   and no PR closes it. Tell the human, in the PR tooling's wording
+   (`queue_refusal_message` in vergil-tooling's `lib/epics.py`, the
+   refusal `unbuildable_parent_kind` names):
+
+   - operations: `--issue (<ref>) is under the operations epic; it is an ops
+     issue, which no PR closes: file the fix as a follow-up task in its own
+     repo, and close the ops issue by hand once the problem is dealt with.`
+
+   `vrg-pr-workflow report-ready`, `vrg-submit-pr` and the batch rules
+   refuse it by the same epic test, so without this check a run
+   would make, validate and review the change only to be stopped at
+   report-ready. Filing the fix task needs the human's approval
+   ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
+
+   If the kind is `archive` (the line names an archive, which holds a
+   standing epic's closed tasks), stop and tell the human, naming the
+   archive: the issue is a closed item, which no skill builds.
+
+   Any other kind goes on. `development`, `proxy` and `ad-hoc` are epics
+   whose tasks are built. `none` (the issue has no parent) and `not-epic`
+   (its parent has no `epic` label, such as a sub-task's parent issue)
+   mean the issue is under no epic: treat it as an unparented task.
 5. **A trusted body.** Before any work, read the issue through the trust
    layer, never with a raw `vrg-gh` body or comment read: an untrusted body
    would otherwise already have steered the implementation
@@ -248,7 +280,8 @@ the sub-tasks yourself; splitting creates issues, so the human rules on it.
 An approved split narrows this task's scope: draft the scope change for
 the human as above.
 
-For an **ad-hoc task** (its native parent carries `epic` + `ad-hoc`),
+For an **ad-hoc task** (one whose epic's kind is `ad-hoc` in
+`vrg-epic-parent`, [Preflight](#preflight) step 4),
 offer a second choice in the same item: route the task to planning, so
 it becomes an epic, with `vrg-intake-route <owner>/<repo>#<N> planning`
 (optionally sized: `--tasks <n>` and `--reason "<one line>"` together,
@@ -308,10 +341,11 @@ that form. A sweep item is not a non-review item: it needs no ruling and
 never goes under `Awaiting a ruling`. Screen it against
 [§1.6](../../docs/paad-review-doctrine.md#16-security-findings) first: a
 security-class item is a security item, never a sweep item. A proxy
-task (one whose native parent carries `epic` + `proxy`) has no bookend
-of its own: its items are recorded on the **primary's**
+task (one whose epic's kind is `proxy` in `vrg-epic-parent`) has no
+bookend of its own: its items are recorded on the **primary's**
 documentation-review bookend, the primary being the `primary` key of
-`vrg-epic-audit --epic <proxy ref>` (an exit 1 there is link drift: stop
+`vrg-epic-audit --epic <proxy ref>`, `<proxy ref>` the epic
+`vrg-epic-parent` printed (an exit 1 there is link drift: stop
 and tell the human, never post anywhere else). An ad-hoc
 task has no bookend: a documentation gap it finds outside its scope is a
 follow-up, under `Awaiting a ruling`.
@@ -636,9 +670,9 @@ says otherwise. A single issue never runs in batch mode.
 The tooling enforces the **hard rules** and refuses a batch that breaks
 one, at `batch-start`, at report-ready and at submit: every issue is in
 this repo, has the same parent epic (a finite epic or the repo's ad-hoc
-epic), is not operational, is not directly Blocked-by an open deployment
-task, and was opened by a trusted author, and the batch has 2 to 8
-issues.
+epic, never an operations epic), is not operational, is not directly
+Blocked-by an open deployment task, and was opened by a trusted author,
+and the batch has 2 to 8 issues.
 
 The **guidelines** are judgment, yours and the human's:
 
@@ -675,7 +709,8 @@ yourself. Substantial issues keep the single-issue shape.
    a `feature/<N>-` branch for it, or it is the last issue of a collapsed
    batch ([Finding its worktree](#a-batch-left-with-one-issue) finds its
    batch worktree). If any issue fails, start nothing:
-   report every failure and stop.
+   report every failure and stop. So a list that names an ops issue is
+   refused here, at step 4, before `batch-start` and before any work.
 2. From the repo root (the main clone), fetch and start the batch, naming
    the issues in order:
 

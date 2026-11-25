@@ -107,9 +107,14 @@ against a dynamic epic):
   > them (`epic-implement`) before running the retrospective."
 
   Give each open ref in full (`owner/repo#N`), and for each open proxy task
-  name its proxy: the task's native parent, read with
-  `vrg-gh issue view <N> --repo <owner>/<repo> --json parent`, whenever that
-  parent is not this epic (`… #N (proxy task, under <proxy ref>)`). The
+  name its proxy: read the task's epic with
+  `vrg-epic-parent <owner>/<repo>#<N>`, which prints `<epic ref> <kind>`, and
+  label the task a proxy task only when the kind is `proxy`
+  (`… #N (proxy task, under <epic ref>)`). A task in one of this epic's
+  continuations prints this epic, with kind `development`, so it is never
+  mislabelled by its container; never read the native parent instead. Any
+  other kind (`none`, `not-epic` or `archive` included) gets no label, and an
+  exit 1 (chain drift or a read failure) is shown with the open refs. The
   proxies themselves are still open then, by design; only their tasks block.
 
 - This subsumes ordering: the documentation-review sweep and any per-repo

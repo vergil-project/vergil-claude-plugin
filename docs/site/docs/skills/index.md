@@ -87,7 +87,9 @@ plan pushback rounds → alignment rounds), files the plan's tasks with the
 closing **bookend tasks** — documentation-review and the terminal
 **retrospective** — and publishes the spec + plan as a docs PR, which closes
 the documentation task. It also files the operational (deployment and
-validation) tasks the plan needs, and when an epic changes language support,
+validation) tasks the plan needs, each runnable as filed: their
+preconditions, procedure and acceptance are written from the plan into a
+`--body-file` for `vrg-issue-create`. When an epic changes language support,
 container images, shared CI workflows or release tooling, its plan seeds a
 **fixture run** for each fixture whose language or shape the change affects,
 filed with [fixture-run](#fixture-run) once the release that ships the change
@@ -313,10 +315,15 @@ push step. The skill then submits the PR itself with `vrg-submit-pr`
 finalizes, and owns the PR until it merges or needs the human: on a PR
 that does not merge it runs [pr-watch](#pr-watch), which fixes it,
 merge-reviews each fix and reruns `vrg-finalize-pr` itself. Releases and
-promotion stay the human's. It refuses an issue whose native parent is the intake,
-planning or deferred epic (route it with `epic-review intake`, expand it with
+promotion stay the human's. It refuses an issue whose epic, as
+`vrg-epic-parent` reads it through the chain, is the intake, planning or
+deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
-PR tooling's refusal. It also refuses a task under the hoshin epic,
+PR tooling's refusal. It refuses an ops issue (one under an org's
+`Epic (operations): …` epic) the same way, at Preflight and before any
+work, a batch that lists one included, in the tooling's words: file the
+fix as a follow-up task in its own repo, and close the ops issue by hand.
+It also refuses a task under the hoshin epic,
 pointing to [hoshin](#hoshin), the only skill that works one. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
 `vrg-scope-change`, before the merge review starts. An epic's
@@ -387,7 +394,12 @@ or `Decision: refuse` line from `vrg-ruling-reply`. An approved exemption
 stands in for the record and ends the run `exempt: request <id>`, whose
 exemption line, `Merge review: exempt: request <id>`, goes into
 report-ready's notes in place of the eligibility line; a refused one
-runs the review. Security findings appear in
+runs the review. Every reviewer reply is screened against the
+doctrine's security definition before its step comment is posted: a
+finding that qualifies becomes a security finding, and a reply holding
+anything that would help an attacker (a below-bar remark, or a
+description of a security fix the branch makes) is withheld. Security
+findings appear in
 public only by ID or count; their details stay in the task's private state
 directory, `build/.vergil-state/issue-implement/<N>/merge-review/`, and the
 terminal.
@@ -451,7 +463,13 @@ waits, then verifies the human's run and records it with the rest: from the
 run's pasted output, or from the human's report when the agent's own checks
 confirm the step's result independently. With no
 human present, the run ends `waiting: human-run steps` rather than
-`blocked`.
+`blocked`. What each human-gated release already installs, and what it
+leaves over for a deployment task, is defined in the skill's
+[release coverage reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-deploy/references/release-coverage.md),
+which `epic-create` plans deployment tasks from. A release precondition
+is confirmed from the release's own `Released:` records; where it must
+stay human-attested, the run hands the human the filled-in attestation
+command.
 
 **When to use.** When the human asks to deploy, install, roll out, or sync
 merged work, or when a later task needs a change deployed and usable rather
@@ -486,7 +504,9 @@ run with `issue-validate`) checks the CI gates, ops, the release, its
 evidence bundle, the dependency update, the docs site and that nothing
 reached a package registry. It files tasks only and never runs them. The
 skill holds the one list of fixtures, the known gaps and the learned
-ready-to-start and validation conditions.
+ready-to-start and validation conditions. Runs on one fixture are
+serialized in order: a run already under way goes first, then the run filed
+first, so runs that overlap proceed one after another with no ruling.
 
 **When to use.** When an epic's plan seeds a fixture run, which
 `epic-create`'s fixture-run rule asks of every epic that changes language

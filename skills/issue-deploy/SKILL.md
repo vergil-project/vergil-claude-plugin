@@ -72,6 +72,13 @@ especially:
   is published; do not perform it.
 - Confirm the target is reachable.
 
+A completed release has already run every install its repo configures:
+[What a human-gated release covers](references/release-coverage.md)
+says what each release covers and what it leaves over. Its `Released:`
+records are the human's attestation, so where a record exists the
+release-record check below confirms the release and needs no comment
+from the human.
+
 **Confirming that a blocked-by task is released.** Where the deployment
 depends on a blocked-by development task having been released, confirm that
 release with its `Released:` record, which `vrg-release` posts on every issue
@@ -146,11 +153,29 @@ fails with exit 128 instead of answering.
 **If any precondition is unmet:** comment `blocked: preconditions not met —
 <which>` and **stop** — do not run the deploy, do not close. Never fabricate.
 
+**A missing release attestation.** When the unmet precondition is a
+human's release attestation, never leave the human to ask for the
+command. Find the candidate release and give them the attestation
+command filled in, with no placeholder left, as the coverage page's
+[Handing the human the attestation command](references/release-coverage.md#handing-the-human-the-attestation-command)
+says: in the session when the human is present, and in the `blocked`
+comment and your final report either way. A later run checks the
+precondition again once the human has posted it.
+
 ## Run the deploy steps (agent-safe, idempotent)
 
 Run the issue's **Deploy steps** against the target — install, sync, restart, and
 the like. They are idempotent by design, so a re-run is safe. Capture the real
 output for evidence. You touch no code and open no PR.
+
+A step that only repeats what the release already did (a reinstall,
+update or re-check that the
+[coverage page](references/release-coverage.md) lists as covered) is
+still part of the task's scope: never skip it on your own judgment.
+Run it as the issue gives it, since it is idempotent. When it is a
+human-run step, hand it over as below, saying which release already
+covers it, so the human can rule it covered instead of running it; that
+ruling goes in the result's evidence.
 
 ## Hand the human-run steps to the human, then verify them
 
@@ -254,7 +279,8 @@ line
 ([lifecycle step 4](../issue-validate/references/operational-task-lifecycle.md#lifecycle)).
 Before writing them, run the lifecycle's
 [Writing to the state directory](../issue-validate/references/operational-task-lifecycle.md#writing-to-the-state-directory)
-step: it creates each level at mode `700` and checks it, and a level
+step: `vrg-state-dir` creates each level at mode `700`, checks it and
+prints the one path to write to, and a level
 that is not a real directory at `700` stops the run. Each file there is
 created at mode `600`.
 
@@ -304,7 +330,8 @@ created at mode `600`.
   the first write there, and again before every later one, run the
   lifecycle's
   [Writing to the state directory](../issue-validate/references/operational-task-lifecycle.md#writing-to-the-state-directory)
-  step: it creates each level at mode `700` and checks it, and a level
+  step: `vrg-state-dir` creates each level at mode `700`, checks it and
+  prints the one path to write to, and a level
   that is not a real directory at `700` stops the run. Each file there is
   created at mode `600`. See the
   [lifecycle's "Out of band"](../issue-validate/references/operational-task-lifecycle.md#out-of-band)
