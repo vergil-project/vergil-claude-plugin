@@ -377,6 +377,7 @@ itself.
 | `timed out` | The batch deadline passed with the PR still pending. Run [Monitor & reconcile](#monitor--reconcile): `vrg-pr-await` waits for it to merge or names why it cannot, and it may still land by itself. |
 | `failed: auto-merge off` | Stop: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
 | `failed: provenance` | Stop: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
+| `failed: gates` | Stop and tell the human, naming the PR and its head. The gates' re-check found no merge-review record or approved exemption covering the head and turned auto-merge off: the PR needs its merge review or the human's exemption. Push nothing, and never turn auto-merge back on yourself. |
 | `failed: closed` | Stop and tell the human. Never reopen it. |
 | `failed: not a develop PR` | Stop and tell the human. Finalize does not watch it, and neither does this skill. |
 | merged, with a provenance violation flagged | Nothing to fix on the branch. Tell the human, who investigates it; push nothing. |

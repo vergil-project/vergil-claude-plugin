@@ -1483,8 +1483,11 @@ details, step 0's public-wording rule) goes into it.
      `vrg-epic-create --proxy-for <home>#N --repo <other-owner>/<repo>`.
      It creates `Epic (proxy): <name>` in `<other-owner>/.github`, carrying
      the `Primary:` line, and posts the `Proxy:` comment on this epic; a
-     re-run finds the proxy (reopening one closed early) and posts nothing
-     twice, so one proxy serves every task the plan files in that org. Then
+     re-run finds the open proxy and posts nothing twice, so one proxy
+     serves every task the plan files in that org. When that org's proxy
+     is closed, `--proxy-for` refuses, naming it: stop and ask the human,
+     who may reopen the proxy by hand (a re-run then reuses it). Never
+     reopen it yourself. Then
      file each such task under it:
      `vrg-issue-create --epic <other-owner>/.github#<P> --repo
      <other-owner>/<repo> …`. Never file it under that repo's ad-hoc epic,

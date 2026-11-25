@@ -14,7 +14,8 @@ substantially change it.
 
 Human judgment is spent **up front** (brainstorm → spec pushback rounds →
 human spec review → plan → plan pushback rounds → alignment rounds) and at
-the **hard gates** (PR submit, merge, release). Between those,
+the **hard gates** (merge review, the checks `vrg-submit-pr` and
+`vrg-finalize-pr` run, CI, and the human-only release). Between those,
 agents run these skills by the most efficient means available —
 **sub-agents are encouraged** for research fan-out and parallel work —
 and only stop mid-flight for a problem they cannot resolve. The plugin
@@ -55,20 +56,20 @@ unattended runner, `paad:paad-delegate`
 | Skill | Purpose | Status |
 |---|---|---|
 | [epic-create](#epic-create) | USER agent: the run-once entry point for non-trivial work — create the epic and its documentation task → brainstorm → spec pushback rounds → human spec review → plan → plan pushback rounds → alignment rounds → file the plan's tasks and the closing bookends → docs PR, in nine checkpointed stages a fresh session resumes after `/clear` | Current (2.1) |
-| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; drafts the terminal retrospective for the human to submit | Current (2.1) |
+| [epic-implement](#epic-implement) | USER agent: drive an epic's tasks, or in its `adhoc` mode the ad-hoc tasks (org-wide or one repo), to their human gates — resume from the epic issue + plan, work the runnable frontier (sub-agents encouraged), batch what needs the human, including merge-review requests it drafts replies for; each task run submits its own PR and watches it to the merge, and after every merge it continues with the next runnable task; hands the terminal retrospective to `epic-retrospective`, which submits its PR | Current (2.1) |
 | [epic-retrospective](#epic-retrospective) | USER agent: the run-once terminal finishing gate — draft the epic's backward-looking retrospective, whose docs PR closes the epic | Current (2.1) |
-| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, hand off to the human; a list of issues becomes one batch PR | Current (2.1) |
-| [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` runs once validation is green — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, and an eligibility line for report-ready's notes; also the whole-branch review `pr-watch` runs on a fix to an open PR before it pushes | Current (2.1) |
+| [issue-implement](#issue-implement) | USER agent: implement an issue, validate to green, run `merge-review` (resuming a run stopped for a ruling), record the PR metadata with the eligibility line, then submit the PR itself and watch it to the merge; a list of issues becomes one batch PR | Current (2.1) |
+| [merge-review](#merge-review) | USER agent: the pre-PR merge review `issue-implement` (and `epic-create`, `epic-retrospective` and `hoshin` for their docs PRs) runs once validation is green, on every PR — one review by the read-only `merge-reviewer`, at most one fix and check, every stop through `vrg-ruling`, every item closed before handoff, an exemption only on the human's instruction, and a closing comment posted with `vrg-merge-review-close` as the PR's merge-review record, carrying the eligibility line for report-ready's notes; also the whole-branch review `pr-watch` runs on a fix to an open PR before it pushes | Current (2.1) |
 | [issue-deploy](#issue-deploy) | USER agent: run a `deployment` task — install/sync merged changes so they're usable, then record the outcome as a comment | Current (2.1) |
 | [issue-validate](#issue-validate) | USER agent: run a `validation` task — a live check whose acceptance is a recorded PASS/FAIL comment, not a code change | Current (2.1) |
 | [fixture-run](#fixture-run) | USER agent: file a fixture run — the change, release and validation trio that drives a language fixture repo through the full cycle against a released Vergil change; files tasks only, and refuses a run without `--after` | Current (2.1) |
-| [pr-watch](#pr-watch) | USER agent: wait on a submitted PR with `vrg-pr-await` until it auto-merges (exit 0) or cannot merge (exit 1, with a reason), fix a failing check or conflict and stop for the human on any other reason, and handle review comments it reads itself; merge-review every fix but a clean rebase before pushing it; on a batch PR, fold each fix into its issue's commit and run the batch check before every push | Current (2.1) |
+| [pr-watch](#pr-watch) | USER agent: wait on a submitted PR with `vrg-pr-await` until it auto-merges (exit 0) or cannot merge (exit 1, with a reason), fix a failing check or conflict and stop for the human on any other reason, and handle review comments it reads itself; merge-review every fix but a clean rebase before pushing it, then rerun `vrg-finalize-pr` itself; on a batch PR, fold each fix into its issue's commit and run the batch check before every push | Current (2.1) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 | [intake-capture](#intake-capture) | Capture an uncurated idea/bug/to-do into the intake queue with `vrg-intake-create` — no kind or category step — paraphrasing voice-to-text into clean prose | Current (2.1) |
 | [epic-review](#epic-review) | USER agent: review the intake, planning or deferred queue in batches of 4 and route each item with `vrg-intake-route`; planning mode prunes the queue and never picks what to plan next, deferred mode re-checks each item's revival conditions. Refuses an ad-hoc or development epic | Current (2.1) |
 | [steering-audit](#steering-audit) | Review the Claude Code steering and settings files against the ownership model: re-verify its platform facts, run mechanical checks and a findings-only `/paad:pushback`, then walk each finding with the human. `steering-audit user` reviews the user-level files read-only | Current (2.1) |
-| [hoshin](#hoshin) | USER agent: run the hōshin kanri review cadence — `start` each working day, optional `end` or `end <level>` — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen and the human's approval; skips merge review on purpose, so its handoff carries no eligibility line | Current (2.1) |
+| [hoshin](#hoshin) | USER agent: run the hōshin kanri review cadence — `start` each working day, optional `end` or `end <level>` — closing any period left open, running the reviews due with the human, and handing off one docs PR of dated logbook entries after a security screen, the human's approval and a merge review; the human's submit of the logbook PR stays the review's sign-off | Current (2.1) |
 
 Three of the `epic-*` skills form the **epic lifecycle**: `epic-create` (run
 once) → `epic-implement` (run N times) → `epic-retrospective` (run once — the
@@ -105,7 +106,9 @@ issue), or with no argument (a `vrg-queue planning` summary, where the human
 chooses what to plan next: plan an epic only when it will be implemented soon,
 usually one pick at a time). It labels the item `in-progress`,
 records progress comments with the `Epic:` / `Docs task:` / `Tasks filed: yes`
-markers, and files every task before it hands off the docs PR. That PR also
+markers, and files every task before it merge-reviews the docs PR and
+submits it itself, since the human's review of the spec and plan already
+happened in the session. That PR also
 closes the planning issue: `vrg-submit-pr` adds a `Planning issue: Closes`
 line for it, so the merge that publishes the spec and plan ends the planning.
 
@@ -252,12 +255,17 @@ epic as a whole rather than one issue at a time — "implement epic #N",
 "pick up epic X where we left off" — or on the ad-hoc tasks: "work the
 ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue".
 
-**Boundaries.** It never opens PRs and never merges. It never starts
-`pr-watch` after a submit, since `vrg-finalize-pr` watches the PRs; when
+**Boundaries.** It opens no PR itself and never merges one: each task's
+`issue-implement` run submits its own PR with `vrg-submit-pr`, which
+opens it with auto-merge on and finalizes it, and watches it to the
+merge. After every merge it re-reads the epic and dispatches the next
+runnable task, stopping for the human only on a ruling, a failure, or a
+task blocked on a release or a human-gated deployment precondition. When
 the human reports a PR that did not merge, or asks for one to be fixed, it
-runs `pr-watch` on it at once and never hands the command back. It **drafts** the terminal retrospective via
-`epic-retrospective` but never submits or merges its PR — the retrospective's
-docs PR is the final gate, and PR submit/merge stays a human gate.
+runs `pr-watch` on it at once and never hands the command back. It hands
+the terminal retrospective to `epic-retrospective`, which merge-reviews
+and submits the retrospective's docs PR itself. It never cuts a release:
+releases and promotion stay human.
 
 **Status.** Current (Vergil 2.1). First exemplar of the Front-Loaded
 Judgment, Trusted Execution doctrine.
@@ -272,7 +280,8 @@ reviews and the planning issue for review findings that were never tracked
 the result goes in §4), then it drafts `retrospective.md` — the
 backward-looking record that partners the spec and plan (spec → plan →
 retrospective) — from the execution history, runs a draft → review loop with the
-human, and hands off the closing docs PR whose merge **closes the epic**.
+human, merge-reviews the closing docs PR and submits it itself; its merge
+**closes the epic**.
 
 The gate reads the `children` of `vrg-epic-audit --epic`, so it covers the
 epic's **proxy tasks** (its tasks filed in other orgs under their proxy
@@ -299,8 +308,12 @@ for a ruling ends there; running the skill on the task again resumes it
 from the task's private merge-review directory, which `issue-implement`
 deletes once `report-ready` succeeds.
 `report-ready` also pushes the branch to origin, so there is no separate
-push step. A run-and-done hand-off: it publishes the branch, records the
-metadata, and the human opens the PR. It refuses an issue whose native parent is the intake,
+push step. The skill then submits the PR itself with `vrg-submit-pr`
+(never `--release`), which opens it with auto-merge on and always
+finalizes, and owns the PR until it merges or needs the human: on a PR
+that does not merge it runs [pr-watch](#pr-watch), which fixes it,
+merge-reviews each fix and reruns `vrg-finalize-pr` itself. Releases and
+promotion stay the human's. It refuses an issue whose native parent is the intake,
 planning or deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
 PR tooling's refusal. It also refuses a task under the hoshin epic,
@@ -323,15 +336,18 @@ Given a list of small same-epic issues, it implements them as one
 **batch**: `vrg-pr-workflow batch-start` checks the batch's hard rules
 and records the list and a fixed base, then each issue is implemented,
 validated, merge-reviewed and folded to one commit in order on one
-branch, and `report-ready` hands them off as one PR. An issue that turns
+branch, and `report-ready` records them as one PR. An issue that turns
 out unsuited to the batch stops it for the human, who may extract it.
 
 **When to use.** In the user-agent session, to take an issue from
-implementation through the point where the human opens the PR, in a
-Lima or a cloud session alike. `report-ready` pushes a
-world-readable **relay ref** carrying the ready-state, so the Mac does
-not need the session's filesystem, and the human opens the PR
-worktree-free with `vrg-submit-pr <branch> [<branch> …]`. (This retired
+implementation to its merge into `develop`. A **cloud session** does not
+submit: it stops after `report-ready`, which pushes a world-readable
+**relay ref** carrying the ready-state, so the Mac does not need the
+session's filesystem, and the human opens the PR worktree-free with
+`vrg-submit-pr <branch> [<branch> …]`. A repo whose CLAUDE.md still
+says agents never run `vrg-submit-pr`, and a push GitHub refuses for
+workflow files, also stop after `report-ready` for the human's submit.
+(This retired
 the former `issue-localize` skill, which reconstructed the ready-state
 locally before the relay existed — epic
 [vergil-project/.github#148](https://github.com/vergil-project/.github/issues/148).)
@@ -354,7 +370,24 @@ authenticated `vrg-ruling` request; the human replies with
 filed, or recorded) before handoff. Each step posts one comment, and a
 closing comment carries the eligibility line,
 `Merge review: done: <eligible | not-eligible (<reason>)>; accepted-risk <w>`,
-which also goes into report-ready's notes. Security findings appear in
+which also goes into report-ready's notes. The closing comment is posted
+only with `vrg-merge-review-close`, which adds the machine-readable
+record line below the eligibility line,
+`Merge review record: head=<sha> fingerprint=<hex> outcome=<outcome>`,
+computing the head and the change fingerprint itself. That comment is the
+PR's **merge-review record**: `vrg-submit-pr`, finalize's watch and the
+daily audit read it back, and a PR with no record covering its change is
+refused. The fingerprint is of the branch's own changed lines, so a clean
+rebase keeps the record.
+
+The one skip is a **merge-review exemption**, requested only on the
+human's instruction, before the review step comment is posted, through a
+typed `vrg-ruling` request the human answers with a `Decision: approve`
+or `Decision: refuse` line from `vrg-ruling-reply`. An approved exemption
+stands in for the record and ends the run `exempt: request <id>`, whose
+exemption line, `Merge review: exempt: request <id>`, goes into
+report-ready's notes in place of the eligibility line; a refused one
+runs the review. Security findings appear in
 public only by ID or count; their details stay in the task's private state
 directory, `build/.vergil-state/issue-implement/<N>/merge-review/`, and the
 terminal.
@@ -375,17 +408,19 @@ scope. See its
 [Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr) section.
 
 **When to use.** Run by `issue-implement` once validation is green and
-before `vrg-pr-workflow report-ready`, and again on the same task to resume
+before `vrg-pr-workflow report-ready`, by `epic-create`,
+`epic-retrospective` and `hoshin` on their docs PRs at the same point,
+and again on the same task to resume
 a run stopped for a ruling. Also run by `pr-watch` on a fix to an open,
 submitted PR (any fix but a rebase that resolves no conflict), before it
 pushes: a whole-branch review against `origin/develop`, with
 `--pr <PR_URL>` on every step. That run has no report-ready: its outcome
 is the closing comment on the task issue, which adds a
-`Branch as reviewed: <yes | no>` line. `pr-watch` pushes on `eligible`,
-and on `not-eligible (human-ruling)` only when that line is `yes`: every
-item was closed by a ruling that left the reviewed branch unchanged
-(`keep`, `file`, `decline`, `dismiss`), with no fix step and no security
-item. The eligibility line still says the run needed the human. The files, schemas and the result check follow
+`Branch as reviewed: <yes | no>` line saying whether the human's rulings
+left the reviewed branch as it was. `pr-watch` pushes on `eligible`, on
+`not-eligible (<reason>)` once every ruling the run asked for is
+answered, and on `exempt`, reporting the eligibility or exemption line
+(and the branch-as-reviewed line) with the push. The files, schemas and the result check follow
 vergil-tooling's
 [agent-to-agent review protocol](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/merge-review-protocol.md);
 the ruling channel is its
@@ -494,13 +529,15 @@ follow-up issue. Because every push
 can merge, a clean rebase onto `origin/develop` is pushed with no review,
 and every other fix is reviewed first through merge-review's
 [Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr)
-entry and pushed only when eligible, or when its only stop was a
-ruling that left the reviewed branch unchanged
-(`Branch as reviewed: yes`). After a fix it tells the human to
-rerun `vrg-finalize-pr <PR>`. It never merges and never turns auto-merge on
-or off: auto-merge off or a provenance violation stops it for the human.
-It fixes a logbook PR (one titled `Logbook:`) like any other, but skips the
-merge review of its fixes, as the [hoshin](#hoshin) run itself does.
+entry and pushed once that review ends `eligible`, `not-eligible` with
+every ruling it asked for answered, or `exempt`. After a fix is pushed it
+reruns `vrg-finalize-pr <PR>` itself, never with `--release`, which
+re-checks the merge-review gate on the new head and counts the PR once it
+lands. It never merges and never turns auto-merge on or off: auto-merge
+off, a provenance violation, or a head the gates' re-check fails
+(`failed: gates`) stops it for the human. A logbook PR (one titled
+`Logbook:`) is no exception: every fix to it is merge-reviewed like any
+other.
 
 On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
@@ -519,8 +556,10 @@ submitted PR that did not merge. The agent runs it itself, at once, when
 `vrg-finalize-pr` reports a PR as not merged, when the human reports a red
 check or a conflict, or when the human asks for a PR to be fixed or
 watched; it never hands the `/vergil:pr-watch <PR_URL>` command back to the
-human. The agent does not start it after a submit by itself, since
-`vrg-finalize-pr` watches the PRs.
+human. It does not start while `vrg-submit-pr` or `vrg-finalize-pr` is
+still watching the PR; `issue-implement` runs it after its own submit
+reports the PR not merged, and on one that merged to read the review
+comments posted during the wait.
 
 **Status.** Current (Vergil 2.1). Requires `vrg-pr-await`'s merge
 contract: exit 0 merged, 1 cannot merge, 2 any other error
@@ -745,20 +784,23 @@ after the security screen and the human's approval of its text.
 Each run hands off one docs PR: a `Logbook: <date> <mode>` task for the docs
 repo under the org's hoshin epic, a worktree, the entries and index lines, `vrg-validate`,
 a mechanical security screen of the final text, the human's approval of the
-full text, a `docs(logbook)` commit and `vrg-pr-workflow report-ready`,
-with fixed wording that names only the files written. A run that stops
+full text, a `docs(logbook)` commit, a [merge review](#merge-review) and
+`vrg-pr-workflow report-ready`, with fixed wording that names only the
+files written. A run that stops
 before its commit offers edit (back through validation, the screen and the
 approval) or abandon (the task closed, the worktree removed). The rules are
 in its `references/`: the calendar, the logbook and its wording, and the
 security rules with the screen's patterns.
 
-**A logbook handoff carries no eligibility line.** The run skips
-[merge-review](#merge-review) on purpose: it is too heavy for a
-documentation-generating run, and the gates that matter (keeping security
-content out of the public logbook) run inside the skill before anything is
-pushed. A submitted logbook PR's task closes through the default
-`vrg-finalize-pr`; a failing one is fixed by [pr-watch](#pr-watch), which
-skips merge review for a `Logbook:` PR's fixes. A logbook task lives under the hoshin epic, which
+**The logbook PR runs merge review like every PR**, after the commit and
+before `report-ready`, and its eligibility line goes into report-ready's
+notes. The gates that keep
+security content out of the public logbook still run inside the skill
+before anything is pushed. The run then stops for the human: unlike the
+other docs PRs, the logbook PR is submitted by the human, whose
+`vrg-submit-pr` is the review's sign-off. Its task closes through the
+`vrg-finalize-pr` that submit always runs; a failing one is fixed by
+[pr-watch](#pr-watch), which merge-reviews each fix like any other. A logbook task lives under the hoshin epic, which
 [epic-implement](#epic-implement) and [issue-implement](#issue-implement)
 refuse.
 

@@ -339,8 +339,10 @@ match, for a new file as well as an existing one.
 **Why.** The 2.1 workflow spec makes the AUDIT identity "read-only
 by discipline, not by sandbox" — this hook turns the discipline into
 a mechanical gate per the no-honor-system principle. The allowlist
-deliberately excludes `.vergil/pr-template.yml`: that file is the
-USER agent's artifact and the human's `vrg-submit-pr` input.
+deliberately excludes `.vergil/pr-workflow.json`: that file is the
+USER agent's PR workflow state, written by
+`vrg-pr-workflow report-ready`, and the input of the agent's own
+`vrg-submit-pr`.
 
 **Soft gate, by design.** Identity comes from an environment
 variable a misbehaving agent can unset; every in-VM guard is soft.
@@ -547,17 +549,20 @@ on "PR submitted but `vrg-finalize-repo` not run." That hook
 (`stop-guard-finalization.sh`) was removed in
 [#56](https://github.com/vergil-project/vergil-claude-plugin/issues/56).
 
-**Why removed.** Under the 2.1 workflow the agent's work cycle ends
-at the PR template: it writes `.vergil/pr-template.yml` and stops —
-the **human** runs `vrg-submit-pr`, merges, and finalizes
-(`vrg-finalize-pr`). A session-end gate keyed to agent-side
-finalization has no correct trigger left.
+**Why removed.** The agent records its PR with
+`vrg-pr-workflow report-ready`, which writes
+`.vergil/pr-workflow.json`, then runs `vrg-submit-pr` itself, which
+opens the PR with auto-merge on and always finalizes: it blocks
+while `vrg-finalize-pr` watches the PR to a merge or to a reason it
+cannot merge. No state is left where a PR is submitted but not
+finalized, so a session-end gate keyed to it has no correct trigger.
 
-**What replaces it.** Nothing needs to: submission, merge, and
-finalization are all human actions now. The retired
+**What replaces it.** Nothing needs to: finalization is part of the
+submit. When a PR does not merge, `pr-watch` fixes it and reruns
+`vrg-finalize-pr` itself after each fix. The retired
 `remind-finalize` PostToolUse hook (removed in #441) is gone for
-the same reason — its trigger, `vrg-submit-pr` in an agent
-session, no longer occurs.
+the same reason: a reminder to finalize after `vrg-submit-pr` has
+nothing left to remind.
 
 **Don't re-add this.** Re-adding a session-end finalize gate
 would block the standard PR submission workflow and force agents
