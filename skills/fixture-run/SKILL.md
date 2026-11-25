@@ -60,7 +60,9 @@ the rollback on for that language.
 ## Learned ready-to-start conditions
 
 "Ready to start" (the change task's first step) has one defined rule: runs on
-one fixture are serialized. Every other condition is learned from the runs
+one fixture are serialized, in an order the rule gives (a run under way
+first, then filing order), so two overlapping runs never block each other.
+Every other condition is learned from the runs
 and recorded here, one bullet each, with the run that found it:
 
 - The fixture's managed files match the released vergil-tooling: run
@@ -86,6 +88,10 @@ and recorded here, one bullet each, with the run that found it:
   hook guard refuses as a raw-content read: run the `vrg-issue-read`
   equivalent in its place. Found by
   vergil-project/vergil-fixture-python-app#30.
+- A trio filed from an older template may carry the unordered serialization
+  rule, under which two runs filed before either starts block each other:
+  apply the ordered rule of the change template's "Ready to start" in its
+  place. Found by epics vergil-project/.github#1174 and vergil-project/.github#1281.
 - **TypeScript only:** `develop` passes the audit before the change starts.
   Run `vrg-container-run -- vrg-validate --check audit` on an up-to-date
   `develop` (the change worktree before its first commit will do). The
@@ -302,12 +308,24 @@ validation task (see the comment below for their refs). Implement it with
 Before implementing anything, confirm the fixture is in a state from which
 the full cycle can begin.
 
-- **Runs on one fixture are serialized.** Start only when no other fixture
-  run's release or validation task on this repo is open:
-  `vrg-issue-read --repo vergil-project/<repo> --search "Fixture run in:title"`
-  must show no `deployment` or `validation` task other than this run's own
-  (named in the trio comment below). Only another fixture run's open
-  release or validation task blocks. `in:title` matches the words
+- **Runs on one fixture are serialized, in order.** List the repo's open
+  fixture-run tasks:
+  `vrg-issue-read --repo vergil-project/<repo> --search "Fixture run in:title"`.
+  Group them into runs by the `<what>` in their titles (the three tasks of
+  one run share it), leaving out this run's own (named in the trio comment
+  below). Another run is **ahead** of this one when its release or
+  validation task is open and either:
+  - its change task is not in the list: it is closed, so that run is under
+    way; or
+  - its change task is in the list with a lower issue number than this
+    task: it was filed first.
+
+  Start only when no run is ahead. A run filed later that has not started
+  never blocks this one,
+  so when two runs are filed on one fixture before either starts, the one
+  filed first goes first and the other waits for its release and
+  validation tasks to close, with no ruling needed. Only another fixture
+  run's open release or validation task blocks. `in:title` matches the words
   anywhere in a title, not only at the start, so the search can also list
   a task whose title merely mentions a fixture run. Count only a task
   whose title starts "Fixture run": any other open task on the repo (such
