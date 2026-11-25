@@ -318,7 +318,11 @@ merge-reviews each fix and reruns `vrg-finalize-pr` itself. Releases and
 promotion stay the human's. It refuses an issue whose native parent is the intake,
 planning or deferred epic (route it with `epic-review intake`, expand it with
 `epic-create`, or revive it with `epic-review deferred` first), mirroring the
-PR tooling's refusal. It also refuses a task under the hoshin epic,
+PR tooling's refusal. It refuses an ops issue (one under an org's
+`Epic (operations): …` epic) the same way, at Preflight and before any
+work, a batch that lists one included, in the tooling's words: file the
+fix as a follow-up task in its own repo, and close the ops issue by hand.
+It also refuses a task under the hoshin epic,
 pointing to [hoshin](#hoshin), the only skill that works one. A ruling that changes the task's scope is drafted
 with `vrg-ruling draft-scope` for the human to post with
 `vrg-scope-change`, before the merge review starts. An epic's
