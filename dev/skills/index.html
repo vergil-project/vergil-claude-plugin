@@ -5530,7 +5530,9 @@ plan pushback rounds → alignment rounds), files the plan's tasks with the
 closing <strong>bookend tasks</strong> — documentation-review and the terminal
 <strong>retrospective</strong> — and publishes the spec + plan as a docs PR, which closes
 the documentation task. It also files the operational (deployment and
-validation) tasks the plan needs, and when an epic changes language support,
+validation) tasks the plan needs, each runnable as filed: their
+preconditions, procedure and acceptance are written from the plan into a
+<code>--body-file</code> for <code>vrg-issue-create</code>. When an epic changes language support,
 container images, shared CI workflows or release tooling, its plan seeds a
 <strong>fixture run</strong> for each fixture whose language or shape the change affects,
 filed with <a href="#fixture-run">fixture-run</a> once the release that ships the change
@@ -5737,7 +5739,11 @@ merge-reviews each fix and reruns <code>vrg-finalize-pr</code> itself. Releases 
 promotion stay the human's. It refuses an issue whose native parent is the intake,
 planning or deferred epic (route it with <code>epic-review intake</code>, expand it with
 <code>epic-create</code>, or revive it with <code>epic-review deferred</code> first), mirroring the
-PR tooling's refusal. It also refuses a task under the hoshin epic,
+PR tooling's refusal. It refuses an ops issue (one under an org's
+<code>Epic (operations): …</code> epic) the same way, at Preflight and before any
+work, a batch that lists one included, in the tooling's words: file the
+fix as a follow-up task in its own repo, and close the ops issue by hand.
+It also refuses a task under the hoshin epic,
 pointing to <a href="#hoshin">hoshin</a>, the only skill that works one. A ruling that changes the task's scope is drafted
 with <code>vrg-ruling draft-scope</code> for the human to post with
 <code>vrg-scope-change</code>, before the merge review starts. An epic's
@@ -5890,7 +5896,9 @@ run with <code>issue-validate</code>) checks the CI gates, ops, the release, its
 evidence bundle, the dependency update, the docs site and that nothing
 reached a package registry. It files tasks only and never runs them. The
 skill holds the one list of fixtures, the known gaps and the learned
-ready-to-start and validation conditions.</p>
+ready-to-start and validation conditions. Runs on one fixture are
+serialized in order: a run already under way goes first, then the run filed
+first, so runs that overlap proceed one after another with no ruling.</p>
 <p><strong>When to use.</strong> When an epic's plan seeds a fixture run, which
 <code>epic-create</code>'s fixture-run rule asks of every epic that changes language
 support, container images, shared CI workflows or release tooling:
