@@ -87,7 +87,9 @@ plan pushback rounds → alignment rounds), files the plan's tasks with the
 closing **bookend tasks** — documentation-review and the terminal
 **retrospective** — and publishes the spec + plan as a docs PR, which closes
 the documentation task. It also files the operational (deployment and
-validation) tasks the plan needs, and when an epic changes language support,
+validation) tasks the plan needs, each runnable as filed: their
+preconditions, procedure and acceptance are written from the plan into a
+`--body-file` for `vrg-issue-create`. When an epic changes language support,
 container images, shared CI workflows or release tooling, its plan seeds a
 **fixture run** for each fixture whose language or shape the change affects,
 filed with [fixture-run](#fixture-run) once the release that ships the change
