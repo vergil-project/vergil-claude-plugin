@@ -294,6 +294,11 @@ created at mode `600`.
   vrg-gh issue close <N> --comment "Deployed — see the SUCCESS result above."
   ```
 
+  The close refuses an operational task as completed while no trusted
+  comment on it records `Outcome: SUCCESS`. Such a refusal means the result
+  comment did not post: post the result comment first, then close again.
+  Never get around it with another close reason.
+
 - **FAILURE →** do **not** close. Because the deploy is idempotent, **retry
   first** — a failure is often transient (network, a not-yet-ready target). Only
   if it cannot succeed without a code change do you file a fix task (a normal
