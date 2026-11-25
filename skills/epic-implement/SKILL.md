@@ -445,9 +445,11 @@ When only the closing bookends remain, drive them **in order**:
   for a repo in **another org** is filed under that org's proxy, never under
   the primary and never in an ad-hoc epic: get the proxy's ref with
   `vrg-epic-create --proxy-for <primary ref> --repo <owner>/<repo>`, which
-  prints the existing proxy, reopens one closed early, or creates it (and its
-  `Proxy:` comment on the primary), then file the task with
-  `vrg-issue-create --epic <proxy ref> --repo <owner>/<repo>`. See
+  prints the existing open proxy or creates it (and its `Proxy:` comment on
+  the primary), then file the task with
+  `vrg-issue-create --epic <proxy ref> --repo <owner>/<repo>`. When the
+  org's proxy is closed, `--proxy-for` refuses, naming it: stop and ask the
+  human, who may reopen the proxy by hand, and never reopen it yourself. See
   `epic-create`'s bookend convention. This runs **before** the retrospective.
   When the review's own repo needs no change, it has no PR to close it:
   `issue-implement` posts the search evidence on the task and closes it as
