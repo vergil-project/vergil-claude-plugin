@@ -504,6 +504,49 @@ and confirms the capture after it, so a failed capture ends the run with
 
 Tests: `hooks/tests/capture-merge-review-result.test.sh`.
 
+## Hooks module (mod)
+
+Besides its settings hooks, `hooks/hooks.json` names one hooks module
+under `modules`: `hooks/register.tsx`, a Claude Code
+[mod](https://code.claude.com/docs/en/plugins/mods/overview.md) that
+runs inside Claude Code rather than as a script. It holds one hook.
+
+### Agent row labels
+
+A `ui.render` hook on the
+[`AgentRow` render site](https://code.claude.com/docs/en/plugins/mods/reference.md#render-sites),
+a subagent's or teammate's row in the agent panel. When several
+subagents run in parallel (an `epic-implement` run, say), Claude Code
+shows each row as its agent type, `general-purpose`, and its latest
+activity, so the rows cannot be told apart. The hook redraws a row as
+the task and issue(s) the agent was dispatched for, how long it has
+been running (or `done`, `failed` or `stopped` once it has ended), and
+the first line of its latest activity:
+
+```text
+Task 15 (vergil-tooling#4931) · 4m12s · Running the test suite
+Batch 6b/6c/9/10 (#4917, #4918, #4926, #4927) · done
+```
+
+The label comes from the Agent call's `description`. Every issue
+reference in it (`owner/repo#N`, `repo#N` or `#N`) is listed once,
+in order, with the owner dropped; a `Task <id>` or `Batch <id>/<id>…`
+in it leads the label. A description that names no issue (an
+`Explore` fan-out, say), a row the person's settings hide, and a
+row they already redraw (its `body` arrives set) are left as Claude
+Code draws them.
+
+`AgentRow` needs Claude Code v2.1.326 or later. An older version
+loads the module but never raises the site, so rows stay as they
+were; `claude plugin validate` there warns that no component is
+named `AgentRow`. Mods are on by default; `disableAllHooks` stops
+this one along with the settings hooks.
+
+Tests: `hooks/tests/register.test.tsx`, run with
+`claude plugin test .` from the repo root on Claude Code v2.1.326 or
+later. `vrg-validate` does not run them, since its container has no
+Claude Code.
+
 ## Hooks deliberately not provided
 
 ### Per-edit linting / validation

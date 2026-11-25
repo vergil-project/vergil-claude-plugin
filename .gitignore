@@ -51,3 +51,6 @@ node_modules/
 # Node / frontend
 
 # Test / compiled output
+
+# Mod types Claude Code writes when it loads this plugin from a folder
+.claude-plugin/types/
