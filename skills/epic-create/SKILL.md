@@ -209,6 +209,31 @@ deploy steps (install/sync/restart). Where deploying needs a **release**
 never performed by the agent — the same policy that keeps PR submission and merge
 in human hands. `issue-deploy` never cuts a release.
 
+**Plan only what the release leaves over.** A completed release has
+already run every install its repo configures, and its `Released:`
+records attest it. What each release covers, and what it leaves over, is
+defined in one place:
+[What a human-gated release covers](../issue-deploy/references/release-coverage.md).
+Write a deployment task against a release from it:
+
+- Its release precondition is `vrg-release-record check` on each
+  blocked-by development task, not a human-attested statement, wherever
+  the repo releases with `vrg-release`.
+- Its steps never reinstall, update or re-verify what the release itself
+  installs: for vergil-tooling, the host that ran the release and every
+  running VM; for vergil-claude-plugin, the same, which leaves only the
+  `/reload-plugins` in each running session, a human-run step. Name only
+  what the page lists as left over and the next step needs.
+- With nothing left over, the task is the release's gate: its procedure
+  is the release-record check alone.
+- A check that the released behavior works is a validation task, not a
+  deployment step.
+- Where a release precondition must stay human-attested (no records),
+  name the attestation comment in `## Preconditions` with its text's
+  shape, as the page's
+  [attestation section](../issue-deploy/references/release-coverage.md#handing-the-human-the-attestation-command)
+  gives it, so the run can hand the human the filled-in command.
+
 **Steps that refuse the agent identity are human-run.** When filing a
 deployment or validation task, check each step of its procedure, its
 precondition checks included, against what the user agent identity can
