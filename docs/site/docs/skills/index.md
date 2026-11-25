@@ -387,7 +387,12 @@ or `Decision: refuse` line from `vrg-ruling-reply`. An approved exemption
 stands in for the record and ends the run `exempt: request <id>`, whose
 exemption line, `Merge review: exempt: request <id>`, goes into
 report-ready's notes in place of the eligibility line; a refused one
-runs the review. Security findings appear in
+runs the review. Every reviewer reply is screened against the
+doctrine's security definition before its step comment is posted: a
+finding that qualifies becomes a security finding, and a reply holding
+anything that would help an attacker (a below-bar remark, or a
+description of a security fix the branch makes) is withheld. Security
+findings appear in
 public only by ID or count; their details stay in the task's private state
 directory, `build/.vergil-state/issue-implement/<N>/merge-review/`, and the
 terminal.

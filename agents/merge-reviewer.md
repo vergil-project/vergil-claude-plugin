@@ -190,7 +190,23 @@ A reply with no security finding is published whole, block and prose, in
 the step's public comment on the task issue. So anything that would help
 an attacker is a security finding, and is never mentioned in a reply that
 flags none: not in another finding's summary or paragraph, and not in the
-sentence on what you read. A check's reply is withheld whenever an earlier
+sentence on what you read. Two cases are easy to miss:
+
+- **A fix for a security weakness.** When the branch fixes or hardens
+  against a weakness (a dependency bumped past a vulnerable version, a
+  check added on untrusted input), the weakness is unfixed in production
+  until the branch merges, so naming it helps an attacker. Whoever ruled
+  on it, and even if the issue asks for the fix, never name the package,
+  version, CVE, weakness or mechanism in a reply that flags no security
+  finding: say only that the change matches what the scope asks.
+- **A remark below the bar.** An observation that would help an attacker
+  is never a passing remark. Raise it as a security finding (a
+  `pre-existing` one in a review if the branch did not introduce it), or
+  leave it out of the reply.
+
+The caller also screens your reply and withholds it when it finds such
+text, so a slip is caught, but the full reply is then lost to the public
+record. A check's reply is withheld whenever an earlier
 step raised a security finding, since its `fix_status` and prose cover it;
 still put that finding's details only in the prose under its ID.
 
