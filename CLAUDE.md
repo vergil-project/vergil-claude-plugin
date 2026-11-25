@@ -105,7 +105,9 @@ details are in [`README.md`](README.md).
 - `hooks/hooks.json` — PreToolUse and PostToolUse hooks that enforce
   guardrails mechanically, and the SubagentStop hook that stores the merge
   reviewer's reply; scripts in `hooks/scripts/`, tests in
-  `hooks/tests/`.
+  `hooks/tests/`. It also names the hooks module `hooks/register.tsx`, a
+  Claude Code mod that labels subagent rows in the agent panel; its tests,
+  `hooks/tests/register.test.tsx`, run with `claude plugin test .`.
 - `skills/` — one directory per workflow skill, each with a `SKILL.md`.
 - `agents/` — custom subagents (the session `bootstrap` agent and the
   read-only `merge-reviewer`).

@@ -1,5 +1,6 @@
 {
   "description": "Standard tooling guardrails — mechanical enforcement of workflow rules that were previously documentation-only.",
+  "modules": ["./register.tsx"],
   "hooks": {
     "PreToolUse": [
       {

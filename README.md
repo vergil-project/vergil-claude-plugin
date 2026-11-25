@@ -263,6 +263,12 @@ for the rationale.
 Full reference:
 <https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md>.
 
+`hooks/hooks.json` also names a hooks module, `hooks/register.tsx`: a
+Claude Code mod that labels each subagent's row in the agent panel with
+the task and issue(s) from its Agent call's description, its running
+time and its latest activity (Claude Code v2.1.326 or later). See the
+[hooks reference](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/hooks/index.md#hooks-module-mod).
+
 ### Skills
 
 Shared workflow skills, invoked as `/vergil:<name>`.
