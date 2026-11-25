@@ -158,6 +158,31 @@ it:
   scheduled `ops.yml` run that started before the release, so it ran the
   older `v2.1` and the release's new `report-*` jobs never ran on any
   fixture, yet every check 2 passed.
+- **Exact versions for a plugin or skill release.** When the change under
+  validation ships in a vergil-claude-plugin release (a skill or plugin
+  change), the deployed-version probe names the exact plugin version and
+  the vergil-tooling (and vergil-actions, if any) versions released with
+  it, taken from the `Released:` records and the `Outcome:` result of the
+  `--after` release or deployment tasks. It then checks that the change
+  PR's CI installed that vergil-tooling version or a later release that
+  contains it, and that the change PR was opened and merged by the agent
+  identity after the plugin release was published. A fixture's CI shows
+  the tooling, actions and image versions but never the plugin's, so
+  without the release record the plugin version cannot be probed. Found by
+  the five validations of epic
+  [vergil-project/.github#1384](https://github.com/vergil-project/.github/issues/1384)'s
+  Task 19 (vergil-project/vergil-fixture-python-app#32,
+  vergil-project/vergil-fixture-python-lib#38,
+  vergil-project/vergil-fixture-rust-app#47,
+  vergil-project/vergil-fixture-rust-lib#48 and
+  vergil-project/vergil-fixture-ts-app#49), whose `--validates` named
+  "plugin release B" with no versions, so each rebuilt them from
+  vergil-project/vergil-claude-plugin#1207.
+- **Read a large run's log one job at a time.** `vrg-gh run view <run>
+  --log` on a large run fails with "too many API requests"; list its jobs
+  (`vrg-gh run view <run> --json jobs`) and read each with
+  `vrg-gh run view <run> --job <id> --log`. Found by
+  vergil-project/vergil-fixture-rust-lib#48.
 
 A run that finds a new condition proposes it under `Awaiting a ruling` on
 its validation task, and it is added here, and to the template, as a
@@ -178,7 +203,15 @@ fixture-run <epic-ref> <fixture>[,<fixture>…] --validates <what> --after <owne
 - **`--validates <what>`** — the released change under validation, naming
   what ships it and its version or digest, for example
   `vergil-tooling v2.1.309`, `vergil-actions v2.1.58` or a container image and
-  digest. It drives the validation task's deployed-version probe.
+  digest. It drives the validation task's deployed-version probe. For a
+  plugin or skill release, name the exact plugin version and the
+  vergil-tooling (and vergil-actions) versions released with it, for
+  example `vergil-claude-plugin v2.1.93 with vergil-tooling v2.1.346`,
+  when they are known at filing; a label such as "plugin release B" alone
+  gives the validation nothing to probe. When the releases are not cut
+  yet, name the release and its pairing as the plan does: the validation
+  task resolves the exact versions from the `--after` tasks' release
+  records.
 - **`--after <owner/repo#N>`** — **required**, repeatable. Each ref is the
   release or deployment task that ships the change to the fixtures, and is
   stamped as the change task's `--blocked-by`. A fixture consumes only
@@ -281,8 +314,9 @@ vergil-fixture-rust-lib: change #<a> (issue-implement) → release #<r> (issue-d
 ## Templates
 
 Fill every recipe field before filing: `<repo>`, `<language>` and `<shape>`
-from [the list](#the-fixtures), `<what>`, `<epic-ref>`, and the trio refs
-`<a>` and `<r>`. Copy the
+from [the list](#the-fixtures), `<what>`, `<epic-ref>`, the `--after`
+refs as `<after-refs>` (comma-separated, each `owner/repo#N`), and the trio
+refs `<a>` and `<r>`. Copy the
 [learned conditions](#learned-ready-to-start-conditions) and, for the
 fixture's language, the [known gaps](#known-gaps) as they stand when the
 run is filed. The other fields (`vX.Y.Z`, `<package>`, `<crate>`, `<older>`,
@@ -533,11 +567,32 @@ A machine probe; check each before anything else, with evidence.
   digest the jobs pulled is <what> or a later release that contains it. A
   probe that cannot show it is blocked: never validate against the previous
   release.
+- **Plugin or skill release.** When <what> ships in a vergil-claude-plugin
+  release, a fixture's CI shows the tooling, actions and image versions but
+  never the plugin's, so the probe goes on from the release record of the
+  `--after` tasks (<after-refs>): their `Released:` records and `Outcome:`
+  result, read with `vrg-issue-read`.
+  - Name the exact plugin version (`vergil-claude-plugin vX.Y.Z`) and the
+    vergil-tooling (and vergil-actions, if any) versions released with it,
+    each with its release URL and the record it was taken from.
+  - Show from the change PR's CI log that "Install vergil-tooling"
+    installed that vergil-tooling version or a later release that contains
+    it.
+  - Show that the change PR (vergil-project/<repo>#<a>'s PR) was opened and
+    merged by the agent identity, not the human, after the plugin release
+    was published: its author, its merger, and its `createdAt` and
+    `mergedAt` against the release's `publishedAt`.
+
+  If the record does not name the versions, or any of these cannot be
+  shown, the probe is blocked.
 
 ## Procedure
 
 Check each, in order, and record the evidence for each (links, run IDs, tag
-names, versions):
+names, versions). Read a large run's log one job at a time, with
+`vrg-gh run view <run> --job <id> --log` for each job
+`vrg-gh run view <run> --json jobs` lists: a whole-run `--log` fails on a
+large run with "too many API requests".
 
 1. **CI gates.** Every required CI gate passed on the change PR and on
    `main` at the release. For a library, the CI matrix ran every version in
