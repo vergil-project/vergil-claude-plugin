@@ -244,11 +244,14 @@ Which routes a mode offers is in its section. Rules for every mode:
   **proxy** in the target repo's org, never ad-hoc: ensure the proxy with
   `vrg-epic-create --proxy-for <primary ref> --repo <owner>/<target-repo>`
   (it creates `Epic (proxy): <name>` in `<owner>/.github` and its `Proxy:`
-  comment on the primary, or finds the one that exists), then route with
-  `--epic <owner>/.github#<P>`. Recommend it in the item's paragraph, and
-  run `--proxy-for` only once the batch is confirmed. If `--proxy-for`
-  refuses (a primary that is not an open development epic), report it and
-  ask the human for another outcome; never fall back to `adhoc`. When the item's work lands in the primary's own
+  comment on the primary, or finds the open one that exists), then route
+  with `--epic <owner>/.github#<P>`. Recommend it in the item's paragraph,
+  and run `--proxy-for` only once the batch is confirmed. If `--proxy-for`
+  refuses because the primary is not an open development epic, report it
+  and ask the human for another outcome. If it refuses because the org's
+  proxy is closed (it names the proxy, before any write), stop and ask the
+  human, who may reopen the proxy by hand (a re-run then reuses it); never
+  reopen it yourself. Either way, never fall back to `adhoc`. When the item's work lands in the primary's own
   org, no proxy is needed: route it under the primary itself. A move to another repo
   **transfers** the issue to keep its history; if GitHub refuses the
   transfer, the tool **recreates** the item in the target repo with a
