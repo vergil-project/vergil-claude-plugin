@@ -53,11 +53,11 @@ refuse otherwise. See the [ownership model](https://github.com/vergil-project/ve
 
 ## Engineering principles
 
-- Correctness over cost over speed. Never ship known-broken code with a
-  follow-up fix; if something is wrong, fix it now.
-- No silent failures: no swallowed exceptions, no `except: return ""`, no
-  fallbacks that hide errors. A failure hidden in code becomes a hallucination
-  at the AI layer.
+- Correctness over cost over speed. Never ship known-broken code with a follow-up fix; if something is wrong, fix it now.
+- No silent failures: no swallowed exceptions, no `except: return ""`, no fallbacks that hide errors. A failure hidden in code becomes a hallucination at the AI layer.
+- Prefer a tool's machine-readable output (`--json`, exact `--format` strings, NUL-separated `-z` records, HTTP status and exit codes) over parsing text meant for a person; where there is none, pin the locale, anchor the match and fail loudly on anything unexpected. This applies to new and touched code, not as a sweep.
+  A switch is rarely just adding `--json`: one tool can report errors in several shapes, values can change case or format between interfaces, exit codes can carry meaning, and a stricter parse can change what callers rely on.
+  Test each switch with the input the old parse misread, and check that ordinary input behaves as before.
 
 ## paad
 
