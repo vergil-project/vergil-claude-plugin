@@ -397,15 +397,34 @@ and `exemptions.json` holds no answered exemption request whose `head` is
 `HEAD`, go to [The exemption](#the-exemption) instead. A refused one
 means the human wants the review: run it.
 
-1. **The epic.** Read the task's native parent
-   (`vrg-gh issue view <N> --repo <owner/repo> --json parent`) and the
-   parent's labels. A task under an `epic` that is not an `ad-hoc` epic is
-   **under an epic**; an ad-hoc task has no design sources.
+1. **The epic.** Find the task's epic and its kind:
 
-   **A proxy task.** When the parent also carries `proxy` (a proxy epic,
+   ```bash
+   vrg-epic-parent '<owner>/<repo>#<N>'
+   ```
+
+   It prints one line, `<epic ref> <kind>`, the epic being the head of
+   the chain that holds the task, never one of its continuations. The
+   epic ref it prints is the `<epic ref>` of step 2, so the Documents
+   section always comes from the head, never from the container; never
+   read the task's native parent and that parent's labels instead. Its
+   exit 1 (chain drift, a read failure, or a parent that is not a
+   well-formed epic) is an `error`, with its message shown.
+
+   - **Under an epic:** any kind but the ones below (`development`,
+     `proxy`, and the standing kinds such as `planning` or `hoshin`).
+   - **No design sources:** `ad-hoc` (an ad-hoc task), and `none` or
+     `not-epic` (the task has no parent, or a parent with no `epic`
+     label, so it is under no epic and step 2 loads no Documents
+     section).
+   - **`archive`:** the task sits in an archive, as a closed item that no
+     skill builds. It is an `error`, naming the archive.
+
+   **A proxy task.** When the kind is `proxy` (a proxy epic,
    holding this org's tasks of a development epic in another org), the
    design sources are its primary's, never the proxy's. Resolve the
-   primary from the task worktree:
+   primary from the task worktree, `<proxy ref>` being the epic
+   `vrg-epic-parent` printed:
 
    ```bash
    vrg-epic-audit --epic '<proxy ref>'
@@ -414,7 +433,7 @@ means the human wants the review: run it.
    and take its JSON's `primary` key (`<owner>/<repo>#<N>`). Step 2 then
    reads the primary's body
    (`vrg-issue-read '<primary ref>' --json`, its `issue.body`) in place of
-   the parent's. The audit exiting non-zero (a broken or disagreeing
+   the proxy's. The audit exiting non-zero (a broken or disagreeing
    `Primary:`/`Proxy:` link, its problems on stderr), its JSON having no
    `primary` key, the primary's body not being readable (that read
    exiting 1, or 3 for a body that is not trusted), or the primary's
@@ -432,7 +451,8 @@ means the human wants the review: run it.
    `<!-- vrg-epic-docs -->` and `<!-- /vrg-epic-docs -->`). Each entry
    that links `https://github.com/<owner>/<repo>/blob/<branch>/<path>` is
    a design source; an entry with no link (`Retrospective: pending`) is
-   not. An epic whose section lists none, and an ad-hoc task, have none;
+   not. An epic whose section lists none, an ad-hoc task and a task under
+   no epic have none;
    a proxy task whose primary lists none is a `D2` stop (step 1). Fetch
    each from `develop` of its repo, from the task worktree:
 
