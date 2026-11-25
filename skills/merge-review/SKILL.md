@@ -229,9 +229,10 @@ order that passes `vrg-merge-review-check` against its request.
   `Request: <that step's request_id>`.
   - **Not posted:** nothing of this step is on the issue yet (this includes
     a run that stopped at the non-review gate). If `HEAD` is the
-    request's `head_sha`, re-run the result check, run its
-    [screen](#the-screen) if `screen-<step>.json` is missing or names
-    another `request_id`, and continue from
+    request's `head_sha`, re-run the result check, run
+    [Review](#review) steps 6 and 7 (its [screen](#the-screen), when
+    `screen-<step>.json` is missing or names another `request_id`, then
+    any `security-<ID>.md` not yet written), and continue from
     [Decide](#decide) (a review) or Decide again (a check). Otherwise
     delete that step's files and run the step afresh: a review from
     [Before the review](#before-the-review), a check from the build in
