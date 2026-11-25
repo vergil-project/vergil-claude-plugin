@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.96] - 2026-11-25
+
+### Documentation
+
+- the hoshin run submits its own logbook PR (#1381)
+
 ## [2.1.95] - 2026-11-25
 
 ### Documentation
