@@ -193,11 +193,17 @@ its **proxy tasks**, the tasks of the effort filed in another org under
 that org's proxy epic. A proxy task is driven from the primary epic like
 any other task, through the same skills and gates, and plan evolution that
 concerns it is recorded in the primary's plan, since a proxy has no plan.
-An audit exit 1, with no JSON, is either proxy link drift (a broken or
-disagreeing `Primary:`/`Proxy:` link) or chain drift (a container that
-breaks a chain rule, named on stderr with the container and the rule):
-either way, it shows the error and stops rather than build a frontier from
-a partial task list.
+A child the audit reports `blocked` (one with open issues in its
+`open_blockers`, from native blocked-by links or trusted `Blocked-by:`
+body lines) stays off the frontier even when the plan names no blocker
+for it: it is listed with its open blockers in the plan of work shown to
+the human, and never dispatched. An audit exit 1, with no JSON, is proxy
+link drift (a broken or disagreeing `Primary:`/`Proxy:` link), chain
+drift (a container that breaks a chain rule, named on stderr with the
+container and the rule), a blocker list that cannot be read in full, or
+an open child whose body is not trusted: whichever it is, it shows the
+error and stops rather than build a frontier from a partial task list or
+without the blockers.
 
 A code task whose [merge review](#merge-review) stopped for a ruling waits
 at the gate with its request ID. `epic-implement` talks the request's items
