@@ -1,5 +1,11 @@
 # Skills architecture — audit and rationalization
 
+> **Historical record.** This document is kept as the record of an
+> earlier audit and is superseded as a whole by the current skills.
+> Nothing in it describes how the plugin works today: for the current
+> skills, their workflow and their boundaries, see the
+> [skills reference](../site/docs/skills/index.md).
+
 This document captures a deliberate, process-first design for the
 skills exposed by this plugin. It exists because the catalog grew
 emergently — `branch-workflow` → `pr-workflow` → `publish` →
