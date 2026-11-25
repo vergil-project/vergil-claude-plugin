@@ -99,14 +99,22 @@ Do **not** rely on any single tool as a state engine. Reconstruct position by:
    proxy epic its trusted `Proxy:` comments name, each with its repo. A
    proxy task (a task of the effort filed in another org, under that
    org's proxy) is driven here like any other task, through the same
-   skills and gates; only the primary's `epic-implement` drives it. An
-   exit 1, with no JSON, is either proxy link drift (a broken or
-   disagreeing `Primary:`/`Proxy:` link) or chain drift (a container that
-   breaks a chain rule, named on stderr with the container and the rule):
-   either way, show the error and stop (step 5), never building a
-   frontier from a partial task list.
+   skills and gates; only the primary's `epic-implement` drives it. Each
+   child also carries `open_blockers`, the open issues it is blocked by
+   (native blocked-by links and trusted `Blocked-by:` body lines), and
+   `blocked`, true when that list is not empty. An exit 1, with no JSON,
+   is proxy link drift (a broken or disagreeing `Primary:`/`Proxy:`
+   link), chain drift (a container that breaks a chain rule, named on
+   stderr with the container and the rule), a blocker list that cannot
+   be read in full, or an open child whose body is not trusted: whichever
+   it is, show the error and stop (step 5), never building a frontier
+   from a partial task list or without the blockers.
 3. Reconciling the two: the **runnable frontier** is every task the plan says is
-   ready whose dependencies (per the plan) are closed, and which is itself open.
+   ready whose dependencies (per the plan) are closed, which is itself open,
+   and whose `blocked` is false. A child with `blocked: true` stays off the
+   frontier even when the plan names no blocker for it, and is never
+   dispatched: list it, with its `open_blockers` refs, in the plan of work
+   you show the human.
 
 `vrg-epic-audit` supplies the task list and states, and its drift-audit mode
 (no `--epic`) may be consulted as a **consistency check** (linking, drift), but
@@ -514,6 +522,8 @@ Never work from a partial list.
 Show the human the tasks grouped by repo: each one's ref, age, kind and a
 one-line paraphrase. The **runnable frontier** is every `ready` task.
 `blocked` tasks are listed with their open blockers and are not run.
+`vrg-queue adhoc` already applies the blockers here, so this mode reads no
+`vrg-epic-audit` of its own.
 **In-flight** tasks are listed apart, with their marks, and follow their
 `disposition`:
 
