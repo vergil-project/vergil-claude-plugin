@@ -76,7 +76,8 @@ is put on the issue by the human, never as your comment
 With the human present, write the change to a scratch file and, from a
 clone of the task's repo (its worktree will do), run
 `vrg-ruling draft-scope --issue '<owner>/<repo>#<N>' --text-file <file>`;
-give the human the `vrg-scope-change` command it prints, and start the
+give the human the `vrg-scope-change` command it prints, as a copy-paste
+block of its own with no `!` prefix, and start the
 merge review only once they have run it, so the review judges against it.
 Draft only when no ruling exchange is open on the issue: never between a
 merge-review request and its response, where `vrg-scope-change` refuses.
@@ -656,7 +657,12 @@ human sign-off is needed:
    - **Still in progress:** `vrg-git rebase --abort` returns the branch to its
      pre-rebase state.
    - **Already completed:** do not undo it yourself. Stop and ask the human,
-     who can run `! git reset --hard ORIG_HEAD`.
+     who can run it in their own terminal. Hand it over as a copy-paste
+     block of its own, with no `!` prefix:
+
+     ```bash
+     git reset --hard ORIG_HEAD
+     ```
 3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
 4. `vrg-git push --force-with-lease` to update the branch / PR.
 

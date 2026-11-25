@@ -798,7 +798,8 @@ item through in the terminal, showing each security item's
 item), run
 `vrg-ruling draft --issue '<ref>' --request <id> --items <dir>/draft-<step>.json`
 from the task worktree, and give the human the `vrg-ruling-reply` command
-it prints. Once they say it is posted, go to [The resume](#the-resume).
+it prints, as a copy-paste block of its own with no `!` prefix. Once they
+say it is posted, go to [The resume](#the-resume).
 
 **Dispatched** (by `epic-implement` or any other driver): end with
 `stopped: request <id>`. The run never drafts the reply; the driver talks

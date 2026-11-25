@@ -267,7 +267,11 @@ there is a follow-up, as step 5 says.
 The **gate** is the general boundary where you can no longer proceed without the
 human — not merely "a PR is ready." When no run is in flight and no task
 is runnable without the human (step 3, "Continue after each merge"),
-present everything needing the human:
+present everything needing the human. Every command the human is to run
+goes in a copy-paste block of its own for their own terminal, one fenced
+block per command or step, set apart from your narrative and never
+interleaved with it, and with no `!` prefix; say outside the block what
+each one does and what to paste back:
 
 - PRs a run left at report-ready for the human to submit (step 3: the
   repo's CLAUDE.md still forbids agent submits, or a workflow-file push
@@ -281,8 +285,8 @@ present everything needing the human:
 - every deployment task whose `issue-deploy` run ended `waiting: human-run
   steps` (its
   [human-run steps](../issue-deploy/SKILL.md#hand-the-human-run-steps-to-the-human-then-verify-them)):
-  show each step's precondition result and its paste-ready `! <command>`
-  line, as the run's final report gives them, in the issue's order. Never
+  show each step's precondition result and its paste-ready command, as
+  the run's final report gives them, in the issue's order. Never
   run one yourself, under any identity. Once the human has run them,
   dispatch one new `issue-deploy` run of the task, never alongside another
   run of the same task, whose prompt carries each step's command and the

@@ -23,6 +23,14 @@ no longer tunes agent behavior for continuous human observability; that
 older "Continuous Oversight" model is retired. The never-fabricate and
 never-suppress-a-gate rules are unaffected.
 
+**Human-run steps are handed over as copy-paste blocks.** When a skill
+needs the human to run something (a human-run deployment step, an
+attestation, a `vrg-ruling-reply` or `vrg-scope-change` command), it gives
+each command filled in, in a fenced block of its own for the human's own
+terminal, set apart from the agent's narrative and never interleaved with
+it. The blocks carry no `!` prefix: the human runs them in their own shell
+and pastes back any output the agent needs.
+
 ## paad review rounds: what a session needs
 
 `epic-create`'s design-review rounds run paad in its unattended mode,
@@ -220,7 +228,7 @@ dispatched; the agents never post scope changes themselves.
 
 A deployment task whose `issue-deploy` run ended `waiting: human-run steps`
 also waits at the gate: `epic-implement` shows each step's precondition
-result and paste-ready `! <command>` line, and once the human has run them
+result and paste-ready command, and once the human has run them
 it dispatches one new `issue-deploy` run whose prompt carries the output of
 those runs, which verifies them and records the outcome.
 
