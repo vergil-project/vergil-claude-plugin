@@ -254,7 +254,8 @@ line
 ([lifecycle step 4](../issue-validate/references/operational-task-lifecycle.md#lifecycle)).
 Before writing them, run the lifecycle's
 [Writing to the state directory](../issue-validate/references/operational-task-lifecycle.md#writing-to-the-state-directory)
-step: it creates each level at mode `700` and checks it, and a level
+step: `vrg-state-dir` creates each level at mode `700`, checks it and
+prints the one path to write to, and a level
 that is not a real directory at `700` stops the run. Each file there is
 created at mode `600`.
 
@@ -304,7 +305,8 @@ created at mode `600`.
   the first write there, and again before every later one, run the
   lifecycle's
   [Writing to the state directory](../issue-validate/references/operational-task-lifecycle.md#writing-to-the-state-directory)
-  step: it creates each level at mode `700` and checks it, and a level
+  step: `vrg-state-dir` creates each level at mode `700`, checks it and
+  prints the one path to write to, and a level
   that is not a real directory at `700` stops the run. Each file there is
   created at mode `600`. See the
   [lifecycle's "Out of band"](../issue-validate/references/operational-task-lifecycle.md#out-of-band)
