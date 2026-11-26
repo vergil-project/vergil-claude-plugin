@@ -5432,6 +5432,13 @@ and only stop mid-flight for a problem they cannot resolve. The plugin
 no longer tunes agent behavior for continuous human observability; that
 older "Continuous Oversight" model is retired. The never-fabricate and
 never-suppress-a-gate rules are unaffected.</p>
+<p><strong>Human-run steps are handed over as copy-paste blocks.</strong> When a skill
+needs the human to run something (a human-run deployment step, an
+attestation, a <code>vrg-ruling-reply</code> or <code>vrg-scope-change</code> command), it gives
+each command filled in, in a fenced block of its own for the human's own
+terminal, set apart from the agent's narrative and never interleaved with
+it. The blocks carry no <code>!</code> prefix: the human runs them in their own shell
+and pastes back any output the agent needs.</p>
 <h2 id="paad-review-rounds-what-a-session-needs">paad review rounds: what a session needs<a class="headerlink" href="#paad-review-rounds-what-a-session-needs" title="Permanent link">&para;</a></h2>
 <p><code>epic-create</code>'s design-review rounds run paad in its unattended mode,
 through paad's
@@ -5659,11 +5666,17 @@ its <strong>proxy tasks</strong>, the tasks of the effort filed in another org u
 that org's proxy epic. A proxy task is driven from the primary epic like
 any other task, through the same skills and gates, and plan evolution that
 concerns it is recorded in the primary's plan, since a proxy has no plan.
-An audit exit 1, with no JSON, is either proxy link drift (a broken or
-disagreeing <code>Primary:</code>/<code>Proxy:</code> link) or chain drift (a container that
-breaks a chain rule, named on stderr with the container and the rule):
-either way, it shows the error and stops rather than build a frontier from
-a partial task list.</p>
+A child the audit reports <code>blocked</code> (one with open issues in its
+<code>open_blockers</code>, from native blocked-by links or trusted <code>Blocked-by:</code>
+body lines) stays off the frontier even when the plan names no blocker
+for it: it is listed with its open blockers in the plan of work shown to
+the human, and never dispatched. An audit exit 1, with no JSON, is proxy
+link drift (a broken or disagreeing <code>Primary:</code>/<code>Proxy:</code> link), chain
+drift (a container that breaks a chain rule, named on stderr with the
+container and the rule), a blocker list that cannot be read in full, or
+an open child whose body is not trusted: whichever it is, it shows the
+error and stops rather than build a frontier from a partial task list or
+without the blockers.</p>
 <p>A code task whose <a href="#merge-review">merge review</a> stopped for a ruling waits
 at the gate with its request ID. <code>epic-implement</code> talks the request's items
 through with the human in the terminal (a security item's details from the
@@ -5678,7 +5691,7 @@ themselves with the <code>vrg-scope-change</code> command it prints before the t
 dispatched; the agents never post scope changes themselves.</p>
 <p>A deployment task whose <code>issue-deploy</code> run ended <code>waiting: human-run steps</code>
 also waits at the gate: <code>epic-implement</code> shows each step's precondition
-result and paste-ready <code>! &lt;command&gt;</code> line, and once the human has run them
+result and paste-ready command, and once the human has run them
 it dispatches one new <code>issue-deploy</code> run whose prompt carries the output of
 those runs, which verifies them and records the outcome.</p>
 <p>A documentation fix that a task's run, its merge review or the main
