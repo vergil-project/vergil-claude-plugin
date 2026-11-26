@@ -70,9 +70,11 @@ verifies that assertion — it is the **sole** enforcement of the retrospective'
 terminality (there are no static `Blocked-by` reflinks; they would not scale
 against a dynamic epic):
 
-- Enumerate every sub-issue of the epic with `vrg-epic-audit`, which accepts
+- Enumerate every item of the epic with `vrg-epic-audit`: the items of its
+  whole chain (the epic and every continuation past GitHub's 100-sub-issue
+  limit, the continuations themselves left out) and its proxy tasks. It accepts
   the full `owner/repo#N` ref (or a bare `#N`) and emits
-  `{"epic": …, "children": [{repo, number, title, state}, …]}`:
+  `{"epic": …, "containers": …, "children": [{repo, number, title, state, …}, …]}`:
 
   ```bash
   children=$(vrg-epic-audit --epic <epic-ref>); echo "exit=$?"
@@ -95,8 +97,10 @@ against a dynamic epic):
   its bookends, including R itself) means the gate **could not verify** — stop
   and ask the human. Never read it as "no open children." An exit 1 with
   problems on stderr and no JSON is **proxy link drift** (a broken or
-  disagreeing `Primary:`/`Proxy:` link): show the problems and stop; the gate
-  cannot see every proxy task until the link is fixed.
+  disagreeing `Primary:`/`Proxy:` link) or **chain drift** (a container that
+  breaks a chain rule, named on stderr with the container and the rule):
+  either way, show the error and stop; the gate cannot see every task until
+  the drift is fixed.
 - The `children` include **proxy tasks**: the sub-issues of every proxy epic
   the epic's trusted `Proxy:` comments name, in other orgs. They count like
   the epic's own children, so the gate needs no rule of its own for them.

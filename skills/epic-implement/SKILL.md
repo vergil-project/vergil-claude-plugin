@@ -93,14 +93,18 @@ Do **not** rely on any single tool as a state engine. Reconstruct position by:
    items, a ruling line) is the same command with the same exit codes, and
    a trusted author's comment means one in its output.
 2. Reading each task's **open/closed** status from the `children` of
-   `vrg-epic-audit --epic <epic-ref>`: the epic's own sub-issues and the
-   sub-issues of every proxy epic its trusted `Proxy:` comments name, each
-   with its repo. A proxy task (a task of the effort filed in another
-   org, under that org's proxy) is driven here like any other task,
-   through the same skills and gates; only the primary's
-   `epic-implement` drives it. An exit 1 is proxy link drift (a broken or
-   disagreeing `Primary:`/`Proxy:` link, on stderr): show it and stop
-   (step 5), never building a frontier without the proxy's tasks.
+   `vrg-epic-audit --epic <epic-ref>`: the items of the epic's whole
+   chain (the epic and every continuation past GitHub's 100-sub-issue
+   limit, the continuations themselves left out) and the tasks of every
+   proxy epic its trusted `Proxy:` comments name, each with its repo. A
+   proxy task (a task of the effort filed in another org, under that
+   org's proxy) is driven here like any other task, through the same
+   skills and gates; only the primary's `epic-implement` drives it. An
+   exit 1, with no JSON, is either proxy link drift (a broken or
+   disagreeing `Primary:`/`Proxy:` link) or chain drift (a container that
+   breaks a chain rule, named on stderr with the container and the rule):
+   either way, show the error and stop (step 5), never building a
+   frontier from a partial task list.
 3. Reconciling the two: the **runnable frontier** is every task the plan says is
    ready whose dependencies (per the plan) are closed, and which is itself open.
 
@@ -114,8 +118,8 @@ first task ships. From then on, do not rewrite its task list: record each change
 — a new or dropped task, a discovered dependency, a scope shift — as a dated
 entry saying what changed and why, appended to an `## Evolution during
 execution` section at the bottom of `plan.md` (create the section on the first
-entry). The `children` of `vrg-epic-audit --epic` (the epic's sub-issues and
-its proxy tasks) stay the authoritative live task list; the log
+entry). The `children` of `vrg-epic-audit --epic` (the items of the epic's
+whole chain and its proxy tasks) stay the authoritative live task list; the log
 is the *why* behind any gap between them and the plan, and `epic-retrospective`
 builds its "How the plan evolved" section from it. Before the first task ships,
 edit the plan freely. Evolution that concerns a proxy task is recorded in the
