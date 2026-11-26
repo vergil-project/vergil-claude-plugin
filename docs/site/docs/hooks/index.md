@@ -537,8 +537,9 @@ row they already redraw (its `body` arrives set) are left as Claude
 Code draws them.
 
 `epic-implement` names every task run it dispatches in this form:
-`Task <id> <owner>/<repo>#<N>` for one task, `Batch <id>/<id>… #<N1>
-#<N2>…` for a batch, and the same without the ID for a task with no
+`Task <id> <owner>/<repo>#<N>` for one task,
+`Batch <id>/<id>… #<N1> #<N2>…` for a batch, and the same without the
+ID for a task with no
 plan task ID (an ad-hoc task, say); see its
 [Work the runnable frontier](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier)
 section. The label leads with the task only when its ID is digits

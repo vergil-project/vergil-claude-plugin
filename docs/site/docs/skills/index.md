@@ -245,8 +245,9 @@ one `issue-implement` run, under that skill's
 [What to batch](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch) guidelines,
 and dispatches the batch to one sub-agent with the batch form of the
 prompt contract. Each dispatch's Agent `description` names its task and
-issue(s) (`Task <id> <owner>/<repo>#<N>`, or `Batch <id>/<id>… #<N1>
-#<N2>…`, with no ID for a task that has none), so the
+issue(s) (`Task <id> <owner>/<repo>#<N>`, or
+`Batch <id>/<id>… #<N1> #<N2>…`, with no ID for a task that has none),
+so the
 [agent row labels](../hooks/index.md#agent-row-labels) tell the
 parallel runs apart. Before every code-task dispatch it checks the task's batch
 marker with `vrg-pr-workflow batch-show`, so a batch member is only ever
