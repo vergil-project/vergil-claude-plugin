@@ -502,7 +502,13 @@ the change. The release task (`deployment`, run with `issue-deploy`) is the
 human's `vrg-release` of the fixture. The validation task (`validation`,
 run with `issue-validate`) checks the CI gates, ops, the release, its
 evidence bundle, the dependency update, the docs site and that nothing
-reached a package registry. It files tasks only and never runs them. The
+reached a package registry. For a plugin or skill release, its
+deployed-version probe names the exact plugin version and the
+vergil-tooling (and vergil-actions) versions released with it, from the
+`--after` deployment tasks' `Outcome:` results and the `Released:` records
+on the development tasks they are blocked by, and checks that the change PR's CI
+installed that tooling and that the agent identity opened and merged the
+PR after the plugin release. It files tasks only and never runs them. The
 skill holds the one list of fixtures, the known gaps and the learned
 ready-to-start and validation conditions. Runs on one fixture are
 serialized in order: a run already under way goes first, then the run filed
