@@ -44,7 +44,7 @@ dispatch, gate and batching rules.
      | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. |
      | `epic` + `hoshin` | the hoshin epic | Print `<ref> is the hoshin epic; its tasks belong to /vergil:hoshin.` and stop. |
      | `epic` + `ad-hoc` | one repo's ad-hoc epic | Run the [`adhoc` mode](#the-adhoc-mode) for that one repo (below). |
-     | `epic` + `proxy` | a proxy epic | Read its primary from the `primary` key of `vrg-epic-audit --epic <ref>`, print `<ref> is a proxy for <primary ref>; drive the primary epic instead.` and stop. If the audit exits 1 (link drift), show its stderr and stop. |
+     | `epic` + `proxy` | a proxy epic | Read its primary from the `primary` key of `vrg-epic-audit --epic <ref>`, print `<ref> is a proxy for <primary ref>; drive the primary epic instead.` and stop. If the audit exits 1 with no JSON (proxy link drift or chain drift, named on stderr), show the error and stop. |
      | `epic`, none of the above | development epic | Go on to step 1; step 2 reads the epic issue. |
 
      **Mapping an ad-hoc epic to its repo.** A live ad-hoc epic is titled

@@ -187,13 +187,17 @@ the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.
 
 Its frontier is built from the `children` of `vrg-epic-audit --epic`: the
-epic's own sub-issues and its **proxy tasks**, the tasks of the effort
-filed in another org under that org's proxy epic. A proxy task is driven
-from the primary epic like any other task, through the same skills and
-gates, and plan evolution that concerns it is recorded in the primary's
-plan, since a proxy has no plan. An audit exit 1 is proxy link drift (a
-broken or disagreeing `Primary:`/`Proxy:` link): it shows the problems and
-stops rather than build a frontier without the proxy's tasks.
+items of the epic's whole chain (the epic and every continuation past
+GitHub's 100-sub-issue limit, the continuations themselves left out) and
+its **proxy tasks**, the tasks of the effort filed in another org under
+that org's proxy epic. A proxy task is driven from the primary epic like
+any other task, through the same skills and gates, and plan evolution that
+concerns it is recorded in the primary's plan, since a proxy has no plan.
+An audit exit 1, with no JSON, is either proxy link drift (a broken or
+disagreeing `Primary:`/`Proxy:` link) or chain drift (a container that
+breaks a chain rule, named on stderr with the container and the rule):
+either way, it shows the error and stops rather than build a frontier from
+a partial task list.
 
 A code task whose [merge review](#merge-review) stopped for a ruling waits
 at the gate with its request ID. `epic-implement` talks the request's items
@@ -286,12 +290,15 @@ human, merge-reviews the closing docs PR and submits it itself; its merge
 **closes the epic**.
 
 The gate reads the `children` of `vrg-epic-audit --epic`, so it covers the
-epic's **proxy tasks** (its tasks filed in other orgs under their proxy
-epics) like its own children. Its refusal names each open ref in full and,
-for each open proxy task, the proxy it sits under. An audit exit 1 is proxy
-link drift (a broken or disagreeing `Primary:`/`Proxy:` link): it shows the
-problems and stops, since the gate cannot see every proxy task until the
-link is fixed.
+items of the epic's whole chain (the epic and every continuation past
+GitHub's 100-sub-issue limit, the continuations themselves left out) and
+the epic's **proxy tasks** (its tasks filed in other orgs under their proxy
+epics) alike. Its refusal names each open ref in full and, for each open
+proxy task, the proxy it sits under. An audit exit 1, with no JSON, is
+either proxy link drift (a broken or disagreeing `Primary:`/`Proxy:` link)
+or chain drift (a container that breaks a chain rule, named on stderr with
+the container and the rule): either way, it shows the error and stops,
+since the gate cannot see every task until the drift is fixed.
 
 **When to use.** To finish an epic — "run the retrospective", "close out this
 epic", "we're done with this epic".

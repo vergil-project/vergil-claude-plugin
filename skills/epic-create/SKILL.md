@@ -1056,8 +1056,13 @@ tasks, as the key pass below does.
 anything:
 
 1. **List the epic's tasks and their keys.** `vrg-epic-audit --epic
-   <home>#<N>` lists the epic's children and those of every proxy epic it
-   names (exit 1 is link drift: stop for the human). Add any ref a trusted
+   <home>#<N>` lists the items of the epic's whole chain (the epic and
+   every continuation past GitHub's 100-sub-issue limit, the continuations
+   themselves left out) and the tasks of every proxy epic it names. An
+   exit 1, with no JSON, is either proxy link drift (a broken or
+   disagreeing `Primary:`/`Proxy:` link) or chain drift (a container that
+   breaks a chain rule, named on stderr with the container and the rule):
+   either way, show the error and stop for the human. Add any ref a trusted
    progress comment records on an `Unlinked task: <ref>` line (below). Read
    only each task's key, so one line per task reaches context:
 
