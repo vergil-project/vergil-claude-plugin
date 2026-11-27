@@ -67,10 +67,13 @@ paad usage policy and deviations:
 
 ## Validation in this repo
 
-The repo's custom validator, `scripts/bin/validate-custom`, makes four
+The repo's custom validator, `scripts/bin/validate-custom`, makes five
 checks: every `skills/*/SKILL.md` has frontmatter with a `name` matching
 its directory and a `description`; the `merge-reviewer` agent's tool set is
-exactly `Read, Glob, Grep`; every hook script `hooks/hooks.json` names is
+exactly `Read, Glob, Grep` and the `implementer`'s exactly `Read, Edit,
+Write, Glob, Grep, Bash`; every `agents/*.md` pins one allowed `model:`
+that matches its row in the model map, `docs/site/docs/agents/models.md`;
+every hook script `hooks/hooks.json` names is
 tracked at git mode `100755`; and the hook test suites under `hooks/tests/`
 pass. It is part of the `vrg-validate`
 pipeline locally and also runs in PR CI as the `quality / custom` job (from
@@ -109,8 +112,9 @@ details are in [`README.md`](README.md).
   Claude Code mod that labels subagent rows in the agent panel; its tests,
   `hooks/tests/register.test.tsx`, run with `claude plugin test .`.
 - `skills/` — one directory per workflow skill, each with a `SKILL.md`.
-- `agents/` — custom subagents (the session `bootstrap` agent and the
-  read-only `merge-reviewer`).
+- `agents/` — custom subagents (the session `bootstrap` agent, the
+  `task-runner` driver, the `implementer` writer and the read-only
+  `merge-reviewer`), each pinned to the model the model map records.
 - `commands/` — user-invokable slash commands (Markdown files); none ship
   today.
 

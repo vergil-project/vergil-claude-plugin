@@ -17,7 +17,7 @@ that enforces workflow compliance mechanically.
 |---|---|
 |[Hooks](hooks/index.md)|Pre/PostToolUse workflow guardrails and the SubagentStop merge-review capture|
 |[Skills](skills/index.md)|Shared workflow skills: the epic lifecycle and its queues, issue implementation, merge review, operational tasks and PR watching|
-|[Agents](agents/index.md)|Bootstrap subagent for session context and the read-only merge reviewer|
+|[Agents](agents/index.md)|Bootstrap subagent for session context, the task-run driver, the writer, the read-only merge reviewer, and the [model map](agents/models.md) of the model each runs on|
 
 ## Two-Repo Model
 

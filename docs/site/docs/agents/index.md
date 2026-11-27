@@ -1,11 +1,12 @@
 # Agents
 
 The plugin provides custom subagents that can be invoked during Claude Code
-sessions.
+sessions. Each pins its model in its definition's `model:` line; the
+[model map](models.md) records the model of every agent and skill, and
+why.
 
 ## Bootstrap Agent
 
-**Model**: haiku
 **Tools**: Read, Glob, Grep, Bash
 
 The bootstrap agent runs at the start of every work session to validate the
@@ -42,9 +43,52 @@ Hook guard:    <vrg-hook-guard path or "NOT FOUND">
 Any warnings are collected and listed in a separate section after the status
 block.
 
+## Task Runner Agent
+
+**Tools**: all (no `tools:` line, so it inherits the full tool set)
+
+The task runner (`vergil:task-runner`) drives one task run that
+`epic-implement` dispatches: one issue, or one batch, through
+`issue-implement`, `issue-validate` or `issue-deploy`. It runs the routed
+skill end to end under the
+[Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract)
+its prompt names. Its definition adds no procedure of its own: the skills
+carry it. It needs the Agent and Skill tools, so it has no tool list.
+Only `epic-implement` dispatches it, and never with a per-invocation
+`model`, which would outrank its pin.
+
+## Implementer Agent
+
+**Tools**: Read, Edit, Write, Glob, Grep, Bash
+
+The implementer (`vergil:implementer`) is the writer an `issue-implement`
+driver dispatches for every change to a task's tracked files, code, docs
+and config alike. In the worktree its prompt names, it makes the change,
+commits it in small `vrg-commit` commits in the convention the prompt
+gives, and validates with `vrg-container-run -- vrg-validate` until green.
+
+It never suppresses a gate, never submits, pushes or posts on GitHub,
+never creates issues, never runs merge review, and never edits anything
+under `build/.vergil-state/`. Once five `vrg-validate` runs in one
+dispatch have all exited non-zero, judged by exit code alone, it stops
+and returns `stuck`. Its last message is exactly this block, which the
+driver reads:
+
+```text
+Implementer result: green|stuck
+Commits: <sha> <subject>   (one line each, oldest first; "none" if none)
+Validate runs: <n>, last exit <code>
+Tried: <stuck only: what was tried and what still fails>
+Notes: <deviations from the issue and why; concerns noticed; or "none">
+```
+
+The driver checks a `green` result for itself (a clean tree, the commits
+on the branch, its own green validate) before merge review.
+`scripts/bin/validate-custom` pins its tool list, so it can never gain
+the Agent tool.
+
 ## Merge Reviewer Agent
 
-**Model**: opus
 **Tools**: Read, Glob, Grep
 
 The merge reviewer judges one step of a merge-review run: the first review of

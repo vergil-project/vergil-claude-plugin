@@ -65,4 +65,6 @@ nav:
           - releases/index.md
   - Hooks: hooks/index.md
   - Skills: skills/index.md
-  - Agents: agents/index.md
+  - Agents:
+      - agents/index.md
+      - Model map: agents/models.md
