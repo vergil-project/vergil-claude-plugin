@@ -145,37 +145,6 @@ first try.
 [`vrg-submit-pr`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/submit-pr.md)
 with `--issue`, `--summary`, `--linkage`, and `--notes` flags.
 
-### block-protected-branch-work
-
-**What.** Denies Bash tool invocations that run raw `git commit` when
-the effective working directory falls outside the worktree
-convention's allowed locations. It does not match `vrg-commit`.
-
-**Why.** Behavior depends on whether the target repo has adopted the
-[worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
-The hook detects adoption by looking for a `.worktrees/` line in the
-repo's `.gitignore`. On adopted repos, commits must originate from
-inside `.worktrees/<name>/`; the main tree is read-only for source
-(ignored scratch in its `build/` is not a source edit). On
-non-adopted repos, the hook falls back to the legacy behavior of
-blocking commits on `main` or `develop` regardless of directory.
-
-**Alternative.** On adopted repos: create a worktree with
-`git worktree add .worktrees/issue-N-<slug> -b feature/N-<slug>
-origin/develop` and run all edits + commits from inside that
-directory. On non-adopted repos: create and check out a feature
-branch with a name matching the repo's `branching_model` prefixes.
-
-This hook complements `vrg-commit`'s own
-[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
-— that check runs inside `vrg-commit` against the branch of the
-directory it actually executes in, so it is the authoritative guard for
-`vrg-commit`. This hook only guesses the target repo from the session
-cwd and the command text, and under the sandbox that cwd is reset to
-the project root, so matching `vrg-commit` here produced false denies
-for worktree commits in sibling repos (#694). The hook therefore covers
-raw `git commit` only.
-
 ### block-heredoc
 
 **What.** Denies Bash tool invocations that contain heredoc syntax
@@ -585,6 +554,35 @@ again in PR CI.
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
 is intentional.
+
+### Protected-branch commit check
+
+The plugin no longer ships `block-protected-branch-work`, a
+PreToolUse hook that denied a raw `git commit` run outside the
+worktree convention's allowed locations, or on `main` or `develop`
+in a repo without the convention. It was removed in
+[#1405](https://github.com/vergil-project/vergil-claude-plugin/issues/1405).
+
+**Why removed.** It was a legacy, redundant layer. In a managed repo
+raw git is already refused by the per-repo
+[hook guard](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md),
+through [`block-raw-git-commit`](#block-raw-git-commit), which keeps
+its own `git commit` check when the hook guard is not installed.
+`vrg-git` refuses `commit`, and `vrg-commit` enforces the
+protected-branch and worktree rules itself, against the directory it
+actually runs in. The GitHub branch-protection ruleset on `main` and
+`develop` requires a pull request. The hook could only guess where a
+commit would run from the session's directory and the command text,
+which is the wrong place to make that decision.
+
+**What replaces it.** Nothing needs to: the layers above already
+cover it, and `vrg-commit`'s
+[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
+is the authoritative one.
+
+**Don't re-add this.** A hook that reads shell command text to work
+out which repository and branch a commit lands in duplicates
+`vrg-commit`'s own check with a weaker one.
 
 ### Stop hook for finalization
 

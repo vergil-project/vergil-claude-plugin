@@ -246,7 +246,6 @@ for the rationale.
 |---|---|---|
 | `block-raw-git-commit` | PreToolUse/Bash | Redirects raw `git commit` to `vrg-commit` |
 | `block-raw-gh-pr-create` | PreToolUse/Bash | Redirects raw `gh pr create` to `vrg-submit-pr` |
-| `block-protected-branch-work` | PreToolUse/Bash | Blocks raw `git commit` from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks it on `develop`/`main`. `vrg-commit` is not matched — it checks the real branch itself |
 | `block-heredoc` | PreToolUse/Bash | Blocks `<<EOF` in CLI args (use `--body-file` or `$(cat <file>)`) |
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Warns on bare host calls of container-only tools; the `vrg-container-run --` form passes |
@@ -339,10 +338,10 @@ The USER agent creates it with `vrg-git worktree add` as part of
 The layout, rules and agent prompt contract are defined by the
 [worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
 
-The worktree convention is enforced by the
-`block-protected-branch-work` hook (raw `git commit` originating
-from outside `.worktrees/*/` is denied) and by `vrg-commit`'s own
-run-time protected-branch check.
+The worktree convention is enforced by `vrg-commit`'s own run-time
+protected-branch and worktree check, against the directory it
+actually runs in; raw `git commit` is refused by the hook guard and
+by the `block-raw-git-commit` hook.
 
 ### Ship a change
 
