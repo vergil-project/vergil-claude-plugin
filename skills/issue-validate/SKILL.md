@@ -136,6 +136,11 @@ created at mode `600`.
   vrg-gh issue close <N> --comment "Validated — see the SUCCESS result above."
   ```
 
+  The close refuses an operational task as completed while no trusted
+  comment on it records `Outcome: SUCCESS`. Such a refusal means the result
+  comment did not post: post the result comment first, then close again.
+  Never get around it with another close reason.
+
 - **FAILURE →** do **not** close. Leave this task — and its epic — open, and file
   follow-on fix task(s) under the same epic:
 

@@ -44,7 +44,7 @@ dispatch, gate and batching rules.
      | `epic` + `intake`, `planning` or `deferred` | a queue | Print `<ref> is the <kind> queue; review it with /vergil:epic-review <kind>.` and stop. |
      | `epic` + `hoshin` | the hoshin epic | Print `<ref> is the hoshin epic; its tasks belong to /vergil:hoshin.` and stop. |
      | `epic` + `ad-hoc` | one repo's ad-hoc epic | Run the [`adhoc` mode](#the-adhoc-mode) for that one repo (below). |
-     | `epic` + `proxy` | a proxy epic | Read its primary from the `primary` key of `vrg-epic-audit --epic <ref>`, print `<ref> is a proxy for <primary ref>; drive the primary epic instead.` and stop. If the audit exits 1 (link drift), show its stderr and stop. |
+     | `epic` + `proxy` | a proxy epic | Read its primary from the `primary` key of `vrg-epic-audit --epic <ref>`, print `<ref> is a proxy for <primary ref>; drive the primary epic instead.` and stop. If the audit exits 1 with no JSON (proxy link drift or chain drift, named on stderr), show the error and stop. |
      | `epic`, none of the above | development epic | Go on to step 1; step 2 reads the epic issue. |
 
      **Mapping an ad-hoc epic to its repo.** A live ad-hoc epic is titled
@@ -93,16 +93,28 @@ Do **not** rely on any single tool as a state engine. Reconstruct position by:
    items, a ruling line) is the same command with the same exit codes, and
    a trusted author's comment means one in its output.
 2. Reading each task's **open/closed** status from the `children` of
-   `vrg-epic-audit --epic <epic-ref>`: the epic's own sub-issues and the
-   sub-issues of every proxy epic its trusted `Proxy:` comments name, each
-   with its repo. A proxy task (a task of the effort filed in another
-   org, under that org's proxy) is driven here like any other task,
-   through the same skills and gates; only the primary's
-   `epic-implement` drives it. An exit 1 is proxy link drift (a broken or
-   disagreeing `Primary:`/`Proxy:` link, on stderr): show it and stop
-   (step 5), never building a frontier without the proxy's tasks.
+   `vrg-epic-audit --epic <epic-ref>`: the items of the epic's whole
+   chain (the epic and every continuation past GitHub's 100-sub-issue
+   limit, the continuations themselves left out) and the tasks of every
+   proxy epic its trusted `Proxy:` comments name, each with its repo. A
+   proxy task (a task of the effort filed in another org, under that
+   org's proxy) is driven here like any other task, through the same
+   skills and gates; only the primary's `epic-implement` drives it. Each
+   child also carries `open_blockers`, the open issues it is blocked by
+   (native blocked-by links and trusted `Blocked-by:` body lines), and
+   `blocked`, true when that list is not empty. An exit 1, with no JSON,
+   is proxy link drift (a broken or disagreeing `Primary:`/`Proxy:`
+   link), chain drift (a container that breaks a chain rule, named on
+   stderr with the container and the rule), a blocker list that cannot
+   be read in full, or an open child whose body is not trusted: whichever
+   it is, show the error and stop (step 5), never building a frontier
+   from a partial task list or without the blockers.
 3. Reconciling the two: the **runnable frontier** is every task the plan says is
-   ready whose dependencies (per the plan) are closed, and which is itself open.
+   ready whose dependencies (per the plan) are closed, which is itself open,
+   and whose `blocked` is false. A child with `blocked: true` stays off the
+   frontier even when the plan names no blocker for it, and is never
+   dispatched: list it, with its `open_blockers` refs, in the plan of work
+   you show the human.
 
 `vrg-epic-audit` supplies the task list and states, and its drift-audit mode
 (no `--epic`) may be consulted as a **consistency check** (linking, drift), but
@@ -114,8 +126,8 @@ first task ships. From then on, do not rewrite its task list: record each change
 — a new or dropped task, a discovered dependency, a scope shift — as a dated
 entry saying what changed and why, appended to an `## Evolution during
 execution` section at the bottom of `plan.md` (create the section on the first
-entry). The `children` of `vrg-epic-audit --epic` (the epic's sub-issues and
-its proxy tasks) stay the authoritative live task list; the log
+entry). The `children` of `vrg-epic-audit --epic` (the items of the epic's
+whole chain and its proxy tasks) stay the authoritative live task list; the log
 is the *why* behind any gap between them and the plan, and `epic-retrospective`
 builds its "How the plan evolved" section from it. Before the first task ships,
 edit the plan freely. Evolution that concerns a proxy task is recorded in the
@@ -255,7 +267,11 @@ there is a follow-up, as step 5 says.
 The **gate** is the general boundary where you can no longer proceed without the
 human — not merely "a PR is ready." When no run is in flight and no task
 is runnable without the human (step 3, "Continue after each merge"),
-present everything needing the human:
+present everything needing the human. Every command the human is to run
+goes in a copy-paste block of its own for their own terminal, one fenced
+block per command or step, set apart from your narrative and never
+interleaved with it, and with no `!` prefix; say outside the block what
+each one does and what to paste back:
 
 - PRs a run left at report-ready for the human to submit (step 3: the
   repo's CLAUDE.md still forbids agent submits, or a workflow-file push
@@ -269,8 +285,8 @@ present everything needing the human:
 - every deployment task whose `issue-deploy` run ended `waiting: human-run
   steps` (its
   [human-run steps](../issue-deploy/SKILL.md#hand-the-human-run-steps-to-the-human-then-verify-them)):
-  show each step's precondition result and its paste-ready `! <command>`
-  line, as the run's final report gives them, in the issue's order. Never
+  show each step's precondition result and its paste-ready command, as
+  the run's final report gives them, in the issue's order. Never
   run one yourself, under any identity. Once the human has run them,
   dispatch one new `issue-deploy` run of the task, never alongside another
   run of the same task, whose prompt carries each step's command and the
@@ -510,6 +526,8 @@ Never work from a partial list.
 Show the human the tasks grouped by repo: each one's ref, age, kind and a
 one-line paraphrase. The **runnable frontier** is every `ready` task.
 `blocked` tasks are listed with their open blockers and are not run.
+`vrg-queue adhoc` already applies the blockers here, so this mode reads no
+`vrg-epic-audit` of its own.
 **In-flight** tasks are listed apart, with their marks, and follow their
 `disposition`:
 

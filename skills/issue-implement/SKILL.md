@@ -76,7 +76,8 @@ is put on the issue by the human, never as your comment
 With the human present, write the change to a scratch file and, from a
 clone of the task's repo (its worktree will do), run
 `vrg-ruling draft-scope --issue '<owner>/<repo>#<N>' --text-file <file>`;
-give the human the `vrg-scope-change` command it prints, and start the
+give the human the `vrg-scope-change` command it prints, as a copy-paste
+block of its own with no `!` prefix, and start the
 merge review only once they have run it, so the review judges against it.
 Draft only when no ruling exchange is open on the issue: never between a
 merge-review request and its response, where `vrg-scope-change` refuses.
@@ -297,7 +298,9 @@ in the code. A new operational task changes the plan, so **do not mint it**:
 list the need under `Awaiting a ruling` at once, in a comment on the task
 issue of its own if none has been posted yet, and in your final
 report ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
-Once the human approves, file it in the approved form:
+Once the human approves, file it in the approved form, **runnable as
+filed**: write its sections to a scratch body file and pass it with
+`--body-file`:
 
 - **Deployment** — the next step (a later task, or a validation) needs this
   change **deployed and usable**, not merely merged (install/sync/release-then-
@@ -305,7 +308,7 @@ Once the human approves, file it in the approved form:
 
   ```bash
   vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind deployment \
-    --title "Deploy: <what>" --blocked-by <this-task-ref>
+    --title "Deploy: <what>" --body-file <tmp> --blocked-by <this-task-ref>
   ```
 
 - **Validation** — acceptance needs a check the pipeline's tests cannot do (a
@@ -314,12 +317,34 @@ Once the human approves, file it in the approved form:
 
   ```bash
   vrg-issue-create --epic <org>/.github#N --repo <org>/<repo> --kind validation \
-    --title "Validate: <what>" --blocked-by <this-task-ref>
+    --title "Validate: <what>" --body-file <tmp> --blocked-by <this-task-ref>
   ```
+
+The body file holds the scaffold's sections as level-2 headings, in this
+order, each written from what you found and what the human approved:
+
+- `## Intro`: what the task deploys or checks, and why this change needs it.
+- `## Preconditions`: the self-check the run makes first, a machine probe
+  or a human-attested statement (for a release, the release-record check
+  that `epic-create`'s "Operational tasks" section gives).
+- `## Procedure`: the steps the agent runs, with their commands.
+- `## Acceptance`: the criteria a `SUCCESS` outcome must meet.
+- `## Human-run steps` (deployment only, optional): each step that refuses
+  the agent identity, with its paste-ready command.
+
+`vrg-issue-create` keeps the scaffold's frame around them (the kind's
+label, the headings and the SUCCESS/FAILURE results template), and refuses
+a file with text before the first section, an unknown, duplicate or empty
+section, or a missing required one: fix the file and re-run. Never file the
+bare scaffold to fill in later, since filling it is a scope change the
+human must post. When you list the need, give what each section will say;
+if what you know does not give enough to write a section, ask the human
+rather than file a placeholder.
 
 Where an existing epoch operational task (one over several tasks) fits,
 recommend attaching the need to it rather than minting a redundant one. See `epic-create`'s
-"Operational tasks" section for the full doctrine and the scaffolds it stamps.
+"Operational tasks" section for the full doctrine, the scaffolds it stamps
+and which steps are human-run.
 
 **Never declare the task or its epic done while a paired or epoch operational
 task is still open** — it gates the epic's closure and closes only on a recorded
@@ -632,7 +657,12 @@ human sign-off is needed:
    - **Still in progress:** `vrg-git rebase --abort` returns the branch to its
      pre-rebase state.
    - **Already completed:** do not undo it yourself. Stop and ask the human,
-     who can run `! git reset --hard ORIG_HEAD`.
+     who can run it in their own terminal. Hand it over as a copy-paste
+     block of its own, with no `!` prefix:
+
+     ```bash
+     git reset --hard ORIG_HEAD
+     ```
 3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
 4. `vrg-git push --force-with-lease` to update the branch / PR.
 

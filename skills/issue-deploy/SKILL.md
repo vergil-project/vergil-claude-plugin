@@ -195,9 +195,12 @@ after the agent-safe deploy steps. For each one:
    one is unmet, handle it as the [preconditions gate](#preconditions-gate--release-is-a-precondition-not-your-job)
    says.
 2. **Hand it to the human.** Give the exact, paste-ready command, filled in
-   for this task with no placeholder left, as a `! <command>` line the human
-   runs in the session so its output reaches you. Say what it needs (the
-   human identity, the scope) and what a good result looks like.
+   for this task with no placeholder left, in a copy-paste block of its own
+   for the human's own terminal: one fenced block per step, set apart from
+   your narrative and never interleaved with it, and with no `!` prefix.
+   Say, outside the block, what it needs (the human identity, the scope),
+   what a good result looks like, and that the human pastes its output
+   back to you.
 3. **Wait** for the human to run it. Do not go on to the next step, and do
    not post the result, until they have.
 4. **Verify it** with the step's check, as the issue names it, against the
@@ -246,8 +249,8 @@ you run yourself that show the result the step was meant to produce, not
 merely that something ran. The result comment then names those checks and
 says the step was recorded from the human's report. **When no independent
 check of the step's result exists, the human's pasted output stays
-required**: its exit status and output, run as the `! <command>` line
-so it reaches you. A report alone is then not recorded; ask for the
+required**: its exit status and output, from the command the human
+ran in their own terminal and pasted back to you. A report alone is then not recorded; ask for the
 output, and if the human cannot give it, record no outcome and leave the
 task open.
 
@@ -293,6 +296,11 @@ created at mode `600`.
   ```bash
   vrg-gh issue close <N> --comment "Deployed — see the SUCCESS result above."
   ```
+
+  The close refuses an operational task as completed while no trusted
+  comment on it records `Outcome: SUCCESS`. Such a refusal means the result
+  comment did not post: post the result comment first, then close again.
+  Never get around it with another close reason.
 
 - **FAILURE →** do **not** close. Because the deploy is idempotent, **retry
   first** — a failure is often transient (network, a not-yet-ready target). Only

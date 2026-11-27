@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.98] - 2026-11-27
+
+### Bug fixes
+
+- share the gh api call matchers between the pull-request hooks (#1419)
+
+### Chores
+
+- sync the managed files with the released templates (#1399)
+- declare the published docs site in vergil.toml (#1390)
+
+### Documentation
+
+- describe chained epics and the closed-proxy refusal in three skills (#1411)
+- give the documentation task a scope body at bootstrap (#1412)
+- name chain items and chain drift for vrg-epic-audit --epic in four more passages (#1415)
+- keep a child with open blockers off the runnable frontier (#1388)
+- file follow-on operational tasks with their sections, not empty scaffolds (#1389)
+- say that an operational close refuses without a trusted Outcome: SUCCESS comment (#1394)
+- hand human-run steps as separate copy-paste blocks, without the ! prefix (#1403)
+- push fixes to an open PR with vrg-submit-pr --push (#1418)
+
+### Features
+
+- name exact plugin and tooling versions when validating a plugin release (#1413)
+
 ## [2.1.97] - 2026-11-25
 
 ### Bug fixes

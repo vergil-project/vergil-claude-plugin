@@ -23,6 +23,14 @@ no longer tunes agent behavior for continuous human observability; that
 older "Continuous Oversight" model is retired. The never-fabricate and
 never-suppress-a-gate rules are unaffected.
 
+**Human-run steps are handed over as copy-paste blocks.** When a skill
+needs the human to run something (a human-run deployment step, an
+attestation, a `vrg-ruling-reply` or `vrg-scope-change` command), it gives
+each command filled in, in a fenced block of its own for the human's own
+terminal, set apart from the agent's narrative and never interleaved with
+it. The blocks carry no `!` prefix: the human runs them in their own shell
+and pastes back any output the agent needs.
+
 ## paad review rounds: what a session needs
 
 `epic-create`'s design-review rounds run paad in its unattended mode,
@@ -187,13 +195,23 @@ the human once and stops. It is stateless by design: re-invoking after a
 lost or compacted session re-derives position from GitHub.
 
 Its frontier is built from the `children` of `vrg-epic-audit --epic`: the
-epic's own sub-issues and its **proxy tasks**, the tasks of the effort
-filed in another org under that org's proxy epic. A proxy task is driven
-from the primary epic like any other task, through the same skills and
-gates, and plan evolution that concerns it is recorded in the primary's
-plan, since a proxy has no plan. An audit exit 1 is proxy link drift (a
-broken or disagreeing `Primary:`/`Proxy:` link): it shows the problems and
-stops rather than build a frontier without the proxy's tasks.
+items of the epic's whole chain (the epic and every continuation past
+GitHub's 100-sub-issue limit, the continuations themselves left out) and
+its **proxy tasks**, the tasks of the effort filed in another org under
+that org's proxy epic. A proxy task is driven from the primary epic like
+any other task, through the same skills and gates, and plan evolution that
+concerns it is recorded in the primary's plan, since a proxy has no plan.
+A child the audit reports `blocked` (one with open issues in its
+`open_blockers`, from native blocked-by links or trusted `Blocked-by:`
+body lines) stays off the frontier even when the plan names no blocker
+for it: it is listed with its open blockers in the plan of work shown to
+the human, and never dispatched. An audit exit 1, with no JSON, is proxy
+link drift (a broken or disagreeing `Primary:`/`Proxy:` link), chain
+drift (a container that breaks a chain rule, named on stderr with the
+container and the rule), a blocker list that cannot be read in full, or
+an open child whose body is not trusted: whichever it is, it shows the
+error and stops rather than build a frontier from a partial task list or
+without the blockers.
 
 A code task whose [merge review](#merge-review) stopped for a ruling waits
 at the gate with its request ID. `epic-implement` talks the request's items
@@ -210,7 +228,7 @@ dispatched; the agents never post scope changes themselves.
 
 A deployment task whose `issue-deploy` run ended `waiting: human-run steps`
 also waits at the gate: `epic-implement` shows each step's precondition
-result and paste-ready `! <command>` line, and once the human has run them
+result and paste-ready command, and once the human has run them
 it dispatches one new `issue-deploy` run whose prompt carries the output of
 those runs, which verifies them and records the outcome.
 
@@ -286,12 +304,15 @@ human, merge-reviews the closing docs PR and submits it itself; its merge
 **closes the epic**.
 
 The gate reads the `children` of `vrg-epic-audit --epic`, so it covers the
-epic's **proxy tasks** (its tasks filed in other orgs under their proxy
-epics) like its own children. Its refusal names each open ref in full and,
-for each open proxy task, the proxy it sits under. An audit exit 1 is proxy
-link drift (a broken or disagreeing `Primary:`/`Proxy:` link): it shows the
-problems and stops, since the gate cannot see every proxy task until the
-link is fixed.
+items of the epic's whole chain (the epic and every continuation past
+GitHub's 100-sub-issue limit, the continuations themselves left out) and
+the epic's **proxy tasks** (its tasks filed in other orgs under their proxy
+epics) alike. Its refusal names each open ref in full and, for each open
+proxy task, the proxy it sits under. An audit exit 1, with no JSON, is
+either proxy link drift (a broken or disagreeing `Primary:`/`Proxy:` link)
+or chain drift (a container that breaks a chain rule, named on stderr with
+the container and the rule): either way, it shows the error and stops,
+since the gate cannot see every task until the drift is fixed.
 
 **When to use.** To finish an epic — "run the retrospective", "close out this
 epic", "we're done with this epic".
@@ -502,7 +523,13 @@ the change. The release task (`deployment`, run with `issue-deploy`) is the
 human's `vrg-release` of the fixture. The validation task (`validation`,
 run with `issue-validate`) checks the CI gates, ops, the release, its
 evidence bundle, the dependency update, the docs site and that nothing
-reached a package registry. It files tasks only and never runs them. The
+reached a package registry. For a plugin or skill release, its
+deployed-version probe names the exact plugin version and the
+vergil-tooling (and vergil-actions) versions released with it, from the
+`--after` deployment tasks' `Outcome:` results and the `Released:` records
+on the development tasks they are blocked by, and checks that the change PR's CI
+installed that tooling and that the agent identity opened and merged the
+PR after the plugin release. It files tasks only and never runs them. The
 skill holds the one list of fixtures, the known gaps and the learned
 ready-to-start and validation conditions. Runs on one fixture are
 serialized in order: a run already under way goes first, then the run filed
@@ -550,7 +577,11 @@ can merge, a clean rebase onto `origin/develop` is pushed with no review,
 and every other fix is reviewed first through merge-review's
 [Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr)
 entry and pushed once that review ends `eligible`, `not-eligible` with
-every ruling it asked for answered, or `exempt`. After a fix is pushed it
+every ruling it asked for answered, or `exempt`. Every push to the open
+PR goes through `vrg-submit-pr --push` (with `--force-with-lease` after a
+rebase or a fold), which judges the new head before it pushes it, never
+through `vrg-git push`; a refused push stops it for the human, with its
+reason. After a fix is pushed it
 reruns `vrg-finalize-pr <PR>` itself, never with `--release`, which
 re-checks the merge-review gate on the new head and counts the PR once it
 lands. It never merges and never turns auto-merge on or off: auto-merge
@@ -563,7 +594,7 @@ On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
 `vrg-git rebase -i --autosquash` onto the branch's merge base with
 `origin/develop` (so a fold never rebases) and pushed with
-`--force-with-lease`, never a new commit. Before every push, a clean
+`vrg-submit-pr --push --force-with-lease`, never a new commit. Before every push, a clean
 rebase included, it runs
 `vrg-pr-workflow batch-check --pr <PR_URL> --head <sha>` on the head about
 to be pushed, and refuses to push on a non-zero exit. A fix owned by no

@@ -130,11 +130,12 @@ attestation from their own login. Never make them ask for the command:
   (`vrg-git fetch origin --tags`) and run `vrg-git tag --contains
   <merge-sha>` for each change's merge commit. The oldest release tag
   every one of them is in is the candidate. Then give the human the
-  command, filled in, with no placeholder left, as a line they run in the
-  session:
+  command, filled in, with no placeholder left, in a copy-paste block of
+  its own for their own terminal, set apart from your narrative and with
+  no `!` prefix:
 
   ```text
-  ! vrg-gh issue comment <N> --repo <owner>/<repo> --body "Release attested: <repo> v<X.Y.Z> carries <owner>/<repo>#<PR> and <owner>/<repo>#<PR>."
+  vrg-gh issue comment <N> --repo <owner>/<repo> --body "Release attested: <repo> v<X.Y.Z> carries <owner>/<repo>#<PR> and <owner>/<repo>#<PR>."
   ```
 
   Say that it must run as the human, and that it attests a release the
