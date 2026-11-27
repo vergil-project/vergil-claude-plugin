@@ -4759,7 +4759,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -4787,7 +4787,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -6001,7 +6001,11 @@ can merge, a clean rebase onto <code>origin/develop</code> is pushed with no rev
 and every other fix is reviewed first through merge-review's
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr">Fix to an open PR</a>
 entry and pushed once that review ends <code>eligible</code>, <code>not-eligible</code> with
-every ruling it asked for answered, or <code>exempt</code>. After a fix is pushed it
+every ruling it asked for answered, or <code>exempt</code>. Every push to the open
+PR goes through <code>vrg-submit-pr --push</code> (with <code>--force-with-lease</code> after a
+rebase or a fold), which judges the new head before it pushes it, never
+through <code>vrg-git push</code>; a refused push stops it for the human, with its
+reason. After a fix is pushed it
 reruns <code>vrg-finalize-pr &lt;PR&gt;</code> itself, never with <code>--release</code>, which
 re-checks the merge-review gate on the new head and counts the PR once it
 lands. It never merges and never turns auto-merge on or off: auto-merge
@@ -6013,7 +6017,7 @@ other.</p>
 is a <code>vrg-commit --fixup</code> of its issue's commit, folded with
 <code>vrg-git rebase -i --autosquash</code> onto the branch's merge base with
 <code>origin/develop</code> (so a fold never rebases) and pushed with
-<code>--force-with-lease</code>, never a new commit. Before every push, a clean
+<code>vrg-submit-pr --push --force-with-lease</code>, never a new commit. Before every push, a clean
 rebase included, it runs
 <code>vrg-pr-workflow batch-check --pr &lt;PR_URL&gt; --head &lt;sha&gt;</code> on the head about
 to be pushed, and refuses to push on a non-zero exit. A fix owned by no
