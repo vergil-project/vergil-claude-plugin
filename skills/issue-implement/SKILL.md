@@ -767,6 +767,7 @@ Act on its exit status:
 | 0 | The PR merged and `develop` is settled. Run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR too: its preflight sees it merged and goes straight to its [The PR merged](../pr-watch/SKILL.md#the-pr-merged) step, which reads the review comments posted during the wait and proposes a follow-up for each one still unaddressed. Finalize has already counted the merge, so it is not rerun. Then tell the human it merged, with its URL. The task is done. |
 | 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it, and pass it "writer" ([its writer input](../pr-watch/SKILL.md#who-fixes--the-writer-input)), so the code of its fixes goes to the writer. |
 | 4 | `develop` did not validate after the settle. Stop and tell the human, with the output. |
+| 6 | Held by release: a release holds the lock and the PR is still held at the deadline. Not a failure. Report the release it names (version and stage), then re-run the same watch, `vrg-finalize-pr <PR>` on the PR (it is open), never with `--release`, and never turn auto-merge on by hand. Repeat until it exits 0, 3 or 4, then act as those rows say. |
 | 1, or any other | A refusal or a tool error. Show its output and stop; never retry with other flags. |
 
 Find the PR's URL with `vrg-gh pr list --repo <owner>/<repo> --head
