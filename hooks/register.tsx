@@ -1,8 +1,8 @@
 // The vergil plugin's hooks module (a Claude Code mod). It labels each
 // subagent's row in the agent panel with the task and issue(s) the agent was
 // dispatched for, read from the Agent call's description, in place of the
-// agent type (`general-purpose`). Rows whose description names no issue are
-// left as Claude Code draws them.
+// agent type (`vergil:task-runner` for an `epic-implement` task run). Rows
+// whose description names no issue are left as Claude Code draws them.
 import type { Register } from 'claude-code'
 
 /** An issue reference: `owner/repo#N`, `repo#N` or `#N`. */

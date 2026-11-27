@@ -1,6 +1,6 @@
 ---
 name: epic-implement
-description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (sub-agents encouraged), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin), a proxy epic (drive its primary epic instead) or a non-epic. Each task run submits its own PR and watches it to the merge; after every merge it re-reads the epic and continues with the next runnable task, a proxy task in another org included, stopping for the human only on a ruling, a failure, or a task blocked on a release or a human-gated deployment precondition. It runs pr-watch at once on a PR the human reports did not merge, never cuts a release, and hands the terminal retrospective to epic-retrospective, which submits its PR.
+description: Drive a GitHub epic's tasks to their human gates as the USER agent. Use whenever the human wants to start or resume work on an epic as a whole — "implement epic #135", "pick up epic X where we left off", "drive this epic", "keep working the epic" — or on the ad-hoc tasks, org-wide or for one repo, in its adhoc mode — "work the ad-hoc tasks", "implement ad hoc", "crank through the ad-hoc queue", `/vergil:epic-implement adhoc [--repo <owner>/<repo>]`, or a repo's ad-hoc epic ref. A thin layer above the issue-* skills: it resumes from GitHub (the epic and its plan, or vrg-queue adhoc), works every runnable task (each task run a vergil:task-runner agent), batches everything needing the human once, and stops. Refuses a queue epic (use epic-review), the hoshin epic (use /vergil:hoshin), a proxy epic (drive its primary epic instead) or a non-epic. Each task run submits its own PR and watches it to the merge; after every merge it re-reads the epic and continues with the next runnable task, a proxy task in another org included, stopping for the human only on a ruling, a failure, or a task blocked on a release or a human-gated deployment precondition. A PR the human reports did not merge gets a new task run of issue-implement at once; it never runs pr-watch on a task's PR or submits a task itself, never cuts a release, and hands the terminal retrospective to epic-retrospective, which submits its PR.
 ---
 
 # Epic implement
@@ -147,7 +147,13 @@ task by its kind label:
 
 **Dispatch parallel efforts as sub-agents using the
 [Agent prompt contract](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md#agent-prompt-contract)** (the worktree convention). Each sub-agent gets one issue (or one batch,
-below), its worktree instruction, and runs the routed skill. A code task's
+below), its worktree instruction, and runs the routed skill. Every
+task-run dispatch, a re-dispatch included, passes
+`subagent_type: "vergil:task-runner"` and never a `model`: the agent
+definition pins the run's model, and a per-invocation `model` would
+outrank the pin. The plugin's
+[`guard-task-dispatch`](../../docs/site/docs/hooks/index.md#guard-task-dispatch)
+hook refuses a task run dispatched any other way. A code task's
 run submits its PR and watches it to the merge itself, as
 `issue-implement`'s
 [Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
@@ -160,7 +166,10 @@ dispatches a task run, a re-dispatch included (with rulings, a human
 response or the output of human-run steps), passes a `description` that
 names the task and its issue(s), in one of these forms, so the plugin's
 [agent row labels](../../docs/site/docs/hooks/index.md#agent-row-labels)
-mod labels its row in the agent panel instead of `general-purpose`:
+mod labels its row in the agent panel instead of `vergil:task-runner`.
+The forms are matched exactly, since the dispatch hook keys on them: a
+`description` that starts with `Task` or `Batch` and a space but fits none
+of them is refused, whatever its agent type.
 
 | Run | `description` | Example |
 |---|---|---|
@@ -432,10 +441,16 @@ an overlapping one waits until that one has merged.
 
 Present the gate **once** and stop. A run that submits watches its own PR
 through `pr-watch`; never start a second watch on a PR a run is watching.
-When the human reports a PR that did not merge (a finalize line naming it,
-a red check, a conflict) or asks for one to be fixed, run `pr-watch` on it
-at once (`/vergil:pr-watch <PR_URL>`, the `pr-watch` skill); never hand
-that command back to the human to run. When the human returns and says
+The main session never runs `pr-watch` on a task's PR itself. When the
+human reports a task's PR that did not merge (a finalize line naming it,
+a red check, a conflict) or asks for one to be fixed, dispatch a task run
+of the task's `issue-implement` at once, as step 3 says (a task-run
+`description`, as `vergil:task-runner`), never alongside another run of
+the same task: its Preflight finds the task reported ready and resumes at
+[Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge),
+running `pr-watch` on the PR under its driver, so every fix runs in the
+task run, on its pinned model. Never hand the watch back to the human to run.
+When the human returns and says
 continue (or re-invokes this skill), re-run steps 2–4: re-derive state and
 advance to the next frontier.
 
@@ -446,11 +461,14 @@ re-derive state, treat a reported-ready (or already-merged) task as finished —
 advance the frontier, do not re-run its issue (a run given rulings only, above,
 is the one exception) or add commits to its branch. A reported-ready task
 whose run ended before its PR merged (a lost session) is picked up where it
-stopped, never re-implemented: with an open PR and no run watching it, run
-`pr-watch` on the PR; with no PR yet, in a repo that lets agents submit,
-submit it from its worktree as `issue-implement`'s
-[Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
-says. Its merge review is
+stopped, never re-implemented, and never by the main session itself: with
+an open PR and no run watching it, or with no PR yet in a repo that lets
+agents submit, dispatch a task run of its `issue-implement`, as step 3
+says (a task-run `description`, as `vergil:task-runner`). Its Preflight
+finds the task reported ready and resumes at
+[Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge),
+submitting it when no PR is open yet and running `pr-watch` on the PR
+when one is. Both re-entries take this one path. Its merge review is
 over and its merge-review directory was deleted at `report-ready`: expect
 none, and look for none. More
 work on a landed task is a **new follow-up issue**, never a mutation of that
@@ -609,7 +627,8 @@ dispatch before they confirm.
 
 Dispatch by kind label exactly as the development path's step 3 does
 (`issue-implement`, `issue-validate`, `issue-deploy`), as sub-agents under
-the Agent prompt contract, each Agent `description` in the forms with no
+the Agent prompt contract, each dispatched as `vergil:task-runner` with no
+`model`, each Agent `description` in the forms with no
 plan task ID, with the batch-marker check before every
 code-task dispatch, in the order and grouping the strategy set.
 
@@ -618,7 +637,10 @@ code-task dispatch, in the order and grouping the strategy set.
 Gate and stop exactly as the development path's step 4 does: present
 everything needing the human once, relay rulings to stopped runs, give
 the human any PRs a run left for their submit, one command per repo, and
-stop. When the human says
+stop. A task's PR that did not merge, and a reported-ready task with no
+run watching it, are re-entered as step 4 says: by a task run of its
+`issue-implement`, dispatched as `vergil:task-runner`, never by running
+`pr-watch` or submitting in the main session. When the human says
 continue, re-run the mode from step 1.
 
 ### Where an adhoc run writes its records
