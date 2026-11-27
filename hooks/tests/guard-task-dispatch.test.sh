@@ -66,7 +66,7 @@ verdict() {
 
 # expect <name> <allow|deny> [<reason substring>]
 expect() {
-	local name="$1" want="$2" needle="${3:-}" got reason=""
+	local name="$1" want="$2" needle="${3:-}" got reason="" with=""
 	got=$(verdict)
 	if [ "$got" = deny ]; then
 		reason=$(printf '%s' "$OUT" | jq -r '.hookSpecificOutput.permissionDecisionReason')
@@ -76,7 +76,10 @@ expect() {
 		echo "PASS $name"
 		pass=$((pass + 1))
 	else
-		echo "FAIL $name — expected $want${needle:+ with '$needle'}, got $got (rc=$RC)"
+		if [ -n "$needle" ]; then
+			with=" with '$needle'"
+		fi
+		echo "FAIL $name — expected $want$with, got $got (rc=$RC)"
 		printf '%s\n' "$OUT" "$ERR" | head -5 | sed 's/^/       /'
 		fail=$((fail + 1))
 	fi
