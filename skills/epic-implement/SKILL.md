@@ -171,16 +171,19 @@ mod labels its row in the agent panel instead of `general-purpose`:
 
 `<id>` is the ID in the task's `Plan task:` key, its first word only (a
 fixture run's `Plan task: 7 python-lib` gives `7`). A batch names one ID
-and one issue reference per member, in batch order; a batch any of whose
-members has no ID takes the form with none. An ad-hoc task (the `adhoc`
-mode below) and any other task with no `Plan task:` key take the forms
-with no ID, which still carry the issue reference, so the row is
+and one issue reference per member, in batch order. An ad-hoc task (the
+`adhoc` mode below) and any other task with no `Plan task:` key take the
+forms with no ID, which still carry the issue reference, so the row is
 labelled by its issue. Put nothing else in the description: the mod
 lists every issue reference it finds, so a reference to the epic or to
-another issue would join the label. The mod leads the label with the
-`Task <id>` or `Batch <id>/<id>…` only when each ID is digits with at
-most one letter after them (`6`, `13b`); a row whose ID has another form
-(`D2`, `V1a`, `doc-review`) is labelled by its issue(s) alone.
+another issue would join the label. The mod reads an ID only when it is
+digits with at most one letter after them (`6`, `13b`). A task whose ID
+has another form (`D2`, `V1a`, `doc-review`) keeps the `Task <id>` form,
+and its row is labelled by its issue alone. A batch takes the form with
+no ID when any member has no ID or an ID of another form: from
+`Batch 6/D2 …` the mod would read the IDs only up to the first that does
+not fit (`Batch 6`), so the label would name some members' tasks and not
+others.
 
 **Batching ready tasks.** You may batch independent ready code tasks of one
 repo into one `issue-implement` run, on your own judgment, under the

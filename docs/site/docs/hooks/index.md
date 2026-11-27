@@ -544,7 +544,10 @@ plan task ID (an ad-hoc task, say); see its
 [Work the runnable frontier](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier)
 section. The label leads with the task only when its ID is digits
 with at most one letter after them (`6`, `13b`); a task whose ID has
-another form (`D2`, `doc-review`) is labelled by its issue(s) alone.
+another form (`D2`, `doc-review`) is labelled by its issue alone. In a
+`Batch` description the mod reads the IDs only up to the first that
+does not fit (`Batch 6/D2` is read as `Batch 6`), so `epic-implement`
+gives a batch the form with no ID when any member's ID does not fit.
 
 `AgentRow` needs Claude Code v2.1.326 or later. An older version
 loads the module but never raises the site, so rows stay as they
