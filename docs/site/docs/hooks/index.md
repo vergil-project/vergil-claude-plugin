@@ -149,13 +149,7 @@ with `--issue`, `--summary`, `--linkage`, and `--notes` flags.
 
 **What.** Denies Bash tool invocations that run raw `git commit` when
 the effective working directory falls outside the worktree
-convention's allowed locations. It does not match `vrg-commit`. It
-also denies a raw `git commit` whose repository it cannot work out
-from the command text: one that sets the git directory or work tree,
-changes directory other than with one `cd` at the start of the
-command or with git's own `-C` (a command wrapper's directory option,
-such as `env -C`, included), or names a directory that is not a
-literal path to an existing directory.
+convention's allowed locations. It does not match `vrg-commit`.
 
 **Why.** Behavior depends on whether the target repo has adopted the
 [worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
