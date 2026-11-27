@@ -577,7 +577,11 @@ can merge, a clean rebase onto `origin/develop` is pushed with no review,
 and every other fix is reviewed first through merge-review's
 [Fix to an open PR](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#fix-to-an-open-pr)
 entry and pushed once that review ends `eligible`, `not-eligible` with
-every ruling it asked for answered, or `exempt`. After a fix is pushed it
+every ruling it asked for answered, or `exempt`. Every push to the open
+PR goes through `vrg-submit-pr --push` (with `--force-with-lease` after a
+rebase or a fold), which judges the new head before it pushes it, never
+through `vrg-git push`; a refused push stops it for the human, with its
+reason. After a fix is pushed it
 reruns `vrg-finalize-pr <PR>` itself, never with `--release`, which
 re-checks the merge-review gate on the new head and counts the PR once it
 lands. It never merges and never turns auto-merge on or off: auto-merge
@@ -590,7 +594,7 @@ On a batch PR (one whose body has more than one `Closes` line), every fix
 is a `vrg-commit --fixup` of its issue's commit, folded with
 `vrg-git rebase -i --autosquash` onto the branch's merge base with
 `origin/develop` (so a fold never rebases) and pushed with
-`--force-with-lease`, never a new commit. Before every push, a clean
+`vrg-submit-pr --push --force-with-lease`, never a new commit. Before every push, a clean
 rebase included, it runs
 `vrg-pr-workflow batch-check --pr <PR_URL> --head <sha>` on the head about
 to be pushed, and refuses to push on a non-zero exit. A fix owned by no

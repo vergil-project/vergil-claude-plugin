@@ -285,8 +285,19 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    human its message and stop. A routine rebase is checked too. On a
    single-issue PR it prints that the PR is not a batch PR and exits 0,
    so running it there is harmless but not needed.
-4. **Push.** After a rebase or a fold, `vrg-git push --force-with-lease`;
-   otherwise `vrg-git push`. Never a bare `--force`.
+4. **Push through the one PR path**, from the worktree, with the new head
+   checked out: after a rebase or a fold,
+   `vrg-submit-pr --push --force-with-lease`; otherwise
+   `vrg-submit-pr --push`. Never `vrg-git push` to the branch of an open
+   PR, and never a bare `--force`. Push mode judges the head before it
+   pushes it (the PR path, the provenance check and the merge-review
+   gates on `origin/develop...HEAD`) and leaves auto-merge on. Exit 0
+   means the head is pushed. **Any other exit is a stop for the human:**
+   nothing was pushed, so show them the reason its output names (no open
+   PR into `develop`, a PR the path does not accept, a provenance
+   violation, a head the gates refuse, a frozen branch, or a step it
+   could not complete). Never retry with other flags, and never work
+   around it with `vrg-git push`.
 5. **Rerun `vrg-finalize-pr <PR>` yourself**, never with `--release`. It
    watches the fixed head, re-running the merge-review gate on it, and,
    once the PR lands, counts it as merged and settles `develop`. Wait for
