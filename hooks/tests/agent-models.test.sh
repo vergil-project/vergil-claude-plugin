@@ -13,6 +13,8 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VALIDATE_CUSTOM="$SCRIPT_DIR/../../scripts/bin/validate-custom"
 MAP=docs/site/docs/agents/models.md
+# A backtick, for the code spans of the model map's table cells.
+B=$'\x60'
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
@@ -57,7 +59,7 @@ map() {
 		printf '\n## Skills\n\n'
 		printf '| Skill | Where it runs | Model there | Validation alias |\n'
 		printf '| --- | --- | --- | --- |\n'
-		printf '| `vergil:ghost` | session | opus | `opus` |\n'
+		printf '| %s | session | opus | %s |\n' "${B}vergil:ghost${B}" "${B}opus${B}"
 	} >"$root/$MAP"
 }
 
@@ -100,7 +102,7 @@ test_agent_without_model_fails() {
 	local root
 	root=$(new_root no-model)
 	agent "$root" a "tools: Read"
-	map "$root" '| `vergil:a` | sonnet | Drives. |'
+	map "$root" "| ${B}vergil:a${B} | sonnet | Drives. |"
 	run_case "an agent with no model line fails" "$root" 1 agents/a.md
 }
 
@@ -108,7 +110,7 @@ test_two_model_lines_fails() {
 	local root
 	root=$(new_root two-models)
 	agent "$root" a "model: sonnet" "model: opus"
-	map "$root" '| `vergil:a` | sonnet | Drives. |'
+	map "$root" "| ${B}vergil:a${B} | sonnet | Drives. |"
 	run_case "an agent with two model lines fails" "$root" 1 agents/a.md
 }
 
@@ -116,7 +118,7 @@ test_unknown_model_value_fails() {
 	local root
 	root=$(new_root unknown)
 	agent "$root" a "model: gpt-5"
-	map "$root" '| `vergil:a` | gpt-5 | Drives. |'
+	map "$root" "| ${B}vergil:a${B} | gpt-5 | Drives. |"
 	run_case "an unknown model value fails" "$root" 1 agents/a.md
 }
 
@@ -132,7 +134,7 @@ test_inherit_with_map_row_and_reason_passes() {
 	local root
 	root=$(new_root inherit-reason)
 	agent "$root" a "model: inherit"
-	map "$root" '| `vergil:a` | `inherit` | Takes its caller'"'"'s model on purpose. |'
+	map "$root" "| ${B}vergil:a${B} | ${B}inherit${B} | Takes its caller's model on purpose. |"
 	run_case "inherit with a reasoned model map row passes" "$root" 0
 }
 
@@ -140,7 +142,7 @@ test_inherit_with_empty_reason_fails() {
 	local root
 	root=$(new_root inherit-empty)
 	agent "$root" a "model: inherit"
-	map "$root" '| `vergil:a` | inherit |  |'
+	map "$root" "| ${B}vergil:a${B} | inherit |  |"
 	run_case "inherit with an empty reason fails" "$root" 1 agents/a.md
 }
 
@@ -148,7 +150,7 @@ test_map_model_mismatch_fails() {
 	local root
 	root=$(new_root mismatch)
 	agent "$root" a "model: haiku"
-	map "$root" '| `vergil:a` | sonnet | Drives. |'
+	map "$root" "| ${B}vergil:a${B} | sonnet | Drives. |"
 	run_case "a model map row with another model fails" "$root" 1 agents/a.md
 }
 
@@ -157,7 +159,7 @@ test_agent_missing_from_map_fails() {
 	root=$(new_root missing-row)
 	agent "$root" a "model: sonnet"
 	agent "$root" b "model: haiku"
-	map "$root" '| `vergil:a` | sonnet | Drives. |'
+	map "$root" "| ${B}vergil:a${B} | sonnet | Drives. |"
 	run_case "an agent with no model map row fails" "$root" 1 agents/b.md
 }
 
@@ -165,8 +167,8 @@ test_map_row_without_agent_fails() {
 	local root
 	root=$(new_root orphan-row)
 	agent "$root" a "model: sonnet"
-	map "$root" '| `vergil:a` | sonnet | Drives. |' \
-		'| `vergil:gone` | haiku | Writes. |'
+	map "$root" "| ${B}vergil:a${B} | sonnet | Drives. |" \
+		"| ${B}vergil:gone${B} | haiku | Writes. |"
 	run_case "a model map row with no agent file fails" "$root" 1 "$MAP"
 }
 
@@ -176,10 +178,10 @@ test_pinned_agents_pass() {
 	agent "$root" a "tools: Read" "model: sonnet"
 	agent "$root" b "model: \"haiku\""
 	agent "$root" c "model: opus"
-	map "$root" '| `vergil:a` | `sonnet` | Drives. |' \
-		'| `vergil:b` | haiku | Writes. |' \
-		'| `vergil:c` | opus | Judges. |' \
-		'| `paad:paad-delegate` | opus | Passed by the dispatch. |'
+	map "$root" "| ${B}vergil:a${B} | ${B}sonnet${B} | Drives. |" \
+		"| ${B}vergil:b${B} | haiku | Writes. |" \
+		"| ${B}vergil:c${B} | opus | Judges. |" \
+		"| ${B}paad:paad-delegate${B} | opus | Passed by the dispatch. |"
 	run_case "pinned agents with matching rows pass" "$root" 0
 }
 
