@@ -267,7 +267,8 @@ drafts it at the gate.
    `report-ready`: skip step 7, `cd` into it, run the [Resume](#resume)
    sort, and resume at
    [Submit and watch to the merge](#submit-and-watch-to-the-merge),
-   running `pr-watch` on the PR if one is already open for the branch.
+   running `pr-watch` on the PR, with the writer as that section says,
+   if one is already open for the branch.
 7. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
@@ -606,7 +607,10 @@ for the human.
 
 When all the work is committed and `vrg-container-run -- vrg-validate` is
 green at the final commit, run the **`merge-review`** skill
-(`vergil:merge-review`) on the task, from its worktree. Follow it exactly:
+(`vergil:merge-review`) on the task, from its worktree, telling it this
+run has a writer, so its
+[fix step](../merge-review/SKILL.md#fix-and-check) hands its code edits
+to the writer and leaves security fixes to you. Follow it exactly:
 its request builder refuses unless the last `vrg-validate` was a full,
 clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
 `--issue '<owner>/<repo>#<N>'`. The same skill resumes a stopped run
@@ -620,6 +624,7 @@ own (`epic-create`'s spec-and-plan PR, `epic-retrospective`'s PR and
 non-review gate and the outcome table here, and the notes' merge-review
 lines and the directory's deletion once `report-ready` has succeeded from
 [Record the PR metadata](#record-the-pr-metadata-and-hand-off).
+They have no writer, so they run merge review without one.
 
 **Non-review items first.** Merge review posts nothing on the issue until
 every non-review item of the task is settled: the skill's
@@ -760,7 +765,7 @@ Act on its exit status:
 | Exit | Then |
 | --- | --- |
 | 0 | The PR merged and `develop` is settled. Run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR too: its preflight sees it merged and goes straight to its [The PR merged](../pr-watch/SKILL.md#the-pr-merged) step, which reads the review comments posted during the wait and proposes a follow-up for each one still unaddressed. Finalize has already counted the merge, so it is not rerun. Then tell the human it merged, with its URL. The task is done. |
-| 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it. |
+| 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it, and pass it "writer" ([its writer input](../pr-watch/SKILL.md#who-fixes--the-writer-input)), so the code of its fixes goes to the writer. |
 | 4 | `develop` did not validate after the settle. Stop and tell the human, with the output. |
 | 1, or any other | A refusal or a tool error. Show its output and stop; never retry with other flags. |
 

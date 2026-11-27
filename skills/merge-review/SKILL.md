@@ -305,7 +305,9 @@ own code and is pushed with no review. The whole run is the one above,
 with the same reviewer, outcomes, rulings and records; only what this
 section names differs.
 
-**The caller gives** the task issue `<ref>` and the PR's URL. The fix is
+**The caller gives** the task issue `<ref>`, the PR's URL and whether it
+has a writer, which `pr-watch` forwards from its own caller; the run's
+fix step follows it ([Fix and check](#fix-and-check)). The fix is
 committed (on a batch PR, folded as `pr-watch` folds it) and
 `vrg-container-run -- vrg-validate` is green at `HEAD`; the request
 builder refuses otherwise. The submit lifted the branch's freeze, so the
@@ -624,7 +626,9 @@ path through this skill skips it.
    [Terms and files](#terms-and-files)): settle each in the terminal now.
    Ask the human, carry out the ruling and post its ruling line as §1.7
    says. A ruling that changes the branch (a `fix`) is committed and
-   validated to green, and the run then goes back to
+   validated to green (with a writer, by the writer, a security item's
+   fix by the driver, as [Fix and check](#fix-and-check)'s **Who fixes**
+   says; without one, by the caller's session), and the run then goes back to
    [Where the run stands](#where-the-run-stands): with `HEAD` moved off
    the request's `head_sha`, it deletes the step's files and reviews
    afresh, and that review's Decide runs this gate again. Otherwise run
@@ -707,9 +711,48 @@ never one of these items.
 
 When no defect is to be fixed and no ruling calls for a code change, there
 is **no check**: go on to the response (after a ruling) or the handoff. The
-builder refuses an empty `--fix-id` set.
+builder refuses an empty `--fix-id` set. Otherwise the fix and check
+follow the steps below.
 
-Otherwise:
+**Who fixes** depends on an input from the caller: whether it has a
+**writer**. Only an `issue-implement` driver has one: `issue-implement`
+itself, and `pr-watch` when that driver runs it, which forwards the input
+([Fix to an open PR](#fix-to-an-open-pr)). Every other caller
+(`epic-create`, `epic-retrospective`, `hoshin`, or `pr-watch` run by
+one of them or by the human) has none, and a caller that does not say
+has none.
+
+- **With a writer,** steps 1 and 2 are split, in this order:
+  1. The driver makes every security-item fix itself and commits it (in
+     a batch, as a fixup of the issue's first commit), writing the
+     [driver-work marker](../issue-implement/SKILL.md#resume)
+     (`security-fix`) before it starts and removing it once the fix is
+     committed. It then runs `vrg-container-run -- vrg-validate` itself
+     until it is green at `HEAD`, fixing any failure inside its own
+     security change, so the writer never starts from a tree the
+     security fixes turned red. A failure the driver's security fix
+     causes is always the driver's to fix, never the writer's.
+  2. Step 1's file edits for every non-security defect and every ruling
+     that calls for a code change, and step 2's validation over the
+     whole tree, go to the writer, as
+     [The writer](../issue-implement/SKILL.md#the-writer) says (its
+     dispatch, its commit convention and its escalation, which gives
+     this fix one budget of its own). Its prompt also holds the
+     reviewer's findings to fix, by ID and text, with every security
+     item left out, and the rulings that call for a code change, a
+     security item's ruling never. No security item's details reach it,
+     in its prompt or in a file it reads.
+  3. The driver [checks the writer's result](../issue-implement/SKILL.md#check-the-writers-result);
+     its own green `vrg-validate` at `HEAD` there covers the security
+     fixes too. It then does every filing step 1 calls for
+     ([Filing](#filing)), and builds the check (step 3).
+
+  With no non-security edit to make, the driver's own green run is
+  step 2's validation, and the writer is not dispatched.
+- **Without a writer,** the caller's session does steps 1 and 2 itself,
+  security fixes included.
+
+The steps, steps 1 and 2 made by whoever **Who fixes** names:
 
 1. Fix every defect, carry out every ruling, and do every filing
    ([Filing](#filing)). Commit with `vrg-commit`; in a batch, with
@@ -742,8 +785,9 @@ Otherwise:
    - Exit 3: the branch was rebased since the fix base. Stop with item `B1`:
      `restart` deletes the step files (keeping `stop-reason.txt` and every
      `security-<ID>.md` whose record is still due), validates to green at
-     the new `HEAD`, and runs a fresh `review`, every finding ruled afresh
-     with nothing carried over; `stop` hands off
+     the new `HEAD` (any failure fixed as **Who fixes** above says), and
+     runs a fresh `review`, every finding ruled afresh with nothing
+     carried over; `stop` hands off
      `not-eligible (fix-base-rebased)`.
    - Any other refusal, the builder's refusal over the human's comments
      included ([Before the review](#before-the-review)), is an `error`.
