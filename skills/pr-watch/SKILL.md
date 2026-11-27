@@ -498,13 +498,13 @@ never a mutation of the merged branch.
 - **You never merge the PR, and never turn auto-merge on or off.** You
   rerun `vrg-finalize-pr` yourself after a fix; you never run anything
   with `--release`, since releases and promotion stay the human's.
+  Repositories also let the automation App's mechanized PRs merge on CI
+  alone; that path is not this skill's.
 - **A release hold is not a failure.** While a release holds the lock, the
   watch shows the PR as `held by release <version> (stage <stage>, ...)`,
   and `vrg-pr-await`, `vrg-finalize-pr` and `vrg-submit-pr` exit 6 at the
   deadline. On exit 6, report the release it names and re-run the same
   watch command; never turn auto-merge on by hand, and never treat the
   exit as a failure. The watch re-arms an unarmed PR itself.
-  Repositories also let the automation App's mechanized PRs merge on CI
-  alone; that path is not this skill's.
 - **Every push can merge.** That is why a fix other than a clean rebase is
   merge-reviewed first, and why a batch PR is checked before every push.
