@@ -18,41 +18,18 @@ ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 NL='
 '
 
-# Scratch managed repo that has adopted the worktree convention, for
-# block-protected-branch-work.sh rows. Using a scratch repo keeps
-# those rows deterministic whether this suite runs from the main
-# checkout or from inside a worktree.
-SCRATCH=$(mktemp -d)
-trap 'rm -rf "$SCRATCH"' EXIT
-
 # block-raw-git-commit.sh delegates to vrg-hook-guard when it is on
-# PATH; mask it so the fallback regex path is what's tested. The
-# PATH mirror lives outside $SCRATCH so the repo stays clean.
+# PATH; mask it so the fallback regex path is what's tested.
 MASK_DIR=$(mktemp -d)
-trap 'rm -rf "$SCRATCH" "$MASK_DIR"' EXIT
+trap 'rm -rf "$MASK_DIR"' EXIT
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/lib/mask-hook-guard.sh"
 mask_hook_guard_path "$MASK_DIR"
-git -C "$SCRATCH" init --quiet
-printf '[project]\n' > "$SCRATCH/vergil.toml"
-printf '.worktrees/\n' > "$SCRATCH/.gitignore"
-
-# Second scratch managed repo that has NOT adopted the worktree
-# convention and sits on the protected branch `develop`, for the
-# legacy protected-branch rows (#694). An unborn branch still reports
-# its name via `git branch --show-current`.
-PROTECTED=$(mktemp -d)
-trap 'rm -rf "$SCRATCH" "$MASK_DIR" "$PROTECTED"' EXIT
-git -C "$PROTECTED" init --quiet
-git -C "$PROTECTED" symbolic-ref HEAD refs/heads/develop
-printf '[project]\n' > "$PROTECTED/vergil.toml"
 
 # Parallel arrays: one case per index.
 #   T_NAME     — label
 #   T_SCRIPT   — hook script under hooks/scripts/
 #   T_COMMAND  — tool_input.command payload value
-#   T_CWD      — payload cwd: "" = $ROOT, "SCRATCH" = $SCRATCH,
-#                "PROTECTED" = $PROTECTED
 #   T_RESPONSE — tool_response payload value ("" = omit)
 #   T_EXPECT   — deny | allow | context
 T_NAME=(
@@ -87,17 +64,6 @@ T_NAME=(
   "deprecation: cargo test with warning in output"
   "deprecation: go test with warning in output"
   "deprecation: uv run pytest with warning in output"
-  "protected: real commit at convention-repo root"
-  "protected: non-commit with quoted commit prose (#450 over-blocking)"
-  "protected: non-commit git operation"
-  "protected #694: vrg-commit at convention-repo root not matched"
-  "protected #694: cd <worktree> && vrg-commit not matched"
-  "protected #694: env-prefixed vrg-commit not matched"
-  "protected #694: subshell cd; vrg-commit not matched"
-  "protected #694: vrg-commit on protected develop not matched"
-  "protected #694: raw git commit on protected develop still denied"
-  "protected #694: cd . && raw git commit on develop still denied"
-  "protected #694: raw git commit chained after vrg-commit still denied"
   "autoclose: forbidden linkage keyword"
   "autoclose: Ref linkage allowed"
   "autoclose: quoted body mentioning the rule (#450 shape)"
@@ -140,17 +106,6 @@ T_SCRIPT=(
   "detect-deprecation-warnings.sh"
   "detect-deprecation-warnings.sh"
   "detect-deprecation-warnings.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
-  "block-protected-branch-work.sh"
   "block-autoclose-linkage.sh"
   "block-autoclose-linkage.sh"
   "block-autoclose-linkage.sh"
@@ -193,17 +148,6 @@ T_COMMAND=(
   'cargo test'
   'go test ./...'
   'uv run pytest -q'
-  'git commit -m x'
-  "vrg-gh issue create --title t --body \"repro:${NL}git commit -m x was blocked\""
-  'git push origin HEAD'
-  'vrg-commit --type fix --scope x --message y'
-  "cd $SCRATCH/.worktrees/issue-1-x && vrg-commit --type fix --scope x --message y"
-  'VRG_X=1 vrg-commit --type fix --scope x --message y'
-  '(cd /elsewhere/.worktrees/issue-1-x; vrg-commit --type fix --scope x --message y)'
-  'vrg-commit --type fix --scope x --message y'
-  'git commit -m x'
-  'cd . && git commit -m x'
-  'vrg-commit --type fix --scope x --message y && git commit -m x'
   'vrg-submit-pr --issue 450 --linkage Fixes'
   'vrg-submit-pr --issue 450 --linkage Ref'
   "vrg-commit --type docs --scope x --message y --body \"policy reminder:${NL}vrg-submit-pr --linkage Fixes is forbidden\""
@@ -213,20 +157,6 @@ T_COMMAND=(
   'declare -A map'
   'declare -a list'
   "vrg-commit --type docs --scope x --message y --body \"bash policy:${NL}declare -A needs bash 4 and is blocked\""
-)
-T_CWD=(
-  "" "" "" "" "" "" "" "" "" "" "" ""
-  "" "" ""
-  "" "" "" ""
-  "" "" "" "" "" ""
-  "" "" ""
-  "" "" ""
-  "SCRATCH" "SCRATCH" "SCRATCH"
-  "SCRATCH" "SCRATCH" "SCRATCH" "SCRATCH"
-  "PROTECTED" "PROTECTED" "PROTECTED" "SCRATCH"
-  "" "" ""
-  "" "" ""
-  "" "" ""
 )
 T_RESPONSE=(
   "" "" "" "" "" "" "" "" "" "" "" ""
@@ -239,9 +169,6 @@ T_RESPONSE=(
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
   "DeprecationWarning: old API"
-  "" "" ""
-  "" "" "" ""
-  "" "" "" ""
   "" "" ""
   "" "" ""
   "" "" ""
@@ -281,17 +208,6 @@ T_EXPECT=(
   "deny"
   "allow"
   "allow"
-  "allow"
-  "allow"
-  "allow"
-  "allow"
-  "allow"
-  "deny"
-  "deny"
-  "deny"
-  "deny"
-  "allow"
-  "allow"
   "deny"
   "allow"
   "allow"
@@ -309,19 +225,10 @@ while [ "$i" -lt "$total" ]; do
   name="${T_NAME[$i]}"
   script="${T_SCRIPT[$i]}"
   cmd="${T_COMMAND[$i]}"
-  case_cwd="${T_CWD[$i]}"
   resp="${T_RESPONSE[$i]}"
   expect="${T_EXPECT[$i]}"
 
-  if [ "$case_cwd" = "SCRATCH" ]; then
-    case_cwd="$SCRATCH"
-  elif [ "$case_cwd" = "PROTECTED" ]; then
-    case_cwd="$PROTECTED"
-  elif [ -z "$case_cwd" ]; then
-    case_cwd="$ROOT"
-  fi
-
-  payload=$(jq -n --arg cmd "$cmd" --arg cwd "$case_cwd" --arg resp "$resp" \
+  payload=$(jq -n --arg cmd "$cmd" --arg cwd "$ROOT" --arg resp "$resp" \
     '{tool_input: {command: $cmd, cwd: $cwd}, cwd: $cwd}
      + (if $resp == "" then {} else {tool_response: $resp} end)')
 

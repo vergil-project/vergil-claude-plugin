@@ -21,8 +21,8 @@ ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-# Scratch managed repo on the worktree convention: block-protected-
-# branch-work and block-worktree-bypass-write deny at its root.
+# Scratch managed repo on the worktree convention:
+# block-worktree-bypass-write denies at its root.
 SCRATCH="$TMP/scratch-repo"
 mkdir -p "$SCRATCH/.worktrees/wt"
 git -C "$SCRATCH" init --quiet
@@ -53,11 +53,11 @@ printf '#!/usr/bin/env bash\ncat >/dev/null\necho STUB-GUARD-RAN\nexit "${STUB_R
 	>"$STUB_DIR/vrg-hook-guard"
 chmod +x "$STUB_DIR/vrg-hook-guard"
 
-BASH_GATES="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-protected-branch-work.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-heredoc.sh"
+BASH_GATES="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-heredoc.sh"
 WRITE_GATES="block-worktree-bypass-write.sh guard-audit-writes.sh guard-merge-review-results.sh"
 # Gates that stay a no-op outside a managed repo, malformed input
 # included (scope falls back to the hook process's working directory).
-GATED="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-protected-branch-work.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-worktree-bypass-write.sh guard-merge-review-results.sh"
+GATED="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-worktree-bypass-write.sh guard-merge-review-results.sh"
 
 pass=0
 fail=0
@@ -201,7 +201,6 @@ deny_command() {
 	block-associative-arrays.sh) echo "declare -A map" ;;
 	block-autoclose-linkage.sh) echo "vrg-submit-pr --linkage Fixes" ;;
 	block-github-contents-api.sh) echo "gh api --method PUT repos/o/r/contents/f" ;;
-	block-protected-branch-work.sh) echo "git commit -m x" ;;
 	block-raw-gh-pr-create.sh) echo "gh pr create --title x" ;;
 	block-raw-git-commit.sh) echo "git commit -m x" ;;
 	block-heredoc.sh) echo "cat <<EOF" ;;
