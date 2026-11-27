@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.99] - 2026-11-27
+
+### Documentation
+
+- name each dispatched task and its issues in the Agent description (#1425)
+- say the rebase section's plain push covers a branch with no PR yet (#1428)
+- hand every tracked-file change to the implementer writer (#1439)
+- route merge-review's fix step and pr-watch's fixes through the writer under an issue-implement driver (#1447)
+- name the model of every other helper dispatch, and pin design-review delegates to Opus (#1448)
+
+### Features
+
+- add the task-runner and implementer agents, the agent model guard and the model map (#1438)
+- refuse task runs not dispatched as vergil:task-runner, and dispatch every task run as one in epic-implement (#1440)
+
+### Refactoring
+
+- retire the protected-branch commit hook (#1426)
+
 ## [2.1.98] - 2026-11-27
 
 ### Bug fixes
