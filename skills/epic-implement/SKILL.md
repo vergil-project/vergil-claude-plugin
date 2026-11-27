@@ -155,6 +155,36 @@ says, and reports how it ended: merged, or the stop it ended on. Per-issue workt
 (`.worktrees/issue-<N>-<slug>`) and branches (`feature/<N>-<slug>`) are naturally
 unique, so parallel efforts never collide.
 
+**Name the task in the Agent `description`.** Every Agent call that
+dispatches a task run, a re-dispatch included (with rulings, a human
+response or the output of human-run steps), passes a `description` that
+names the task and its issue(s), in one of these forms, so the plugin's
+[agent row labels](../../docs/site/docs/hooks/index.md#agent-row-labels)
+mod labels its row in the agent panel instead of `general-purpose`:
+
+| Run | `description` | Example |
+|---|---|---|
+| One task | `Task <id> <owner>/<repo>#<N>` | `Task 6b vergil-project/vergil-tooling#4931` |
+| A batch | `Batch <id>/<id>… #<N1> #<N2>…` | `Batch 6b/6c/9 #4917 #4918 #4926` |
+| One task with no plan task ID | `Task <owner>/<repo>#<N>` | `Task vergil-project/vergil-tooling#5012` |
+| A batch with no plan task IDs | `Batch #<N1> #<N2>…` | `Batch #5012 #5013` |
+
+`<id>` is the ID in the task's `Plan task:` key, its first word only (a
+fixture run's `Plan task: 7 python-lib` gives `7`). A batch names one ID
+and one issue reference per member, in batch order. An ad-hoc task (the
+`adhoc` mode below) and any other task with no `Plan task:` key take the
+forms with no ID, which still carry the issue reference, so the row is
+labelled by its issue. Put nothing else in the description: the mod
+lists every issue reference it finds, so a reference to the epic or to
+another issue would join the label. The mod reads an ID only when it is
+digits with at most one letter after them (`6`, `13b`). A task whose ID
+has another form (`D2`, `V1a`, `doc-review`) keeps the `Task <id>` form,
+and its row is labelled by its issue alone. A batch takes the form with
+no ID when any member has no ID or an ID of another form: from
+`Batch 6/D2 …` the mod would read the IDs only up to the first that does
+not fit (`Batch 6`), so the label would name some members' tasks and not
+others.
+
 **Batching ready tasks.** You may batch independent ready code tasks of one
 repo into one `issue-implement` run, on your own judgment, under the
 guidelines in `issue-implement`'s
@@ -579,7 +609,8 @@ dispatch before they confirm.
 
 Dispatch by kind label exactly as the development path's step 3 does
 (`issue-implement`, `issue-validate`, `issue-deploy`), as sub-agents under
-the Agent prompt contract, with the batch-marker check before every
+the Agent prompt contract, each Agent `description` in the forms with no
+plan task ID, with the batch-marker check before every
 code-task dispatch, in the order and grouping the strategy set.
 
 ### Step 6: Gate and stop
