@@ -4987,17 +4987,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#block-protected-branch-work" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        block-protected-branch-work
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#block-heredoc" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5247,6 +5236,17 @@
     <span class="md-ellipsis">
       
         Per-edit linting / validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protected-branch-commit-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protected-branch commit check
       
     </span>
   </a>
@@ -5475,17 +5475,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#block-protected-branch-work" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        block-protected-branch-work
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#block-heredoc" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5742,6 +5731,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#protected-branch-commit-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protected-branch commit check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#stop-hook-for-finalization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5942,32 +5942,6 @@ first try.</p>
 <p><strong>Alternative.</strong> Use
 <a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/submit-pr.md"><code>vrg-submit-pr</code></a>
 with <code>--issue</code>, <code>--summary</code>, <code>--linkage</code>, and <code>--notes</code> flags.</p>
-<h3 id="block-protected-branch-work">block-protected-branch-work<a class="headerlink" href="#block-protected-branch-work" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Denies Bash tool invocations that run raw <code>git commit</code> when
-the effective working directory falls outside the worktree
-convention's allowed locations. It does not match <code>vrg-commit</code>.</p>
-<p><strong>Why.</strong> Behavior depends on whether the target repo has adopted the
-<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md">worktree convention</a>.
-The hook detects adoption by looking for a <code>.worktrees/</code> line in the
-repo's <code>.gitignore</code>. On adopted repos, commits must originate from
-inside <code>.worktrees/&lt;name&gt;/</code>; the main tree is read-only for source
-(ignored scratch in its <code>build/</code> is not a source edit). On
-non-adopted repos, the hook falls back to the legacy behavior of
-blocking commits on <code>main</code> or <code>develop</code> regardless of directory.</p>
-<p><strong>Alternative.</strong> On adopted repos: create a worktree with
-<code>git worktree add .worktrees/issue-N-&lt;slug&gt; -b feature/N-&lt;slug&gt;
-origin/develop</code> and run all edits + commits from inside that
-directory. On non-adopted repos: create and check out a feature
-branch with a name matching the repo's <code>branching_model</code> prefixes.</p>
-<p>This hook complements <code>vrg-commit</code>'s own
-<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch">protected-branch check</a>
-— that check runs inside <code>vrg-commit</code> against the branch of the
-directory it actually executes in, so it is the authoritative guard for
-<code>vrg-commit</code>. This hook only guesses the target repo from the session
-cwd and the command text, and under the sandbox that cwd is reset to
-the project root, so matching <code>vrg-commit</code> here produced false denies
-for worktree commits in sibling repos (#694). The hook therefore covers
-raw <code>git commit</code> only.</p>
 <h3 id="block-heredoc">block-heredoc<a class="headerlink" href="#block-heredoc" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> Denies Bash tool invocations that contain heredoc syntax
 (<code>&lt;&lt;EOF</code>, <code>&lt;&lt;'EOF'</code>, etc.) in CLI arguments.</p>
@@ -6309,6 +6283,30 @@ again in PR CI.</p>
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
 is intentional.</p>
+<h3 id="protected-branch-commit-check">Protected-branch commit check<a class="headerlink" href="#protected-branch-commit-check" title="Permanent link">&para;</a></h3>
+<p>The plugin no longer ships <code>block-protected-branch-work</code>, a
+PreToolUse hook that denied a raw <code>git commit</code> run outside the
+worktree convention's allowed locations, or on <code>main</code> or <code>develop</code>
+in a repo without the convention. It was removed in
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1405">#1405</a>.</p>
+<p><strong>Why removed.</strong> It was a legacy, redundant layer. In a managed repo
+raw git is already refused by the per-repo
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md">hook guard</a>,
+through <a href="#block-raw-git-commit"><code>block-raw-git-commit</code></a>, which keeps
+its own <code>git commit</code> check when the hook guard is not installed.
+<code>vrg-git</code> refuses <code>commit</code>, and <code>vrg-commit</code> enforces the
+protected-branch and worktree rules itself, against the directory it
+actually runs in. The GitHub branch-protection ruleset on <code>main</code> and
+<code>develop</code> requires a pull request. The hook could only guess where a
+commit would run from the session's directory and the command text,
+which is the wrong place to make that decision.</p>
+<p><strong>What replaces it.</strong> Nothing needs to: the layers above already
+cover it, and <code>vrg-commit</code>'s
+<a href="https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch">protected-branch check</a>
+is the authoritative one.</p>
+<p><strong>Don't re-add this.</strong> A hook that reads shell command text to work
+out which repository and branch a commit lands in duplicates
+<code>vrg-commit</code>'s own check with a weaker one.</p>
 <h3 id="stop-hook-for-finalization">Stop hook for finalization<a class="headerlink" href="#stop-hook-for-finalization" title="Permanent link">&para;</a></h3>
 <p>The plugin no longer ships a Stop hook that blocks session exit
 on "PR submitted but <code>vrg-finalize-repo</code> not run." That hook
