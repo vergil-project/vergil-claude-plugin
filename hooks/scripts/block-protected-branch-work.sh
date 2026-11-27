@@ -15,8 +15,10 @@
 #
 # A raw `git commit` whose repository the hook cannot work out from the
 # command text is denied too: one that sets the git directory or work
-# tree, changes directory anywhere but at the start of the command, or
-# names a directory the hook cannot resolve to an existing path.
+# tree, changes directory other than with one `cd` at the start of the
+# command or with git's own -C (a command wrapper's directory option
+# included), or names a directory the hook cannot resolve to an
+# existing path.
 #
 # Does NOT block branch operations (checkout, merge, push, pull, etc.).
 # Does NOT match `vrg-commit`: it enforces the protected-branch rule
@@ -225,6 +227,23 @@ while IFS= read -r invocation; do
   if [ "$start" -lt 0 ]; then
     unresolved "the hook could not parse the git invocation"
   fi
+
+  # A command wrapper before git (env, sudo and the like) can change
+  # directory or root with an option of its own: -C, -D or -R in a
+  # short-option word, or --chdir or --chroot.
+  i=0
+  while [ "$i" -lt "$start" ]; do
+    case "${words[$i]}" in
+      --chdir | --chdir=* | --chroot | --chroot=*)
+        unresolved "a command wrapper changes directory before git runs"
+        ;;
+      --*) ;;
+      -*[CDR]*)
+        unresolved "a command wrapper changes directory before git runs"
+        ;;
+    esac
+    i=$((i + 1))
+  done
 
   effective_dir="$base_dir"
   i=$((start + 1))

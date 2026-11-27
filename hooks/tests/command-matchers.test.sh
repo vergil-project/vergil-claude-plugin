@@ -564,6 +564,14 @@ commit_case "protected: -C to a missing directory" "$PB" "$WT" \
   'git -C /nonexistent/dir commit -m x' deny
 commit_case "protected: second commit in the command at the root" "$PB" "$SCRATCH" \
   "git -C $WT commit -m x; git commit -m y" deny
+commit_case "protected: env -C from a worktree" "$PB" "$WT" \
+  "env -C $SCRATCH git commit -m x" deny
+commit_case "protected: env --chdir= from a worktree" "$PB" "$WT" \
+  "env --chdir=$SCRATCH git commit -m x" deny
+commit_case "protected: sudo -D from a worktree" "$PB" "$WT" \
+  "sudo -D $SCRATCH git commit -m x" deny
+commit_case "protected: sudo --chdir= from a worktree" "$PB" "$WT" \
+  "sudo --chdir=$SCRATCH git commit -m x" deny
 commit_case "protected: env wrapper on protected develop" "$PB" "$PROTECTED" \
   'env git commit -m x' deny
 commit_case "protected: commit in a worktree allowed" "$PB" "$WT" 'git commit -m x' allow
@@ -589,6 +597,7 @@ commit_case "rgc: backslash before git" "$RGC" "$ROOT" '\git commit -m x' deny
 commit_case "rgc: path-qualified git" "$RGC" "$ROOT" '/usr/bin/git commit -m x' deny
 commit_case "rgc: single-quoted subcommand" "$RGC" "$ROOT" "git 'commit' -m x" deny
 commit_case "rgc: -C global option" "$RGC" "$ROOT" 'git -C . commit -m x' deny
+commit_case "rgc: sudo -D wrapper" "$RGC" "$ROOT" 'sudo -D /tmp git commit -m x' deny
 commit_case "rgc: commit as a log search term allowed" "$RGC" "$ROOT" \
   'git log --grep commit' allow
 commit_case "rgc: vrg-git allowed" "$RGC" "$ROOT" 'vrg-git status' allow

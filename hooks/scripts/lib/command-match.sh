@@ -101,7 +101,7 @@ normalize_command_words() {
 # one of those global options, with its argument where it takes one.
 _gc_assign='[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*'
 _gc_wrapper='([^[:space:]]*/)?(env|command|builtin|exec|nohup|time|nice|ionice|sudo|doas|timeout|xargs|stdbuf|setsid|chronic)'
-_gc_warg='(-[uUgCnaIPSsLd]|--unset|--chdir|--user|--group)[[:space:]]+[^[:space:]]+|-[^[:space:]]*|[0-9][0-9.]*[smhd]?|'"$_gc_assign"
+_gc_warg='(-[uUgCnaIPSsLdDRhprtTw]|--unset|--chdir|--chroot|--user|--group|--host|--prompt|--role|--type|--command-timeout)[[:space:]]+[^[:space:]]+|-[^[:space:]]*|[0-9][0-9.]*[smhd]?|'"$_gc_assign"
 _gc_prefix="($_gc_assign|!|$_gc_wrapper([[:space:]]+($_gc_warg))*)[[:space:]]+"
 GIT_COMMIT_GLOBAL_OPT_RE='[[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--config-env|--super-prefix|--attr-source)[[:space:]]+[^[:space:]]+|[[:space:]]+--[a-z-]+=[^[:space:]]*|[[:space:]]+(-p|-P|--paginate|--no-pager|--bare|--exec-path|--no-replace-objects|--no-lazy-fetch|--no-optional-locks|--no-advice|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs)'
 GIT_COMMIT_RE="(^|[;&|({][[:space:]]*)($_gc_prefix)*([^[:space:]]*/)?git($GIT_COMMIT_GLOBAL_OPT_RE)*[[:space:]]+commit([[:space:];&|)}]|\$)"
