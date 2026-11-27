@@ -4789,7 +4789,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -4817,7 +4817,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -5735,7 +5735,12 @@ ruling.</p>
 one <code>issue-implement</code> run, under that skill's
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/issue-implement/SKILL.md#what-to-batch">What to batch</a> guidelines,
 and dispatches the batch to one sub-agent with the batch form of the
-prompt contract. Before every code-task dispatch it checks the task's batch
+prompt contract. Each dispatch's Agent <code>description</code> names its task and
+issue(s) (<code>Task &lt;id&gt; &lt;owner&gt;/&lt;repo&gt;#&lt;N&gt;</code>, or
+<code>Batch &lt;id&gt;/&lt;id&gt;… #&lt;N1&gt; #&lt;N2&gt;…</code>, with no ID for a task that has none),
+so the
+<a href="../hooks/#agent-row-labels">agent row labels</a> tell the
+parallel runs apart. Before every code-task dispatch it checks the task's batch
 marker with <code>vrg-pr-workflow batch-show</code>, so a batch member is only ever
 dispatched as its whole batch. A batch stop (extract, continue, hand off
 what is done, unbatch) is presented at its gate like any other non-review

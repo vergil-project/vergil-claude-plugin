@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../releases/v1.3.1/">
+        <link rel="prev" href="../releases/v1.3.0/">
       
       
         <link rel="next" href="../skills/">
@@ -4789,7 +4789,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.0/" class="md-nav__link">
+      <a href="../releases/v1.3.1/" class="md-nav__link">
         
   
   
@@ -4817,7 +4817,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../releases/v1.3.1/" class="md-nav__link">
+      <a href="../releases/v1.3.0/" class="md-nav__link">
         
   
   
@@ -6255,6 +6255,18 @@ in it leads the label. A description that names no issue (an
 <code>Explore</code> fan-out, say), a row the person's settings hide, and a
 row they already redraw (its <code>body</code> arrives set) are left as Claude
 Code draws them.</p>
+<p><code>epic-implement</code> names every task run it dispatches in this form:
+<code>Task &lt;id&gt; &lt;owner&gt;/&lt;repo&gt;#&lt;N&gt;</code> for one task,
+<code>Batch &lt;id&gt;/&lt;id&gt;… #&lt;N1&gt; #&lt;N2&gt;…</code> for a batch, and the same without the
+ID for a task with no
+plan task ID (an ad-hoc task, say); see its
+<a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier">Work the runnable frontier</a>
+section. The label leads with the task only when its ID is digits
+with at most one letter after them (<code>6</code>, <code>13b</code>); a task whose ID has
+another form (<code>D2</code>, <code>doc-review</code>) is labelled by its issue alone. In a
+<code>Batch</code> description the mod reads the IDs only up to the first that
+does not fit (<code>Batch 6/D2</code> is read as <code>Batch 6</code>), so <code>epic-implement</code>
+gives a batch the form with no ID when any member's ID does not fit.</p>
 <p><code>AgentRow</code> needs Claude Code v2.1.326 or later. An older version
 loads the module but never raises the site, so rows stay as they
 were; <code>claude plugin validate</code> there warns that no component is
