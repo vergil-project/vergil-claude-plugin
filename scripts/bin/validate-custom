@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # validate-custom — repo-local validation hook discovered by
-# vrg-validate. Checks every skill's SKILL.md frontmatter, the merge
-# reviewer's tool set and the git mode of every hook script, then runs
+# vrg-validate. Checks every skill's SKILL.md frontmatter, the tool sets
+# of the merge reviewer and the implementer, every agent's model pin
+# against the model map and the git mode of every hook script, then runs
 # the hook test suites under hooks/tests/.
 set -euo pipefail
 
@@ -113,6 +114,109 @@ check_agent_tools() {
 	echo "Agent tools: $agent OK ($expected)"
 }
 
+# Print the agents table of the model map $1 as tab-separated
+# "<name>\t<model>\t<reason>" lines, one per row whose first cell is
+# `vergil:<name>`. The table is the one under the page's `## Agents`
+# heading, up to the next heading; backticks and surrounding spaces are
+# stripped from the model cell, spaces from the reason cell.
+model_map_agent_rows() {
+	awk '
+		/^#/ { in_agents = ($0 ~ /^## Agents[[:space:]]*$/); next }
+		!in_agents || $0 !~ /^[[:space:]]*\|/ { next }
+		{
+			n = split($0, cell, "|")
+			name = cell[2]
+			gsub(/^[[:space:]]+|[[:space:]]+$/, "", name)
+			if (name !~ /^`vergil:[^`[:space:]]+`$/) { next }
+			name = substr(name, 9, length(name) - 9)
+			model = (n >= 3) ? cell[3] : ""
+			gsub(/`/, "", model)
+			gsub(/^[[:space:]]+|[[:space:]]+$/, "", model)
+			reason = (n >= 4) ? cell[4] : ""
+			gsub(/^[[:space:]]+|[[:space:]]+$/, "", reason)
+			print name "\t" model "\t" reason
+		}
+	' "$1"
+}
+
+# Every $1/agents/<agent>.md must pin its model: exactly one frontmatter
+# `model:` line whose value is haiku, sonnet, opus or inherit, and one row
+# in the model map's agents table ($1/docs/site/docs/agents/models.md)
+# whose first cell is `vergil:<agent>` and whose Model cell is the same
+# value. `inherit` also needs a non-empty Reason cell. Every `vergil:` row
+# of the table must name an existing agent file.
+check_agent_models() {
+	local root="$1" map="docs/site/docs/agents/models.md" rows file agent
+	local model row_model row_reason count rc=0 agents=0 seen=" " name
+	if [[ ! -f "$root/$map" ]]; then
+		echo "ERROR: $map: missing (the model map every agent must be listed in)" >&2
+		return 1
+	fi
+	rows="$(model_map_agent_rows "$root/$map")"
+	for file in "$root"/agents/*.md; do
+		[[ -f "$file" ]] || continue # unmatched glob: no agent files
+		agent="$(basename "$file" .md)"
+		file="agents/$agent.md"
+		agents=$((agents + 1))
+		seen="$seen$agent "
+		if [[ "$(head -n 1 "$root/$file")" != "---" ]] ||
+			[[ "$(tail -n +2 "$root/$file" | grep -c '^---[[:space:]]*$' || true)" -lt 1 ]]; then
+			echo "ERROR: $file: no YAML frontmatter (must open and close with ---)" >&2
+			rc=1
+			continue
+		fi
+		# frontmatter_value reads the first `model:` line only; a second
+		# one could override it when the agent loads.
+		count="$(awk 'NR == 1 { next } /^---[[:space:]]*$/ { exit } /^model:/' "$root/$file" | wc -l | tr -d ' ')"
+		if [[ "$count" -ne 1 ]]; then
+			echo "ERROR: $file: frontmatter must have exactly one 'model' line (found $count)" >&2
+			rc=1
+			continue
+		fi
+		model="$(frontmatter_value "$root/$file" model)"
+		case "$model" in
+		haiku | sonnet | opus | inherit) ;;
+		*)
+			echo "ERROR: $file: frontmatter 'model' is '$model', must be haiku, sonnet, opus or inherit" >&2
+			rc=1
+			continue
+			;;
+		esac
+		count="$(awk -F '\t' -v a="$agent" '$1 == a' <<<"$rows" | wc -l | tr -d ' ')"
+		if [[ "$count" -ne 1 ]]; then
+			echo "ERROR: $file: $map must have exactly one agents-table row for \`vergil:$agent\` (found $count)" >&2
+			rc=1
+			continue
+		fi
+		row_model="$(awk -F '\t' -v a="$agent" '$1 == a { print $2 }' <<<"$rows")"
+		row_reason="$(awk -F '\t' -v a="$agent" '$1 == a { print $3 }' <<<"$rows")"
+		if [[ "$row_model" != "$model" ]]; then
+			echo "ERROR: $file: model is '$model', but $map lists \`vergil:$agent\` as '$row_model'" >&2
+			rc=1
+			continue
+		fi
+		if [[ "$model" == inherit && -z "$row_reason" ]]; then
+			echo "ERROR: $file: model is 'inherit', but its row in $map gives no reason" >&2
+			rc=1
+		fi
+	done
+	while IFS=$'\t' read -r name _; do
+		[[ -n "$name" ]] || continue
+		if [[ "$seen" != *" $name "* ]]; then
+			echo "ERROR: $map: agents-table row \`vergil:$name\` names no agents/$name.md" >&2
+			rc=1
+		fi
+	done <<<"$rows"
+	if [[ "$agents" -eq 0 ]]; then
+		echo "ERROR: no agent files found under agents/" >&2
+		rc=1
+	fi
+	if [[ "$rc" -eq 0 ]]; then
+		echo "Agent models: $agents agents OK"
+	fi
+	return "$rc"
+}
+
 # Every hook command in $1/hooks/hooks.json must name a script tracked in
 # git at $1 with mode 100755: Claude Code cannot run a hook script that is
 # not executable. Each command must start with ${CLAUDE_PLUGIN_ROOT}/; its
@@ -169,7 +273,7 @@ check_hook_modes() {
 	return "$rc"
 }
 
-# Sourced (by the hook-modes tests): define the checks, run nothing.
+# Sourced (by the hook-modes and agent-models tests): define the checks, run nothing.
 if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
 	return 0
 fi
@@ -180,6 +284,11 @@ check_skill_frontmatter || status=1
 # The merge-review reviewer reads and reports only: no Write, Edit or Bash.
 echo "Running: agent tools check"
 check_agent_tools merge-reviewer "Read, Glob, Grep" || status=1
+# The writer edits, validates and commits, and never dispatches an agent.
+check_agent_tools implementer "Read, Edit, Write, Glob, Grep, Bash" || status=1
+
+echo "Running: agent model check"
+check_agent_models "$ROOT" || status=1
 
 echo "Running: hook script mode check"
 check_hook_modes "$ROOT" || status=1
