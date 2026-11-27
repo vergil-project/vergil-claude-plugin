@@ -16,9 +16,16 @@ Given a list of issues, you implement them as one batch: see
 
 ## Execute efficiently — trust and escalate
 
-Implement by the most efficient means at your disposal. **Sub-agents are
-encouraged** wherever they make the work faster or keep your context clean —
-research fan-out, parallel sub-tasks, isolated exploration. You need not narrate
+Implement by the most efficient means at your disposal, within two rules.
+**Every change to the task's tracked files is made by the writer**,
+`vergil:implementer`, as [The writer](#the-writer) says, with its two
+exceptions stated there; no other helper edits them. **Every other helper
+names its model**, by the
+[helper model rule](../../docs/site/docs/agents/models.md#the-helper-model-rule):
+dispatch a read-only search or exploration helper (research fan-out,
+isolated exploration) with `model: "haiku"`, and any other helper with
+`model: "sonnet"`. Helpers are welcome wherever they make the work faster
+or keep your context clean, within those rules. You need not narrate
 every step for the human to watch: oversight lives in the front-loaded plan and
 at the hard gates (merge review, the checks submit and finalize run, CI,
 release), not in a live transcript. This is
@@ -31,7 +38,8 @@ never suppress a validation gate.
 
 **Creating an issue needs the human's approval**
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)).
-When a follow-up surfaces — a concern a sub-agent reports, a gap you hit, a
+When a follow-up surfaces — a concern a helper reports (the writer's
+`Notes:` included), a gap you hit, a
 "we should also…" — screen it against
 [§1.6](../../docs/paad-review-doctrine.md#16-security-findings), then list
 it at once under `Awaiting a ruling` in the comment you already post (or a
@@ -209,8 +217,12 @@ drafts it at the gate.
    this command, with the same exit codes. Where this skill looks for a
    trusted author's comment (a ruling line, a `Recorded:` line, a closing
    comment), it looks in this command's output, which holds no other.
-6. **A batch or a merge review already under way.** First, from the repo
-   root (the main clone), look for the task's batch marker, reading only:
+6. **A batch or a merge review already under way.** Every resume branch
+   below, once it has entered the task's existing worktree, runs
+   [The writer](#the-writer)'s [Resume](#resume) sort there before it
+   routes the run on, and before anything is dispatched. First, from the
+   repo root (the main clone), look for the task's batch marker, reading
+   only:
 
    ```bash
    test -e build/.vergil-state/issue-implement/<N>/batch && \
@@ -237,8 +249,9 @@ drafts it at the gate.
    step 7 and [Implement](#implement), `cd` into the task's existing
    worktree (`.worktrees/issue-<N>-<slug>`, on `feature/<N>-<slug>`, or,
    for the last issue of a collapsed batch, the batch worktree that
-   [Finding its worktree](#a-batch-left-with-one-issue) locates), carry
-   out any non-review rulings your prompt gives (see
+   [Finding its worktree](#a-batch-left-with-one-issue) locates), run the
+   [Resume](#resume) sort, carry out any non-review rulings your prompt
+   gives (see
    [Merge review](#merge-review)), and go straight to
    [Merge review](#merge-review). The skill works out where its run stands
    from the directory and the issue. If the directory exists but the task
@@ -247,12 +260,15 @@ drafts it at the gate.
    [Finding its worktree](#a-batch-left-with-one-issue): if it finds the
    issue's batch worktree, the task is the last issue of a collapsed batch
    whose run ended before its merge review. Skip step 7, `cd` into that
-   worktree, and continue at [Implement](#implement) on its work there.
+   worktree, run the [Resume](#resume) sort, and continue at
+   [Implement](#implement) on its work there.
    If the task's worktree exists and `vrg-pr-workflow status`, run in it,
    shows it reported ready or submitted, the run stopped after
-   `report-ready`: skip step 7, `cd` into it and resume at
+   `report-ready`: skip step 7, `cd` into it, run the [Resume](#resume)
+   sort, and resume at
    [Submit and watch to the merge](#submit-and-watch-to-the-merge),
-   running `pr-watch` on the PR if one is already open for the branch.
+   running `pr-watch` on the PR, with the writer as that section says,
+   if one is already open for the branch.
 7. **Create the worktree for this issue** from the repo root and work inside it
    (pick a 2–4 token kebab slug):
 
@@ -263,11 +279,171 @@ drafts it at the gate.
 
 ## Implement
 
-**Implement the issue** here with small `vrg-commit` commits (in a batch,
-one first commit per issue and fixups of it: see
-[Each issue, in order](#each-issue-in-order)). Validate until
-green — `vrg-container-run -- vrg-validate` — fixing every failure and
-re-running; **never** suppress a gate.
+**Implement the issue** by dispatching the writer, as
+[The writer](#the-writer) says. It makes the change here in small
+`vrg-commit` commits (in a batch, one first commit per issue and fixups
+of it: see [Each issue, in order](#each-issue-in-order)) and validates it
+to green with `vrg-container-run -- vrg-validate`, fixing every failure
+and re-running; **never** suppress a gate. Then
+[check its result](#check-the-writers-result), your own green
+`vrg-validate` at `HEAD` included, before anything else reads it. A
+failed check is the writer's failure, handled by its
+[escalation](#escalation); you never patch it yourself.
+
+## The writer
+
+Every change to a task's tracked files is written by
+`vergil:implementer`, an agent pinned to Haiku, bar the two exceptions
+below. You, the driver, decide
+what the change is, check what the writer did, and run everything else.
+
+### The rule
+
+Every change to the task's tracked files in its worktree (code, docs and
+config alike) is made by `vergil:implementer`: the implementation, a
+`fix` ruling on a non-review item, and every other edit. It is never made
+by an ad-hoc helper, and never by you. There are two exceptions, both
+yours:
+
+- **A security item's fix.** You make it yourself, and you never pass the
+  item's details to the writer (not in its prompt, not in a file it
+  reads).
+- **A stopped `vrg-git rebase`'s conflicts.** You resolve them yourself,
+  a resolution that needs new logic included, and continue the rebase,
+  since a conflict can only be resolved inside the stopped rebase. Merge
+  review gates the result as it gates any fix.
+
+Before you start either kind of work, write the
+[driver-work marker](#resume); remove it once that work is committed (or
+the rebase has finished or been aborted).
+
+Every file that is not a tracked file of the task stays with you and
+never goes to the writer: everything under `build/.vergil-state/`
+(security details and merge review's working files included), and the
+scratch files that feed a tool's input (a `--body-file`, a
+`--text-file`).
+
+### The dispatch
+
+Dispatch the writer with the Agent tool:
+
+- `subagent_type: "vergil:implementer"`, with no `model` on a first
+  dispatch, so its Haiku pin applies;
+- `description: "Write <owner>/<repo>#<N>"`, the issue being written,
+  never a task-run form (`Task …` or `Batch …`);
+- a prompt holding:
+  - the issue exactly as `vrg-issue-read` printed it (the body and the
+    trusted comments, whose scope changes are binding), never a
+    paraphrase;
+  - the rulings the run is carrying out, if any (a security item's never:
+    that fix is yours);
+  - the worktree's absolute path;
+  - the commit convention: small plain `vrg-commit` commits or, in a
+    batch, the issue's first commit as a plain `vrg-commit` whose subject
+    ends in a space and `(#<N>)`, then every later commit as
+    `vrg-commit --fixup <that commit>` (name its SHA once it exists);
+  - the instruction to end with its result block, exactly as its
+    definition gives it.
+
+### Check the writer's result
+
+Check the result before anything else reads it, merge review included:
+
+1. **The block is well formed:** the last message is the result block,
+   its first line `Implementer result: green` or
+   `Implementer result: stuck`, with its `Commits:`, `Validate runs:`,
+   `Tried:` and `Notes:` lines. A `stuck`, or a block that is missing or
+   malformed, is a writer failure.
+2. **The tree is clean:** `vrg-git -C <worktree> status --porcelain`
+   prints nothing.
+3. **The commits are on the branch:** each commit the block names is in
+   `vrg-git -C <worktree> log --format='%H %s' <base>..HEAD`, `<base>`
+   being `origin/develop` for a single issue and the previous issue's
+   commit in a batch ([A fixed base](#a-fixed-base)). In a batch, the
+   issue's commits are its one plain first commit, its subject ending in
+   a space and `(#<N>)`, then only `fixup!` commits of it.
+4. **Your own validate is green:** `vrg-container-run -- vrg-validate`,
+   run by you at `HEAD`, exits 0.
+
+You never patch a failed check, not even a one-line fix: it is a failure
+of the writer, handled by the [escalation](#escalation). A fabricated
+`green` never reaches merge review.
+
+### Escalation
+
+A writer failure is a `stuck` result, or a `green` that fails the check.
+On the first, dispatch the writer once more as above, adding
+`model: "sonnet"`, and pass on the first attempt's `Tried:` line or what
+the check found (and the dirty state, if the tree is not clean). Each
+writer dispatch has one such budget, shared by both kinds of failure:
+the implementation, each merge-review fix and each CI fix get one each.
+A second failure of either kind on the same dispatch stops the run for
+the human, as a [problem you cannot resolve](#execute-efficiently--trust-and-escalate)
+does, with what the writer and the check found. Never fall back to
+writing the change yourself.
+
+### Resume
+
+A re-dispatched or resumed run sorts the task worktree by owner before
+anything is dispatched, and before [Preflight](#preflight) step 6 or
+[Resuming a batch](#resuming-a-batch) routes the run to
+[Merge review](#merge-review), [Implement](#implement) or
+[Submit and watch to the merge](#submit-and-watch-to-the-merge): every
+one of those resume branches runs this sort first.
+
+The **driver-work marker** is a file in the task worktree's own git
+directory, at the path this prints:
+
+```bash
+vrg-git -C <worktree> rev-parse --path-format=absolute --git-path vergil-driver-work
+```
+
+Before you start a security item's fix or a rebase (a conflict resolution
+or a batch fold), write the exception's name to it (`security-fix` or
+`rebase`), and remove it once that work is committed, or the rebase has
+finished or been aborted. The marker is never tracked, sits outside every
+state directory (so
+[doctrine §1.5](../../docs/paad-review-doctrine.md#15-state-directories)'s
+rules never see it), and goes with the worktree; the writer never touches
+it.
+
+The sort, in the task's worktree:
+
+1. **A rebase in progress** (`vrg-git status` reports one) stays with
+   you: finish or abort it as its own rules say
+   ([Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch),
+   or a batch's [fold](#each-issue-in-order)). Remove the marker once it
+   has finished or been aborted.
+2. **The marker exists:** the uncommitted work is yours (a security
+   item's fix included). Finish and commit it, then remove the marker. A
+   marker with a clean tree means the work was committed before the
+   marker went: remove it and go on.
+3. **No marker, and `vrg-git status --porcelain` prints anything:** the
+   rest is the writer's interrupted work. Dispatch the writer to finish
+   it, as [The dispatch](#the-dispatch) says, naming the dirty state (the
+   `status --porcelain` output), then check its result.
+4. **A clean tree** goes straight on.
+
+The marker alone decides that a dirty tree is yours: never a pending
+security details file, the files touched, or any other inference.
+
+### The writer's notes
+
+The writer's `Notes:` line is a helper's report: screen each deviation
+and concern it names against
+[§1.6](../../docs/paad-review-doctrine.md#16-security-findings), then
+handle it as a follow-up, as
+[Execute efficiently](#execute-efficiently--trust-and-escalate) says
+(under `Awaiting a ruling`, or as a sweep item for a documentation fix
+left for the epic's sweep). A deviation from the issue that changes its
+scope is never accepted silently: the human rules on it.
+
+### The human-run path
+
+When the human runs `/issue-implement` in their own session, that
+session is the driver and dispatches the writer just the same, so the
+change is written on Haiku whatever the session's model. The human's
+presence changes who rules on an item, never who writes the change.
 
 ## A change too big for one PR
 
@@ -431,7 +607,10 @@ for the human.
 
 When all the work is committed and `vrg-container-run -- vrg-validate` is
 green at the final commit, run the **`merge-review`** skill
-(`vergil:merge-review`) on the task, from its worktree. Follow it exactly:
+(`vergil:merge-review`) on the task, from its worktree, telling it this
+run has a writer, so its
+[fix step](../merge-review/SKILL.md#fix-and-check) hands its code edits
+to the writer and leaves security fixes to you. Follow it exactly:
 its request builder refuses unless the last `vrg-validate` was a full,
 clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
 `--issue '<owner>/<repo>#<N>'`. The same skill resumes a stopped run
@@ -445,6 +624,7 @@ own (`epic-create`'s spec-and-plan PR, `epic-retrospective`'s PR and
 non-review gate and the outcome table here, and the notes' merge-review
 lines and the directory's deletion once `report-ready` has succeeded from
 [Record the PR metadata](#record-the-pr-metadata-and-hand-off).
+They have no writer, so they run merge review without one.
 
 **Non-review items first.** Merge review posts nothing on the issue until
 every non-review item of the task is settled: the skill's
@@ -454,14 +634,17 @@ only once a trusted author's ruling line for it (§1.7) is on the issue;
 listing it under `Awaiting a ruling` does not settle it. With the human
 present (the human started this skill in this session and answers you
 directly), settle each pending item in the terminal and post its ruling
-line; a `fix` among them is committed and validated to green, and the
+line; a `fix` among them is committed and validated to green (in a task
+run, by the writer as [The writer](#the-writer) says, a security item's
+fix by you), and the
 skill then reviews afresh, since `HEAD` has moved. Any other run (dispatched by `epic-implement` or by any other
 driver, or unsure which it is) never decides an item itself: the gate
 posts the pending items and ends `waiting: non-review items`, and so does
 any run that cannot show every item settled. A run re-dispatched for such
 a task, with their rulings in its prompt, carries them out first (a `fix`
-included, since the task is still being implemented: commit it and
-validate to green), records each ruling as §1.7 says, then runs the
+included, since the task is still being implemented: the writer
+commits it and validates to green, a security item's fix being yours, as
+[The writer](#the-writer) says), records each ruling as §1.7 says, then runs the
 skill, which reviews afresh if `HEAD` has moved.
 
 **The outcome** decides what follows:
@@ -582,7 +765,7 @@ Act on its exit status:
 | Exit | Then |
 | --- | --- |
 | 0 | The PR merged and `develop` is settled. Run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR too: its preflight sees it merged and goes straight to its [The PR merged](../pr-watch/SKILL.md#the-pr-merged) step, which reads the review comments posted during the wait and proposes a follow-up for each one still unaddressed. Finalize has already counted the merge, so it is not rerun. Then tell the human it merged, with its URL. The task is done. |
-| 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it. |
+| 3 | Not merged (or merged with a provenance violation). If no PR opened, show submit's output and stop: its refusal names the cause, and a re-run once it is fixed submits normally. Otherwise run the **`pr-watch`** skill (`vergil:pr-watch`) on the PR, starting from the reason finalize's report gives it, and pass it "writer" ([its writer input](../pr-watch/SKILL.md#who-fixes--the-writer-input)), so the code of its fixes goes to the writer. |
 | 4 | `develop` did not validate after the settle. Stop and tell the human, with the output. |
 | 1, or any other | A refusal or a tool error. Show its output and stop; never retry with other flags. |
 
@@ -652,8 +835,11 @@ report ready) and your branch conflicts with it, resolve it as **routine**. No
 human sign-off is needed:
 
 1. `vrg-git fetch origin`
-2. `vrg-git rebase origin/develop` — resolve conflicts, keeping both sides where
-   each adds independent content. If the rebase goes wrong:
+2. Write the [driver-work marker](#resume) (`rebase`), then
+   `vrg-git rebase origin/develop` — resolve conflicts yourself (the
+   writer rule's exception, logic included), keeping both sides where
+   each adds independent content, and remove the marker once the rebase
+   has finished or been aborted. If the rebase goes wrong:
    - **Still in progress:** `vrg-git rebase --abort` returns the branch to its
      pre-rebase state.
    - **Already completed:** do not undo it yourself. Stop and ask the human,
@@ -664,25 +850,32 @@ human sign-off is needed:
      git reset --hard ORIG_HEAD
      ```
 3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
-4. `vrg-git push --force-with-lease` to update the branch / PR.
+   A failure to fix once the rebase has finished is a change to the
+   task's tracked files: the writer makes it, as [The writer](#the-writer)
+   says.
+4. `vrg-git push --force-with-lease` to update the branch (no PR exists yet).
 
 A rebase in the middle of a [merge review](#merge-review), between its
 review and its check, is caught by the skill (its `B1` stop): the human
 rules a fresh review or a stop.
 
-**Force-pushing to update your _own_ in-flight PR after a rebase is a normal,
+**Force-pushing your _own_ feature branch after a rebase is a normal,
 pre-authorized part of this workflow** — not an exceptional action requiring
 human approval. The general "never force-push without explicit request" rule
 guards shared/protected history; it does **not** apply to rebasing your own
 feature branch onto its base. Always use `--force-with-lease` (the safe form —
 it refuses to overwrite if the remote moved unexpectedly), never a bare
-`--force`.
+`--force`. This covers a branch with no PR yet. Once the PR is open,
+`vrg-git` refuses a plain push to its branch: every push to an open PR, a
+rebase included, is `pr-watch`'s `vrg-submit-pr --push --force-with-lease`,
+never a plain `vrg-git push`.
 
 If the base only advances **after** you have reported ready, do **not** rebase
 the frozen branch — the push path refuses it. Leave it: a conflict that surfaces
 between report-ready and submit is resolved after the submit, in
-`pr-watch` (submitting lifts the freeze, so the post-submit rebase/force-push
-there is legitimate). Reopening earlier requires a deliberate
+`pr-watch` (submitting lifts the freeze, so the post-submit rebase is
+legitimate, and `pr-watch` pushes it with
+`vrg-submit-pr --push --force-with-lease`, never a plain `vrg-git push`). Reopening earlier requires a deliberate
 `vrg-pr-workflow unfreeze`. After an unfreeze, rebase and validate as in steps
 1–3, but skip step 4: re-running `report-ready` pushes the rebased branch with a
 lease on the recorded head (see "How the push can end" above).
@@ -779,14 +972,21 @@ issue's fold base and its merge-review base.
 
 ### Each issue, in order
 
-1. **Implement it.** Its first commit is a plain `vrg-commit` whose
-   subject ends in a space and the issue's ref, for example
+1. **Implement it** by dispatching the writer for this issue, as
+   [The writer](#the-writer) says (`description: "Write
+   <owner>/<repo>#<N>"`, this issue's ref). Its first commit is a plain
+   `vrg-commit` whose subject ends in a space and the issue's ref, for
+   example
    `--message "raise the package-index timeout to one hour (#4148)"`.
    Every later commit for the issue is `vrg-commit --fixup <its first
    commit>`, never a plain `vrg-commit`.
-2. **Validate** to green on the committed branch:
-   `vrg-container-run -- vrg-validate`. The stack is cumulative, so this
-   validates the batch up to this issue.
+2. **Validate** to green on the committed branch: the writer runs
+   `vrg-container-run -- vrg-validate`, then you
+   [check its result](#check-the-writers-result), your own green
+   `vrg-validate` included, against the previous issue's commit. A commit
+   shape that breaks the fixup convention fails the check and goes back
+   to the writer by its [escalation](#escalation). The stack is
+   cumulative, so this validates the batch up to this issue.
 3. **Merge-review it** as [Merge review](#merge-review) says, on this
    issue alone (`--issue` this issue's ref). The `merge-review` skill's
    [In a batch](../merge-review/SKILL.md#in-a-batch) section reads the
@@ -799,7 +999,9 @@ issue's fold base and its merge-review base.
    [batch stop](#batch-stops).
 4. **Fold it** once its merge review has ended `eligible` or
    `not-eligible`. Fold onto the previous issue's commit, then check the
-   result:
+   result. The fold is a rebase, so it is yours: write the
+   [driver-work marker](#resume) (`rebase`) first, and remove it once the
+   rebase has finished or been aborted.
 
    ```bash
    vrg-git rebase -i --autosquash <previous issue's commit>
@@ -834,7 +1036,9 @@ is a collapsed batch: see
    issue when it started (the name stays when that issue is later
    extracted). If there is none, or more than one could be it, stop and
    ask the human.
-3. Continue at the first issue in the list that is not finished. With a
+3. Run [The writer](#the-writer)'s [Resume](#resume) sort in it, before
+   anything is dispatched and before the run routes on.
+4. Continue at the first issue in the list that is not finished. With a
    `merge-review/` directory, resume its merge review from the state the
    directory holds (the skill works out where it stands); with none, from
    the start of its review, finishing and validating its work first. A

@@ -379,7 +379,9 @@ round. The human decides every round. Each round has seven steps:
    absent directory, or an empty one with no `scratch copy kept` round
    comment, needs no confirmation, so do not ask)
    ([§1.5](../../docs/paad-review-doctrine.md#15-state-directories)). Then
-   start a fresh `paad:paad-delegate` subagent **in the background** with
+   start a fresh `paad:paad-delegate` subagent **in the background**, with
+   a per-invocation `model: "opus"`
+   ([§1.9](../../docs/paad-review-doctrine.md#19-the-delegate-path)) and
    the [§2.3](../../docs/paad-review-doctrine.md#23-the-reviewer-prompt)
    template, placeholders filled and nothing about earlier rounds added. If
    any pre-dispatch check or command fails, dispatch nothing and stop and ask the human:

@@ -83,7 +83,8 @@ is not valid JSON or is not a single JSON object, a missing `jq`,
 and a payload without the hook's required field
 (`tool_input.command` for the Bash hooks, `tool_input.file_path` for
 `block-worktree-bypass-write`, `tool_input.file_path` or
-`tool_input.notebook_path` for `guard-merge-review-results`). The hook exits with code 2, the
+`tool_input.notebook_path` for `guard-merge-review-results`,
+`tool_input.description` for `guard-task-dispatch`). The hook exits with code 2, the
 PreToolUse blocking exit code, so Claude Code refuses the call and
 shows the agent a stderr message naming the problem:
 
@@ -144,37 +145,6 @@ first try.
 **Alternative.** Use
 [`vrg-submit-pr`](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/dev/submit-pr.md)
 with `--issue`, `--summary`, `--linkage`, and `--notes` flags.
-
-### block-protected-branch-work
-
-**What.** Denies Bash tool invocations that run raw `git commit` when
-the effective working directory falls outside the worktree
-convention's allowed locations. It does not match `vrg-commit`.
-
-**Why.** Behavior depends on whether the target repo has adopted the
-[worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
-The hook detects adoption by looking for a `.worktrees/` line in the
-repo's `.gitignore`. On adopted repos, commits must originate from
-inside `.worktrees/<name>/`; the main tree is read-only for source
-(ignored scratch in its `build/` is not a source edit). On
-non-adopted repos, the hook falls back to the legacy behavior of
-blocking commits on `main` or `develop` regardless of directory.
-
-**Alternative.** On adopted repos: create a worktree with
-`git worktree add .worktrees/issue-N-<slug> -b feature/N-<slug>
-origin/develop` and run all edits + commits from inside that
-directory. On non-adopted repos: create and check out a feature
-branch with a name matching the repo's `branching_model` prefixes.
-
-This hook complements `vrg-commit`'s own
-[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
-— that check runs inside `vrg-commit` against the branch of the
-directory it actually executes in, so it is the authoritative guard for
-`vrg-commit`. This hook only guesses the target repo from the session
-cwd and the command text, and under the sandbox that cwd is reset to
-the project root, so matching `vrg-commit` here produced false denies
-for worktree commits in sibling repos (#694). The hook therefore covers
-raw `git commit` only.
 
 ### block-heredoc
 
@@ -383,6 +353,51 @@ request and dispatch the reviewer again, as the
 [merge-review skill](../skills/index.md#merge-review) says. Tests:
 `hooks/tests/guard-merge-review-results.test.sh`.
 
+## PreToolUse Hooks — Agent
+
+### guard-task-dispatch
+
+**What.** Checks each Agent call's `description`, `subagent_type` and
+`model`. A dispatch is a **task run** when its whole `description`
+matches one of the four forms in `epic-implement`'s task-description
+table (see [Agent row labels](#agent-row-labels)), anchored at both
+ends, `<id>` being any token without spaces:
+
+```text
+^Task [^ ]+ [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+$
+^Task [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+$
+^Batch [^ #][^ ]*( #[0-9]+)+$
+^Batch( #[0-9]+)+$
+```
+
+The hook denies the call when:
+
+- it is a task run and its `subagent_type` is not exactly
+  `vergil:task-runner` (an absent one included);
+- its `subagent_type` is `vergil:task-runner` and it carries a non-empty
+  `model`;
+- its `description` starts with `Task` or `Batch` and a space but
+  matches none of the four forms, whatever its `subagent_type`.
+
+A description that only names a task among other words, such as
+`Write vergil-project/vergil-tooling#4931 (Task 6b)` for a writer
+dispatch, is not a task run and is allowed, as is a first word like
+`Tasks`.
+
+**Why.** A task run drives an issue end to end on the model its agent
+definition pins (epic
+[vergil-project/.github#1823](https://github.com/vergil-project/.github/issues/1823)).
+Dispatched as `general-purpose`, or with no `subagent_type`, it would
+inherit the session's model instead; a per-invocation `model` would
+outrank the pin. A near-miss description (a short `#N` reference, a
+trailing word) is refused rather than let through, so a typo never runs
+a task on an inheriting agent type.
+
+**Alternative.** Dispatch the task run with
+`subagent_type: "vergil:task-runner"`, no `model`, and a `description`
+in one of the four forms exactly. Tests:
+`hooks/tests/guard-task-dispatch.test.sh`.
+
 ## PreToolUse Hooks — Skill
 
 ### warn-stale-plugin-version
@@ -517,7 +532,7 @@ A `ui.render` hook on the
 [`AgentRow` render site](https://code.claude.com/docs/en/plugins/mods/reference.md#render-sites),
 a subagent's or teammate's row in the agent panel. When several
 subagents run in parallel (an `epic-implement` run, say), Claude Code
-shows each row as its agent type, `general-purpose`, and its latest
+shows each row as its agent type, `vergil:task-runner`, and its latest
 activity, so the rows cannot be told apart. The hook redraws a row as
 the task and issue(s) the agent was dispatched for, how long it has
 been running (or `done`, `failed` or `stopped` once it has ended), and
@@ -535,6 +550,21 @@ in it leads the label. A description that names no issue (an
 `Explore` fan-out, say), a row the person's settings hide, and a
 row they already redraw (its `body` arrives set) are left as Claude
 Code draws them.
+
+`epic-implement` names every task run it dispatches in one of these
+forms, matched exactly, since the
+[`guard-task-dispatch`](#guard-task-dispatch) hook keys on them:
+`Task <id> <owner>/<repo>#<N>` for one task,
+`Batch <id>/<id>… #<N1> #<N2>…` for a batch, and the same without the
+ID for a task with no
+plan task ID (an ad-hoc task, say); see its
+[Work the runnable frontier](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/epic-implement/SKILL.md#3-work-the-runnable-frontier)
+section. The label leads with the task only when its ID is digits
+with at most one letter after them (`6`, `13b`); a task whose ID has
+another form (`D2`, `doc-review`) is labelled by its issue alone. In a
+`Batch` description the mod reads the IDs only up to the first that
+does not fit (`Batch 6/D2` is read as `Batch 6`), so `epic-implement`
+gives a batch the form with no ID when any member's ID does not fit.
 
 `AgentRow` needs Claude Code v2.1.326 or later. An older version
 loads the module but never raises the site, so rows stay as they
@@ -585,6 +615,35 @@ again in PR CI.
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
 is intentional.
+
+### Protected-branch commit check
+
+The plugin no longer ships `block-protected-branch-work`, a
+PreToolUse hook that denied a raw `git commit` run outside the
+worktree convention's allowed locations, or on `main` or `develop`
+in a repo without the convention. It was removed in
+[#1405](https://github.com/vergil-project/vergil-claude-plugin/issues/1405).
+
+**Why removed.** It was a legacy, redundant layer. In a managed repo
+raw git is already refused by the per-repo
+[hook guard](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md),
+through [`block-raw-git-commit`](#block-raw-git-commit), which keeps
+its own `git commit` check when the hook guard is not installed.
+`vrg-git` refuses `commit`, and `vrg-commit` enforces the
+protected-branch and worktree rules itself, against the directory it
+actually runs in. The GitHub branch-protection ruleset on `main` and
+`develop` requires a pull request. The hook could only guess where a
+commit would run from the session's directory and the command text,
+which is the wrong place to make that decision.
+
+**What replaces it.** Nothing needs to: the layers above already
+cover it, and `vrg-commit`'s
+[protected-branch check](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/site/docs/reference/hooks/pre-commit.md#2-protected-branch)
+is the authoritative one.
+
+**Don't re-add this.** A hook that reads shell command text to work
+out which repository and branch a commit lands in duplicates
+`vrg-commit`'s own check with a weaker one.
 
 ### Stop hook for finalization
 

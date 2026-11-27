@@ -246,7 +246,6 @@ for the rationale.
 |---|---|---|
 | `block-raw-git-commit` | PreToolUse/Bash | Redirects raw `git commit` to `vrg-commit` |
 | `block-raw-gh-pr-create` | PreToolUse/Bash | Redirects raw `gh pr create` to `vrg-submit-pr` |
-| `block-protected-branch-work` | PreToolUse/Bash | Blocks raw `git commit` from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks it on `develop`/`main`. `vrg-commit` is not matched — it checks the real branch itself |
 | `block-heredoc` | PreToolUse/Bash | Blocks `<<EOF` in CLI args (use `--body-file` or `$(cat <file>)`) |
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `enforce-host-container-split` | PreToolUse/Bash | Warns on bare host calls of container-only tools; the `vrg-container-run --` form passes |
@@ -256,6 +255,7 @@ for the rationale.
 | `block-worktree-bypass-write` | PreToolUse/Write\|Edit | Blocks edits to the main worktree when the worktree convention is active, except ignored scratch under the main clone's `build/` |
 | `guard-audit-writes` | PreToolUse/Write\|Edit\|NotebookEdit | AUDIT identity may write only `.vergil/audit-*` and `build/` — soft gate on the audit's read-only discipline |
 | `guard-merge-review-results` | PreToolUse/Write\|Edit\|NotebookEdit | Denies writes to a stored merge-review result, its publishable copy or its capture record: only the capture hook writes them |
+| `guard-task-dispatch` | PreToolUse/Agent | Denies an `epic-implement` task run not dispatched as `vergil:task-runner`, a `vergil:task-runner` dispatch with a `model`, and a `Task`/`Batch` description that matches none of the task-run forms |
 | `warn-stale-plugin-version` | PreToolUse/Skill | Warns the agent, never blocks, when a `vergil:` skill is served from an older plugin version than the one installed; the agent carries on and tells the human, who runs `/reload-plugins` or restarts when the work depends on the new version |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 | `capture-merge-review-result` | SubagentStop/vergil:merge-reviewer | Stores the merge reviewer's reply byte for byte as `result-<step>.md`, with a publishable copy for the step comment and a capture record holding its SHA-256 |
@@ -300,6 +300,12 @@ Full reference:
 |---|---|
 | `bootstrap` | Session-start preflight: repository profile, branch state, standards reference, hook guard availability |
 | `merge-reviewer` | Read-only pre-PR reviewer (Read, Glob, Grep only), dispatched by `merge-review` for one review or check step; replies with a `merge-review-result` block and prose |
+| `task-runner` | The driver `epic-implement` dispatches for one task run or batch of `issue-implement`, `issue-validate` or `issue-deploy`; inherits the full tool set |
+| `implementer` | The writer an `issue-implement` driver dispatches for every change to a task's tracked files (Read, Edit, Write, Glob, Grep, Bash); commits, validates to green and returns a `green` or `stuck` result block |
+
+Each agent pins its model; the
+[model map](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/agents/models.md)
+records which, and why.
 
 ## Plugin namespace
 
@@ -339,10 +345,10 @@ The USER agent creates it with `vrg-git worktree add` as part of
 The layout, rules and agent prompt contract are defined by the
 [worktree convention](https://github.com/vergil-project/vergil-tooling/blob/develop/docs/specs/worktree-convention.md).
 
-The worktree convention is enforced by the
-`block-protected-branch-work` hook (raw `git commit` originating
-from outside `.worktrees/*/` is denied) and by `vrg-commit`'s own
-run-time protected-branch check.
+The worktree convention is enforced by `vrg-commit`'s own run-time
+protected-branch and worktree check, against the directory it
+actually runs in; raw `git commit` is refused by the hook guard and
+by the `block-raw-git-commit` hook.
 
 ### Ship a change
 

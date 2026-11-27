@@ -25,6 +25,38 @@ command back to the human to run. Do not start it while submit or finalize
 is still watching the PR: they watch it first, and this skill starts from
 their report.
 
+## Who fixes — the writer input
+
+The caller says whether this run has a **writer**, the same input as
+merge-review's [Fix and check](../merge-review/SKILL.md#fix-and-check).
+`issue-implement`'s
+[Submit and watch to the merge](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+passes "writer": it is the driver, and `vergil:implementer` is its writer.
+Every other caller passes nothing, which means no writer: this skill run
+standalone by the human, or by `epic-create`, `epic-retrospective` or
+`hoshin` for their docs PRs. `epic-implement` never runs this skill on a
+task's PR in its own session; it dispatches a task run of
+`issue-implement` for it, so every fix to a task's PR has the writer.
+Forward the input to every merge-review run this skill starts
+([Before every push](#before-every-push) step 2).
+
+- **With a writer,** the code of a fix for failing CI or a review
+  comment, and every fix of a validate failure, goes to the writer, as
+  [The writer](../issue-implement/SKILL.md#the-writer) says (its
+  dispatch, its commit convention, the check of its result and its
+  escalation, which gives each CI fix one budget of its own). You, the
+  driver, still diagnose the problem, check the writer's result, and run
+  every validate, review, check and push. Two kinds of work stay yours,
+  as that section's exceptions say: a stopped rebase's conflicts, which
+  you resolve yourself, logic included, and merge review then gates; and
+  a security item's fix, made in merge review's fix step. Write the
+  [driver-work marker](../issue-implement/SKILL.md#resume) before you
+  start either (`rebase` before any `vrg-git rebase`, a routine rebase
+  and a batch fold included, `security-fix` before a security fix), and
+  remove it once the rebase has finished or been aborted, or the fix is
+  committed.
+- **Without a writer,** you make every fix in this session, as below.
+
 ## `vrg-pr-await` waits for the merge — one wait per pass, don't poll
 
 `vrg-pr-await <PR_URL>` **blocks** until the PR merges or can no longer
@@ -70,7 +102,12 @@ and are refused. A new review or a new commit never ends the wait.
   `vrg-pr-await: <pr> cannot merge (<reason>): <detail>`.
 
 (This is about correctly consuming the blocking `vrg-pr-await` call — not the
-retired continuous-oversight framing; sub-agents remain fine elsewhere.)
+retired continuous-oversight framing. Helpers remain fine elsewhere, each
+naming its model by the
+[helper model rule](../../docs/site/docs/agents/models.md#the-helper-model-rule):
+`model: "haiku"` for a read-only search or exploration helper,
+`model: "sonnet"` for any other. With a writer, no helper but the writer
+changes the branch's tracked files.)
 
 ## Preflight
 
@@ -222,20 +259,27 @@ Propose it to the human and file it only as they approve.
 - **A routine rebase.** `develop` moved, often because another PR in the
   same submit merged first, and the PR conflicts with it or needs its
   changes. Rebase onto it: `vrg-git fetch origin`, then
-  `vrg-git rebase origin/develop`. A rebase that applies with **no
-  conflict** changes none of the branch's own code: it is routine, needs
+  `vrg-git rebase origin/develop` (with a writer, under the marker, as
+  [Who fixes](#who-fixes--the-writer-input) says). A rebase that applies
+  with **no conflict** changes none of the branch's own code: it is routine, needs
   no merge review and no human sign-off, and goes straight to the
   validate, batch check and push of
   [Before every push](#before-every-push). Force-pushing your *own*
   in-flight PR after a rebase is pre-authorized; see *Resolving conflicts
   with the base branch* in `issue-implement`.
 - **A resolved conflict.** A rebase that stops on a conflict you then
-  resolve has changed the branch's code. It is a fix, merge-reviewed
+  resolve has changed the branch's code. You resolve it yourself, with a
+  writer or without, since a conflict can only be resolved inside the
+  stopped rebase; with a writer, under the marker
+  ([Who fixes](#who-fixes--the-writer-input)). It is a fix, merge-reviewed
   before it is pushed. If the rebase goes wrong while still in progress,
   `vrg-git rebase --abort` returns the branch to where it was; once it has
   completed, do not undo it yourself: stop and ask the human.
-- **A CI fix or a review-comment change.** Any other code change. Commit
-  it with `vrg-commit` on a single-issue PR, or as a fixup on a batch PR
+- **A CI fix or a review-comment change.** Any other code change. You
+  diagnose it either way. With a writer, the writer makes and commits
+  it, with your diagnosis in its prompt, and you check its result; without
+  one, you make it. It is committed with `vrg-commit` on a single-issue
+  PR, or as a fixup on a batch PR
   ([Batch PRs](#batch-prs--fold-every-fix-into-its-issues-commit)). It is
   merge-reviewed before it is pushed.
 
@@ -245,11 +289,17 @@ Every push to the PR goes through these steps in order. A push that skips
 one can merge unreviewed or unchecked code, because auto-merge stays on.
 
 1. **Validate** on the committed branch until green:
-   `vrg-container-run -- vrg-validate`. Never suppress a gate.
+   `vrg-container-run -- vrg-validate`. Never suppress a gate. With a
+   writer, a failure to fix is the writer's, as
+   [Who fixes](#who-fixes--the-writer-input) says (after a writer's fix,
+   your own green run in the check of its result is this step); without
+   one, you fix it.
 2. **Merge-review every fix but a routine rebase.** Run the
    **`merge-review`** skill (`vergil:merge-review`) through its
    [Fix to an open PR](../merge-review/SKILL.md#fix-to-an-open-pr) entry,
-   from the worktree, giving it the task issue `<ref>` and the PR's URL. On
+   from the worktree, giving it the task issue `<ref>`, the PR's URL and
+   this run's writer input, forwarded as it came (writer, or none). Its
+   fix step then follows that input. On
    a single-issue PR `<ref>` is the PR's one `Closes` ref; on a batch PR it
    is the issue whose commit the fix changes. It reviews the whole branch
    against `origin/develop`, and every step passes `--pr <PR_URL>` to
@@ -334,8 +384,12 @@ like this:
    rebase stopped on; if resolving it means changing more than one
    issue's commit, stop and ask the human the same way.
 2. **Commit it as a fixup** of that commit:
-   `vrg-commit --fixup <owning issue's commit SHA>`.
-3. **Fold it onto the branch's own base**, never onto a moved `develop`:
+   `vrg-commit --fixup <owning issue's commit SHA>`. With a writer, name
+   that SHA in its prompt as the commit to fix up, and the writer makes
+   and commits the fix; without one, you do.
+3. **Fold it onto the branch's own base**, never onto a moved `develop`
+   (the fold is yours, with a writer under the marker, as
+   [Who fixes](#who-fixes--the-writer-input) says):
 
    ```bash
    vrg-git rebase -i --autosquash "$(vrg-git merge-base HEAD origin/develop)"

@@ -5,7 +5,7 @@ description: >-
   merge-review skill, with one line: the absolute path of a request file.
   Never use it directly or for any other review.
 tools: Read, Glob, Grep
-model: opus
+model: sonnet
 ---
 
 # Merge Reviewer
