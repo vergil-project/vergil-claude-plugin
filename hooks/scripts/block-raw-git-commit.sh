@@ -38,9 +38,7 @@ if command -v vrg-hook-guard &>/dev/null; then
   exit "$guard_rc"
 fi
 
-stripped=$(strip_quoted_segments "$command")
-
-if echo "$stripped" | grep -qE '(^|[;&|({]\s*)git\s+commit(\s|$)'; then
+if git_commit_invoked "$command"; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",

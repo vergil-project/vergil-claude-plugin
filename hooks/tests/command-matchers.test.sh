@@ -486,6 +486,113 @@ api_case "agent-merge: reviews with -X GET and fields allowed" "$AM" \
 api_case "agent-merge: quoted body citing the call allowed" "$AM" \
   "vrg-gh issue create --title t --body \"policy:${NL}gh api repos/o/r/pulls/5/merge -X PUT\"" allow
 
+# git commit shapes (#1405): the commit hooks see `git commit` through
+# assignments, wrappers, path-qualified or quoted words and git's global
+# options, and block-protected-branch-work.sh resolves where the commit
+# runs or denies it. A real worktree under $SCRATCH serves the allowed
+# rows; it checks out vergil.toml, so the hook runs there too.
+# commit_case <name> <script> <cwd> <command> <expect>.
+git -C "$SCRATCH" add vergil.toml .gitignore
+git -C "$SCRATCH" -c user.name=t -c user.email=t@example.com \
+  commit --quiet -m init
+git -C "$SCRATCH" worktree add --quiet -b wt "$SCRATCH/.worktrees/wt"
+WT="$SCRATCH/.worktrees/wt"
+
+commit_case() {
+  local name="$1" script="$2" case_cwd="$3" cmd="$4" expect="$5" payload out verdict
+  payload=$(jq -n --arg cmd "$cmd" --arg cwd "$case_cwd" \
+    '{tool_input: {command: $cmd, cwd: $cwd}, cwd: $cwd}')
+  out=$(printf '%s' "$payload" \
+    | PATH="$CLEAN_PATH" bash "$SCRIPTS/$script" 2>&1) || true
+  verdict="allow"
+  if printf '%s' "$out" | grep -q '"permissionDecision": "deny"'; then
+    verdict="deny"
+  elif [ -n "$out" ]; then
+    verdict="error"
+  fi
+  total=$((total + 1))
+  if [ "$verdict" = "$expect" ]; then
+    echo "PASS [commit] $name"
+    pass=$((pass + 1))
+  else
+    echo "FAIL [commit] $name — expected $expect, got $verdict"
+    if [ -n "$out" ]; then
+      printf '%s\n' "$out" | head -5 | sed 's/^/       /'
+    fi
+    fail=$((fail + 1))
+  fi
+}
+
+PB=block-protected-branch-work.sh
+RGC=block-raw-git-commit.sh
+commit_case "protected: assignment prefix" "$PB" "$SCRATCH" 'X=1 git commit -m x' deny
+commit_case "protected: env wrapper" "$PB" "$SCRATCH" 'env git commit -m x' deny
+commit_case "protected: env wrapper with options" "$PB" "$SCRATCH" \
+  'env -u FOO X=1 git commit -m x' deny
+commit_case "protected: command wrapper" "$PB" "$SCRATCH" 'command git commit -m x' deny
+commit_case "protected: timeout wrapper" "$PB" "$SCRATCH" 'timeout 5 git commit -m x' deny
+commit_case "protected: backslash before git" "$PB" "$SCRATCH" '\git commit -m x' deny
+commit_case "protected: path-qualified git" "$PB" "$SCRATCH" '/usr/bin/git commit -m x' deny
+commit_case "protected: single-quoted subcommand" "$PB" "$SCRATCH" "git 'commit' -m x" deny
+commit_case "protected: double-quoted git" "$PB" "$SCRATCH" '"git" commit -m x' deny
+commit_case "protected: -c global option" "$PB" "$SCRATCH" 'git -c a.b=c commit -m x' deny
+commit_case "protected: --no-pager global option" "$PB" "$SCRATCH" \
+  'git --no-pager commit -m x' deny
+commit_case "protected: subcommand with no arguments in a subshell" "$PB" "$SCRATCH" \
+  '(git commit)' deny
+commit_case "protected: git directory set from a worktree" "$PB" "$WT" \
+  "GIT_DIR=$SCRATCH/.git git commit -m x" deny
+commit_case "protected: work tree set from a worktree" "$PB" "$WT" \
+  "GIT_WORK_TREE=$SCRATCH git commit -m x" deny
+commit_case "protected: --git-dir from a worktree" "$PB" "$WT" \
+  "git --git-dir=$SCRATCH/.git commit -m x" deny
+commit_case "protected: -C after another option, from a worktree" "$PB" "$WT" \
+  "git -c a.b=c -C $SCRATCH commit -m x" deny
+commit_case "protected: cd into a worktree, then -C to the root" "$PB" "$SCRATCH" \
+  "cd $WT && git -C $SCRATCH commit -m x" deny
+commit_case "protected: quoted cd target at the root, from a worktree" "$PB" "$WT" \
+  "cd \"$SCRATCH\" && git commit -m x" deny
+commit_case "protected: .. out of a worktree" "$PB" "$SCRATCH" \
+  "cd $WT/../.. && git commit -m x" deny
+commit_case "protected: cd after the start" "$PB" "$WT" \
+  "true && cd $SCRATCH && git commit -m x" deny
+commit_case "protected: two cds" "$PB" "$SCRATCH" \
+  "cd $WT && cd $SCRATCH && git commit -m x" deny
+commit_case "protected: cd to a variable" "$PB" "$WT" \
+  "cd \"\$ROOT_DIR\" && git commit -m x" deny
+commit_case "protected: -C to a missing directory" "$PB" "$WT" \
+  'git -C /nonexistent/dir commit -m x' deny
+commit_case "protected: second commit in the command at the root" "$PB" "$SCRATCH" \
+  "git -C $WT commit -m x; git commit -m y" deny
+commit_case "protected: env wrapper on protected develop" "$PB" "$PROTECTED" \
+  'env git commit -m x' deny
+commit_case "protected: commit in a worktree allowed" "$PB" "$WT" 'git commit -m x' allow
+commit_case "protected: env-wrapped commit in a worktree allowed" "$PB" "$WT" \
+  'env git commit -m x' allow
+commit_case "protected: cd into a worktree allowed" "$PB" "$SCRATCH" \
+  "cd $WT && git commit -m x" allow
+commit_case "protected: quoted cd into a worktree allowed" "$PB" "$SCRATCH" \
+  "cd \"$WT\" && git commit -m x" allow
+commit_case "protected: -C into a worktree allowed" "$PB" "$SCRATCH" \
+  "git -C $WT commit -m x" allow
+commit_case "protected: -C after another option into a worktree allowed" "$PB" "$SCRATCH" \
+  "git -c a.b=c -C $WT commit -m x" allow
+commit_case "protected: commit's own -C option in a worktree allowed" "$PB" "$WT" \
+  'git commit -C HEAD' allow
+commit_case "protected: commit as a log search term allowed" "$PB" "$SCRATCH" \
+  'git log --grep commit' allow
+commit_case "protected: quoted wrapper prose allowed" "$PB" "$SCRATCH" \
+  "vrg-commit --type docs --scope x --message y --body \"never:${NL}env git 'commit' -m x\"" allow
+commit_case "rgc: env wrapper" "$RGC" "$ROOT" 'env git commit -m x' deny
+commit_case "rgc: assignment prefix" "$RGC" "$ROOT" 'GIT_DIR=x git commit -m x' deny
+commit_case "rgc: backslash before git" "$RGC" "$ROOT" '\git commit -m x' deny
+commit_case "rgc: path-qualified git" "$RGC" "$ROOT" '/usr/bin/git commit -m x' deny
+commit_case "rgc: single-quoted subcommand" "$RGC" "$ROOT" "git 'commit' -m x" deny
+commit_case "rgc: -C global option" "$RGC" "$ROOT" 'git -C . commit -m x' deny
+commit_case "rgc: commit as a log search term allowed" "$RGC" "$ROOT" \
+  'git log --grep commit' allow
+commit_case "rgc: vrg-git allowed" "$RGC" "$ROOT" 'vrg-git status' allow
+
 # Denial text (#1200): each blocking hook names the path an agent takes
 # instead. reason_case <name> <script> <command> <has|lacks> <text>
 # checks the deny's permissionDecisionReason for a fixed substring.
