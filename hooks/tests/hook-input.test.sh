@@ -55,9 +55,10 @@ chmod +x "$STUB_DIR/vrg-hook-guard"
 
 BASH_GATES="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-heredoc.sh"
 WRITE_GATES="block-worktree-bypass-write.sh guard-audit-writes.sh guard-merge-review-results.sh"
+AGENT_GATES="guard-task-dispatch.sh"
 # Gates that stay a no-op outside a managed repo, malformed input
 # included (scope falls back to the hook process's working directory).
-GATED="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-worktree-bypass-write.sh guard-merge-review-results.sh"
+GATED="block-agent-merge.sh block-associative-arrays.sh block-autoclose-linkage.sh block-github-contents-api.sh block-raw-gh-pr-create.sh block-raw-git-commit.sh enforce-host-container-split.sh block-worktree-bypass-write.sh guard-merge-review-results.sh guard-task-dispatch.sh"
 
 pass=0
 fail=0
@@ -127,6 +128,16 @@ write_payload() {
 		tool_input: {file_path: $fp, content: "x"}}'
 }
 
+# agent_payload <description> <subagent_type> <cwd> — a realistic
+# Claude Code Agent payload.
+agent_payload() {
+	jq -cn --arg d "$1" --arg t "$2" --arg cwd "$3" '{
+		session_id: "s", transcript_path: "/dev/null", cwd: $cwd,
+		permission_mode: "default", hook_event_name: "PreToolUse",
+		tool_name: "Agent",
+		tool_input: {description: $d, prompt: "p", subagent_type: $t}}'
+}
+
 is_in() {
 	case " $2 " in *" $1 "*) return 0 ;; esac
 	return 1
@@ -136,6 +147,7 @@ missing_field_msg() {
 	case "$1" in
 	block-worktree-bypass-write.sh) echo "no tool_input.file_path string" ;;
 	guard-merge-review-results.sh) echo "no tool_input.file_path or notebook_path string" ;;
+	guard-task-dispatch.sh) echo "no tool_input.description string" ;;
 	*) echo "no tool_input.command string" ;;
 	esac
 }
@@ -144,7 +156,7 @@ missing_field_msg() {
 NO_FIELD=$(jq -cn --arg cwd "$ROOT" '{cwd: $cwd, tool_name: "Bash", tool_input: {cwd: $cwd}}')
 STRING_TOOL_INPUT=$(jq -cn --arg cwd "$ROOT" '{cwd: $cwd, tool_input: "git commit"}')
 
-for script in $BASH_GATES $WRITE_GATES; do
+for script in $BASH_GATES $WRITE_GATES $AGENT_GATES; do
 	run_hook "$script" "$ROOT" '{"tool_input": {"command": "git commit'
 	check "$script: malformed JSON is blocked" blocked "$script: blocked: the hook input is not valid JSON"
 
@@ -179,7 +191,7 @@ done
 
 # --- Scope: gated hooks stay a no-op outside managed repos -------------
 UNMANAGED_NO_FIELD=$(jq -cn --arg cwd "$UNMANAGED" '{cwd: $cwd, tool_input: {}}')
-for script in $BASH_GATES $WRITE_GATES; do
+for script in $BASH_GATES $WRITE_GATES $AGENT_GATES; do
 	run_hook "$script" "$UNMANAGED" 'not json'
 	if is_in "$script" "$GATED"; then
 		check "$script: malformed JSON outside a managed repo is allowed" allow
@@ -246,6 +258,15 @@ run_hook guard-audit-writes.sh "$ROOT" "$(write_payload "$ROOT/README.md" "$ROOT
 check "guard-audit-writes.sh: audit write to a repo file is denied" deny
 run_hook guard-audit-writes.sh "$ROOT" "$(write_payload "$ROOT/README.md" "$ROOT")" "$CLEAN_PATH" user
 check "guard-audit-writes.sh: user write is unconstrained" allow
+
+run_hook guard-task-dispatch.sh "$ROOT" \
+	"$(agent_payload "Task 6b vergil-project/vergil-tooling#4931" vergil:task-runner "$SCRATCH")"
+check "guard-task-dispatch.sh: task run as vergil:task-runner is allowed" allow
+run_hook guard-task-dispatch.sh "$ROOT" \
+	"$(agent_payload "Task 6b vergil-project/vergil-tooling#4931" general-purpose "$SCRATCH")"
+check "guard-task-dispatch.sh: task run as general-purpose is denied" deny
+run_hook guard-task-dispatch.sh "$ROOT" "$(agent_payload "" general-purpose "$SCRATCH")"
+check "guard-task-dispatch.sh: empty description string is allowed" allow
 
 # --- block-raw-git-commit delegation to vrg-hook-guard ------------------
 STUB_PATH="$STUB_DIR:$CLEAN_PATH"
