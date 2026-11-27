@@ -1002,7 +1002,15 @@ issue's fold base and its merge-review base.
    `waiting: non-review items` and `error` end the run, and running this
    skill again resumes the batch at this issue. `fatal` ends the run: tell
    the human, and do nothing more to the batch until they rule on it as a
-   [batch stop](#batch-stops).
+   [batch stop](#batch-stops). When the run leaves a `--fixup` of this
+   issue's commit while later issues' commits sit on the branch, fold it
+   at once instead of at step 4: write the [driver-work marker](#resume)
+   (`rebase`) first, run `vrg-git rebase -i --autosquash <the previous
+   issue's commit>`, check the issue is still one commit and every later
+   issue keeps its one commit, then remove the marker. A conflict is
+   `vrg-git rebase --abort` and a [batch stop](#batch-stops). Then validate
+   to green, and resume the merge review: its `B1` stop (the fix base was
+   rebased) is ruled `restart`, a fresh review of the new `HEAD`.
 4. **Fold it** once its merge review has ended `eligible` or
    `not-eligible`. Fold onto the previous issue's commit, then check the
    result. The fold is a rebase, so it is yours: write the
@@ -1055,7 +1063,8 @@ into that commit, never added as a commit of its own:
    before it. Merge-review each of them again, in order, as
    [Each issue, in order](#each-issue-in-order) step 3 says (each issue's
    `--issue` its own ref), and validate to green before each, then fold
-   any fixups those reviews leave, as step 4 says.
+   any fixups those reviews leave, as step 4 says, or at once as step 3
+   says where later issues' commits sit on the branch.
 5. Run `vrg-pr-workflow batch-gates --json` in the batch worktree. It
    reports every batch commit as covered or not, with the reason. It
    writes nothing, and exits 0 only when every commit is covered. Hand off
