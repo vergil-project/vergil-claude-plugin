@@ -299,6 +299,12 @@ Full reference:
 |---|---|
 | `bootstrap` | Session-start preflight: repository profile, branch state, standards reference, hook guard availability |
 | `merge-reviewer` | Read-only pre-PR reviewer (Read, Glob, Grep only), dispatched by `merge-review` for one review or check step; replies with a `merge-review-result` block and prose |
+| `task-runner` | The driver `epic-implement` dispatches for one task run or batch of `issue-implement`, `issue-validate` or `issue-deploy`; inherits the full tool set |
+| `implementer` | The writer an `issue-implement` driver dispatches for every change to a task's tracked files (Read, Edit, Write, Glob, Grep, Bash); commits, validates to green and returns a `green` or `stuck` result block |
+
+Each agent pins its model; the
+[model map](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/agents/models.md)
+records which, and why.
 
 ## Plugin namespace
 
