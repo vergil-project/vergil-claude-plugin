@@ -31,7 +31,10 @@ If you cannot actually run a step, say so and stop — **never fabricate or
 partially fake a result.** A step the issue lists as human-run is the
 exception: hand it to the human as
 [below](#hand-the-human-run-steps-to-the-human-then-verify-them). Use whatever means are efficient to run it (sub-agents
-encouraged); oversight is front-loaded and at the hard gates, not in a live
+encouraged, each naming its model by the
+[helper model rule](../../docs/site/docs/agents/models.md#the-helper-model-rule):
+`model: "haiku"` for a read-only search or exploration helper,
+`model: "sonnet"` for any other); oversight is front-loaded and at the hard gates, not in a live
 transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
 [execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
 
