@@ -828,8 +828,9 @@ The contract:
 
 ## Resolving conflicts with the base branch
 
-In a batch this section does not apply until handoff: a batch never
-rebases onto `develop` (see [A fixed base](#a-fixed-base)).
+A batch is not rebased by this section: its rebase before handoff is
+[A clean rebase before handoff](#a-clean-rebase-before-handoff), and a
+conflict there is a batch stop, never resolved here.
 
 If `develop` (the base) advances **while you are still implementing** (before you
 report ready) and your branch conflicts with it, resolve it as **routine**. No
@@ -961,13 +962,17 @@ yourself. Substantial issues keep the single-issue shape.
 
 ### A fixed base
 
-A batch never rebases onto `develop` before handoff, so a finished issue
-is never rewritten:
-[Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch)
-does not apply until the batch is handed off. A conflict with a moved
-`develop` surfaces once the PR is submitted (submit does not rebase) and
-is resolved by `pr-watch`. The **previous issue's
-commit** of the first issue is `base_sha`; of every later issue it is the
+A batch is built on the `base_sha` it started from, and a moved `develop`
+does not change that: nothing rebases it as it goes. A finished issue's
+commit is rewritten only by a
+[fix to a finished issue](#a-fix-to-a-finished-issue) or by a
+[clean rebase before handoff](#a-clean-rebase-before-handoff), each with
+its re-review. [Resolving conflicts with the base branch](#resolving-conflicts-with-the-base-branch)
+does not apply to a batch. A conflict with a moved `develop` that the
+batch has not rebased onto surfaces once the PR is submitted (submit
+does not rebase) and is resolved by `pr-watch`. The **previous issue's
+commit** of the first issue is `base_sha` (the parent of its own commit
+once the branch has been rebased); of every later issue it is the
 one folded commit of the issue just before it in the list. It is the
 issue's fold base and its merge-review base.
 
@@ -997,7 +1002,15 @@ issue's fold base and its merge-review base.
    `waiting: non-review items` and `error` end the run, and running this
    skill again resumes the batch at this issue. `fatal` ends the run: tell
    the human, and do nothing more to the batch until they rule on it as a
-   [batch stop](#batch-stops).
+   [batch stop](#batch-stops). When the run leaves a `--fixup` of this
+   issue's commit while later issues' commits sit on the branch, fold it
+   at once instead of at step 4: write the [driver-work marker](#resume)
+   (`rebase`) first, run `vrg-git rebase -i --autosquash <the previous
+   issue's commit>`, check the issue is still one commit and every later
+   issue keeps its one commit, then remove the marker. A conflict is
+   `vrg-git rebase --abort` and a [batch stop](#batch-stops). Then validate
+   to green, and resume the merge review: its `B1` stop (the fix base was
+   rebased) is ruled `restart`, a fresh review of the new `HEAD`.
 4. **Fold it** once its merge review has ended `eligible` or
    `not-eligible`. Fold onto the previous issue's commit, then check the
    result. The fold is a rebase, so it is yours: write the
@@ -1018,7 +1031,71 @@ issue's fold base and its merge-review base.
 An issue is **finished** only when its merge review has closed (its
 closing merge-review comment, carrying the eligibility line, is on the
 issue from a trusted author) and its commit is folded. The commit's shape
-alone never counts.
+alone never counts. A finished issue stays finished until a rewrite of
+its commit or of an earlier one voids its review: see
+[A fix to a finished issue](#a-fix-to-a-finished-issue).
+
+### A fix to a finished issue
+
+A fix to a finished issue's commit while the batch is running (a later
+issue shows the earlier one is wrong, or a ruling asks for it) is folded
+into that commit, never added as a commit of its own:
+
+1. Find the issue's commit: the commit in `origin/develop..HEAD` whose
+   subject ends in a space and `(#<N>)`.
+2. Have the writer make the fix as `vrg-commit --fixup <that commit's
+   SHA>` (name the SHA in its prompt), validated to green and
+   [checked](#check-the-writers-result) as any writer result.
+3. Fold it onto the issue's own parent, with the
+   [driver-work marker](#resume) (`rebase`) written first and removed
+   once the rebase has finished or been aborted:
+
+   ```bash
+   vrg-git rebase -i --autosquash <the previous issue's commit>
+   ```
+
+   The issue must still be one commit, and every issue after it must keep
+   its one commit, in order. If the rebase conflicts with a later
+   issue's commit, run `vrg-git rebase --abort`: it is a
+   [batch stop](#batch-stops) (a collision with a later issue).
+4. The rewrite voids the review of **that issue and every later one**,
+   since each record covers its own commit together with every commit
+   before it. Merge-review each of them again, in order, as
+   [Each issue, in order](#each-issue-in-order) step 3 says (each issue's
+   `--issue` its own ref), and validate to green before each, then fold
+   any fixups those reviews leave, as step 4 says, or at once as step 3
+   says where later issues' commits sit on the branch.
+5. Run `vrg-pr-workflow batch-gates --json` in the batch worktree. It
+   reports every batch commit as covered or not, with the reason. It
+   writes nothing, and exits 0 only when every commit is covered. Hand off
+   only when it does.
+
+A rewrite is never left without its re-review: `report-ready` and
+`vrg-submit-pr` refuse a commit whose record no longer matches.
+
+### A clean rebase before handoff
+
+Before handoff, the batch branch may be rebased onto `origin/develop`
+when `develop` has moved, provided the rebase is **clean** (it stops on no
+conflict). A clean rebase changes no commit's own diff, so it voids no
+merge-review record and leaves the batch markers as they are:
+
+```bash
+vrg-git fetch origin
+vrg-git rebase origin/develop
+```
+
+Write the [driver-work marker](#resume) (`rebase`) before it and remove it
+once the rebase has finished or been aborted. Then run
+`vrg-container-run -- vrg-validate` to green, and
+`vrg-pr-workflow batch-gates --json`: it must still report every finished
+commit covered. A failure to fix is the writer's, as
+[The writer](#the-writer) says, and it is a fix to a finished issue's
+commit if it changes one (see above). If the branch was pushed, it has no
+open PR yet, so `vrg-git push --force-with-lease` is allowed. **A rebase that conflicts is a batch stop**: run
+`vrg-git rebase --abort`, then list it under `Awaiting a ruling` as
+[Batch stops](#batch-stops) says. Never resolve a batch's conflict
+yourself.
 
 ### Resuming a batch
 
@@ -1054,8 +1131,9 @@ on with the batch.
 
 ### Batch stops
 
-Stop at an issue boundary, never reopening a finished issue, when the
-issue you are on:
+Stop at an issue boundary, without rewriting a finished issue's commit
+other than through [a fix to it](#a-fix-to-a-finished-issue) with its
+re-review, when the issue you are on:
 
 - proves bigger than it looked (no longer fits the guidelines, needs
   design, or would need splitting);
@@ -1064,7 +1142,8 @@ issue you are on:
 - turns out to depend on another task's work being merged or deployed
   first;
 - collides with an earlier batch issue in a way that would need that
-  issue's commit reworked.
+  issue's commit reworked, or whose fold into an earlier commit, or whose
+  rebase onto `origin/develop`, conflicts.
 
 A batch stop is a **non-review item**
 ([doctrine §1.7](../../docs/paad-review-doctrine.md#17-creating-issues)),
@@ -1202,7 +1281,12 @@ Hand off once every issue in the list is finished. The rule that every
 `not-eligible` at the `HEAD` it reports holds per issue: each issue's
 merge review ends at that issue's unfolded head, and the fold that
 follows only combines that issue's own commits, leaving its tree
-unchanged, so no review is re-run after a fold.
+unchanged, so no review is re-run after that fold. A later fix to a
+finished issue's commit is different: its issue and every later one are
+reviewed again
+([A fix to a finished issue](#a-fix-to-a-finished-issue)), and
+`vrg-pr-workflow batch-gates` must report every commit covered before
+`report-ready`.
 
 Run `report-ready` once, naming every issue in the list's order:
 
