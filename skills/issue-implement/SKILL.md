@@ -664,19 +664,22 @@ human sign-off is needed:
      git reset --hard ORIG_HEAD
      ```
 3. `vrg-container-run -- vrg-validate` until green — **never** suppress a gate.
-4. `vrg-git push --force-with-lease` to update the branch / PR.
+4. `vrg-git push --force-with-lease` to update the branch (no PR exists yet).
 
 A rebase in the middle of a [merge review](#merge-review), between its
 review and its check, is caught by the skill (its `B1` stop): the human
 rules a fresh review or a stop.
 
-**Force-pushing to update your _own_ in-flight PR after a rebase is a normal,
+**Force-pushing your _own_ feature branch after a rebase is a normal,
 pre-authorized part of this workflow** — not an exceptional action requiring
 human approval. The general "never force-push without explicit request" rule
 guards shared/protected history; it does **not** apply to rebasing your own
 feature branch onto its base. Always use `--force-with-lease` (the safe form —
 it refuses to overwrite if the remote moved unexpectedly), never a bare
-`--force`.
+`--force`. This covers a branch with no PR yet. Once the PR is open,
+`vrg-git` refuses a plain push to its branch: every push to an open PR, a
+rebase included, is `pr-watch`'s `vrg-submit-pr --push --force-with-lease`,
+never a plain `vrg-git push`.
 
 If the base only advances **after** you have reported ready, do **not** rebase
 the frozen branch — the push path refuses it. Leave it: a conflict that surfaces
