@@ -37,13 +37,13 @@ if echo "$stripped" \
   is_merge_command=true
 fi
 
-if echo "$stripped" | grep -qE 'gh\s+api\s+.*/pulls/[0-9]+/merge(\s|$)' \
-  && echo "$command" | grep -qiE '(-X\s+PUT|--method\s+PUT|-XPUT)'; then
+if gh_api_targets "$command" '/pulls/[0-9]+/merge' \
+  && gh_api_sends_method "$command" PUT; then
   is_merge_command=true
 fi
 
-if echo "$stripped" | grep -qE 'gh\s+api\s+.*/pulls/[0-9]+/reviews(\s|$)' \
-  && echo "$command" | grep -qiE '(-X\s+POST|--method\s+POST|-XPOST)'; then
+if gh_api_targets "$command" '/pulls/[0-9]+/reviews' \
+  && gh_api_sends_method "$command" POST; then
   is_merge_command=true
 fi
 

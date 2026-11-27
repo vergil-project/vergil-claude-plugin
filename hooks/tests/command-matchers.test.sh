@@ -405,6 +405,87 @@ else
   fail=$((fail + 1))
 fi
 
+# gh api write calls (#1404): gh api sends POST when it is given a
+# field or input flag with no method flag, and a quoted URL is still
+# the URL. api_case <name> <script> <command> <expect>.
+api_case() {
+  local name="$1" script="$2" cmd="$3" expect="$4" payload out verdict
+  payload=$(jq -n --arg cmd "$cmd" --arg cwd "$ROOT" \
+    '{tool_input: {command: $cmd, cwd: $cwd}, cwd: $cwd}')
+  out=$(printf '%s' "$payload" \
+    | PATH="$CLEAN_PATH" bash "$SCRIPTS/$script" 2>&1) || true
+  verdict="allow"
+  if printf '%s' "$out" | grep -q '"permissionDecision": "deny"'; then
+    verdict="deny"
+  elif [ -n "$out" ]; then
+    verdict="error"
+  fi
+  total=$((total + 1))
+  if [ "$verdict" = "$expect" ]; then
+    echo "PASS [api] $name"
+    pass=$((pass + 1))
+  else
+    echo "FAIL [api] $name — expected $expect, got $verdict"
+    if [ -n "$out" ]; then
+      printf '%s\n' "$out" | head -5 | sed 's/^/       /'
+    fi
+    fail=$((fail + 1))
+  fi
+}
+
+PRC=block-raw-gh-pr-create.sh
+AM=block-agent-merge.sh
+api_case "pr-create: fields with no method flag" "$PRC" \
+  'gh api repos/o/r/pulls -f title=t -f head=h -f base=b' deny
+api_case "pr-create: typed field with no method flag" "$PRC" \
+  'gh api repos/o/r/pulls -F title=t' deny
+api_case "pr-create: --raw-field with no method flag" "$PRC" \
+  'gh api repos/o/r/pulls --raw-field title=t' deny
+api_case "pr-create: --field= with no method flag" "$PRC" \
+  'gh api repos/o/r/pulls --field=title=t' deny
+api_case "pr-create: --input with no method flag" "$PRC" \
+  'gh api repos/o/r/pulls --input body.json' deny
+api_case "pr-create: quoted URL with -X POST" "$PRC" \
+  'gh api "repos/o/r/pulls" -X POST' deny
+api_case "pr-create: quoted URL with fields" "$PRC" \
+  "gh api 'repos/o/r/pulls' -f title=\"a b\"" deny
+api_case "pr-create: full URL with --method=POST" "$PRC" \
+  'gh api https://api.github.com/repos/o/r/pulls --method=POST' deny
+api_case "pr-create: -X=POST" "$PRC" \
+  'gh api repos/o/r/pulls -X=POST' deny
+api_case "pr-create: quoted method" "$PRC" \
+  'gh api repos/o/r/pulls -X "POST"' deny
+api_case "pr-create: list (GET) allowed" "$PRC" \
+  'gh api repos/o/r/pulls' allow
+api_case "pr-create: query string GET allowed" "$PRC" \
+  'gh api "repos/o/r/pulls?state=open"' allow
+api_case "pr-create: fields with -X GET allowed" "$PRC" \
+  'gh api repos/o/r/pulls -X GET -f state=open' allow
+api_case "pr-create: fields with quoted --method GET allowed" "$PRC" \
+  'gh api repos/o/r/pulls --method "GET" -f state=open' allow
+api_case "pr-create: a PR's comments are not /pulls" "$PRC" \
+  'gh api repos/o/r/pulls/5/comments -f body=x' allow
+api_case "pr-create: quoted body citing the call allowed" "$PRC" \
+  "vrg-commit --type docs --scope x --message y --body \"example:${NL}gh api repos/o/r/pulls -f title=t\"" allow
+api_case "agent-merge: quoted merge URL with -X PUT" "$AM" \
+  'gh api "repos/o/r/pulls/5/merge" -X PUT' deny
+api_case "agent-merge: single-quoted merge URL with --method PUT" "$AM" \
+  "gh api 'repos/o/r/pulls/5/merge' --method PUT" deny
+api_case "agent-merge: review fields with no method flag" "$AM" \
+  'gh api repos/o/r/pulls/5/reviews -f event=APPROVE' deny
+api_case "agent-merge: quoted review URL with --input" "$AM" \
+  'gh api "repos/o/r/pulls/5/reviews" --input review.json' deny
+api_case "agent-merge: quoted review URL with -X POST" "$AM" \
+  'gh api "repos/o/r/pulls/5/reviews" -X POST' deny
+api_case "agent-merge: merge status GET allowed" "$AM" \
+  'gh api repos/o/r/pulls/5/merge' allow
+api_case "agent-merge: reviews list GET allowed" "$AM" \
+  'gh api "repos/o/r/pulls/5/reviews"' allow
+api_case "agent-merge: reviews with -X GET and fields allowed" "$AM" \
+  'gh api repos/o/r/pulls/5/reviews -X GET -f per_page=100' allow
+api_case "agent-merge: quoted body citing the call allowed" "$AM" \
+  "vrg-gh issue create --title t --body \"policy:${NL}gh api repos/o/r/pulls/5/merge -X PUT\"" allow
+
 # Denial text (#1200): each blocking hook names the path an agent takes
 # instead. reason_case <name> <script> <command> <has|lacks> <text>
 # checks the deny's permissionDecisionReason for a fixed substring.
