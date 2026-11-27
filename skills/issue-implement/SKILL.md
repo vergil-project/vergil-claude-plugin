@@ -684,8 +684,9 @@ never a plain `vrg-git push`.
 If the base only advances **after** you have reported ready, do **not** rebase
 the frozen branch — the push path refuses it. Leave it: a conflict that surfaces
 between report-ready and submit is resolved after the submit, in
-`pr-watch` (submitting lifts the freeze, so the post-submit rebase/force-push
-there is legitimate). Reopening earlier requires a deliberate
+`pr-watch` (submitting lifts the freeze, so the post-submit rebase is
+legitimate, and `pr-watch` pushes it with
+`vrg-submit-pr --push --force-with-lease`, never a plain `vrg-git push`). Reopening earlier requires a deliberate
 `vrg-pr-workflow unfreeze`. After an unfreeze, rebase and validate as in steps
 1–3, but skip step 4: re-running `report-ready` pushes the rebased branch with a
 lease on the recorded head (see "How the push can end" above).
