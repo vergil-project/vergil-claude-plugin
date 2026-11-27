@@ -136,8 +136,12 @@ edit the plan freely. Evolution that concerns a proxy task is recorded in the
 ## 3. Work the runnable frontier
 
 Drive **every** currently-runnable task to its gate. **Use sub-agents wherever
-they make this efficient** — independent tasks should run in parallel. Route each
-task by its kind label:
+they make this efficient** — independent tasks should run in parallel. A task
+run is dispatched as below, with no `model`. Every other helper names its
+model, by the
+[helper model rule](../../docs/site/docs/agents/models.md#the-helper-model-rule):
+dispatch a read-only search or exploration helper with `model: "haiku"`, and
+any other helper with `model: "sonnet"`. Route each task by its kind label:
 
 | Task kind | Run via |
 |---|---|

@@ -29,7 +29,11 @@ that is code-implementation; use `issue-implement`.
 
 If you cannot actually run a check, say so and stop — **never fabricate or
 partially fake a result.** Use whatever means are efficient to run it (sub-agents
-encouraged); oversight is front-loaded and at the hard gates, not in a live
+encouraged, each naming its model by the
+[helper model rule](../../docs/site/docs/agents/models.md#the-helper-model-rule):
+`model: "haiku"` for a read-only search or exploration helper,
+`model: "sonnet"` for any other, and a skill-under-test subagent as
+[below](#run-the-checklist)); oversight is front-loaded and at the hard gates, not in a live
 transcript (the **Front-Loaded Judgment, Trusted Execution** doctrine; see the
 [execution doctrine](https://github.com/vergil-project/vergil-claude-plugin/blob/develop/docs/site/docs/skills/index.md#execution-doctrine--front-loaded-judgment-trusted-execution)). If you hit a problem you cannot resolve, stop and ask.
 
@@ -91,6 +95,17 @@ fresh invocation of the skill or command under test: a new run of the
 command, or a fresh subagent that loads the skill itself for that one
 check. Never load the skill once and apply its rules to each check's
 input: matching the skill's text is not the same as running it.
+
+**The skill-under-test subagent runs on the skill's validation alias**, so
+the check sees the skill as it runs in production. In each run of this skill, read
+the skill's validation alias from the skills table of the
+[model map](../../docs/site/docs/agents/models.md#skills): the installed
+plugin's own copy, in the same tree as the skill you load, reached through
+this link, never a copy in the current directory or in a plugin clone, so
+the alias and the skill come from one release. Dispatch the subagent with
+that alias as its per-invocation `model`. If the skill has no row there,
+or its rows give no single alias, stop the validation and ask the human;
+never pick a model yourself.
 
 Where a fresh invocation is impossible, exercise the check the best way you
 can, and say how in the result: the [result comment](#record-the-result-and-close)

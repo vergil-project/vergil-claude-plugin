@@ -697,7 +697,10 @@ which paad commit ran: the human records each commit pushed to the fork's
 
 **Dispatch.** Start a fresh subagent of type `paad:paad-delegate` with the
 delegate prompt of [§2.3](#23-the-reviewer-prompt), its placeholders filled and nothing else
-added. The delegate's own contract says what the prompt would otherwise
+added, and with a per-invocation `model: "opus"`. A design review is where
+the big thinking is, and the paad fork pins no model, so the dispatch pins
+it; the analysts the delegate dispatches inherit it (the
+[model map](site/docs/agents/models.md#agents)). The delegate's own contract says what the prompt would otherwise
 have to spell out: ask nothing, write nothing but incidental artifacts in ignored
 paths, follow no unnamed config file,
 dispatch only the analyst, and the result's format. So the prompt carries
@@ -1017,7 +1020,8 @@ within each stage.
    that the session can dispatch `paad:paad-delegate`
    ([§1.8](#18-the-delegate-requirement)). Then start a fresh
    `paad:paad-delegate` subagent with the reviewer prompt
-   ([§2.3](#23-the-reviewer-prompt)). Run it in the background: the human
+   ([§2.3](#23-the-reviewer-prompt)) and a per-invocation
+   `model: "opus"` ([§1.9](#19-the-delegate-path)). Run it in the background: the human
    cares about the result, not the work.
 2. **Check the output** ([§2.4](#24-output-checks-and-broken-rounds)). The
    security section is cut out first ([§1.9](#19-the-delegate-path)). A failed check is a broken round; a
