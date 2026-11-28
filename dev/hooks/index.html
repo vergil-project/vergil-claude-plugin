@@ -6320,9 +6320,26 @@ ends, <code>&lt;id&gt;</code> being any token without spaces:</p>
   <code>vergil:task-runner</code> (an absent one included);</li>
 <li>its <code>subagent_type</code> is <code>vergil:task-runner</code> and it carries a non-empty
   <code>model</code>;</li>
+<li>its <code>subagent_type</code> is <code>vergil:implementer</code> and its <code>model</code> is
+  anything but absent (or empty or null) or exactly <code>"sonnet"</code>, a
+  non-string included. A writer's first try passes no <code>model</code>; its one
+  escalation retry passes <code>model: "sonnet"</code>;</li>
 <li>its <code>description</code> starts with <code>Task</code> or <code>Batch</code> and a space but
-  matches none of the four forms, whatever its <code>subagent_type</code>.</li>
+  matches none of the four forms, whatever its <code>subagent_type</code>;</li>
+<li>its <code>description</code> matches none of the four forms but names an issue
+  (<code>#&lt;digits&gt;</code> anywhere in it), and its <code>subagent_type</code> is
+  <code>vergil:task-runner</code>: a task run in a wording outside the forms
+  would escape the guard and the agent row labels;</li>
+<li>its <code>description</code> matches none of the four forms but names an issue,
+  and its <code>subagent_type</code> is anything other than <code>vergil:task-runner</code>,
+  <code>vergil:implementer</code> or <code>vergil:merge-reviewer</code> (an absent or empty
+  one included). A description naming an issue is reserved for task
+  runs (in the four forms, as <code>vergil:task-runner</code>), for the writer
+  (<code>Write &lt;ref&gt;</code>) and for merge-review steps; a helper's description
+  must not carry an issue reference.</li>
 </ul>
+<p>A description with no <code>#&lt;digits&gt;</code> at all is not refused on this
+account, so <code>Search the hooks for guards</code> to a helper is allowed.</p>
 <p>A description that only names a task among other words, such as
 <code>Write vergil-project/vergil-tooling#4931 (Task 6b)</code> for a writer
 dispatch, is not a task run and is allowed, as is a first word like
@@ -6332,9 +6349,16 @@ definition pins (epic
 <a href="https://github.com/vergil-project/.github/issues/1823">vergil-project/.github#1823</a>).
 Dispatched as <code>general-purpose</code>, or with no <code>subagent_type</code>, it would
 inherit the session's model instead; a per-invocation <code>model</code> would
-outrank the pin. A near-miss description (a short <code>#N</code> reference, a
+outrank the pin. The writer's Haiku pin is outranked the same way: a
+<code>vergil:implementer</code> dispatch with any other <code>model</code> would move a
+change's writing off the model the model map records. The hook cannot
+tell a first try from the retry, so it allows <code>sonnet</code> on either. A
+near-miss description (a short <code>#N</code> reference, a
 trailing word) is refused rather than let through, so a typo never runs
-a task on an inheriting agent type.</p>
+a task on an inheriting agent type. A task run in a wording outside the
+forms (<code>Fixture change python-app#88</code>, say) names an issue, so it is
+refused too, as a runner dispatch and as any helper's; the forms are the
+only wording for a task run.</p>
 <p><strong>Alternative.</strong> Dispatch the task run with
 <code>subagent_type: "vergil:task-runner"</code>, no <code>model</code>, and a <code>description</code>
 in one of the four forms exactly. Tests:
@@ -6476,7 +6500,11 @@ with at most one letter after them (<code>6</code>, <code>13b</code>); a task wh
 another form (<code>D2</code>, <code>doc-review</code>) is labelled by its issue alone. In a
 <code>Batch</code> description the mod reads the IDs only up to the first that
 does not fit (<code>Batch 6/D2</code> is read as <code>Batch 6</code>), so <code>epic-implement</code>
-gives a batch the form with no ID when any member's ID does not fit.</p>
+gives a batch the form with no ID when any member's ID does not fit.
+A fixture run's change, release and validation tasks take these forms
+too, so no task run goes out in a free-form wording such as
+<code>Fixture change &lt;repo&gt;#N</code>; the <a href="#guard-task-dispatch"><code>guard-task-dispatch</code></a>
+hook refuses one that does.</p>
 <p><code>AgentRow</code> needs Claude Code v2.1.326 or later. An older version
 loads the module but never raises the site, so rows stay as they
 were; <code>claude plugin validate</code> there warns that no component is

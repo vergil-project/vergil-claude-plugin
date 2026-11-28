@@ -5573,14 +5573,19 @@ may run it on Sonnet by switching the session's model with <code>/model</code>.<
 <p>Change the pin and the matching row on this page in the same PR.
 <code>validate-custom</code> fails if an agent's <code>model:</code> and its row here differ.
 A <code>vergil:task-runner</code> dispatch never passes a per-invocation <code>model</code>,
-since it would outrank the agent's pin.</p>
+since it would outrank the agent's pin. Likewise a <code>vergil:implementer</code>
+dispatch passes no <code>model</code> on its first try, and only the escalation
+retry passes <code>model: "sonnet"</code>. The
+<a href="../../hooks/#guard-task-dispatch"><code>guard-task-dispatch</code> hook</a>
+refuses a <code>vergil:implementer</code> dispatch with any other model.</p>
 <h2 id="not-verified">Not verified<a class="headerlink" href="#not-verified" title="Permanent link">&para;</a></h2>
 <p>Two paths cannot be triggered on demand, so they are recorded here as
 not verified until a real run shows them:</p>
 <ul>
 <li><strong>The writer's escalation.</strong> When the writer fails (a <code>stuck</code> result,
   or a <code>green</code> that fails the driver's check), the driver dispatches it
-  once more with a per-invocation <code>model: sonnet</code>. No transcript has yet
+  once more with a per-invocation <code>model: "sonnet"</code>, the one form the
+  <code>guard-task-dispatch</code> hook allows for the writer. No transcript has yet
   shown that retry running on Sonnet.</li>
 <li><strong><code>epic-implement</code>'s re-entries.</strong> When a task's PR needs fixing or
   watching after its run, <code>epic-implement</code> dispatches a task run of
