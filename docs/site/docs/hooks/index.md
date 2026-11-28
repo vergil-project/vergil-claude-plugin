@@ -376,6 +376,10 @@ The hook denies the call when:
   `vergil:task-runner` (an absent one included);
 - its `subagent_type` is `vergil:task-runner` and it carries a non-empty
   `model`;
+- its `subagent_type` is `vergil:implementer` and its `model` is
+  anything but absent (or empty or null) or exactly `"sonnet"`, a
+  non-string included. A writer's first try passes no `model`; its one
+  escalation retry passes `model: "sonnet"`;
 - its `description` starts with `Task` or `Batch` and a space but
   matches none of the four forms, whatever its `subagent_type`.
 
@@ -389,7 +393,11 @@ definition pins (epic
 [vergil-project/.github#1823](https://github.com/vergil-project/.github/issues/1823)).
 Dispatched as `general-purpose`, or with no `subagent_type`, it would
 inherit the session's model instead; a per-invocation `model` would
-outrank the pin. A near-miss description (a short `#N` reference, a
+outrank the pin. The writer's Haiku pin is outranked the same way: a
+`vergil:implementer` dispatch with any other `model` would move a
+change's writing off the model the model map records. The hook cannot
+tell a first try from the retry, so it allows `sonnet` on either. A
+near-miss description (a short `#N` reference, a
 trailing word) is refused rather than let through, so a typo never runs
 a task on an inheriting agent type.
 

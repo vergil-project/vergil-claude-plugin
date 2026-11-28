@@ -328,7 +328,8 @@ scratch files that feed a tool's input (a `--body-file`, a
 Dispatch the writer with the Agent tool:
 
 - `subagent_type: "vergil:implementer"`, with no `model` on a first
-  dispatch, so its Haiku pin applies;
+  dispatch, so its Haiku pin applies (the `guard-task-dispatch` hook
+  refuses any `model` other than `"sonnet"` on this agent);
 - `description: "Write <owner>/<repo>#<N>"`, the issue being written,
   never a task-run form (`Task …` or `Batch …`);
 - a prompt holding:
@@ -373,7 +374,7 @@ of the writer, handled by the [escalation](#escalation). A fabricated
 
 A writer failure is a `stuck` result, or a `green` that fails the check.
 On the first, dispatch the writer once more as above, adding
-`model: "sonnet"`, and pass on the first attempt's `Tried:` line or what
+`model: "sonnet"` (exactly that, and no other model), and pass on the first attempt's `Tried:` line or what
 the check found (and the dirty state, if the tree is not clean). Each
 writer dispatch has one such budget, shared by both kinds of failure:
 the implementation, each merge-review fix and each CI fix get one each.

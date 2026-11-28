@@ -51,6 +51,19 @@ run() {
 	ERR=$(cat "$TMP/stderr")
 }
 
+# run_raw <cwd> <description> <subagent_type> <model-json> — as run, but
+# the model is spliced in as raw JSON (null, 5, true, an object…).
+run_raw() {
+	OUT=$( (cd "$1" && jq -cn --arg cwd "$1" --arg d "$2" --arg t "$3" --argjson m "$4" '{
+		session_id: "s", transcript_path: "/dev/null", cwd: $cwd,
+		permission_mode: "default", hook_event_name: "PreToolUse",
+		tool_name: "Agent",
+		tool_input: {description: $d, prompt: "Run the skill.", subagent_type: $t, model: $m}}' |
+		bash "$HOOK" 2>"$TMP/stderr"))
+	RC=$?
+	ERR=$(cat "$TMP/stderr")
+}
+
 verdict() {
 	if [ "$RC" -ne 0 ] || [ -n "$ERR" ]; then
 		echo error
@@ -180,6 +193,59 @@ test_task_runner_with_empty_model_allowed() {
 	expect "a task run as vergil:task-runner with an empty model is allowed" allow
 }
 
+test_writer_first_try_without_model_allowed() {
+	local d="Write vergil-project/vergil-claude-plugin#1467"
+	run "$MANAGED" "$d" vergil:implementer
+	expect "a writer first try with no model is allowed" allow
+	run "$MANAGED" "$d" vergil:implementer EMPTY
+	expect "a writer first try with an empty model is allowed" allow
+	run_raw "$MANAGED" "$d" vergil:implementer null
+	expect "a writer first try with a null model is allowed" allow
+}
+
+test_writer_retry_sonnet_allowed() {
+	run "$MANAGED" "Write vergil-project/vergil-claude-plugin#1467" vergil:implementer sonnet
+	expect "a writer retry with model sonnet is allowed" allow
+}
+
+test_writer_other_model_refused() {
+	local m d="Write vergil-project/vergil-claude-plugin#1467"
+	for m in haiku opus Sonnet "claude-sonnet-4-5" "sonnet " "inherit"; do
+		run "$MANAGED" "$d" vergil:implementer "$m"
+		expect "a writer dispatch with model '$m' is refused" deny \
+			'may be dispatched only with no model (a first try) or model "sonnet"'
+	done
+}
+
+test_writer_non_string_model_refused() {
+	local j d="Write vergil-project/vergil-claude-plugin#1467"
+	for j in 5 true false '{"name":"sonnet"}' '["sonnet"]'; do
+		run_raw "$MANAGED" "$d" vergil:implementer "$j"
+		expect "a writer dispatch with non-string model $j is refused" deny \
+			'may be dispatched only with no model (a first try) or model "sonnet"'
+	done
+}
+
+test_writer_model_rule_unmanaged_noop() {
+	run "$UNMANAGED" "Write vergil-project/vergil-claude-plugin#1467" vergil:implementer haiku
+	expect "a writer dispatch with model haiku outside a managed repo is allowed" allow
+}
+
+test_other_dispatches_unchanged() {
+	run "$MANAGED" "Explore the epic" general-purpose haiku
+	expect "a general-purpose helper with model haiku is allowed" allow
+	run "$MANAGED" "Review vergil-project/vergil-tooling#4931 (Task 6b)" vergil:merge-reviewer opus
+	expect "a reviewer with model opus is allowed" allow
+	run_raw "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" null
+	expect "a task run as vergil:task-runner with a null model is allowed" allow
+	run_raw "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" 5
+	expect "a task run as vergil:task-runner with a non-string model is refused" deny \
+		"must not be dispatched with a model"
+	run "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" vergil:implementer
+	expect "a task run as vergil:implementer is still refused as not task-runner" deny \
+		"must be dispatched as vergil:task-runner, not vergil:implementer"
+}
+
 test_unmanaged_repo_noop() {
 	run "$UNMANAGED" "Task 6b vergil-project/vergil-tooling#4931" general-purpose
 	expect "a task run as general-purpose outside a managed repo is allowed" allow
@@ -212,6 +278,12 @@ test_task_runner_with_model_refused
 test_task_runner_with_empty_model_allowed
 test_unmanaged_repo_noop
 test_pr_watch_reentry_form_allowed_as_task_runner
+test_writer_first_try_without_model_allowed
+test_writer_retry_sonnet_allowed
+test_writer_other_model_refused
+test_writer_non_string_model_refused
+test_writer_model_rule_unmanaged_noop
+test_other_dispatches_unchanged
 
 echo "----------------------------------------"
 echo "guard-task-dispatch: $pass passed, $fail failed, $((pass + fail)) total"
