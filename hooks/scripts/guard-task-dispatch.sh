@@ -15,7 +15,16 @@
 #     model: "sonnet"; any other per-invocation model would outrank the
 #     Haiku pin. A non-string model is refused too;
 #   - a description whose first word is Task or Batch, followed by a
-#     space, that matches none of the forms (a malformed task run).
+#     space, that matches none of the forms (a malformed task run);
+#   - a description that matches none of the forms but carries an
+#     issue reference (#<digits>), whatever its agent type, unless the
+#     agent is vergil:implementer or vergil:merge-reviewer. Sent to
+#     vergil:task-runner it would be a task run in the wrong wording,
+#     which escapes the guard and the agent row labels. Sent to any
+#     other agent (general-purpose, Explore, absent included) it is a
+#     helper naming an issue, which only the writer (Write <ref>) and
+#     merge-review steps may do. Such a description is refused; one with
+#     no #<digits> at all is not.
 # A description that only names a task among other words (a writer or
 # reviewer dispatch, say) is not a task run.
 #
@@ -32,6 +41,7 @@ source "$SCRIPT_DIR/lib/hook-input.sh"
 
 RUNNER="vergil:task-runner"
 WRITER="vergil:implementer"
+REVIEWER="vergil:merge-reviewer"
 WRITER_RETRY_MODEL="sonnet"
 
 hook_input_read gated
@@ -77,6 +87,7 @@ FORM_TASK_NO_ID='^Task [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+$'
 FORM_BATCH='^Batch [^ #][^ ]*( #[0-9]+)+$'
 FORM_BATCH_NO_ID='^Batch( #[0-9]+)+$'
 TASK_LIKE='^(Task|Batch)[ ]'
+ISSUE_REF='#[0-9]+'
 
 is_task_run=false
 if [[ "$description" =~ $FORM_TASK ]] || [[ "$description" =~ $FORM_TASK_NO_ID ]] ||
@@ -94,6 +105,15 @@ fi
 
 if [ "$is_task_run" = false ] && [[ "$description" =~ $TASK_LIKE ]]; then
   deny "description '$description' starts like a task run but matches none of the task-run forms; use one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
+fi
+
+if [ "$is_task_run" = false ] && [[ "$description" =~ $ISSUE_REF ]]; then
+  if [ "$subagent_type" = "$RUNNER" ]; then
+    deny "$RUNNER's description '$description' names an issue but matches none of the task-run forms; a task run's description must be one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
+  fi
+  if [ "$subagent_type" != "$WRITER" ] && [ "$subagent_type" != "$REVIEWER" ]; then
+    deny "description '$description' names an issue, which is reserved for task runs (as $RUNNER, in one of the task-run forms), the writer ($WRITER, Write <ref>) and merge-review steps ($REVIEWER); a helper's description must not carry an issue reference"
+  fi
 fi
 
 if [ "$subagent_type" = "$RUNNER" ] && [ -n "$model" ]; then
