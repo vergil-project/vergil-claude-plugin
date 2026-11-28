@@ -382,16 +382,18 @@ The hook denies the call when:
   escalation retry passes `model: "sonnet"`;
 - its `description` starts with `Task` or `Batch` and a space but
   matches none of the four forms, whatever its `subagent_type`;
-- its `description` matches none of the four forms but carries a bare
-  issue reference (`#<digits>` anywhere in it), and its `subagent_type`
-  is `vergil:task-runner`: a task run in a wording outside the forms
-  would escape the guard and the agent row labels;
+- its `subagent_type` is `vergil:task-runner` and its `description`
+  matches none of the four forms, whatever else it contains: the runner
+  exists only for task runs, and a task run in a wording outside the
+  forms would escape the guard and the agent row labels. This holds
+  with or without an issue reference;
 - its `description` matches none of the four forms but carries a full
   issue reference (`<owner>/<repo>#<digits>` anywhere in it), and its
   `subagent_type` is `general-purpose` or absent (an empty one
   included): an agent that could run a task on the session's model.
 
-Any other off-form description passes. So a helper may name an issue by
+For any agent type other than `vergil:task-runner`, a further off-form
+description passes. So a helper may name an issue by
 its bare `#<digits>` whatever its agent type (`Investigate #1234` to an
 `Explore` helper, or `Check the #333 colour` to `general-purpose`), and
 by its full reference to any agent type except `general-purpose` or an
@@ -400,8 +402,10 @@ unset one (`Plan vergil-project/vergil-claude-plugin#1472` to a
 (`vergil:implementer`) or merge-review (`vergil:merge-reviewer`)
 dispatch passes on the same terms.
 
-A description with no `#<digits>` at all is not refused on this
-account, so `Search the hooks for guards` to a helper is allowed.
+For a helper, a description with no `#<digits>` at all is not refused on
+this account, so `Search the hooks for guards` to a helper is allowed. To
+`vergil:task-runner` the same description is refused, since the runner
+takes only the four forms.
 
 A description that only names a task among other words, such as
 `Write vergil-project/vergil-tooling#4931 (Task 6b)` for a writer
@@ -420,12 +424,14 @@ tell a first try from the retry, so it allows `sonnet` on either. A
 near-miss description (a short `#N` reference, a
 trailing word) is refused rather than let through, so a typo never runs
 a task on an inheriting agent type. A task run in a wording outside the
-forms (`Fixture change python-app#88`, say) names an issue, so it is
-refused as a runner dispatch, which refuses any issue reference in an
-off-form description. A full reference in such a wording (`Fixture change
+forms (`Fixture change`, say) is refused as a runner dispatch, since the
+runner takes only task runs, whether or not the description names an
+issue ([vergil-project/vergil-claude-plugin#1473](https://github.com/vergil-project/vergil-claude-plugin/issues/1473)).
+A full reference in such a wording (`Fixture change
 vergil-project/vergil-fixture-python-lib#88`) is refused for a
 `general-purpose` or unset dispatch too, since that agent could run it.
-The forms are the only wording for a task run. The rule was narrowed in
+The forms are the only wording for a task run. The issue-reference rule
+for other agents was narrowed in
 [vergil-project/vergil-claude-plugin#1472](https://github.com/vergil-project/vergil-claude-plugin/issues/1472)
 so that a helper's description naming an issue is not refused.
 

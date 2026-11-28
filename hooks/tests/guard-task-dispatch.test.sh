@@ -184,7 +184,7 @@ test_task_runner_with_model_refused() {
 	run "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" opus
 	expect "a task run as vergil:task-runner with a model is refused" deny \
 		"vergil:task-runner must not be dispatched with a model; its pin is in the agent definition"
-	run "$MANAGED" "Explore the epic" "$RUNNER" haiku
+	run "$MANAGED" "Batch #5012 #5013" "$RUNNER" haiku
 	expect "any vergil:task-runner dispatch with a model is refused" deny "must not be dispatched with a model"
 }
 
@@ -270,7 +270,7 @@ test_off_form_issue_ref_refused_as_task_runner() {
 	# must not pass the guard as vergil:task-runner (the row labels miss it).
 	run "$MANAGED" "Implement vergil-claude-plugin#1409" "$RUNNER"
 	expect "'Implement vergil-claude-plugin#1409' as vergil:task-runner is refused" deny \
-		"names an issue but matches none of the task-run forms"
+		"matches none of the task-run forms"
 	run "$MANAGED" "Fixture change python-app#88" "$RUNNER"
 	expect "'Fixture change python-app#88' as vergil:task-runner is refused" deny \
 		"must be one of: Task <id> <owner>/<repo>#<N>"
@@ -279,6 +279,43 @@ test_off_form_issue_ref_refused_as_task_runner() {
 		"matches none of the task-run forms"
 	run "$MANAGED" "Fixture change python-app#88" "$RUNNER" haiku
 	expect "an off-form task-runner dispatch with a model is refused" deny "matches none of the task-run forms"
+}
+
+test_off_form_without_issue_ref_refused_as_task_runner() {
+	# #1473: the runner takes only task runs, so an off-form description with
+	# no issue reference at all is refused too.
+	local d
+	for d in "Fixture change" "Implement the plugin task" "Explore the epic" "Tasks overview" "Run Task 6b checks"; do
+		run "$MANAGED" "$d" "$RUNNER"
+		expect "'$d' as vergil:task-runner is refused" deny "matches none of the task-run forms"
+	done
+	run "$MANAGED" "" "$RUNNER"
+	expect "an empty description as vergil:task-runner is refused" deny "matches none of the task-run forms"
+	run "$MANAGED" "   " "$RUNNER"
+	expect "a blank description as vergil:task-runner is refused" deny "matches none of the task-run forms"
+	run "$MANAGED" "Fixture change" "$RUNNER" haiku
+	expect "'Fixture change' as vergil:task-runner with a model is refused" deny "matches none of the task-run forms"
+	run "$MANAGED" "Fixture change" "$RUNNER" EMPTY
+	expect "'Fixture change' as vergil:task-runner with an empty model is refused" deny \
+		"matches none of the task-run forms"
+	run "$MANAGED" "Task overview" "$RUNNER"
+	expect "a Task-like description without a form as vergil:task-runner is refused" deny \
+		"starts like a task run but matches none of the task-run forms"
+}
+
+test_off_form_without_issue_ref_still_allowed_for_helpers() {
+	# #1473 narrows only the runner: the same descriptions pass for other agents.
+	local d t
+	for d in "Fixture change" "Implement the plugin task" "Explore the epic" ""; do
+		run "$MANAGED" "$d" general-purpose
+		expect "'$d' as general-purpose is allowed" allow
+		run "$MANAGED" "$d" vergil:implementer
+		expect "'$d' as vergil:implementer is allowed" allow
+		for t in Explore paad:paad-delegate vergil:merge-reviewer; do
+			run "$MANAGED" "$d" "$t"
+			expect "'$d' as $t is allowed" allow
+		done
+	done
 }
 
 test_full_ref_off_form_refused_for_task_capable_helpers() {
@@ -306,7 +343,7 @@ test_full_ref_off_form_refused_for_task_capable_helpers() {
 test_full_ref_off_form_refused_as_task_runner() {
 	run "$MANAGED" "Fixture change vergil-project/vergil-fixture-python-lib#88" "$RUNNER"
 	expect "a full-ref off-form description as vergil:task-runner is refused" deny \
-		"names an issue but matches none of the task-run forms"
+		"matches none of the task-run forms"
 }
 
 test_full_ref_helpers_of_other_types_allowed() {
@@ -358,11 +395,11 @@ test_paad_helpers_naming_planning_issue_allowed() {
 }
 
 test_bare_issue_ref_to_task_runner_still_refused() {
-	# The runner keeps #1468's rule: any issue reference in an off-form
-	# description is refused, bare or full.
+	# The runner refuses any off-form description (#1473), bare or full
+	# issue reference or none.
 	run "$MANAGED" "Implement #1234" "$RUNNER"
 	expect "'Implement #1234' as vergil:task-runner is refused" deny \
-		"names an issue but matches none of the task-run forms"
+		"matches none of the task-run forms"
 }
 
 test_issue_ref_writer_and_reviewer_allowed() {
@@ -386,12 +423,15 @@ test_no_issue_ref_not_widened() {
 	run "$MANAGED" "Check the # sign handling" general-purpose
 	expect "a description with a bare # and no digits is allowed" allow
 	run "$MANAGED" "Explore the epic" "$RUNNER"
-	expect "a non-form description with no #N as vergil:task-runner is allowed" allow
+	expect "a non-form description with no #N as vergil:task-runner is refused" deny \
+		"matches none of the task-run forms"
 }
 
 test_each_form_refused_as_general_purpose
 test_each_form_allowed_as_task_runner
 test_off_form_issue_ref_refused_as_task_runner
+test_off_form_without_issue_ref_refused_as_task_runner
+test_off_form_without_issue_ref_still_allowed_for_helpers
 test_full_ref_off_form_refused_for_task_capable_helpers
 test_full_ref_off_form_refused_as_task_runner
 test_full_ref_helpers_of_other_types_allowed
