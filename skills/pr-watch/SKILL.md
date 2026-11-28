@@ -93,6 +93,7 @@ and are refused. A new review or a new commit never ends the wait.
   | --- | --- | --- |
   | 0 | The PR merged, during the wait or before it started. | Go to [The PR merged](#the-pr-merged). |
   | 1 | The PR cannot merge as it stands. | Act on the JSON's `reason`, as [Cannot merge](#cannot-merge--what-to-do-for-each-reason) says. |
+  | 6 | A release holds the lock and the PR is still held at the deadline. Not a failure. | Report the release it names (version and stage) and re-run the same `vrg-pr-await <PR_URL>`. Never arm auto-merge by hand. |
   | anything else | A tool error: bad arguments or configuration, a GitHub API, permission or token failure, or a PR state it could not read. | Show the human its stderr and stop. Push nothing. |
 
 - **On exit 0 or 1 it prints one JSON object** on stdout: `pr`, `outcome`
@@ -145,10 +146,10 @@ changes the branch's tracked files.)
    - A base other than `develop`, or a `release/*` head: stop and tell the
      human. Submit opens PRs against `develop` only, and a release goes
      through `vrg-release`, not this skill.
-   - `OPEN` with `autoMergeRequest` null: auto-merge is off, which is an
-     exception. Stop at once, as
-     [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop)
-     says.
+   - `OPEN` with `autoMergeRequest` null: the PR is unarmed. A release
+     lock holds PRs unarmed, and the watch re-arms them through the one
+     PR path itself, so this is not an exception. Go on to the wait and
+     never arm auto-merge by hand.
 3. **Find the task issues.** The body's `Closes` lines name them. One line
    makes a single-issue PR, whose task issue is that ref. More than one
    makes a **batch PR**: see [Batch PRs](#batch-prs--fold-every-fix-into-its-issues-commit).
@@ -180,8 +181,11 @@ Loop:
 
 3. **Act on its exit.** Exit 0 goes to [The PR merged](#the-pr-merged).
    Exit 1 goes to the action for its `reason` in
-   [Cannot merge](#cannot-merge--what-to-do-for-each-reason). Any other
-   exit is an error: show it to the human and stop.
+   [Cannot merge](#cannot-merge--what-to-do-for-each-reason). Exit 6 means
+   a release holds the lock: report the release it names, as the exit 6
+   row of [`vrg-pr-await` waits for the merge](#vrg-pr-await-waits-for-the-merge--one-wait-per-pass-dont-poll)
+   says, and re-run the same wait, looping from step 2. It is never a
+   tool error. Any other exit is an error: show it to the human and stop.
 4. Once a fix is pushed, the rerun of `vrg-finalize-pr`
    ([Before every push](#before-every-push) step 5) is the next wait, in
    place of `vrg-pr-await`; act on its exit as that step says, then
@@ -209,7 +213,7 @@ replaced, within a two-minute grace period, ends as `check_cancelled`.
 | `check_failed` | Fix the checks `failed_checks` names, as a CI fix in [Kinds of fix](#kinds-of-fix). Push through [Before every push](#before-every-push) and loop. |
 | `check_cancelled` | The checks `failed_checks` names were cancelled, and no newer run replaced them, so there is no failure to fix. Re-run them, the repo's documented way if it has one, otherwise with `vrg-gh run list --commit <head_sha> --status cancelled` and `vrg-gh run rerun <run-id> --failed` for each run behind a named check. Change no code and push nothing, then loop. |
 | `conflict` | Rebase onto `origin/develop`, as [Kinds of fix](#kinds-of-fix) says: a clean rebase is routine, a resolved conflict is merge-reviewed. Push through [Before every push](#before-every-push) and loop. |
-| `auto_merge_off` | Stop at once: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
+| `refused` | Stop and tell the human, naming the reason the one PR path gave for refusing to re-arm the PR. Push nothing, and never arm auto-merge by hand. |
 | `closed` | Stop and tell the human. Never reopen it. |
 | `orphaned_check` | Stop and tell the human, naming the `orphaned_checks`. They stayed pending after their workflow runs completed and will never conclude, so the PR cannot merge. Recovery is the human's: re-run the stuck job, or close and reopen the PR to re-run the gate. Push nothing. |
 | `timed_out` | After a short wait whose waits together have not yet reached the normal deadline (7200s, or the `$VRG_FINALIZE_DEADLINE` the session already had), loop from step 1 with another short wait. Otherwise stop and tell the human that `$VRG_FINALIZE_DEADLINE` passed with the PR still pending. Auto-merge is still on, so it may land by itself; the human decides whether to watch it again. Push nothing. |
@@ -349,8 +353,10 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    could not complete). Never retry with other flags, and never work
    around it with `vrg-git push`.
 5. **Rerun `vrg-finalize-pr <PR>` yourself**, never with `--release`. It
-   watches the fixed head, re-running the merge-review gate on it, and,
-   once the PR lands, counts it as merged and settles `develop`. Wait for
+   watches the fixed head until the PR lands, then counts it as merged
+   and settles `develop`. The merge-review judgment of the fixed head is
+   made by the push itself (`vrg-submit-pr --push`, step 4), not by this
+   rerun, which only waits and counts. Wait for
    it as for `vrg-pr-await`: a background command where the harness
    notifies on its exit, otherwise in the foreground with a short
    `$VRG_FINALIZE_DEADLINE`. Act on its exit:
@@ -360,6 +366,7 @@ one can merge unreviewed or unchecked code, because auto-merge stays on.
    | 0 | Go to [The PR merged](#the-pr-merged); finalize has counted it. |
    | 3 | Act on the PR's reason in its report, as [Finalize's reasons](#finalizes-reasons--what-to-do-for-each) says, then loop. |
    | 4 | `develop` did not validate. Stop and tell the human, with the output. Push nothing. |
+   | 6 | A release holds the lock and the PR is still held at the deadline. Not a failure: report the release it names (version and stage) and re-run `vrg-finalize-pr <PR>`. Never arm auto-merge by hand. |
    | anything else | A tool error: show it to the human and stop. Push nothing. |
 
 ## Batch PRs — fold every fix into its issue's commit
@@ -440,25 +447,15 @@ itself.
 | `failed: cancelled` | A required check was cancelled and no newer run replaced it. Re-run its cancelled checks, as the `check_cancelled` row of [Cannot merge](#cannot-merge--what-to-do-for-each-reason) says. Change no code and push nothing, then wait again through [Monitor & reconcile](#monitor--reconcile). |
 | `failed: conflict` | Rebase onto `origin/develop`: a clean rebase is routine; a resolved conflict is merge-reviewed. Then push through [Before every push](#before-every-push). |
 | `timed out` | The batch deadline passed with the PR still pending. Run [Monitor & reconcile](#monitor--reconcile): `vrg-pr-await` waits for it to merge or names why it cannot, and it may still land by itself. |
-| `failed: auto-merge off` | Stop: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
-| `failed: provenance` | Stop: see [Auto-merge off](#auto-merge-off-or-a-provenance-violation--stop). |
-| `failed: gates` | Stop and tell the human, naming the PR and its head. The gates' re-check found no merge-review record or approved exemption covering the head and turned auto-merge off: the PR needs its merge review or the human's exemption. Push nothing, and never turn auto-merge back on yourself. |
+| `failed: refused (<reason>)` | Stop and tell the human, naming the reason the one PR path gave for refusing to re-arm the PR. Push nothing, and never arm auto-merge by hand. |
 | `failed: closed` | Stop and tell the human. Never reopen it. |
 | `failed: not a develop PR` | Stop and tell the human. Finalize does not watch it, and neither does this skill. |
+| `held by release <version> (stage <stage>, ...)` | Not a failure. A release holds the lock: report the release it names, then re-run `vrg-finalize-pr <PR>` (the same watch). Never arm auto-merge by hand. |
 | merged, with a provenance violation flagged | Nothing to fix on the branch. Tell the human, who investigates it; push nothing. |
 
 After any fix is pushed, you rerun `vrg-finalize-pr <PR>`
 ([Before every push](#before-every-push) step 5), which counts the PR as
 merged once it lands.
-
-### Auto-merge off or a provenance violation — stop
-
-Auto-merge off on an open PR is an exception, never repaired here. The one
-time our tooling turns it off on purpose is a provenance violation, which
-is a stop-everything event for the human to investigate. Any other off is
-an exception too. Either way: **stop at once**, push nothing, and tell the
-human loudly, naming the PR and its head. Never turn auto-merge on or off
-yourself, and never merge the PR.
 
 ## The PR merged
 
@@ -503,5 +500,11 @@ never a mutation of the merged branch.
   with `--release`, since releases and promotion stay the human's.
   Repositories also let the automation App's mechanized PRs merge on CI
   alone; that path is not this skill's.
+- **A release hold is not a failure.** While a release holds the lock, the
+  watch shows the PR as `held by release <version> (stage <stage>, ...)`,
+  and `vrg-pr-await`, `vrg-finalize-pr` and `vrg-submit-pr` exit 6 at the
+  deadline. On exit 6, report the release it names and re-run the same
+  watch command; never turn auto-merge on by hand, and never treat the
+  exit as a failure. The watch re-arms an unarmed PR itself.
 - **Every push can merge.** That is why a fix other than a clean rebase is
   merge-reviewed first, and why a batch PR is checked before every push.

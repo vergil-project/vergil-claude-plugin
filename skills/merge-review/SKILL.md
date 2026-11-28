@@ -268,24 +268,43 @@ vrg-pr-workflow batch-show --issue '<ref>'
 - **Exit 0:** the task is in a batch. Read the ordered issue list and the
   `base_sha` it prints, and find two commits on the branch:
   - **The previous issue's commit.** For the first issue in the list it is
-    `base_sha` itself. For a later issue it is the one commit in
-    `base_sha..HEAD` whose subject ends in a space and `(#<P>)`, `<P>` being
-    the issue just before `<ref>` in the list. That issue is already
-    folded, so there is exactly one.
+    `base_sha` itself, until the branch has been rebased onto
+    `origin/develop` (a
+    [clean rebase before handoff](../issue-implement/SKILL.md#a-clean-rebase-before-handoff)):
+    then it is the parent of the issue's own commit, the one commit in
+    `origin/develop..HEAD` whose subject ends in a space and `(#<N>)` and
+    does not start with `fixup!`, since `base_sha` is no longer on the
+    branch. For a later issue it is the one commit in `base_sha..HEAD`
+    (`origin/develop..HEAD` after such a rebase) whose subject ends in a
+    space and `(#<P>)`, `<P>` being the issue just before `<ref>` in the
+    list. That issue is already folded, so there is exactly one.
   - **The issue's first commit:** the oldest commit in
     `<previous issue's commit>..HEAD`. Its subject must end in a space and
     `(#<N>)` for `<ref>`, and must not start with `fixup!`.
 
   `<base>` is the previous issue's commit as a full SHA, never a moving
-  `origin/develop`: a batch does not rebase before handoff, so a moved
-  `develop` would put other work in the diff. The review and every check
-  use this same `<base>`. Every commit the run makes for the issue (a fix,
-  a revert, a fix that gets back to green) is
-  `vrg-commit --fixup <the issue's first commit>`, never a plain
-  `vrg-commit`, so the issue still folds to one commit. The run never folds
+  `origin/develop`: a moved `develop` would put other work in the diff.
+  Read it afresh on every start and resume, since a fold or a clean rebase
+  changes the SHAs. The review and every check use this same `<base>`.
+  The issue's record covers its own commit alone (its first commit with
+  its fixups, whichever commits come after it), so the run **may review
+  issue `<ref>` while later issues' commits sit on the branch**, as it does
+  when a fix has been folded into `<ref>`'s commit and `issue-implement`
+  has the issue and every later one reviewed again.
+  Every commit the run makes for the issue (a fix, a revert, a fix that
+  gets back to green) is `vrg-commit --fixup <the issue's first commit>`,
+  never a plain `vrg-commit`, so the issue still folds to one commit; its
+  fixups are folded into the issue's own commit only, never into another
+  issue's. With no later issue's commit on the branch the run never folds
   (`vrg-git rebase -i --autosquash`): `issue-implement` folds once the run
-  has ended `eligible` or `not-eligible`, so each step's judged `HEAD` stays
-  on the branch and no fix base is rewritten.
+  has ended `eligible` or `not-eligible`, so each step's judged `HEAD`
+  stays on the branch and no fix base is rewritten. With later issues'
+  commits on the branch, a fixup would sit after them, and the tooling
+  refuses a fixup with another commit between it and its commit; so
+  `issue-implement` folds the fix at once, onto the previous issue's
+  commit (its rebase, a conflict aborting it into an `error`). The fold
+  moves `HEAD`, so the check that follows stops with `B1` and the human
+  rules a fresh review of the new `HEAD`.
 - **Any other exit,** `<ref>` missing from the printed list, no single
   previous issue's commit, or a first commit that does not carry `<ref>`:
   an `error`. Show the human the output and stop. Never fall back to

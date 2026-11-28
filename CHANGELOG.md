@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.100] - 2026-11-28
+
+### Chores
+
+- sync the managed files with the released templates (#1459)
+
+### Documentation
+
+- re-run the watch on held by release (#1457)
+- re-review after a batch rewrite and a clean rebase before handoff (#1458)
+
 ## [2.1.99] - 2026-11-27
 
 ### Documentation
