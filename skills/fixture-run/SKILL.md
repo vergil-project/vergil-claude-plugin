@@ -294,6 +294,11 @@ Each successful call prints `Created <url>, linked under epic <slug>.`; take
 the issue number from that URL. (r)'s body names (a), and (b)'s names (a) and
 (r), so each is written once the refs it names are known.
 
+`epic-implement` dispatches the three tasks in the task-run `description`
+forms its "Name the task in the Agent `description`" section sets out; a
+free-form wording such as `Fixture change <repo>#N` is refused by the dispatch
+hook.
+
 Then post one comment on each of the three tasks naming the whole trio, so
 every task can find the others:
 

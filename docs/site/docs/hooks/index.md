@@ -381,7 +381,21 @@ The hook denies the call when:
   non-string included. A writer's first try passes no `model`; its one
   escalation retry passes `model: "sonnet"`;
 - its `description` starts with `Task` or `Batch` and a space but
-  matches none of the four forms, whatever its `subagent_type`.
+  matches none of the four forms, whatever its `subagent_type`;
+- its `description` matches none of the four forms but names an issue
+  (`#<digits>` anywhere in it), and its `subagent_type` is
+  `vergil:task-runner`: a task run in a wording outside the forms
+  would escape the guard and the agent row labels;
+- its `description` matches none of the four forms but names an issue,
+  and its `subagent_type` is anything other than `vergil:task-runner`,
+  `vergil:implementer` or `vergil:merge-reviewer` (an absent or empty
+  one included). A description naming an issue is reserved for task
+  runs (in the four forms, as `vergil:task-runner`), for the writer
+  (`Write <ref>`) and for merge-review steps; a helper's description
+  must not carry an issue reference.
+
+A description with no `#<digits>` at all is not refused on this
+account, so `Search the hooks for guards` to a helper is allowed.
 
 A description that only names a task among other words, such as
 `Write vergil-project/vergil-tooling#4931 (Task 6b)` for a writer
@@ -399,7 +413,10 @@ change's writing off the model the model map records. The hook cannot
 tell a first try from the retry, so it allows `sonnet` on either. A
 near-miss description (a short `#N` reference, a
 trailing word) is refused rather than let through, so a typo never runs
-a task on an inheriting agent type.
+a task on an inheriting agent type. A task run in a wording outside the
+forms (`Fixture change python-app#88`, say) names an issue, so it is
+refused too, as a runner dispatch and as any helper's; the forms are the
+only wording for a task run.
 
 **Alternative.** Dispatch the task run with
 `subagent_type: "vergil:task-runner"`, no `model`, and a `description`
@@ -573,6 +590,10 @@ another form (`D2`, `doc-review`) is labelled by its issue alone. In a
 `Batch` description the mod reads the IDs only up to the first that
 does not fit (`Batch 6/D2` is read as `Batch 6`), so `epic-implement`
 gives a batch the form with no ID when any member's ID does not fit.
+A fixture run's change, release and validation tasks take these forms
+too, so no task run goes out in a free-form wording such as
+`Fixture change <repo>#N`; the [`guard-task-dispatch`](#guard-task-dispatch)
+hook refuses one that does.
 
 `AgentRow` needs Claude Code v2.1.326 or later. An older version
 loads the module but never raises the site, so rows stay as they

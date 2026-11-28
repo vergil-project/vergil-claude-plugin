@@ -198,6 +198,13 @@ no ID when any member has no ID or an ID of another form: from
 not fit (`Batch 6`), so the label would name some members' tasks and not
 others.
 
+A fixture run's change, release and validation tasks take the same forms,
+with the ID the first word of their `Plan task:` key (`Plan task: 7 python-lib`
+gives `Task 7 vergil-project/vergil-fixture-python-lib#88`). A free-form
+wording such as `Implement <repo>#N` or `Fixture change <repo>#N` is never
+used, and a retry or re-dispatch takes the same form exactly, with no
+` (retry)` suffix.
+
 **Batching ready tasks.** You may batch independent ready code tasks of one
 repo into one `issue-implement` run, on your own judgment, under the
 guidelines in `issue-implement`'s
