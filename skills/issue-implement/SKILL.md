@@ -290,6 +290,17 @@ and re-running; **never** suppress a gate. Then
 failed check is the writer's failure, handled by its
 [escalation](#escalation); you never patch it yourself.
 
+The writer's dispatch is the first action on the task's tracked files. The
+driver makes no Edit, Write, `sed -i`, redirect or other write to a tracked
+file of the worktree itself, however small the change looks: a one-line,
+docs-only or test-only change included. A change the driver writes runs on
+the driver's model rather than Haiku, which undoes the epic's purpose. The
+only exceptions are the two stated in [The rule](#the-rule), each under the
+[driver-work marker](#resume). If the driver finds it has already changed a
+tracked file outside an exception, it discards that uncommitted change
+(`vrg-git restore` or `vrg-git checkout` of those paths) and dispatches the
+writer for it; it never commits it.
+
 ## The writer
 
 Every change to a task's tracked files is written by
@@ -365,10 +376,30 @@ Check the result before anything else reads it, merge review included:
    a space and `(#<N>)`, then only `fixup!` commits of it.
 4. **Your own validate is green:** `vrg-container-run -- vrg-validate`,
    run by you at `HEAD`, exits 0.
+5. **Every commit is the writer's or an exception's:** once checks 1 to 4
+   pass, the driver appends the writer lines to the task's
+   [writer-commits ledger](#the-writer-commits-ledger). Then every commit
+   in `<base>..HEAD` must be accounted for by a line of that ledger,
+   matched by subject, not SHA, since a fold or rebase rewrites SHAs (a
+   `fixup!` commit matches by its own subject). A `writer` line accounts
+   for a commit the writer's `Commits:` line names. A `security-fix` or
+   `rebase` line accounts for a commit the driver made under the
+   [driver-work marker](#resume) for one of the two exceptions (a security
+   item's fix, or a stopped rebase's conflict resolution). The ledger is
+   read afresh on every run, so a resumed run, a resumed batch and a
+   re-dispatched run account for earlier commits from it. A commit absent
+   from the ledger is never trusted, including one made before the resume
+   point. A driver-authored uncommitted change already fails check 2. A
+   commit that matches no line is a change the driver wrote outside the
+   writer: it is never accepted silently and never reaches merge review.
+   The run stops for the human, as a problem the driver cannot resolve,
+   naming the commit; the human rules on it, and the deviation is listed in
+   the final report.
 
-You never patch a failed check, not even a one-line fix: it is a failure
-of the writer, handled by the [escalation](#escalation). A fabricated
-`green` never reaches merge review.
+You never patch a failed check 1 to 4, not even a one-line fix: it is a
+failure of the writer, handled by the [escalation](#escalation). A failed
+check 5 is no writer failure: it stops the run for the human, as check 5
+says. A fabricated `green` never reaches merge review.
 
 ### Escalation
 
@@ -427,6 +458,58 @@ The sort, in the task's worktree:
 
 The marker alone decides that a dirty tree is yours: never a pending
 security details file, the files touched, or any other inference.
+
+The sort does not rebuild the
+[writer-commits ledger](#the-writer-commits-ledger). A resumed run reads
+that file as it stands, in its check 5, and never reconstructs a line
+from the branch's commits or from an earlier result block: a commit the
+file does not name is not accepted.
+
+### The writer-commits ledger
+
+The driver keeps one record of the commits it accepts for a task, the
+**writer-commits ledger**, in the task's state directory in the main
+clone, `build/.vergil-state/issue-implement/<N>/writer-commits`. Find the
+main clone from inside a worktree with
+`dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)"`.
+The driver creates and writes it under the directory checks of
+[doctrine §1.5](../../docs/paad-review-doctrine.md#15-state-directories)
+(the `issue-implement` row), before each write.
+
+Each line records one commit, tab separated:
+
+```text
+<kind>	<sha>	<subject>
+```
+
+The kind is `writer`, `security-fix` or `rebase`. Check 5 matches the
+subject; the SHA is kept for the record and never matched. Lines are only
+appended. A fold or rebase that rewrites a commit leaves its line as it
+is.
+
+The driver writes the lines, and nothing else does:
+
+- **`writer`:** one line for every commit the writer's `Commits:` line
+  names, appended once checks 1 to 4 pass, never before. A `stuck` result
+  or a failed check writes no line.
+- **`security-fix` or `rebase`:** one line for each commit the driver
+  makes under the [driver-work marker](#resume), appended when it commits.
+  A rebase that rewrites commits adds no line, since its commits keep
+  their subjects.
+
+In a batch, each issue's commits go to that issue's own ledger, and its
+check 5 reads that ledger against its fold base. A writer line for a fix
+to a finished issue's commit goes to the ledger of that issue, the one
+whose `(#<N>)` subject the commit fixes.
+
+Every run reads the ledger afresh: a resumed run, a resumed batch and a
+re-dispatched run all check their commits against it. A commit in the
+range that no line names, or a missing file, stops the run for the human.
+The ledger outlives `report-ready`, because pr-watch checks the fixes it
+makes after submit against it. It goes once the PR has merged, as
+[Submit and watch to the merge](#submit-and-watch-to-the-merge) says.
+`batch-extract` removes an extracted issue's directory, ledger included,
+since its commits are discarded.
 
 ### The writer's notes
 
@@ -619,6 +702,10 @@ clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
 `build/.vergil-state/issue-implement/<N>/merge-review/` in the main clone,
 by hand while a run is open.
 
+The driver runs the writer-result check, commit accounting included, at that
+`HEAD` before it invokes this skill, so a commit the driver wrote outside the
+writer's exceptions stops the run before review.
+
 Merge review runs on every PR. The skills that hand off a docs PR of their
 own (`epic-create`'s spec-and-plan PR, `epic-retrospective`'s PR and
 `hoshin`'s logbook PR) follow this section too, on that PR's task: the
@@ -703,9 +790,15 @@ rm -r -- "$main/build/.vergil-state/issue-implement/<N>/merge-review"
 rmdir -- "$main/build/.vergil-state/issue-implement/<N>"   # only if `ls -A` shows it empty
 ```
 
+The task's [writer-commits ledger](#the-writer-commits-ledger) stays: the
+cleanup never deletes it, since pr-watch checks the fixes it makes after
+submit against it. So the `rmdir` is skipped as non-empty, which is
+expected. The ledger goes once the PR has merged.
+
 The skill refused to hand off while any security details still await a
 record, so nothing private is lost. If a deletion fails, tell the human;
-the handoff stands. From here on nothing expects the directory: re-running
+the handoff stands. From here on nothing expects the `merge-review/`
+directory: re-running
 `report-ready` to fix the prose takes the eligibility line from the
 closing comment on the issue, and an exemption line from its request's
 ID on the issue.
@@ -770,6 +863,22 @@ Act on its exit status:
 | 4 | `develop` did not validate after the settle. Stop and tell the human, with the output. |
 | 6 | Held by release: a release holds the lock and the PR is still held at the deadline. Not a failure. Report the release it names (version and stage), then re-run the same watch, `vrg-finalize-pr <PR>` on the PR (it is open), never with `--release`, and never turn auto-merge on by hand. Repeat until it exits 0, 3 or 4, then act as those rows say. |
 | 1, or any other | A refusal or a tool error. Show its output and stop; never retry with other flags. |
+
+**Once the PR has merged** (exit 0, or a merge that `pr-watch` reports
+under exit 3), delete the task's writer-commits ledger, then its
+`issue-implement/<N>/` directory if it is then empty, from the main clone.
+A batch PR does this for each member issue. The ledger is the one file the
+task still holds at this point, since `report-ready` removed the
+merge-review directory:
+
+```bash
+main=$(dirname "$(vrg-git rev-parse --path-format=absolute --git-common-dir)")
+rm -- "$main/build/.vergil-state/issue-implement/<N>/writer-commits"
+rmdir -- "$main/build/.vergil-state/issue-implement/<N>"   # only if `ls -A` shows it empty
+```
+
+If a deletion fails, tell the human; the merge stands. A PR that never
+merges keeps its ledger, for the human's next run of the watch.
 
 Find the PR's URL with `vrg-gh pr list --repo <owner>/<repo> --head
 <branch> --state all --json url,state`. `pr-watch` holds the one watch
@@ -1304,7 +1413,9 @@ is pushed, records the ordered list, and removes the batch markers. The
 gave it, prefixed with its ref (`#<N>: Merge review: done: …`), then the
 rest as for a single issue. Then delete each issue's `merge-review/`
 directory, and its `issue-implement/<N>/` if then empty, as
-[Record the PR metadata](#record-the-pr-metadata-and-hand-off) says. The
+[Record the PR metadata](#record-the-pr-metadata-and-hand-off) says: each
+issue keeps its `writer-commits` ledger there, so its `rmdir` is skipped
+until the merge. The
 freeze, the push outcomes, the submit and the watch are as for a
 single issue, except that the batch PR rebase-merges through auto-merge,
 so each issue's commit lands on `develop` as it is.

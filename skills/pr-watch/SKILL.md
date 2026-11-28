@@ -55,6 +55,18 @@ Forward the input to every merge-review run this skill starts
   and a batch fold included, `security-fix` before a security fix), and
   remove it once the rebase has finished or been aborted, or the fix is
   committed.
+  After the writer's fix result passes
+  [checks 1 to 4](../issue-implement/SKILL.md#check-the-writers-result),
+  the driver appends a `writer` line for each commit it names to the
+  [writer-commits ledger](../issue-implement/SKILL.md#the-writer-commits-ledger)
+  of the issue the fix is for (on a single-issue PR, its one `Closes`
+  issue; on a batch PR, the issue whose commit the fix changes). It then
+  runs check 5 over `origin/develop..HEAD`, before the fix is
+  merge-reviewed or pushed. On a batch PR, check 5 matches against the
+  ledgers of all the PR's issues. A commit it cannot account for stops the
+  run for the human, as issue-implement says. A commit the driver made
+  under the marker (`rebase` or `security-fix`) gets its line as that
+  section says.
 - **Without a writer,** you make every fix in this session, as below.
 
 ## `vrg-pr-await` waits for the merge — one wait per pass, don't poll
@@ -469,8 +481,10 @@ finalize run has counted the merge (it merged during a `vrg-pr-await`
 wait), run
 `vrg-finalize-pr <PR>` yourself, never with `--release`, so it counts the
 PR and settles `develop`, and act on its exit as
-[Before every push](#before-every-push) step 5 says. Then tell the human
-it merged.
+[Before every push](#before-every-push) step 5 says. Once the merge is
+counted, the PR's `writer-commits` ledger goes (each member issue's, for a
+batch), as [issue-implement](../issue-implement/SKILL.md#submit-and-watch-to-the-merge)
+says. Then tell the human it merged.
 
 ## Why pushing here is allowed (the freeze lifts at submit)
 

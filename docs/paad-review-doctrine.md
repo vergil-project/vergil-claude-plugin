@@ -192,7 +192,7 @@ the `build/` of a repo's main clone, never in the reviewer's worktree:
 | Kind | Path, in the main clone of | Used by |
 |---|---|---|
 | `design-review` | `build/.vergil-state/design-review/<M>/<round>/`, the docs repo, `<M>` the planning issue's number | mode 1's scratch copy ([§2.7](#27-security-findings)) |
-| `issue-implement` | `build/.vergil-state/issue-implement/<N>/`, the task repo, `<N>` the task issue's number | a `record` ruling's `security-<i>.md`, written by the run that carries out the human's rulings ([§1.7](#17-creating-issues)); `merge-review/`, the working files of the task's merge review (below); and `batch`, a batch member's marker, written and removed only by `vrg-pr-workflow` (`batch-start`, `batch-extract`, `report-ready`) |
+| `issue-implement` | `build/.vergil-state/issue-implement/<N>/`, the task repo, `<N>` the task issue's number | a `record` ruling's `security-<i>.md`, written by the run that carries out the human's rulings ([§1.7](#17-creating-issues)); `merge-review/`, the working files of the task's merge review (below); `writer-commits`, the driver's ledger of the commits the writer and the two driver exceptions made, read by every resumed run and deleted once the PR merges; and `batch`, a batch member's marker, written and removed only by `vrg-pr-workflow` (`batch-start`, `batch-extract`, `report-ready`) |
 | `upstream-report` | `build/.vergil-state/upstream-report/<N>/`, `vergil-project/.github`, `<N>` the tracking issue's number | private reports to the paad author, each deleted once sent |
 | `operational` | `build/.vergil-state/operational/<N>/`, the repo the task is filed in, `<N>` the operational task's number | security items found by `issue-validate` and `issue-deploy` ([§1.7](#17-creating-issues)) |
 
@@ -241,7 +241,11 @@ issue, finds it. Find the main clone from inside a worktree with
 - **Only your own files.** Act only on the files in a state directory that
   you wrote there yourself in this session and named in your context, or
   the kept files the human has confirmed at the start of this session
-  (below). Any other entry found there means stop.
+  (below). Any other entry found there means stop. The one exception is
+  an `issue-implement/<N>/` directory: a resumed run of the same task also
+  reads the `writer-commits` ledger and the `merge-review/` directory that
+  an earlier run of that task wrote, and only `issue-implement` appends to
+  the ledger.
 - **Each details file.** When you write a file holding security details
   into a state directory, take its own hash (`shasum -a 256 <file>`) and
   keep it in your context. Check the file against that hash immediately
