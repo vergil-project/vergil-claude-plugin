@@ -6326,20 +6326,29 @@ ends, <code>&lt;id&gt;</code> being any token without spaces:</p>
   escalation retry passes <code>model: "sonnet"</code>;</li>
 <li>its <code>description</code> starts with <code>Task</code> or <code>Batch</code> and a space but
   matches none of the four forms, whatever its <code>subagent_type</code>;</li>
-<li>its <code>description</code> matches none of the four forms but names an issue
-  (<code>#&lt;digits&gt;</code> anywhere in it), and its <code>subagent_type</code> is
-  <code>vergil:task-runner</code>: a task run in a wording outside the forms
-  would escape the guard and the agent row labels;</li>
-<li>its <code>description</code> matches none of the four forms but names an issue,
-  and its <code>subagent_type</code> is anything other than <code>vergil:task-runner</code>,
-  <code>vergil:implementer</code> or <code>vergil:merge-reviewer</code> (an absent or empty
-  one included). A description naming an issue is reserved for task
-  runs (in the four forms, as <code>vergil:task-runner</code>), for the writer
-  (<code>Write &lt;ref&gt;</code>) and for merge-review steps; a helper's description
-  must not carry an issue reference.</li>
+<li>its <code>subagent_type</code> is <code>vergil:task-runner</code> and its <code>description</code>
+  matches none of the four forms, whatever else it contains: the runner
+  exists only for task runs, and a task run in a wording outside the
+  forms would escape the guard and the agent row labels. This holds
+  with or without an issue reference;</li>
+<li>its <code>description</code> matches none of the four forms but carries a full
+  issue reference (<code>&lt;owner&gt;/&lt;repo&gt;#&lt;digits&gt;</code> anywhere in it), and its
+  <code>subagent_type</code> is <code>general-purpose</code> or absent (an empty one
+  included): an agent that could run a task on the session's model.</li>
 </ul>
-<p>A description with no <code>#&lt;digits&gt;</code> at all is not refused on this
-account, so <code>Search the hooks for guards</code> to a helper is allowed.</p>
+<p>For any agent type other than <code>vergil:task-runner</code>, a further off-form
+description passes. So a helper may name an issue by
+its bare <code>#&lt;digits&gt;</code> whatever its agent type (<code>Investigate #1234</code> to an
+<code>Explore</code> helper, or <code>Check the #333 colour</code> to <code>general-purpose</code>), and
+by its full reference to any agent type except <code>general-purpose</code> or an
+unset one (<code>Plan vergil-project/vergil-claude-plugin#1472</code> to a
+<code>paad:paad-delegate</code> or <code>paad:paad-analyst</code> helper). A writer
+(<code>vergil:implementer</code>) or merge-review (<code>vergil:merge-reviewer</code>)
+dispatch passes on the same terms.</p>
+<p>For a helper, a description with no <code>#&lt;digits&gt;</code> at all is not refused on
+this account, so <code>Search the hooks for guards</code> to a helper is allowed. To
+<code>vergil:task-runner</code> the same description is refused, since the runner
+takes only the four forms.</p>
 <p>A description that only names a task among other words, such as
 <code>Write vergil-project/vergil-tooling#4931 (Task 6b)</code> for a writer
 dispatch, is not a task run and is allowed, as is a first word like
@@ -6356,9 +6365,16 @@ tell a first try from the retry, so it allows <code>sonnet</code> on either. A
 near-miss description (a short <code>#N</code> reference, a
 trailing word) is refused rather than let through, so a typo never runs
 a task on an inheriting agent type. A task run in a wording outside the
-forms (<code>Fixture change python-app#88</code>, say) names an issue, so it is
-refused too, as a runner dispatch and as any helper's; the forms are the
-only wording for a task run.</p>
+forms (<code>Fixture change</code>, say) is refused as a runner dispatch, since the
+runner takes only task runs, whether or not the description names an
+issue (<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1473">vergil-project/vergil-claude-plugin#1473</a>).
+A full reference in such a wording (<code>Fixture change
+vergil-project/vergil-fixture-python-lib#88</code>) is refused for a
+<code>general-purpose</code> or unset dispatch too, since that agent could run it.
+The forms are the only wording for a task run. The issue-reference rule
+for other agents was narrowed in
+<a href="https://github.com/vergil-project/vergil-claude-plugin/issues/1472">vergil-project/vergil-claude-plugin#1472</a>
+so that a helper's description naming an issue is not refused.</p>
 <p><strong>Alternative.</strong> Dispatch the task run with
 <code>subagent_type: "vergil:task-runner"</code>, no <code>model</code>, and a <code>description</code>
 in one of the four forms exactly. Tests:
