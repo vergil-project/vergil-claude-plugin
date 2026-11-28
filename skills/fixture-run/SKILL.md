@@ -625,17 +625,19 @@ large run with "too many API requests".
 2. **Ops and config sync.** The fixture's latest scheduled `ops.yml` run is
    green, and every automated config-sync PR opened since the previous
    fixture run's validation on this repo (or, for the first run, since the
-   repo was created) merged on its own. When <what> is a vergil-actions
-   change that touches a workflow `ops.yml` calls, the run judged must be
-   an `ops.yml` run, scheduled or manually dispatched, that started after
-   <what> was released and whose log shows the workflows resolved <what>
-   or a later release that contains it. An `ops.yml` run that started
-   before <what> was released ran an older release and proves nothing
-   about the change. Until such a run exists, this check
-   is blocked, not passed: comment `blocked: preconditions not met — no
-   ops.yml run since <what>` and stop; the human can dispatch one
-   (learned from the validations of vergil-project/.github#1494, for
-   example vergil-project/vergil-fixture-python-lib#65).
+   repo was created) merged on its own. A sync PR opened by a hand-run
+   `vrg-github-repo-config update` counts too, when it merged through
+   auto-merge, the same as one the scheduled job opened. When <what> is a
+   vergil-actions change that touches a workflow `ops.yml` calls, the run
+   judged must be an `ops.yml` run, scheduled or manually dispatched, that
+   started after <what> was released and whose log shows the workflows
+   resolved <what> or a later release that contains it. An `ops.yml` run
+   that started before <what> was released ran an older release and proves
+   nothing about the change. Until such a run exists, this check is
+   blocked, not passed: comment `blocked: preconditions not met — no
+   ops.yml run since <what>` and stop; the human can dispatch one (learned
+   from the validations of vergil-project/.github#1494, for example
+   vergil-project/vergil-fixture-python-lib#65).
 3. **Release.** The release produced the `vX.Y.Z` tag, the GitHub Release
    with its CI evidence bundle attached, the back-merge to `develop` with its
    version bump, and the moved `vX.Y` tag (it resolves to `vX.Y.Z`'s commit).
