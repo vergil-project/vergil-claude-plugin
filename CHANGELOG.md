@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.101] - 2026-11-28
+
+### Bug fixes
+
+- refuse a task run worded outside the task-run forms (#1468)
+- narrow the task-dispatch guard's issue-reference rule (#1472)
+- refuse any off-form vergil:task-runner dispatch description (#1473)
+
+### Documentation
+
+- pick a rollback dependency that can actually move back (#1465)
+- count a hand-run config-sync PR in the validation recipe (#1474)
+- catch driver-written tracked changes before merge review (#1476)
+
+### Features
+
+- refuse a per-invocation model on a first-try implementer dispatch (#1467)
+
 ## [2.1.100] - 2026-11-28
 
 ### Chores

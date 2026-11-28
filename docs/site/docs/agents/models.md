@@ -123,7 +123,11 @@ Each pin is a one-line change:
 Change the pin and the matching row on this page in the same PR.
 `validate-custom` fails if an agent's `model:` and its row here differ.
 A `vergil:task-runner` dispatch never passes a per-invocation `model`,
-since it would outrank the agent's pin.
+since it would outrank the agent's pin. Likewise a `vergil:implementer`
+dispatch passes no `model` on its first try, and only the escalation
+retry passes `model: "sonnet"`. The
+[`guard-task-dispatch` hook](../hooks/index.md#guard-task-dispatch)
+refuses a `vergil:implementer` dispatch with any other model.
 
 ## Not verified
 
@@ -132,7 +136,8 @@ not verified until a real run shows them:
 
 - **The writer's escalation.** When the writer fails (a `stuck` result,
   or a `green` that fails the driver's check), the driver dispatches it
-  once more with a per-invocation `model: sonnet`. No transcript has yet
+  once more with a per-invocation `model: "sonnet"`, the one form the
+  `guard-task-dispatch` hook allows for the writer. No transcript has yet
   shown that retry running on Sonnet.
 - **`epic-implement`'s re-entries.** When a task's PR needs fixing or
   watching after its run, `epic-implement` dispatches a task run of

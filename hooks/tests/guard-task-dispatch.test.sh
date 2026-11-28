@@ -51,6 +51,19 @@ run() {
 	ERR=$(cat "$TMP/stderr")
 }
 
+# run_raw <cwd> <description> <subagent_type> <model-json> — as run, but
+# the model is spliced in as raw JSON (null, 5, true, an object…).
+run_raw() {
+	OUT=$( (cd "$1" && jq -cn --arg cwd "$1" --arg d "$2" --arg t "$3" --argjson m "$4" '{
+		session_id: "s", transcript_path: "/dev/null", cwd: $cwd,
+		permission_mode: "default", hook_event_name: "PreToolUse",
+		tool_name: "Agent",
+		tool_input: {description: $d, prompt: "Run the skill.", subagent_type: $t, model: $m}}' |
+		bash "$HOOK" 2>"$TMP/stderr"))
+	RC=$?
+	ERR=$(cat "$TMP/stderr")
+}
+
 verdict() {
 	if [ "$RC" -ne 0 ] || [ -n "$ERR" ]; then
 		echo error
@@ -171,13 +184,66 @@ test_task_runner_with_model_refused() {
 	run "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" opus
 	expect "a task run as vergil:task-runner with a model is refused" deny \
 		"vergil:task-runner must not be dispatched with a model; its pin is in the agent definition"
-	run "$MANAGED" "Explore the epic" "$RUNNER" haiku
+	run "$MANAGED" "Batch #5012 #5013" "$RUNNER" haiku
 	expect "any vergil:task-runner dispatch with a model is refused" deny "must not be dispatched with a model"
 }
 
 test_task_runner_with_empty_model_allowed() {
 	run "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" EMPTY
 	expect "a task run as vergil:task-runner with an empty model is allowed" allow
+}
+
+test_writer_first_try_without_model_allowed() {
+	local d="Write vergil-project/vergil-claude-plugin#1467"
+	run "$MANAGED" "$d" vergil:implementer
+	expect "a writer first try with no model is allowed" allow
+	run "$MANAGED" "$d" vergil:implementer EMPTY
+	expect "a writer first try with an empty model is allowed" allow
+	run_raw "$MANAGED" "$d" vergil:implementer null
+	expect "a writer first try with a null model is allowed" allow
+}
+
+test_writer_retry_sonnet_allowed() {
+	run "$MANAGED" "Write vergil-project/vergil-claude-plugin#1467" vergil:implementer sonnet
+	expect "a writer retry with model sonnet is allowed" allow
+}
+
+test_writer_other_model_refused() {
+	local m d="Write vergil-project/vergil-claude-plugin#1467"
+	for m in haiku opus Sonnet "claude-sonnet-4-5" "sonnet " "inherit"; do
+		run "$MANAGED" "$d" vergil:implementer "$m"
+		expect "a writer dispatch with model '$m' is refused" deny \
+			'may be dispatched only with no model (a first try) or model "sonnet"'
+	done
+}
+
+test_writer_non_string_model_refused() {
+	local j d="Write vergil-project/vergil-claude-plugin#1467"
+	for j in 5 true false '{"name":"sonnet"}' '["sonnet"]'; do
+		run_raw "$MANAGED" "$d" vergil:implementer "$j"
+		expect "a writer dispatch with non-string model $j is refused" deny \
+			'may be dispatched only with no model (a first try) or model "sonnet"'
+	done
+}
+
+test_writer_model_rule_unmanaged_noop() {
+	run "$UNMANAGED" "Write vergil-project/vergil-claude-plugin#1467" vergil:implementer haiku
+	expect "a writer dispatch with model haiku outside a managed repo is allowed" allow
+}
+
+test_other_dispatches_unchanged() {
+	run "$MANAGED" "Explore the epic" general-purpose haiku
+	expect "a general-purpose helper with model haiku is allowed" allow
+	run "$MANAGED" "Review vergil-project/vergil-tooling#4931 (Task 6b)" vergil:merge-reviewer opus
+	expect "a reviewer with model opus is allowed" allow
+	run_raw "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" null
+	expect "a task run as vergil:task-runner with a null model is allowed" allow
+	run_raw "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" "$RUNNER" 5
+	expect "a task run as vergil:task-runner with a non-string model is refused" deny \
+		"must not be dispatched with a model"
+	run "$MANAGED" "Task 6b vergil-project/vergil-tooling#4931" vergil:implementer
+	expect "a task run as vergil:implementer is still refused as not task-runner" deny \
+		"must be dispatched as vergil:task-runner, not vergil:implementer"
 }
 
 test_unmanaged_repo_noop() {
@@ -199,8 +265,181 @@ test_pr_watch_reentry_form_allowed_as_task_runner() {
 	expect "a re-entry as general-purpose is refused" deny "must be dispatched as vergil:task-runner"
 }
 
+test_off_form_issue_ref_refused_as_task_runner() {
+	# A task run in a wording outside the four forms, with an issue ref,
+	# must not pass the guard as vergil:task-runner (the row labels miss it).
+	run "$MANAGED" "Implement vergil-claude-plugin#1409" "$RUNNER"
+	expect "'Implement vergil-claude-plugin#1409' as vergil:task-runner is refused" deny \
+		"matches none of the task-run forms"
+	run "$MANAGED" "Fixture change python-app#88" "$RUNNER"
+	expect "'Fixture change python-app#88' as vergil:task-runner is refused" deny \
+		"must be one of: Task <id> <owner>/<repo>#<N>"
+	run "$MANAGED" "Fixture change python-app#88 (retry)" "$RUNNER"
+	expect "'Fixture change python-app#88 (retry)' as vergil:task-runner is refused" deny \
+		"matches none of the task-run forms"
+	run "$MANAGED" "Fixture change python-app#88" "$RUNNER" haiku
+	expect "an off-form task-runner dispatch with a model is refused" deny "matches none of the task-run forms"
+}
+
+test_off_form_without_issue_ref_refused_as_task_runner() {
+	# #1473: the runner takes only task runs, so an off-form description with
+	# no issue reference at all is refused too.
+	local d
+	for d in "Fixture change" "Implement the plugin task" "Explore the epic" "Tasks overview" "Run Task 6b checks"; do
+		run "$MANAGED" "$d" "$RUNNER"
+		expect "'$d' as vergil:task-runner is refused" deny "matches none of the task-run forms"
+	done
+	run "$MANAGED" "" "$RUNNER"
+	expect "an empty description as vergil:task-runner is refused" deny "matches none of the task-run forms"
+	run "$MANAGED" "   " "$RUNNER"
+	expect "a blank description as vergil:task-runner is refused" deny "matches none of the task-run forms"
+	run "$MANAGED" "Fixture change" "$RUNNER" haiku
+	expect "'Fixture change' as vergil:task-runner with a model is refused" deny "matches none of the task-run forms"
+	run "$MANAGED" "Fixture change" "$RUNNER" EMPTY
+	expect "'Fixture change' as vergil:task-runner with an empty model is refused" deny \
+		"matches none of the task-run forms"
+	run "$MANAGED" "Task overview" "$RUNNER"
+	expect "a Task-like description without a form as vergil:task-runner is refused" deny \
+		"starts like a task run but matches none of the task-run forms"
+}
+
+test_off_form_without_issue_ref_still_allowed_for_helpers() {
+	# #1473 narrows only the runner: the same descriptions pass for other agents.
+	local d t
+	for d in "Fixture change" "Implement the plugin task" "Explore the epic" ""; do
+		run "$MANAGED" "$d" general-purpose
+		expect "'$d' as general-purpose is allowed" allow
+		run "$MANAGED" "$d" vergil:implementer
+		expect "'$d' as vergil:implementer is allowed" allow
+		for t in Explore paad:paad-delegate vergil:merge-reviewer; do
+			run "$MANAGED" "$d" "$t"
+			expect "'$d' as $t is allowed" allow
+		done
+	done
+}
+
+test_full_ref_off_form_refused_for_task_capable_helpers() {
+	# A full owner/repo#N reference in an off-form description, sent to an
+	# agent that could run a task, is refused. Narrowed by #1472: a bare
+	# #N to these agents now passes (see test_bare_issue_ref_helpers_allowed).
+	local d="Fixture change vergil-project/vergil-fixture-python-lib#88"
+	run "$MANAGED" "$d" general-purpose
+	expect "'$d' as general-purpose is refused" deny \
+		"carries a full issue reference (<owner>/<repo>#<N>) and is dispatched as general-purpose"
+	run "$MANAGED" "$d"
+	expect "'$d' with no subagent_type is refused" deny \
+		"is dispatched as an unset subagent_type, which could run a task"
+	run "$MANAGED" "$d" EMPTY
+	expect "'$d' with an empty subagent_type is refused" deny "is dispatched as an unset subagent_type"
+	run "$MANAGED" "$d" general-purpose haiku
+	expect "'$d' as general-purpose with model haiku is refused" deny "carries a full issue reference"
+	run "$MANAGED" "Fixture change vergil-project/vergil-fixture-python-lib#88 (retry)" general-purpose
+	expect "a retry-suffixed full-ref off-form description as general-purpose is refused" deny \
+		"carries a full issue reference"
+	run "$MANAGED" "Investigate vergil-project/vergil-claude-plugin#1234" general-purpose
+	expect "a general-purpose helper naming a full ref is refused" deny "carries a full issue reference"
+}
+
+test_full_ref_off_form_refused_as_task_runner() {
+	run "$MANAGED" "Fixture change vergil-project/vergil-fixture-python-lib#88" "$RUNNER"
+	expect "a full-ref off-form description as vergil:task-runner is refused" deny \
+		"matches none of the task-run forms"
+}
+
+test_full_ref_helpers_of_other_types_allowed() {
+	# Only general-purpose and an unset subagent_type are refused for a full
+	# ref; every other agent type passes.
+	local t d="Investigate vergil-project/vergil-claude-plugin#1234"
+	for t in Explore paad:paad-delegate paad:paad-analyst vergil:implementer vergil:merge-reviewer; do
+		run "$MANAGED" "$d" "$t"
+		expect "'$d' as $t is allowed" allow
+	done
+}
+
+test_bare_issue_ref_helpers_allowed() {
+	# A bare #N, or a colour such as #333, in a helper's description passes,
+	# whatever the agent type (other than the runner, see below).
+	local t d
+	run "$MANAGED" "Investigate #1234" general-purpose
+	expect "'Investigate #1234' as general-purpose is allowed" allow
+	run "$MANAGED" "Investigate #1234"
+	expect "'Investigate #1234' with no subagent_type is allowed" allow
+	run "$MANAGED" "Investigate #1234" EMPTY
+	expect "'Investigate #1234' with an empty subagent_type is allowed" allow
+	run "$MANAGED" "Investigate #1234" general-purpose haiku
+	expect "'Investigate #1234' as general-purpose with model haiku is allowed" allow
+	for t in Explore paad:paad-delegate paad:paad-analyst; do
+		run "$MANAGED" "Investigate #1234" "$t"
+		expect "'Investigate #1234' as $t is allowed" allow
+	done
+	run "$MANAGED" "Fixture change python-app#88" general-purpose
+	expect "a bare-#N off-form description as general-purpose is allowed" allow
+	run "$MANAGED" "Fixture change python-app#88" Explore
+	expect "a bare-#N off-form description as Explore is allowed" allow
+	run "$MANAGED" "Fixture change python-app#88 (retry)" Explore
+	expect "a retry-suffixed bare-#N off-form description as Explore is allowed" allow
+	for d in "Check the #333 colour" "Set the border to #333"; do
+		run "$MANAGED" "$d" general-purpose
+		expect "'$d' as general-purpose is allowed" allow
+		run "$MANAGED" "$d" Explore
+		expect "'$d' as Explore is allowed" allow
+	done
+}
+
+test_paad_helpers_naming_planning_issue_allowed() {
+	local t
+	for t in paad:paad-delegate paad:paad-analyst; do
+		run "$MANAGED" "Plan vergil-project/vergil-claude-plugin#1472 (#1234)" "$t"
+		expect "a $t helper naming its planning issue is allowed" allow
+	done
+}
+
+test_bare_issue_ref_to_task_runner_still_refused() {
+	# The runner refuses any off-form description (#1473), bare or full
+	# issue reference or none.
+	run "$MANAGED" "Implement #1234" "$RUNNER"
+	expect "'Implement #1234' as vergil:task-runner is refused" deny \
+		"matches none of the task-run forms"
+}
+
+test_issue_ref_writer_and_reviewer_allowed() {
+	run "$MANAGED" "Write vergil-project/vergil-claude-plugin#1441" vergil:implementer
+	expect "a writer 'Write <ref>' dispatch is allowed" allow
+	run "$MANAGED" "Merge review vergil-project/vergil-claude-plugin#1467 review" vergil:merge-reviewer
+	expect "a merge-review description with a ref is allowed" allow
+	run "$MANAGED" "Implement vergil-claude-plugin#1409" vergil:implementer
+	expect "an off-form description with a ref to the writer is allowed" allow
+}
+
+test_no_issue_ref_not_widened() {
+	run "$MANAGED" "Search the hooks for guards" general-purpose
+	expect "a general-purpose helper with no #N is allowed" allow
+	run "$MANAGED" "Search the hooks for guards" general-purpose haiku
+	expect "a general-purpose helper with no #N and model haiku is allowed" allow
+	run "$MANAGED" "Survey the hooks for guards" Explore
+	expect "an Explore helper with no #N is allowed" allow
+	run "$MANAGED" "Look at issue number seven" general-purpose
+	expect "a description with 'number' but no #N is allowed" allow
+	run "$MANAGED" "Check the # sign handling" general-purpose
+	expect "a description with a bare # and no digits is allowed" allow
+	run "$MANAGED" "Explore the epic" "$RUNNER"
+	expect "a non-form description with no #N as vergil:task-runner is refused" deny \
+		"matches none of the task-run forms"
+}
+
 test_each_form_refused_as_general_purpose
 test_each_form_allowed_as_task_runner
+test_off_form_issue_ref_refused_as_task_runner
+test_off_form_without_issue_ref_refused_as_task_runner
+test_off_form_without_issue_ref_still_allowed_for_helpers
+test_full_ref_off_form_refused_for_task_capable_helpers
+test_full_ref_off_form_refused_as_task_runner
+test_full_ref_helpers_of_other_types_allowed
+test_bare_issue_ref_helpers_allowed
+test_paad_helpers_naming_planning_issue_allowed
+test_bare_issue_ref_to_task_runner_still_refused
+test_issue_ref_writer_and_reviewer_allowed
+test_no_issue_ref_not_widened
 test_non_digit_id_is_a_task_run
 test_missing_subagent_type_refused_for_task_run
 test_writer_dispatch_naming_task_allowed
@@ -212,6 +451,12 @@ test_task_runner_with_model_refused
 test_task_runner_with_empty_model_allowed
 test_unmanaged_repo_noop
 test_pr_watch_reentry_form_allowed_as_task_runner
+test_writer_first_try_without_model_allowed
+test_writer_retry_sonnet_allowed
+test_writer_other_model_refused
+test_writer_non_string_model_refused
+test_writer_model_rule_unmanaged_noop
+test_other_dispatches_unchanged
 
 echo "----------------------------------------"
 echo "guard-task-dispatch: $pass passed, $fail failed, $((pass + fail)) total"
