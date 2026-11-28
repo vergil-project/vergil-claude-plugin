@@ -16,17 +16,19 @@
 #     Haiku pin. A non-string model is refused too;
 #   - a description whose first word is Task or Batch, followed by a
 #     space, that matches none of the forms (a malformed task run);
-#   - a description that matches none of the forms but carries an
-#     issue reference (#<digits>), sent to vergil:task-runner. It would
-#     be a task run in the wrong wording, which escapes the guard and
-#     the agent row labels (vergil-project/vergil-claude-plugin#1468);
+#   - a description that matches none of the forms, sent to
+#     vergil:task-runner, whatever else it contains. vergil:task-runner
+#     exists only for task runs, so any other description is refused.
+#     Such a run would escape the guard and the agent row labels
+#     (vergil-project/vergil-claude-plugin#1468, #1473);
 #   - a description that matches none of the forms but carries a full
 #     issue reference (<owner>/<repo>#<N>), sent to general-purpose or
 #     with no subagent_type. Such an agent could run a task on the
 #     session's model, so the description is refused. Any other agent
 #     type (Explore, paad:*, vergil:implementer, vergil:merge-reviewer,
 #     and so on) passes, as does a description with only a bare #<N>
-#     (vergil-project/vergil-claude-plugin#1472).
+#     (vergil-project/vergil-claude-plugin#1472). The runner rule above
+#     does not depend on an issue reference.
 # A description that only names a task among other words (a writer or
 # reviewer dispatch, say) is not a task run.
 #
@@ -88,8 +90,6 @@ FORM_TASK_NO_ID='^Task [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+$'
 FORM_BATCH='^Batch [^ #][^ ]*( #[0-9]+)+$'
 FORM_BATCH_NO_ID='^Batch( #[0-9]+)+$'
 TASK_LIKE='^(Task|Batch)[ ]'
-# A bare issue reference, matched anywhere in an off-form description.
-ISSUE_REF='#[0-9]+'
 # A full issue reference, <owner>/<repo>#<N>, matched anywhere.
 FULL_REF='[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+'
 GENERAL="general-purpose"
@@ -112,14 +112,14 @@ if [ "$is_task_run" = false ] && [[ "$description" =~ $TASK_LIKE ]]; then
   deny "description '$description' starts like a task run but matches none of the task-run forms; use one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
 fi
 
-# Off-form descriptions that name an issue. The runner refuses any issue
-# reference (a task run in the wrong wording); a full reference is also
-# refused for an agent that could run a task (general-purpose, or unset).
-if [ "$is_task_run" = false ] && [ "$subagent_type" = "$RUNNER" ] &&
-  [[ "$description" =~ $ISSUE_REF ]]; then
-  deny "$RUNNER's description '$description' names an issue but matches none of the task-run forms; a task run's description must be one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
+# Any off-form description sent to the runner is refused, whatever it
+# names: the runner exists only for task runs.
+if [ "$is_task_run" = false ] && [ "$subagent_type" = "$RUNNER" ]; then
+  deny "$RUNNER's description '$description' matches none of the task-run forms; a $RUNNER dispatch's description must be one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
 fi
 
+# A full issue reference in an off-form description is refused for an
+# agent that could run a task (general-purpose, or unset).
 if [ "$is_task_run" = false ] && { [ -z "$subagent_type" ] || [ "$subagent_type" = "$GENERAL" ]; } &&
   [[ "$description" =~ $FULL_REF ]]; then
   shown="$subagent_type"
