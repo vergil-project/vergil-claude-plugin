@@ -290,6 +290,17 @@ and re-running; **never** suppress a gate. Then
 failed check is the writer's failure, handled by its
 [escalation](#escalation); you never patch it yourself.
 
+The writer's dispatch is the first action on the task's tracked files. The
+driver makes no Edit, Write, `sed -i`, redirect or other write to a tracked
+file of the worktree itself, however small the change looks: a one-line,
+docs-only or test-only change included. A change the driver writes runs on
+the driver's model rather than Haiku, which undoes the epic's purpose. The
+only exceptions are the two stated in [The rule](#the-rule), each under the
+[driver-work marker](#resume). If the driver finds it has already changed a
+tracked file outside an exception, it discards that uncommitted change
+(`vrg-git restore` or `vrg-git checkout` of those paths) and dispatches the
+writer for it; it never commits it.
+
 ## The writer
 
 Every change to a task's tracked files is written by
@@ -365,10 +376,24 @@ Check the result before anything else reads it, merge review included:
    a space and `(#<N>)`, then only `fixup!` commits of it.
 4. **Your own validate is green:** `vrg-container-run -- vrg-validate`,
    run by you at `HEAD`, exits 0.
+5. **Every commit is the writer's or an exception's:** every commit in
+   `<base>..HEAD` is accounted for. Either a `Commits:` line of a writer
+   result block this run received names it, matched by subject, not SHA,
+   since a fold or rebase rewrites SHAs (a `fixup!` commit matches by its
+   subject); or the driver made it under the
+   [driver-work marker](#resume) for one of the two exceptions (a security
+   item's fix, or a stopped rebase's conflict resolution), which the driver
+   notes when it commits. A driver-authored uncommitted change already
+   fails check 2. A commit that matches neither is a change the driver
+   wrote outside the writer: it is never accepted silently and never
+   reaches merge review. The run stops for the human, as a problem the
+   driver cannot resolve, naming the commit; the human rules on it, and the
+   deviation is listed in the final report.
 
-You never patch a failed check, not even a one-line fix: it is a failure
-of the writer, handled by the [escalation](#escalation). A fabricated
-`green` never reaches merge review.
+You never patch a failed check 1 to 4, not even a one-line fix: it is a
+failure of the writer, handled by the [escalation](#escalation). A failed
+check 5 is no writer failure: it stops the run for the human, as check 5
+says. A fabricated `green` never reaches merge review.
 
 ### Escalation
 
@@ -618,6 +643,10 @@ clean run at `HEAD`. Every `vrg-ruling` command it runs names the task with
 (Preflight step 6); never delete or edit its directory,
 `build/.vergil-state/issue-implement/<N>/merge-review/` in the main clone,
 by hand while a run is open.
+
+The driver runs the writer-result check, commit accounting included, at that
+`HEAD` before it invokes this skill, so a commit the driver wrote outside the
+writer's exceptions stops the run before review.
 
 Merge review runs on every PR. The skills that hand off a docs PR of their
 own (`epic-create`'s spec-and-plan PR, `epic-retrospective`'s PR and

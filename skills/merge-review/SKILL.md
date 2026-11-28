@@ -763,7 +763,9 @@ has none.
      in its prompt or in a file it reads.
   3. The driver [checks the writer's result](../issue-implement/SKILL.md#check-the-writers-result);
      its own green `vrg-validate` at `HEAD` there covers the security
-     fixes too. It then does every filing step 1 calls for
+     fixes too. The check includes the commit accounting, so a commit the
+     driver wrote outside the writer's two exceptions stops the run rather
+     than being reviewed. It then does every filing step 1 calls for
      ([Filing](#filing)), and builds the check (step 3).
 
   With no non-security edit to make, the driver's own green run is
