@@ -382,17 +382,23 @@ The hook denies the call when:
   escalation retry passes `model: "sonnet"`;
 - its `description` starts with `Task` or `Batch` and a space but
   matches none of the four forms, whatever its `subagent_type`;
-- its `description` matches none of the four forms but names an issue
-  (`#<digits>` anywhere in it), and its `subagent_type` is
-  `vergil:task-runner`: a task run in a wording outside the forms
+- its `description` matches none of the four forms but carries a bare
+  issue reference (`#<digits>` anywhere in it), and its `subagent_type`
+  is `vergil:task-runner`: a task run in a wording outside the forms
   would escape the guard and the agent row labels;
-- its `description` matches none of the four forms but names an issue,
-  and its `subagent_type` is anything other than `vergil:task-runner`,
-  `vergil:implementer` or `vergil:merge-reviewer` (an absent or empty
-  one included). A description naming an issue is reserved for task
-  runs (in the four forms, as `vergil:task-runner`), for the writer
-  (`Write <ref>`) and for merge-review steps; a helper's description
-  must not carry an issue reference.
+- its `description` matches none of the four forms but carries a full
+  issue reference (`<owner>/<repo>#<digits>` anywhere in it), and its
+  `subagent_type` is `general-purpose` or absent (an empty one
+  included): an agent that could run a task on the session's model.
+
+Any other off-form description passes. So a helper may name an issue by
+its bare `#<digits>` whatever its agent type (`Investigate #1234` to an
+`Explore` helper, or `Check the #333 colour` to `general-purpose`), and
+by its full reference to any agent type except `general-purpose` or an
+unset one (`Plan vergil-project/vergil-claude-plugin#1472` to a
+`paad:paad-delegate` or `paad:paad-analyst` helper). A writer
+(`vergil:implementer`) or merge-review (`vergil:merge-reviewer`)
+dispatch passes on the same terms.
 
 A description with no `#<digits>` at all is not refused on this
 account, so `Search the hooks for guards` to a helper is allowed.
@@ -415,8 +421,13 @@ near-miss description (a short `#N` reference, a
 trailing word) is refused rather than let through, so a typo never runs
 a task on an inheriting agent type. A task run in a wording outside the
 forms (`Fixture change python-app#88`, say) names an issue, so it is
-refused too, as a runner dispatch and as any helper's; the forms are the
-only wording for a task run.
+refused as a runner dispatch, which refuses any issue reference in an
+off-form description. A full reference in such a wording (`Fixture change
+vergil-project/vergil-fixture-python-lib#88`) is refused for a
+`general-purpose` or unset dispatch too, since that agent could run it.
+The forms are the only wording for a task run. The rule was narrowed in
+[vergil-project/vergil-claude-plugin#1472](https://github.com/vergil-project/vergil-claude-plugin/issues/1472)
+so that a helper's description naming an issue is not refused.
 
 **Alternative.** Dispatch the task run with
 `subagent_type: "vergil:task-runner"`, no `model`, and a `description`

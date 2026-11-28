@@ -281,21 +281,88 @@ test_off_form_issue_ref_refused_as_task_runner() {
 	expect "an off-form task-runner dispatch with a model is refused" deny "matches none of the task-run forms"
 }
 
-test_off_form_issue_ref_refused_for_helpers() {
-	local d="Fixture change python-app#88"
+test_full_ref_off_form_refused_for_task_capable_helpers() {
+	# A full owner/repo#N reference in an off-form description, sent to an
+	# agent that could run a task, is refused. Narrowed by #1472: a bare
+	# #N to these agents now passes (see test_bare_issue_ref_helpers_allowed).
+	local d="Fixture change vergil-project/vergil-fixture-python-lib#88"
 	run "$MANAGED" "$d" general-purpose
-	expect "'$d' as general-purpose is refused" deny "is reserved for task runs"
-	run "$MANAGED" "$d" Explore
-	expect "'$d' as Explore is refused" deny "is reserved for task runs"
+	expect "'$d' as general-purpose is refused" deny \
+		"carries a full issue reference (<owner>/<repo>#<N>) and is dispatched as general-purpose"
 	run "$MANAGED" "$d"
-	expect "'$d' with no subagent_type is refused" deny "is reserved for task runs"
+	expect "'$d' with no subagent_type is refused" deny \
+		"is dispatched as an unset subagent_type, which could run a task"
+	run "$MANAGED" "$d" EMPTY
+	expect "'$d' with an empty subagent_type is refused" deny "is dispatched as an unset subagent_type"
 	run "$MANAGED" "$d" general-purpose haiku
-	expect "'$d' as general-purpose with model haiku is refused" deny "is reserved for task runs"
-	run "$MANAGED" "Implement vergil-claude-plugin#1409" general-purpose haiku
-	expect "'Implement vergil-claude-plugin#1409' as general-purpose with model haiku is refused" deny \
-		"is reserved for task runs"
+	expect "'$d' as general-purpose with model haiku is refused" deny "carries a full issue reference"
+	run "$MANAGED" "Fixture change vergil-project/vergil-fixture-python-lib#88 (retry)" general-purpose
+	expect "a retry-suffixed full-ref off-form description as general-purpose is refused" deny \
+		"carries a full issue reference"
+	run "$MANAGED" "Investigate vergil-project/vergil-claude-plugin#1234" general-purpose
+	expect "a general-purpose helper naming a full ref is refused" deny "carries a full issue reference"
+}
+
+test_full_ref_off_form_refused_as_task_runner() {
+	run "$MANAGED" "Fixture change vergil-project/vergil-fixture-python-lib#88" "$RUNNER"
+	expect "a full-ref off-form description as vergil:task-runner is refused" deny \
+		"names an issue but matches none of the task-run forms"
+}
+
+test_full_ref_helpers_of_other_types_allowed() {
+	# Only general-purpose and an unset subagent_type are refused for a full
+	# ref; every other agent type passes.
+	local t d="Investigate vergil-project/vergil-claude-plugin#1234"
+	for t in Explore paad:paad-delegate paad:paad-analyst vergil:implementer vergil:merge-reviewer; do
+		run "$MANAGED" "$d" "$t"
+		expect "'$d' as $t is allowed" allow
+	done
+}
+
+test_bare_issue_ref_helpers_allowed() {
+	# A bare #N, or a colour such as #333, in a helper's description passes,
+	# whatever the agent type (other than the runner, see below).
+	local t d
+	run "$MANAGED" "Investigate #1234" general-purpose
+	expect "'Investigate #1234' as general-purpose is allowed" allow
+	run "$MANAGED" "Investigate #1234"
+	expect "'Investigate #1234' with no subagent_type is allowed" allow
+	run "$MANAGED" "Investigate #1234" EMPTY
+	expect "'Investigate #1234' with an empty subagent_type is allowed" allow
+	run "$MANAGED" "Investigate #1234" general-purpose haiku
+	expect "'Investigate #1234' as general-purpose with model haiku is allowed" allow
+	for t in Explore paad:paad-delegate paad:paad-analyst; do
+		run "$MANAGED" "Investigate #1234" "$t"
+		expect "'Investigate #1234' as $t is allowed" allow
+	done
+	run "$MANAGED" "Fixture change python-app#88" general-purpose
+	expect "a bare-#N off-form description as general-purpose is allowed" allow
+	run "$MANAGED" "Fixture change python-app#88" Explore
+	expect "a bare-#N off-form description as Explore is allowed" allow
 	run "$MANAGED" "Fixture change python-app#88 (retry)" Explore
-	expect "a retry-suffixed off-form description as Explore is refused" deny "is reserved for task runs"
+	expect "a retry-suffixed bare-#N off-form description as Explore is allowed" allow
+	for d in "Check the #333 colour" "Set the border to #333"; do
+		run "$MANAGED" "$d" general-purpose
+		expect "'$d' as general-purpose is allowed" allow
+		run "$MANAGED" "$d" Explore
+		expect "'$d' as Explore is allowed" allow
+	done
+}
+
+test_paad_helpers_naming_planning_issue_allowed() {
+	local t
+	for t in paad:paad-delegate paad:paad-analyst; do
+		run "$MANAGED" "Plan vergil-project/vergil-claude-plugin#1472 (#1234)" "$t"
+		expect "a $t helper naming its planning issue is allowed" allow
+	done
+}
+
+test_bare_issue_ref_to_task_runner_still_refused() {
+	# The runner keeps #1468's rule: any issue reference in an off-form
+	# description is refused, bare or full.
+	run "$MANAGED" "Implement #1234" "$RUNNER"
+	expect "'Implement #1234' as vergil:task-runner is refused" deny \
+		"names an issue but matches none of the task-run forms"
 }
 
 test_issue_ref_writer_and_reviewer_allowed() {
@@ -325,7 +392,12 @@ test_no_issue_ref_not_widened() {
 test_each_form_refused_as_general_purpose
 test_each_form_allowed_as_task_runner
 test_off_form_issue_ref_refused_as_task_runner
-test_off_form_issue_ref_refused_for_helpers
+test_full_ref_off_form_refused_for_task_capable_helpers
+test_full_ref_off_form_refused_as_task_runner
+test_full_ref_helpers_of_other_types_allowed
+test_bare_issue_ref_helpers_allowed
+test_paad_helpers_naming_planning_issue_allowed
+test_bare_issue_ref_to_task_runner_still_refused
 test_issue_ref_writer_and_reviewer_allowed
 test_no_issue_ref_not_widened
 test_non_digit_id_is_a_task_run

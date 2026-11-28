@@ -17,14 +17,16 @@
 #   - a description whose first word is Task or Batch, followed by a
 #     space, that matches none of the forms (a malformed task run);
 #   - a description that matches none of the forms but carries an
-#     issue reference (#<digits>), whatever its agent type, unless the
-#     agent is vergil:implementer or vergil:merge-reviewer. Sent to
-#     vergil:task-runner it would be a task run in the wrong wording,
-#     which escapes the guard and the agent row labels. Sent to any
-#     other agent (general-purpose, Explore, absent included) it is a
-#     helper naming an issue, which only the writer (Write <ref>) and
-#     merge-review steps may do. Such a description is refused; one with
-#     no #<digits> at all is not.
+#     issue reference (#<digits>), sent to vergil:task-runner. It would
+#     be a task run in the wrong wording, which escapes the guard and
+#     the agent row labels (vergil-project/vergil-claude-plugin#1468);
+#   - a description that matches none of the forms but carries a full
+#     issue reference (<owner>/<repo>#<N>), sent to general-purpose or
+#     with no subagent_type. Such an agent could run a task on the
+#     session's model, so the description is refused. Any other agent
+#     type (Explore, paad:*, vergil:implementer, vergil:merge-reviewer,
+#     and so on) passes, as does a description with only a bare #<N>
+#     (vergil-project/vergil-claude-plugin#1472).
 # A description that only names a task among other words (a writer or
 # reviewer dispatch, say) is not a task run.
 #
@@ -41,7 +43,6 @@ source "$SCRIPT_DIR/lib/hook-input.sh"
 
 RUNNER="vergil:task-runner"
 WRITER="vergil:implementer"
-REVIEWER="vergil:merge-reviewer"
 WRITER_RETRY_MODEL="sonnet"
 
 hook_input_read gated
@@ -87,7 +88,11 @@ FORM_TASK_NO_ID='^Task [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+$'
 FORM_BATCH='^Batch [^ #][^ ]*( #[0-9]+)+$'
 FORM_BATCH_NO_ID='^Batch( #[0-9]+)+$'
 TASK_LIKE='^(Task|Batch)[ ]'
+# A bare issue reference, matched anywhere in an off-form description.
 ISSUE_REF='#[0-9]+'
+# A full issue reference, <owner>/<repo>#<N>, matched anywhere.
+FULL_REF='[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+'
+GENERAL="general-purpose"
 
 is_task_run=false
 if [[ "$description" =~ $FORM_TASK ]] || [[ "$description" =~ $FORM_TASK_NO_ID ]] ||
@@ -107,13 +112,21 @@ if [ "$is_task_run" = false ] && [[ "$description" =~ $TASK_LIKE ]]; then
   deny "description '$description' starts like a task run but matches none of the task-run forms; use one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
 fi
 
-if [ "$is_task_run" = false ] && [[ "$description" =~ $ISSUE_REF ]]; then
-  if [ "$subagent_type" = "$RUNNER" ]; then
-    deny "$RUNNER's description '$description' names an issue but matches none of the task-run forms; a task run's description must be one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
+# Off-form descriptions that name an issue. The runner refuses any issue
+# reference (a task run in the wrong wording); a full reference is also
+# refused for an agent that could run a task (general-purpose, or unset).
+if [ "$is_task_run" = false ] && [ "$subagent_type" = "$RUNNER" ] &&
+  [[ "$description" =~ $ISSUE_REF ]]; then
+  deny "$RUNNER's description '$description' names an issue but matches none of the task-run forms; a task run's description must be one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
+fi
+
+if [ "$is_task_run" = false ] && { [ -z "$subagent_type" ] || [ "$subagent_type" = "$GENERAL" ]; } &&
+  [[ "$description" =~ $FULL_REF ]]; then
+  shown="$subagent_type"
+  if [ -z "$shown" ]; then
+    shown="an unset subagent_type"
   fi
-  if [ "$subagent_type" != "$WRITER" ] && [ "$subagent_type" != "$REVIEWER" ]; then
-    deny "description '$description' names an issue, which is reserved for task runs (as $RUNNER, in one of the task-run forms), the writer ($WRITER, Write <ref>) and merge-review steps ($REVIEWER); a helper's description must not carry an issue reference"
-  fi
+  deny "description '$description' carries a full issue reference (<owner>/<repo>#<N>) and is dispatched as $shown, which could run a task on the session's model; a task run must be one of the task-run forms dispatched as $RUNNER: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…; a helper must not name an issue by its full reference"
 fi
 
 if [ "$subagent_type" = "$RUNNER" ] && [ -n "$model" ]; then
