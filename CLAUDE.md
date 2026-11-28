@@ -23,7 +23,8 @@ Propose the entry and where it belongs first, then wait for the decision.
 
 Use `vrg-git` and `vrg-gh` only; the hook guard blocks raw `git` and `gh`. If a
 command is not available through the wrappers, explain why and ask the human to
-run it with `! <command>` in the prompt.
+run it. Hand every step the human runs as a plain copy-paste block for their own
+terminal, kept apart from your narrative and never with the `!` prefix.
 
 ## Validation
 
@@ -33,9 +34,8 @@ run it with `! <command>` in the prompt.
 
 ## PR handoff
 
-- After the merge review, record the PR with `vrg-pr-workflow report-ready
-  --issue <N> --title --summary --notes`. It pushes the branch itself. Leave
-  `--linkage` at its default (`Ref`).
+- After the merge review, record the PR with `vrg-pr-workflow report-ready --issue <N> --title --summary --notes`. It pushes the branch itself.
+  Leave `--linkage` at its default (`Ref`): `vrg-submit-pr` upgrades it to `Closes` for a managed task (an issue under an epic), so the PR closes it on merge.
 - Agents submit and finalize their own PRs into `develop` through the tools,
   never with `--release`: `vrg-submit-pr` runs the gates, opens the PR with
   auto-merge on and finalizes it; after a fix, rerun `vrg-finalize-pr`.
