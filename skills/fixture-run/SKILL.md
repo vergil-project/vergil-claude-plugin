@@ -403,9 +403,14 @@ commit. Record it on this issue and in the report-ready notes as one line:
 dependency back to an earlier version **in `uv.lock` only** (for example
 `uv lock --upgrade-package '<package>==<older>'`). Leave its declared range
 in `pyproject.toml` open, so the release's dependency update has a
-guaranteed upgrade to make. The earlier version must pass the vulnerability
-audit, so the PR never goes red for the wrong reason. Record it on this
-issue and in the report-ready notes as one line:
+guaranteed upgrade to make. The earlier version must be allowed by the
+ranges of every package that depends on it (their `[package.metadata]
+requires-dist` entries in `uv.lock`) and by `pyproject.toml`; otherwise uv
+drops it. After `uv lock`, confirm that `uv.lock` still holds `<older>` for
+the package (grep its `[[package]]` entry). If uv kept or re-resolved to a
+newer version, pick another package. The earlier version must pass the
+vulnerability audit, so the PR never goes red for the wrong reason. Record it
+on this issue and in the report-ready notes as one line:
 `Rolled back: <package> <locked version> -> <older> (declared <range>)`.
 
 <Rust:>
@@ -417,8 +422,12 @@ a transitive crate, or a direct dependency whose requirement's floor is
 below its locked version. A crate locked at its own floor cannot be rolled
 back without editing `Cargo.toml`, which a run never does. Leaving
 `Cargo.toml` as it is gives the release's dependency update a guaranteed
-upgrade to make. The earlier version must pass the cargo-deny audit, so the
-PR never goes red for the wrong reason. Record it on this issue and in the
+upgrade to make. The earlier version must also satisfy every dependent's
+requirement: `cargo update --precise` refuses otherwise, and
+`cargo tree -i <crate>` shows the dependents. After the update, confirm that
+`Cargo.lock` still holds `<older>` for the crate; if it does not, pick another
+crate. The earlier version must pass the cargo-deny audit, so the PR never
+goes red for the wrong reason. Record it on this issue and in the
 report-ready notes as one line:
 `Rolled back: <crate> <locked version> -> <older> (declared <requirement>)`.
 
@@ -428,8 +437,11 @@ earlier version **in `package-lock.json` only**, leaving `package.json`
 unchanged, so `npm ci` still passes and the release's dependency update has
 a guaranteed upgrade to make: a transitive package, or a direct dependency
 whose range's floor is below its locked version. Both fixtures lock every
-direct dependency at its range floor, so pick a transitive package. npm has
-no single command that moves one locked package back without saving it to
+direct dependency at its range floor, so pick a transitive package. Pick one
+whose every dependent's range allows `<older>` (see `npm ls <package>` or the
+`dependencies` entries in `package-lock.json`): for example, ms 2.1.3 ->
+2.1.2 fails because debug@4.4.3 requires ms ^2.1.3, and npm prunes the older
+version. npm has no single command that moves one locked package back without saving it to
 `package.json`, so use a sequence, for example:
 
 ```sh
@@ -448,8 +460,9 @@ The first command locks the older version and, as a side effect, adds it to
 version, because it still satisfies the dependency graph. Before committing,
 check that `package.json` is unchanged
 (`vrg-git diff --quiet -- package.json` exits 0) and that
-`package-lock.json` locks `<package>` at `<older>`. The earlier version must pass the npm audit and the license
-gate, so the PR never goes red for the wrong reason. Record it on this
+`package-lock.json` locks `<package>` at `<older>`. If it does not, pick
+another package and start over. The earlier version must pass the npm audit
+and the license gate, so the PR never goes red for the wrong reason. Record it on this
 issue and in the report-ready notes as one line:
 `Rolled back: <package> <locked version> -> <older> (transitive)`, or
 `(declared <range>)` for a direct dependency.
