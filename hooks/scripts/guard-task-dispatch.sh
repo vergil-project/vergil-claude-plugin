@@ -9,6 +9,11 @@
 #     (absent included), so it never falls back to an inheriting agent;
 #   - a vergil:task-runner dispatch with a non-empty model, which would
 #     outrank the agent definition's pin;
+#   - a vergil:implementer dispatch whose model is anything but absent
+#     or "sonnet" (vergil-project/vergil-claude-plugin#1467). A first
+#     try passes no model and the one escalation retry passes
+#     model: "sonnet"; any other per-invocation model would outrank the
+#     Haiku pin. A non-string model is refused too;
 #   - a description whose first word is Task or Batch, followed by a
 #     space, that matches none of the forms (a malformed task run).
 # A description that only names a task among other words (a writer or
@@ -26,6 +31,8 @@ source "$SCRIPT_DIR/lib/managed-repo-check.sh"
 source "$SCRIPT_DIR/lib/hook-input.sh"
 
 RUNNER="vergil:task-runner"
+WRITER="vergil:implementer"
+WRITER_RETRY_MODEL="sonnet"
 
 hook_input_read gated
 hook_input_scope_dir
@@ -46,9 +53,10 @@ subagent_type=$(printf '%s' "$HOOK_INPUT" | jq -r \
   '.tool_input.subagent_type | if . == null then "" elif type == "string" then . else tojson end') ||
   hook_input_fail_closed "could not read tool_input.subagent_type from the hook input"
 
-# model: "set" when present and non-empty (any non-string counts as set).
-model_set=$(printf '%s' "$HOOK_INPUT" | jq -r \
-  '.tool_input.model | if . == null or . == "" then "no" else "set" end') ||
+# model as it is when a string, empty when absent, null or "", and its
+# JSON text otherwise (so a non-string never equals a model name).
+model=$(printf '%s' "$HOOK_INPUT" | jq -r \
+  '.tool_input.model | if . == null or . == "" then "" elif type == "string" then . else tojson end') ||
   hook_input_fail_closed "could not read tool_input.model from the hook input"
 
 deny() {
@@ -88,8 +96,12 @@ if [ "$is_task_run" = false ] && [[ "$description" =~ $TASK_LIKE ]]; then
   deny "description '$description' starts like a task run but matches none of the task-run forms; use one of: Task <id> <owner>/<repo>#<N>, Task <owner>/<repo>#<N>, Batch <ids> #<N>…, Batch #<N>…"
 fi
 
-if [ "$subagent_type" = "$RUNNER" ] && [ "$model_set" = set ]; then
+if [ "$subagent_type" = "$RUNNER" ] && [ -n "$model" ]; then
   deny "$RUNNER must not be dispatched with a model; its pin is in the agent definition"
+fi
+
+if [ "$subagent_type" = "$WRITER" ] && [ -n "$model" ] && [ "$model" != "$WRITER_RETRY_MODEL" ]; then
+  deny "$WRITER may be dispatched only with no model (a first try) or model \"$WRITER_RETRY_MODEL\" (the one retry), not model $model"
 fi
 
 exit 0
