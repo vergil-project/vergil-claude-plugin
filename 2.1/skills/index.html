@@ -785,6 +785,8 @@
       
         
       
+        
+      
     
     
     
@@ -837,6 +839,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v2.1.100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1.100
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -5930,8 +5960,10 @@ push step. The skill then submits the PR itself with <code>vrg-submit-pr</code>
 (never <code>--release</code>), which opens it with auto-merge on and always
 finalizes, and owns the PR until it merges or needs the human: on a PR
 that does not merge it runs <a href="#pr-watch">pr-watch</a>, which fixes it,
-merge-reviews each fix and reruns <code>vrg-finalize-pr</code> itself. Releases and
-promotion stay the human's. It refuses an issue whose epic, as
+merge-reviews each fix and reruns <code>vrg-finalize-pr</code> itself. A watch that
+exits 6 (<code>held by release</code>) is not a failure: the agent reports the release
+it names and re-runs the same watch, and never turns auto-merge on by hand.
+Releases and promotion stay the human's. It refuses an issue whose epic, as
 <code>vrg-epic-parent</code> reads it through the chain, is the intake, planning or
 deferred epic (route it with <code>epic-review intake</code>, expand it with
 <code>epic-create</code>, or revive it with <code>epic-review deferred</code> first), mirroring the
@@ -5958,7 +5990,14 @@ human's ruling.</p>
 and records the list and a fixed base, then each issue is implemented,
 validated, merge-reviewed and folded to one commit in order on one
 branch, and <code>report-ready</code> records them as one PR. An issue that turns
-out unsuited to the batch stops it for the human, who may extract it.</p>
+out unsuited to the batch stops it for the human, who may extract it.
+A fix to a finished issue's commit in a running batch is folded into that
+commit (<code>fixup!</code> and autosquash), and that issue and every later one are
+merge-reviewed again before handoff, since a rewrite voids the record of
+each later commit; <code>vrg-pr-workflow batch-gates</code> confirms every commit is
+covered before <code>report-ready</code>. A clean rebase onto <code>origin/develop</code> before
+handoff is allowed: it voids no record and leaves the batch markers as
+they are. A fold or a rebase that conflicts is a batch stop.</p>
 <p><strong>When to use.</strong> In the user-agent session, to take an issue from
 implementation to its merge into <code>develop</code>. A <strong>cloud session</strong> does not
 submit: it stops after <code>report-ready</code>, which pushes a world-readable
@@ -6016,7 +6055,10 @@ terminal.</p>
 checks diff against the previous issue's commit (the batch marker's
 <code>base_sha</code> for the first issue), and every commit the run makes for the
 issue is a <code>vrg-commit --fixup</code> of the issue's first commit, which the
-review never folds; <code>issue-implement</code> folds it afterwards. See its
+review never folds; <code>issue-implement</code> folds it afterwards. A run may
+review an issue while later issues' commits sit on the branch, after a
+fix folded into that issue's commit: its fixups fold into that commit
+only, and the base is read afresh after a fold or a clean rebase. See its
 <a href="https://github.com/vergil-project/vergil-claude-plugin/blob/develop/skills/merge-review/SKILL.md#in-a-batch">In a batch</a> section.</p>
 <p>A fix to an open PR, which <code>pr-watch</code> reviews before it pushes, is
 reviewed as the whole branch against <code>origin/develop</code>, and every step
@@ -6129,8 +6171,8 @@ and pushed, and the wait runs again. A required check cancelled with no
 newer run to replace it (<code>check_cancelled</code>, or finalize's
 <code>failed: cancelled</code>) is re-run with no code change, and the wait runs
 again; a check cancelled by a superseding run counts as pending, so it is
-never reported. Auto-merge off, a closed PR, an
-orphaned check or the deadline passing (<code>timed_out</code>) stops for the human.
+never reported. A closed PR, an orphaned check or the deadline passing
+(<code>timed_out</code>) stops for the human.
 Any other exit is a tool error and stops it too. A new review never ends
 the wait, so pr-watch reads the PR's review, conversation and inline
 comments itself, before each wait and after it returns, through
@@ -6151,13 +6193,15 @@ PR goes through <code>vrg-submit-pr --push</code> (with <code>--force-with-lease
 rebase or a fold), which judges the new head before it pushes it, never
 through <code>vrg-git push</code>; a refused push stops it for the human, with its
 reason. After a fix is pushed it
-reruns <code>vrg-finalize-pr &lt;PR&gt;</code> itself, never with <code>--release</code>, which
-re-checks the merge-review gate on the new head and counts the PR once it
-lands. It never merges and never turns auto-merge on or off: auto-merge
-off, a provenance violation, or a head the gates' re-check fails
-(<code>failed: gates</code>) stops it for the human. A logbook PR (one titled
-<code>Logbook:</code>) is no exception: every fix to it is merge-reviewed like any
-other.</p>
+reruns <code>vrg-finalize-pr &lt;PR&gt;</code> itself, never with <code>--release</code>, which waits
+for the fixed head and counts the PR once it lands; the push itself judged
+that head. It never merges and never turns auto-merge on or off. A PR the
+one PR path refuses to re-arm (<code>failed: refused</code>) stops it for the human,
+with the reason the path gives. A release that holds the lock is not a
+failure: the watch exits 6 (<code>held by release</code>) at the deadline, and it
+reports the release it names and re-runs the same watch, never arming
+auto-merge by hand. A logbook PR (one titled <code>Logbook:</code>) is no exception:
+every fix to it is merge-reviewed like any other.</p>
 <p>On a batch PR (one whose body has more than one <code>Closes</code> line), every fix
 is a <code>vrg-commit --fixup</code> of its issue's commit, folded with
 <code>vrg-git rebase -i --autosquash</code> onto the branch's merge base with
